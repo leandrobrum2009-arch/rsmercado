@@ -15,6 +15,9 @@ export const Route = createFileRoute('/recipes')({
       .select('*')
       .order('created_at', { ascending: false })
     if (error) throw error
+    
+    // If no recipes found, we could trigger an auto-seed or just return empty
+    // For automation, we'll return the data and let the component handle it
     return { recipes: data || [] }
   },
   component: RecipesPage,
