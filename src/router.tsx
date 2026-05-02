@@ -54,13 +54,26 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
   );
 }
 
+function DefaultPendingComponent() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 animate-pulse">
+        Sincronizando Ofertas...
+      </p>
+    </div>
+  );
+}
+
 export const getRouter = () => {
   const router = createRouter({
     routeTree,
     context: {},
     scrollRestoration: true,
+    defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
+    defaultPendingComponent: DefaultPendingComponent,
   });
 
    return router;

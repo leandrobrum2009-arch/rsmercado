@@ -9,18 +9,27 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/recipes')({
+  loader: async () => {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    
+    // If no recipes found, we could trigger an auto-seed or just return empty
+    // For automation, we'll return the data and let the component handle it
+    return { recipes: data || [] }
+  },
   component: RecipesPage,
 })
 
 function RecipesPage() {
-  const [recipes, setRecipes] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { recipes } = Route.useLoaderData()
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
   const [savedRecipes, setSavedRecipes] = useState<string[]>([])
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    fetchRecipes()
     checkUser()
   }, [])
 
@@ -58,27 +67,6 @@ function RecipesPage() {
     }
   }
 
-  const fetchRecipes = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false })
-      if (error) throw error
-      setRecipes(data || [])
-    } catch (error) {
-      toast.error('Erro ao carregar feed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="animate-spin h-12 w-12 text-green-600" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preparando o banquete...</p>
-      </div>
-    )
-  }
 
   return (
     <div className="bg-zinc-50 min-h-screen pb-20">
