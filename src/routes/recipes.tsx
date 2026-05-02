@@ -4,9 +4,11 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Sparkles } from 'lucide-react'
+import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Sparkles, BrainCircuit, Plus, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 export const Route = createFileRoute('/recipes')({
   loader: async () => {
@@ -28,6 +30,10 @@ function RecipesPage() {
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
   const [savedRecipes, setSavedRecipes] = useState<string[]>([])
   const [user, setUser] = useState<any>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [aiInput, setAiInput] = useState('')
+  const [isAiGenerating, setIsAiGenerating] = useState(false)
 
   useEffect(() => {
     checkUser()
@@ -36,12 +42,48 @@ function RecipesPage() {
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser()
     setUser(data.user)
-    if (data.user) {
+    if (data?.user) {
+      setIsAdmin(data.user.email === 'leandrobrum2009@gmail.com')
       const { data: saved } = await supabase
         .from('user_recipes')
         .select('recipe_id')
         .eq('user_id', data.user.id)
       setSavedRecipes(saved?.map(s => s.recipe_id) || [])
+    }
+  }
+
+  const handleCreateAiRecipe = async () => {
+    if (!aiInput.trim()) return toast.error('Digite os produtos para a IA')
+    setIsAiGenerating(true)
+    
+    try {
+      // Simulate AI thinking
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const products = aiInput.split(',').map(p => p.trim())
+      const mainProduct = products[0] || 'Ingrediente'
+      
+      const newRecipe = {
+        title: `Especial IA: O Segredo do ${mainProduct}`,
+        description: `Nossa inteligência artificial elaborou uma reportagem gastronômica exclusiva utilizando: ${aiInput}. Descubra como transformar itens simples em um prato de alta culinária.`,
+        instructions: `1. Preparação: Reúna todos os itens: ${aiInput}.\n2. Processamento: Comece preparando a base do prato com cuidado.\n3. Cocção: Mantenha o fogo controlado para preservar os nutrientes.\n4. Finalização: Sirva imediatamente com um toque de azeite e ervas frescas.`,
+        category: 'Reportagem IA',
+        difficulty: 'Média',
+        image_url: `https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop`,
+        ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
+      }
+
+      const { error } = await supabase.from('recipes').insert(newRecipe)
+      if (error) throw error
+      
+      toast.success('Receita gerada e publicada no feed!')
+      setIsAiModalOpen(false)
+      setAiInput('')
+      // Refresh page to see new recipe
+      window.location.reload()
+    } catch (error: any) {
+      toast.error('Erro ao gerar: ' + error.message)
+    } finally {
+      setIsAiGenerating(false)
     }
   }
 
@@ -76,10 +118,20 @@ function RecipesPage() {
             <Sparkles className="text-amber-500" size={16} />
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Gastronomia & Tendências</span>
           </div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Feed de Receitas</h1>
-          <p className="text-zinc-500 font-medium text-sm max-w-xl">
-            Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade SuperLoja.
-          </p>
+          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Feed de Notícias</h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <p className="text-zinc-500 font-medium text-sm max-w-xl">
+              Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade SuperLoja em formato de notícias.
+            </p>
+            {isAdmin && (
+              <Button 
+                onClick={() => setIsAiModalOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-200 rounded-2xl self-start md:self-center"
+              >
+                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -189,6 +241,43 @@ function RecipesPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
+        <DialogContent className="max-w-md rounded-[40px] border-8 border-purple-50 p-6">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
+              <Sparkles className="text-purple-600" size={24} />
+            </div>
+            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl leading-none mb-2">Redator Gourmet IA</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest">
+              Quais ingredientes temos para a pauta de hoje?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Produtos no Estoque</Label>
+              <Textarea 
+                placeholder="Ex: Picanha, Batata, Alecrim..." 
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                className="min-h-[120px] border-4 border-zinc-50 rounded-3xl focus:border-purple-200 transition-all text-sm font-medium p-4"
+              />
+              <p className="text-[9px] font-bold text-zinc-400 uppercase">Separe por vírgula para melhores resultados</p>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-3">
+            <Button variant="ghost" onClick={() => setIsAiModalOpen(false)} className="font-black uppercase text-[10px] rounded-2xl h-12 order-2 sm:order-1">Cancelar</Button>
+            <Button 
+              onClick={handleCreateAiRecipe} 
+              disabled={isAiGenerating}
+              className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px] rounded-2xl px-8 h-12 shadow-lg shadow-purple-200 order-1 sm:order-2 flex-1"
+            >
+              {isAiGenerating ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              Gerar Matéria
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
