@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
 import { CategoryManagement } from '@/components/admin/CategoryManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
-import { NewsManager } from '@/components/admin/NewsManager'
+import { RecipeManager } from '@/components/admin/RecipeManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
@@ -114,7 +114,7 @@ function RouteComponent() {
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="importer">Importação</TabsTrigger>
-          <TabsTrigger value="news">Notícias</TabsTrigger>
+          <TabsTrigger value="recipes">Receitas</TabsTrigger>
           <TabsTrigger value="flyers">Encartes</TabsTrigger>
           <TabsTrigger value="banners">Banners</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
@@ -137,8 +137,8 @@ function RouteComponent() {
           <ProductImporter />
         </TabsContent>
         
-        <TabsContent value="news">
-          <NewsManager />
+        <TabsContent value="recipes">
+          <RecipeManager />
         </TabsContent>
 
         <TabsContent value="flyers">

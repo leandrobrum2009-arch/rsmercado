@@ -1,5 +1,5 @@
   import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu, ShieldCheck } from "lucide-react";
+  import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
   import { supabase } from "@/lib/supabase";
@@ -111,7 +111,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
      { name: "Início", path: "/", icon: Home },
      { name: "Buscar", path: "/search", icon: Search },
      { name: "Carrinho", path: "/cart", icon: ShoppingCart, badge: cartCount },
-     { name: "Notícias", path: "/news", icon: Newspaper },
+     { name: "Receitas", path: "/recipes", icon: ChefHat },
      { name: "Perfil", path: "/profile", icon: User },
    ];
  
