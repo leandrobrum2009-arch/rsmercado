@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { NewsManager } from '@/components/admin/NewsManager'
+import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
@@ -38,10 +39,11 @@ function RouteComponent() {
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="importer">Importação Automática</TabsTrigger>
           <TabsTrigger value="news">Notícias/Blog</TabsTrigger>
+          <TabsTrigger value="flyers">Gerador de Encartes</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products">
@@ -54,6 +56,10 @@ function RouteComponent() {
         
         <TabsContent value="news">
           <NewsManager />
+        </TabsContent>
+
+        <TabsContent value="flyers">
+          <FlyerCreator />
         </TabsContent>
       </Tabs>
     </div>
