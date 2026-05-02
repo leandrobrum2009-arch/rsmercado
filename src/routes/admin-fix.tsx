@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
- import { ShieldAlert, Loader2, Zap } from 'lucide-react'
+import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw } from 'lucide-react'
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -17,6 +17,24 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
    const [seeding, setSeeding] = useState(false)
+   const [currentUser, setCurrentUser] = useState<any>(null)
+   const [userRole, setUserRole] = useState<string | null>(null)
+ 
+   useEffect(() => {
+     const fetchUser = async () => {
+       const { data: { session } } = await supabase.auth.getSession()
+       if (session) {
+         setCurrentUser(session.user)
+         const { data } = await supabase
+           .from('user_roles')
+           .select('role')
+           .eq('user_id', session.user.id)
+           .maybeSingle()
+         setUserRole(data?.role || 'user')
+       }
+     }
+     fetchUser()
+   }, [])
 
    const handleSeedRecipes = async () => {
      setSeeding(true)
@@ -45,13 +63,40 @@ function AdminFix() {
          ingredients: [{ name: 'Ingrediente Principal', quantity: '500g' }, { name: 'Temperos', quantity: 'a gosto' }]
        }))
 
-       const { error } = await supabase.from('recipes').insert(mockRecipes)
-       if (error) throw error
-       setStatus('SUCESSO! 40 receitas foram cadastradas no sistema.')
+       const { error } = await supabase.from('recipes').upsert(
+         mockRecipes.map(r => ({ ...r, author_id: currentUser?.id }))
+       )
+       if (error) {
+         const { error: insertError } = await supabase.from('recipes').insert(
+           mockRecipes.map(r => ({ ...r, author_id: currentUser?.id }))
+         )
+         if (insertError) throw insertError
+       }
+       setStatus('SUCESSO! 40 receitas foram cadastradas.')
      } catch (err: any) {
-       setStatus('ERRO ao semear: ' + err.message + '\n\nDica: Se erro for de permissão (RLS), clique primeiro em LIBERAR ACESSO ADMIN.')
+       setStatus('ERRO: ' + err.message)
      } finally {
        setSeeding(false)
+     }
+   }
+ 
+   const handleSyncProfile = async () => {
+     if (!currentUser) return
+     setLoading(true)
+     setStatus('Sincronizando perfil...')
+     try {
+       const { error } = await supabase.from('profiles').upsert({
+         id: currentUser.id,
+         full_name: currentUser.user_metadata?.full_name || currentUser.email,
+         avatar_url: currentUser.user_metadata?.avatar_url,
+         is_admin: userRole === 'admin'
+       })
+       if (error) throw error
+       setStatus('Perfil sincronizado!')
+     } catch (err: any) {
+       setStatus('Erro ao sincronizar: ' + err.message)
+     } finally {
+       setLoading(false)
      }
    }
     const handleConfirmEmail = async () => {
