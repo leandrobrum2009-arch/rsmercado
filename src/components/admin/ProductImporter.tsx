@@ -35,6 +35,31 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
+  const [scrapingProgress, setScrapingProgress] = useState<{current: number, total: number} | null>(null)
+  const [bulkInput, setBulkInput] = useState('')
+  const [showBulkInput, setShowBulkInput] = useState(false)
+  const handleBulkImport = () => {
+    const lines = bulkInput.split('\n').filter(l => l.trim().length > 0);
+    const products = lines.map((line, idx) => {
+      const [name, price, brand] = line.split(',').map(s => s.trim());
+      return {
+        id: `bulk-${idx}-${Math.random()}`,
+        name: name || 'Produto Sem Nome',
+        price: parseFloat(price) || 0,
+        brand: brand || 'Marca Própria',
+        category: 'Mercearia',
+        description: 'Importado via entrada manual rápida.',
+        image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400'
+      }
+    });
+    
+    const uniqueProducts = products.filter(p => !existingProductNames.has(normalizeString(p.name)));
+    setScrapedProducts(uniqueProducts);
+    setSelectedForImport(uniqueProducts.map(p => p.id));
+    setShowBulkInput(false);
+    toast.success(`${uniqueProducts.length} produtos processados do texto.`);
+  }
+
   const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
   const [importLogs, setImportLogs] = useState<any[]>([])
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
@@ -341,21 +366,32 @@ export function ProductImporter() {
       setAutoProgress(null)
     }
   }
-  const simulateScraping = async (categoryName: string) => {
+  const simulateScraping = async (categoryNames: string | string[]) => {
+    const cats = Array.isArray(categoryNames) ? categoryNames : [categoryNames];
     setIsScraping(true)
     setDiagnosticLog([])
-    addLog(`Escaneando site parceiro para ${categoryName}...`)
     setScrapedProducts([])
     setSelectedForImport([])
-    toast.info(`Escaneando site parceiro para ${categoryName}...`)
+    setScrapingProgress({ current: 0, total: cats.length })
     
+    addLog(`Iniciando escaneamento inteligente de ${cats.length} categorias...`)
+    toast.info(`Escanenando ${cats.length} categorias...`)
+    
+    let allSamples: any[] = [];
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      let samples: any[] = []
-      const catKey = categoryName.toLowerCase()
-      
-      if (catKey.includes('mercearia')) {
+      for (let i = 0; i < cats.length; i++) {
+        const categoryName = cats[i];
+        setScrapingProgress({ current: i + 1, total: cats.length })
+        addLog(`Conectando ao site parceiro para: ${categoryName}...`)
+        
+        // Artificial delay for realism
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        let samples: any[] = []
+        const catKey = categoryName.toLowerCase()
+
+        if (catKey.includes('mercearia')) {
         samples = [
           { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
           { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
@@ -390,35 +426,30 @@ export function ProductImporter() {
         samples = [
           { id: 's12', name: 'Picanha Bovina Resfriada (kg)', price: 79.90, description: 'Carne bovina de primeira.', category: 'Açougue', brand: 'Swift', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
         ]
-      } else {
-        samples = [
-          { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
-        ]
-      }
-
-      setScrapedProducts(samples)
-      setSelectedForImport(samples.map(p => p.id))
-      // Simulate finding more products
-      const moreSamples = [...samples];
-      if (samples.length > 0) {
-        for (let i = 1; i <= 21; i++) {
-          const base = samples[i % samples.length];
-          moreSamples.push({
-            ...base,
-            id: `s-extra-${i}`,
-            name: `${base.name} - Opção ${i}`,
-            price: base.price + (Math.random() * 5),
-          });
+        } else {
+          samples = [
+            { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
+          ]
         }
+        allSamples = [...allSamples, ...samples];
       }
 
-      setScrapedProducts(moreSamples)
-      setSelectedForImport(moreSamples.map(p => p.id))
-      toast.success(`${moreSamples.length} produtos encontrados (lote de 25). Revise a lista abaixo.`)
+      // Final filter to remove duplicates already in DB
+      const uniqueSamples = allSamples.filter(p => !existingProductNames.has(normalizeString(p.name)));
+      
+      setScrapedProducts(uniqueSamples)
+      setSelectedForImport(uniqueSamples.map(p => p.id))
+      
+      if (uniqueSamples.length === 0 && allSamples.length > 0) {
+        toast.info("Todos os produtos encontrados já constam no catálogo.")
+      } else {
+        toast.success(`${uniqueSamples.length} novos produtos identificados para importação.`)
+      }
     } catch (error) {
-      toast.error('Erro ao conectar com o site parceiro.')
+      toast.error('Falha na conexão com o site parceiro.')
     } finally {
       setIsScraping(false)
+      setScrapingProgress(null)
     }
   }
 
@@ -431,16 +462,20 @@ export function ProductImporter() {
       let successCount = 0;
       let i = 0;
 
+      const currentExisting = new Set(existingProductNames);
+      
       for (const product of toImport) {
-        // Duplicate check
         const normalizedCurrent = normalizeString(product.name);
-        const isDuplicate = existingProductNames.has(normalizedCurrent);
         addLog(`Processando: ${product.name}...`)
-        if (isDuplicate) {
-          console.log(`Pulando duplicado: ${product.name}`);
+        
+        if (currentExisting.has(normalizedCurrent)) {
+          addLog(`Pulando duplicado detectado: ${product.name}`)
           continue;
         }
 
+        // Add to local set immediately to prevent duplicates within the same batch
+        currentExisting.add(normalizedCurrent);
+        
         let { data: catData } = await supabase
           .from('categories')
           .select('id')
@@ -787,20 +822,78 @@ export function ProductImporter() {
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="text-primary" /> Importação Inteligente (Web Scraping)
-            </CardTitle>
-          <div className="flex justify-between items-start">
-            <CardDescription>
-              Selecione as categorias do site parceiro para escanear e cadastrar.
-            </CardDescription>
-            <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-              <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar Banco
-            </Button>
-          </div>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="text-primary" /> Importação Inteligente (Web Scraping)
+                </CardTitle>
+                <CardDescription>
+                  Selecione as categorias do site parceiro para escanear e cadastrar.
+                </CardDescription>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50 h-8">
+                  <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar Banco
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowBulkInput(!showBulkInput)}
+                  className="text-[10px] font-black uppercase h-8"
+                >
+                  {showBulkInput ? 'Ocultar Entrada Manual' : 'Entrada Manual (CSV/Lista)'}
+                </Button>
+              </div>
+            </div>
+            
+            {showBulkInput && (
+              <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 space-y-4 animate-in fade-in slide-in-from-top-2 mt-4">
+                <div className="flex justify-between items-center">
+                  <p className="font-black uppercase text-[10px] text-zinc-500 tracking-widest">Importação por Texto</p>
+                  <p className="text-[9px] text-zinc-400">Formato: Nome, Preço, Marca (uma por linha)</p>
+                </div>
+                <textarea 
+                  className="w-full h-32 p-3 text-xs font-mono border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                  placeholder="Arroz 5kg, 32.90, Prato Fino&#10;Feijão 1kg, 9.40, Camil"
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                />
+                <Button 
+                  onClick={handleBulkImport}
+                  className="w-full bg-zinc-900 text-white font-black uppercase text-[10px]"
+                  disabled={!bulkInput.trim()}
+                >
+                  Processar Lista
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center bg-zinc-50 p-4 rounded-xl border border-zinc-100">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Zap className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-500 tracking-widest">Escaneamento Rápido</p>
+                    <p className="font-bold text-sm">Capturar todas as categorias principais agora</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => simulateScraping(['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'])} 
+                  disabled={isScraping}
+                  className="bg-green-600 hover:bg-green-700 font-black uppercase italic tracking-tighter"
+                >
+                  {isScraping && scrapingProgress ? (
+                    <><Loader2 className="animate-spin mr-2 h-4 w-4" /> {Math.round((scrapingProgress.current / scrapingProgress.total) * 100)}%</>
+                  ) : (
+                    'Escanear Tudo'
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
               {['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'].map(cat => (
                 <Button 
                   key={cat}
@@ -813,6 +906,7 @@ export function ProductImporter() {
                   Escanear {cat}
                 </Button>
               ))}
+              </div>
             </div>
 
             {scrapedProducts.length > 0 && (
@@ -936,8 +1030,8 @@ export function ProductImporter() {
           </CardContent>
         </Card>
       </div>
-        </>
-      )}
+    </>
+  )}
 
       <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
         <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
