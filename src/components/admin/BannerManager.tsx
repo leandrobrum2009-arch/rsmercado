@@ -13,7 +13,7 @@ export function BannerManager() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
-  const [newBanner, setNewBanner] = useState({ image_url: '', category_id: '', link_url: '' })
+  const [newBanner, setNewBanner] = useState({ image_url: '', category_id: '', link_url: '', is_active: true })
 
   useEffect(() => {
     fetchData()
@@ -39,7 +39,7 @@ export function BannerManager() {
       toast.error('Erro ao adicionar banner')
     } else {
       toast.success('Banner adicionado!')
-      setNewBanner({ image_url: '', category_id: '', link_url: '' })
+      setNewBanner({ image_url: '', category_id: '', link_url: '', is_active: true })
       fetchData()
     }
   }

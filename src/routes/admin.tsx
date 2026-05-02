@@ -37,12 +37,6 @@ export const Route = createFileRoute('/admin')({
         })
       }
 
-      // MASTER BYPASS for the owner
-      if (session.user.email === 'leandrobrum2009@gmail.com') {
-        console.log('Admin check: MASTER BYPASS for owner');
-        return true;
-      }
-
       try {
         // Secure check using user_roles table
         const { data: roleData, error: roleError } = await supabase
