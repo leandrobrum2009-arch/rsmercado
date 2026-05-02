@@ -88,15 +88,7 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
         onUpdate();
       }
  
-      setLoading(false);
- 
-     setLoading(false)
-     if (error) {
-       toast.error('Erro ao atualizar perfil')
-     } else {
-       toast.success('Perfil atualizado!')
-       onUpdate()
-     }
+       setLoading(false)
    }
  
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
