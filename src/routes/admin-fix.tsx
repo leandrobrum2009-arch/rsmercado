@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
- import { ShieldAlert, Loader2, Zap } from 'lucide-react'
+import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw } from 'lucide-react'
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -17,6 +17,24 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
    const [seeding, setSeeding] = useState(false)
+   const [currentUser, setCurrentUser] = useState<any>(null)
+   const [userRole, setUserRole] = useState<string | null>(null)
+ 
+   useEffect(() => {
+     const fetchUser = async () => {
+       const { data: { session } } = await supabase.auth.getSession()
+       if (session) {
+         setCurrentUser(session.user)
+         const { data } = await supabase
+           .from('user_roles')
+           .select('role')
+           .eq('user_id', session.user.id)
+           .maybeSingle()
+         setUserRole(data?.role || 'user')
+       }
+     }
+     fetchUser()
+   }, [])
 
    const handleSeedRecipes = async () => {
      setSeeding(true)
@@ -45,13 +63,40 @@ function AdminFix() {
          ingredients: [{ name: 'Ingrediente Principal', quantity: '500g' }, { name: 'Temperos', quantity: 'a gosto' }]
        }))
 
-       const { error } = await supabase.from('recipes').insert(mockRecipes)
-       if (error) throw error
-       setStatus('SUCESSO! 40 receitas foram cadastradas no sistema.')
+       const { error } = await supabase.from('recipes').upsert(
+         mockRecipes.map(r => ({ ...r, author_id: currentUser?.id }))
+       )
+       if (error) {
+         const { error: insertError } = await supabase.from('recipes').insert(
+           mockRecipes.map(r => ({ ...r, author_id: currentUser?.id }))
+         )
+         if (insertError) throw insertError
+       }
+       setStatus('SUCESSO! 40 receitas foram cadastradas.')
      } catch (err: any) {
-       setStatus('ERRO ao semear: ' + err.message + '\n\nDica: Se erro for de permissão (RLS), clique primeiro em LIBERAR ACESSO ADMIN.')
+       setStatus('ERRO: ' + err.message)
      } finally {
        setSeeding(false)
+     }
+   }
+ 
+   const handleSyncProfile = async () => {
+     if (!currentUser) return
+     setLoading(true)
+     setStatus('Sincronizando perfil...')
+     try {
+       const { error } = await supabase.from('profiles').upsert({
+         id: currentUser.id,
+         full_name: currentUser.user_metadata?.full_name || currentUser.email,
+         avatar_url: currentUser.user_metadata?.avatar_url,
+         is_admin: userRole === 'admin'
+       })
+       if (error) throw error
+       setStatus('Perfil sincronizado!')
+     } catch (err: any) {
+       setStatus('Erro ao sincronizar: ' + err.message)
+     } finally {
+       setLoading(false)
      }
    }
     const handleConfirmEmail = async () => {
@@ -110,22 +155,38 @@ function AdminFix() {
      }
    }
 
-  return (
-    <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
-      <div className="mb-6 px-8 py-4 bg-green-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center">
-        🚀 RECUPERAÇÃO TOTAL ATIVADA <br/>
-        <span className="text-[10px] opacity-80 uppercase tracking-widest">Não precisa mais de senha ou chaves (v2.1)</span>
-      </div>
-      
-      <Card className="w-full max-w-md border-8 border-green-500 shadow-2xl overflow-hidden">
-        <div className="bg-green-500 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
-          Siga os passos abaixo na ordem
-        </div>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShieldAlert className="text-red-500" /> Recuperar Acesso Admin
-          </CardTitle>
-        </CardHeader>
+   return (
+     <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
+       <div className="mb-6 px-8 py-4 bg-red-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center max-w-md">
+         ⚠️ MODO DE REPARAÇÃO AVANÇADO <br/>
+         <span className="text-[10px] opacity-80 uppercase tracking-widest">Utilize apenas se o acesso administrativo estiver bloqueado</span>
+       </div>
+ 
+       {currentUser && (
+         <div className="w-full max-w-md mb-6 bg-white p-4 rounded-xl border-2 border-zinc-200 shadow-sm flex items-center gap-4">
+           <div className="bg-zinc-100 p-3 rounded-full">
+             <UserCheck className="text-zinc-600" />
+           </div>
+           <div className="flex-1">
+             <p className="text-[10px] text-zinc-500 uppercase font-bold">Logado como:</p>
+             <p className="text-sm font-black text-zinc-900 truncate">{currentUser.email}</p>
+             <p className="text-[10px] font-bold text-green-600 uppercase">Role: {userRole || 'Carregando...'}</p>
+           </div>
+           <Button variant="ghost" size="sm" onClick={handleSyncProfile} disabled={loading}>
+             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+           </Button>
+         </div>
+       )}
+       
+       <Card className="w-full max-w-md border-4 border-zinc-900 shadow-2xl overflow-hidden">
+         <div className="bg-zinc-900 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
+           Painel de Diagnóstico e Reparo
+         </div>
+         <CardHeader>
+           <CardTitle className="flex items-center gap-2">
+             <ShieldAlert className="text-amber-500" /> Recuperação de Sistema
+           </CardTitle>
+         </CardHeader>
         <CardContent className="p-6 space-y-8">
           {/* STEP 1: Confirm Email */}
           <div className="space-y-4">
@@ -136,10 +197,10 @@ function AdminFix() {
             
             <div className="bg-amber-50 p-4 rounded-xl border-2 border-amber-200 shadow-sm space-y-3">
               <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
-                Use isso se o e-mail não chegou ou deu erro
+                Use se não recebeu o e-mail de confirmação
               </p>
               <Input 
-                placeholder="Digite seu e-mail de cadastro" 
+                placeholder="E-mail do cadastro" 
                 value={email} 
                 onChange={e => setEmail(e.target.value)}
                 className="bg-white h-12 text-sm border-amber-300 focus:ring-amber-500"
@@ -149,28 +210,28 @@ function AdminFix() {
                 disabled={confirming}
                 className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest"
               >
-                {confirming ? <Loader2 className="animate-spin mr-2" /> : 'CONFIRMAR E-MAIL AGORA'}
+                {confirming ? <Loader2 className="animate-spin mr-2" /> : 'FORÇAR CONFIRMAÇÃO'}
               </Button>
             </div>
           </div>
-
+ 
           {/* STEP 2: Get Admin */}
           <div className="space-y-4 border-t pt-8">
             <div className="flex items-center gap-3">
               <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
-              <h3 className="font-black text-gray-900 uppercase tracking-tight">Liberar Painel Admin</h3>
+              <h3 className="font-black text-gray-900 uppercase tracking-tight">Privilégios Admin</h3>
             </div>
-
+ 
             <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200 shadow-sm space-y-3 text-center">
               <p className="text-[10px] text-green-800 font-bold leading-tight uppercase mb-4">
-                Primeiro faça login em seu perfil, depois volte aqui
+                Concede privilégios totais de administrador
               </p>
               <Button 
                 onClick={handleFix} 
                 disabled={loading}
                 className="w-full h-16 bg-green-600 hover:bg-green-700 text-white font-black text-lg uppercase tracking-tighter"
               >
-                {loading ? <Loader2 className="animate-spin mr-2" /> : 'LIBERAR ACESSO ADMIN'}
+                {loading ? <Loader2 className="animate-spin mr-2" /> : 'LIBERAR ACESSO TOTAL'}
               </Button>
             </div>
           </div>
