@@ -116,7 +116,7 @@ export function ProductImporter() {
           .update({ image_url: autoImg, has_media_error: false })
           .eq('id', product.id)
         
-        toast.success(`Foto encontrada para: ${product.name}`, { duration: 1000 })
+        toast.success(`Foto encontrada para: ${product.name}`)
       }
       
       toast.success('Processamento concluído com sucesso!')
