@@ -87,98 +87,143 @@ export const Route = createFileRoute('/admin')({
 
 function RouteComponent() {
   const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+  const [activeTab, setActiveTab] = useState('products')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   
   useEffect(() => {
     const check = async () => {
       const { data } = await supabase.rpc('is_admin')
       setIsAdminDiagnostic(data)
-      console.log('Diagnostic: User is admin?', data)
     }
     check()
   }, [])
 
+  const menuItems = [
+    { id: 'orders', label: 'Pedidos', icon: ClipboardList },
+    { id: 'products', label: 'Produtos', icon: ShoppingBag },
+    { id: 'categories', label: 'Categorias', icon: Tag },
+    { id: 'importer', label: 'Importação', icon: Upload },
+    { id: 'recipes', label: 'Receitas', icon: ChefHat },
+    { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+    { id: 'banners', label: 'Banners', icon: ImageIcon },
+    { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+    { id: 'webhooks', label: 'Webhooks', icon: Webhook },
+    { id: 'settings', label: 'Configurações', icon: Settings },
+    { id: 'security', label: 'Segurança', icon: ShieldCheck },
+  ]
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      {isAdminDiagnostic === false && (
-        <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-          <p className="font-bold uppercase text-xs">Atenção: O Banco de Dados não te reconheceu como Admin.</p>
-          <p className="text-[10px]">Isso pode impedir que os produtos apareçam. Use a página /admin-fix para restaurar seu acesso.</p>
-        </div>
-      )}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-[10px] text-gray-400"
-          onClick={() => {
-            supabase.auth.getSession().then(({data}) => {
-              alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nID: ${data.session?.user.id}\nAdmin State: ${isAdminDiagnostic}`)
-            })
-          }}
-        >
-          <Bug className="h-3 w-3 mr-1" /> Diagnóstico
+    <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
+        <h1 className="font-black italic uppercase text-lg tracking-tighter">Admin Panel</h1>
+        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          {sidebarOpen ? <X /> : <Menu />}
         </Button>
       </div>
-      
-      <Tabs defaultValue="products" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-11 gap-1 mb-8 text-[10px] md:text-xs">
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-          <TabsTrigger value="products">Produtos</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
-          <TabsTrigger value="importer">Importação</TabsTrigger>
-          <TabsTrigger value="recipes">Receitas</TabsTrigger>
-          <TabsTrigger value="flyers">Encartes</TabsTrigger>
-          <TabsTrigger value="banners">Banners</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-           <TabsTrigger value="settings">Configurações</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
-        </TabsList>
-         <TabsContent value="settings">
-           <StoreSettingsManager />
-         </TabsContent>
- 
-        <TabsContent value="security">
-          <RLSAuditor />
-        </TabsContent>
-        
-        <TabsContent value="products">
-          <ProductManagement />
-        </TabsContent>
-        
-        <TabsContent value="categories">
-          <CategoryManagement />
-        </TabsContent>
 
-        <TabsContent value="importer">
-          <ProductImporter />
-        </TabsContent>
-        
-        <TabsContent value="recipes">
-          <RecipeManager />
-        </TabsContent>
+      {/* Sidebar Navigation */}
+      <div className={cn(
+        "fixed inset-0 z-40 bg-zinc-900 text-zinc-400 transition-transform md:relative md:translate-x-0 md:w-64 flex-shrink-0 flex flex-col border-r border-zinc-800",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-6 hidden md:block">
+          <h1 className="font-black italic uppercase text-2xl tracking-tighter text-white">Painel Gestor</h1>
+          <p className="text-[10px] uppercase font-bold text-zinc-500 mt-1">Controle de Operações</p>
+        </div>
 
-        <TabsContent value="flyers">
-          <FlyerCreator />
-        </TabsContent>
+        <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto pb-20 md:pb-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id)
+                setSidebarOpen(false)
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase transition-all",
+                activeTab === item.id 
+                  ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
+                  : "hover:bg-zinc-800 hover:text-white"
+              )}
+            >
+              <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-        <TabsContent value="banners">
-          <BannerManager />
-        </TabsContent>
+        <div className="p-4 border-t border-zinc-800">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-[10px] text-zinc-500 hover:text-white"
+            onClick={() => {
+              supabase.auth.getSession().then(({data}) => {
+                alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nAdmin State: ${isAdminDiagnostic}`)
+              })
+            }}
+          >
+            <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
+          </Button>
+        </div>
+      </div>
 
-        <TabsContent value="orders">
-          <OrderManagement />
-        </TabsContent>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+          {isAdminDiagnostic === false && (
+            <div className="mb-8 p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center gap-4 animate-pulse">
+              <div className="bg-red-500 text-white p-2 rounded-full">
+                <ShieldCheck />
+              </div>
+              <div>
+                <p className="font-black uppercase text-xs text-red-900">Acesso Restrito no Banco</p>
+                <p className="text-[10px] text-red-700 font-bold">O banco de dados não te reconheceu como Admin. Algumas funções podem falhar.</p>
+              </div>
+              <Button size="sm" className="ml-auto bg-red-600 font-bold text-[10px]" onClick={() => window.location.href = '/admin-fix'}>REPARAR</Button>
+            </div>
+          )}
 
-        <TabsContent value="whatsapp">
-          <WhatsAppManager />
-        </TabsContent>
-
-        <TabsContent value="webhooks">
-          <WebhookManager />
-        </TabsContent>
-      </Tabs>
+          <div className="max-w-6xl mx-auto">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsContent value="settings" className="mt-0 focus-visible:ring-0">
+                <StoreSettingsManager />
+              </TabsContent>
+              <TabsContent value="security" className="mt-0 focus-visible:ring-0">
+                <RLSAuditor />
+              </TabsContent>
+              <TabsContent value="products" className="mt-0 focus-visible:ring-0">
+                <ProductManagement />
+              </TabsContent>
+              <TabsContent value="categories" className="mt-0 focus-visible:ring-0">
+                <CategoryManagement />
+              </TabsContent>
+              <TabsContent value="importer" className="mt-0 focus-visible:ring-0">
+                <ProductImporter />
+              </TabsContent>
+              <TabsContent value="recipes" className="mt-0 focus-visible:ring-0">
+                <RecipeManager />
+              </TabsContent>
+              <TabsContent value="flyers" className="mt-0 focus-visible:ring-0">
+                <FlyerCreator />
+              </TabsContent>
+              <TabsContent value="banners" className="mt-0 focus-visible:ring-0">
+                <BannerManager />
+              </TabsContent>
+              <TabsContent value="orders" className="mt-0 focus-visible:ring-0">
+                <OrderManagement />
+              </TabsContent>
+              <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
+                <WhatsAppManager />
+              </TabsContent>
+              <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
+                <WebhookManager />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
