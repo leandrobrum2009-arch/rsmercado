@@ -2,7 +2,8 @@
  import { CategoryBar } from "../components/home/CategoryBar";
  import { ProductGrid } from "../components/home/ProductGrid";
  import { StoriesCarousel } from "../components/home/StoriesCarousel";
- import { Search } from "lucide-react";
+import { Search, BookOpen } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -67,8 +68,40 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-       <ProductGrid title="Destaques" />
-       <ProductGrid title="Mais Vendidos" />
+        <ProductGrid title="Destaques" />
+
+        {/* Encartes Digitais */}
+        <div className="px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <BookOpen size={20} className="text-green-600" />
+              Encartes Digitais
+            </h2>
+            <button className="text-green-600 text-sm font-bold">VER TODOS</button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="min-w-[280px] bg-white rounded-2xl shadow-sm border p-2">
+                <img 
+                  src={i === 1 ? "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600" : "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600"} 
+                  alt="Encarte"
+                  className="w-full h-40 object-cover rounded-xl mb-3"
+                />
+                <div className="flex justify-between items-center px-2 pb-1">
+                  <div>
+                    <h3 className="font-bold text-sm">Ofertas de Fim de Semana</h3>
+                    <p className="text-[10px] text-gray-500">Válido até 15/05</p>
+                  </div>
+                  <button className="bg-green-600 text-white p-2 rounded-lg">
+                    <Search size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <ProductGrid title="Mais Vendidos" />
  
        {/* First Purchase Coupon */}
        <div className="px-4 py-6">
