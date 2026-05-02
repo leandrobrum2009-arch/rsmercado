@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Save, User, Calendar, Users, Camera } from 'lucide-react'
+import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
@@ -17,9 +17,29 @@
      avatar_url: profile?.avatar_url || ''
    })
  
-   const handleSave = async () => {
-     if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
-     
+    const handleSave = async () => {
+      if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
+      if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
+      if (!formData.gender) return toast.error('Por favor, selecione seu sexo!')
+
+      // Validar idade
+      const birthDate = new Date(formData.birth_date)
+      const today = new Date()
+      if (birthDate > today) {
+        return toast.error('Data de nascimento não pode ser no futuro!')
+      }
+
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        // ainda não fez aniversário este ano
+      }
+      
+      if (age < 0 || age > 120) {
+        return toast.error('Data de nascimento inválida!')
+      }
+
+      setLoading(true)
      setLoading(true)
      const { error } = await supabase
        .from('profiles')
@@ -60,13 +80,40 @@
      toast.success('Foto carregada!')
    }
  
+    const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status
+
+    const calculateAge = (date: string) => {
+      if (!date) return null
+      const birthDate = new Date(date)
+      const today = new Date()
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      return age
+    }
+
+    const age = calculateAge(formData.birth_date)
+
    return (
      <Card className="bg-white border-2 border-zinc-100 shadow-xl overflow-hidden">
        <CardHeader className="bg-zinc-50 border-b">
          <CardTitle className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
            <User className="text-primary" /> Dados Pessoais
          </CardTitle>
-         <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Complete seu cadastro para receber descontos</CardDescription>
+          <div className="flex justify-between items-center">
+            <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Complete seu cadastro para receber descontos</CardDescription>
+            {isComplete ? (
+              <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
+                <CheckCircle size={12} /> Perfil Completo
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase animate-pulse">
+                <AlertCircle size={12} /> Dados Pendentes
+              </div>
+            )}
+          </div>
        </CardHeader>
        <CardContent className="p-6 space-y-6">
          <div className="flex flex-col items-center mb-6">
@@ -97,8 +144,13 @@
              />
            </div>
  
-           <div className="space-y-2">
-             <label className="text-[10px] font-black uppercase text-zinc-500">Data de Nascimento <span className="text-red-500">*</span></label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black uppercase text-zinc-500">Data de Nascimento <span className="text-red-500">*</span></label>
+                {age !== null && age >= 0 && (
+                  <span className="text-[10px] font-black text-primary uppercase">{age} Anos</span>
+                )}
+              </div>
              <div className="relative">
                <Input 
                  type="date"
