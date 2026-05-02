@@ -27,7 +27,42 @@ export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: (
     street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zip_code: ''
   })
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      return toast.error('A imagem deve ter no máximo 2MB')
+    }
+
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${profile.id}/${Math.random()}.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+
+      setFormData({ ...formData, avatar_url: publicUrl })
+      toast.success('Foto carregada! Salve as alterações para confirmar.')
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao subir foto. Verifique se o bucket "avatars" existe.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleUpdateProfile = async () => {
+    if (!formData.full_name.trim()) return toast.error('Nome é obrigatório')
+
     setLoading(true)
     const { error } = await supabase
       .from('profiles')
