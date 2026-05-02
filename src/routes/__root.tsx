@@ -148,7 +148,22 @@ function RootShell({ children }: { children: React.ReactNode }) {
    }
  
     const isAdminPage = location.pathname.startsWith('/admin');
-    const isSupabaseMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+    // Check for keys in environment or localStorage
+    const [supabaseConfig] = useState({
+      url: (typeof window !== 'undefined' ? localStorage.getItem('supabase_url') : null) || import.meta.env.VITE_SUPABASE_URL || '',
+      key: (typeof window !== 'undefined' ? localStorage.getItem('supabase_anon_key') : null) || import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+    });
+    
+    const isSupabaseMissing = !supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder';
+    const [showConfigModal, setShowConfigModal] = useState(false);
+    const [tempUrl, setTempUrl] = useState(supabaseConfig.url);
+    const [tempKey, setTempKey] = useState(supabaseConfig.key);
+
+    const saveConfig = () => {
+      localStorage.setItem('supabase_url', tempUrl);
+      localStorage.setItem('supabase_anon_key', tempKey);
+      window.location.reload();
+    };
 
  
     return (
@@ -164,12 +179,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => window.location.href = 'https://lovable.dev'}
-              className="bg-white text-red-600 p-2 rounded-lg"
-            >
-              <ExternalLink size={16} />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowConfigModal(true)}
+                className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors"
+              >
+                INSERIR CHAVES
+              </button>
+              <button 
+                onClick={() => window.location.href = 'https://lovable.dev'}
+                className="bg-white text-red-600 p-2 rounded-lg"
+              >
+                <ExternalLink size={16} />
+              </button>
+            </div>
           </div>
         )}
        {/* Desktop Header */}
@@ -263,7 +286,54 @@ function RootShell({ children }: { children: React.ReactNode }) {
            </div>
          </nav>
        )}
-       <Toaster position="top-center" />
+        {showConfigModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Configurar Supabase</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Cole aqui as chaves do seu projeto Supabase para restaurar a conexão.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">URL do Projeto</label>
+                  <input 
+                    type="text" 
+                    value={tempUrl} 
+                    onChange={(e) => setTempUrl(e.target.value)}
+                    placeholder="https://xxxx.supabase.co"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Chave Anon (Public)</label>
+                  <textarea 
+                    value={tempKey} 
+                    onChange={(e) => setTempKey(e.target.value)}
+                    placeholder="eyJhbGci..."
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm h-24 resize-none"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-8">
+                <button 
+                  onClick={() => setShowConfigModal(false)}
+                  className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={saveConfig}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 shadow-md"
+                >
+                  Salvar e Recarregar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <Toaster position="top-center" />
      </div>
    );
  }
