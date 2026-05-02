@@ -64,11 +64,16 @@ function AdminFix() {
    }
 
   return (
-    <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center">
-      <div className="mb-6 px-10 py-4 bg-green-600 text-white rounded-full font-black animate-pulse shadow-2xl">
-        🚀 VERSÃO 2.0 - TUDO DESBLOQUEADO
+    <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
+      <div className="mb-6 px-8 py-4 bg-green-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center">
+        🚀 RECUPERAÇÃO TOTAL ATIVADA <br/>
+        <span className="text-[10px] opacity-80 uppercase tracking-widest">Não precisa mais de senha ou chaves</span>
       </div>
-      <Card className="w-full max-w-md border-8 border-green-500 shadow-2xl">
+      
+      <Card className="w-full max-w-md border-8 border-green-500 shadow-2xl overflow-hidden">
+        <div className="bg-green-500 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
+          Siga os passos abaixo na ordem
+        </div>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldAlert className="text-red-500" /> Recuperar Acesso Admin
