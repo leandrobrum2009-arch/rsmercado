@@ -50,7 +50,9 @@ export function WhatsAppManager() {
         toast.success('Mensagem enviada com sucesso via API!')
       }
     } else {
-      toast.error('Erro ao enviar mensagem via API')
+      const errorMsg = result.result?.message || result.result?.error || 'Erro desconhecido';
+      toast.error(`Falha na API: ${errorMsg} (Status: ${result.status})`);
+      console.error('WhatsApp Test Error:', result);
     }
   }
 
@@ -86,6 +88,13 @@ export function WhatsAppManager() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg md:col-span-2 flex gap-3 text-blue-800 text-xs">
+              <ShieldCheck className="flex-shrink-0" />
+              <div>
+                <p className="font-bold uppercase mb-1">Dica de Configuração:</p>
+                <p>Se estiver usando <strong>Evolution API</strong>, certifique-se de que a <strong>API URL</strong> não termina com barra e que a <strong>API Key</strong> é o token correto da instância ou o Global Token.</p>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label>API URL</Label>
               <Input 
@@ -106,7 +115,7 @@ export function WhatsAppManager() {
               <Label>API Key / Token</Label>
               <Input 
                 type="password"
-                placeholder="Insira sua chave de autenticação" 
+                placeholder="Ex: apikey_123... ou token_abc..." 
                 value={config.apiKey}
                 onChange={(e) => setConfig({...config, apiKey: e.target.value})}
               />

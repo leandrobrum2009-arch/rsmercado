@@ -60,8 +60,10 @@ export const sendWhatsAppMessage = async (phone: string, message: string) => {
   }
 
   try {
-    // This is a generic implementation for Evolution API or similar
-    const response = await fetch(`${config.apiUrl}/message/sendText/${config.instanceId}`, {
+    // Sanitize URL: remove trailing slash if present
+    const baseUrl = config.apiUrl.replace(/\/$/, '');
+    
+    const response = await fetch(`${baseUrl}/message/sendText/${config.instanceId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,8 +75,19 @@ export const sendWhatsAppMessage = async (phone: string, message: string) => {
       })
     });
 
-    const result = await response.json();
-    return { success: response.ok, result, method: 'api' };
+    let result;
+    try {
+      result = await response.json();
+    } catch (e) {
+      result = { message: 'Erro ao processar resposta do servidor' };
+    }
+    
+    return { 
+      success: response.ok, 
+      result, 
+      status: response.status,
+      method: 'api' 
+    };
   } catch (error) {
     console.error('WhatsApp API Error:', error);
     return { success: false, error };

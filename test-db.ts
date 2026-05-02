@@ -1,17 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = 'https://woelvkuxkkhvausaoudk.supabase.co'
-const key = process.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://woelvkuxkkhvausaoudk.supabase.co'
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
-const supabase = createClient(url, key)
+console.log('Testing connection to:', supabaseUrl)
+console.log('Key length:', supabaseKey?.length || 0)
+
+const supabase = createClient(supabaseUrl, supabaseKey || '')
 
 async function test() {
-  const { data, error } = await supabase.from('recipes').select('*').limit(1)
+  const { data, error } = await supabase.from('store_settings').select('key').limit(1)
   if (error) {
-    console.error('Error:', error)
-    process.exit(1)
+    console.error('Connection failed:', error.message)
+    if (error.message.includes('API key')) {
+        console.log('RESULT: INVALID_API_KEY')
+    }
+  } else {
+    console.log('Connection successful!')
   }
-  console.log('Success:', data)
 }
 
 test()
