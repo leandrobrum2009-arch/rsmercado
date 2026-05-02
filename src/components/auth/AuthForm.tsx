@@ -11,8 +11,9 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
+   const [isSignUp, setIsSignUp] = useState(false)
+   const [errorMsg, setErrorMsg] = useState('')
+   const [resending, setResending] = useState(false)
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,8 +42,8 @@ export function AuthForm() {
       let msg = error.message || 'Erro na autenticação'
       if (msg === 'email rate limit exceeded') {
         msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O Supabase bloqueou novos cadastros temporariamente por segurança. Por favor, aguarde de 5 a 10 minutos ou use um e-mail diferente.'
-      } else if (msg.includes('confirm your email')) {
-        msg = 'E-MAIL NÃO CONFIRMADO: Por favor, verifique seu e-mail e clique no link de ativação antes de fazer login.'
+       } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
+         msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO. \n\n1. Verifique sua caixa de entrada e SPAM. \n2. Se o link do e-mail deu erro, é porque ele tentou abrir no "localhost". \n3. SOLUÇÃO: Copie o link do e-mail, cole no navegador e mude "localhost:5173" pelo endereço deste site.'
       } else if (msg.includes('Invalid login credentials')) {
         msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados ou confirme se já ativou sua conta pelo e-mail.'
       }
@@ -55,8 +56,10 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 ring-1 ring-black/5">
       <CardHeader className="bg-zinc-50/50 border-b pb-6 relative">
-        <div className="absolute -top-12 left-0 right-0 bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] font-bold text-amber-800 leading-tight shadow-sm">
-          💡 SE O LINK DO E-MAIL DER ERRO: Não se preocupe, isso ocorre por causa do redirecionamento. Apenas volte aqui e faça login manualmente com seu e-mail e senha.
+         <div className="absolute -top-16 left-0 right-0 bg-amber-50 border-2 border-amber-300 p-4 rounded-xl text-[11px] font-black text-amber-900 leading-tight shadow-xl z-10 animate-bounce">
+           ⚠️ SE O LINK DO E-MAIL NÃO FUNCIONAR: <br/>
+           Isso acontece se o Supabase estiver configurado para "localhost". <br/>
+           <span className="text-red-600 underline">SOLUÇÃO:</span> Copie o link recebido e substitua <span className="bg-white px-1">localhost:5173</span> pelo endereço deste site no seu navegador.
         </div>
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
@@ -99,10 +102,29 @@ export function AuthForm() {
             />
           </div>
           
-          <Button type="submit" className="w-full h-12 text-sm font-black shadow-lg rounded-xl transition-all active:scale-[0.98]" disabled={loading}>
+           <Button type="submit" className="w-full h-14 text-base font-black shadow-lg rounded-xl transition-all active:scale-[0.98] bg-primary hover:bg-primary/90" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isSignUp ? <UserPlus className="mr-2 h-5 w-5" /> : <LogIn className="mr-2 h-5 w-5" />)}
             {isSignUp ? 'CADASTRAR AGORA' : 'ENTRAR NO SISTEMA'}
           </Button>
+
+          {errorMsg.includes('E-MAIL') && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full h-12 border-2 border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-50"
+              onClick={async () => {
+                if (!email) return toast.error('Digite seu e-mail primeiro');
+                setResending(true);
+                const { error } = await supabase.auth.resend({ type: 'signup', email });
+                setResending(false);
+                if (error) toast.error(error.message);
+                else alert('E-mail reenviado! Verifique sua caixa de entrada.');
+              }}
+              disabled={resending}
+            >
+              {resending ? <Loader2 className="animate-spin mr-2" /> : 'REENVIAR E-MAIL DE ATIVAÇÃO'}
+            </Button>
+          )}
           
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>

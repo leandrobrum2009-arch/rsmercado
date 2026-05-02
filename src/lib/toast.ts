@@ -1,6 +1,8 @@
-export const toast = {
-  success: (msg: string) => { console.log('SUCCESS:', msg); },
-  error: (msg: string) => { console.error('ERROR:', msg); },
-  info: (msg: string) => { console.log('INFO:', msg); },
-  warning: (msg: string) => { console.warn('WARNING:', msg); },
-};
+ import { toast as sonnerToast } from "sonner";
+ 
+ export const toast = {
+   success: (msg: string) => { sonnerToast.success(msg); },
+   error: (msg: string) => { sonnerToast.error(msg); },
+   info: (msg: string) => { sonnerToast.info(msg); },
+   warning: (msg: string) => { sonnerToast.warning(msg); },
+ };
