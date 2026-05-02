@@ -1239,8 +1239,9 @@ export function ProductImporter() {
             <DialogTitle className="flex items-center gap-2 uppercase font-black tracking-tighter italic">
               <ImagePlus className="text-primary" /> Trocar Foto do Produto
             </DialogTitle>
-            <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-              Buscando a melhor imagem para: {photoSearchQuery}
+            <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-2">
+              <div className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Preferência: Fundo Branco</div>
+              <span>Buscando para: {photoSearchQuery}</span>
             </DialogDescription>
           </DialogHeader>
           
@@ -1275,10 +1276,18 @@ export function ProductImporter() {
                         <Check className="text-white h-10 w-10 drop-shadow-lg" />
                       </div>
                       {idx === 0 && (
-                        <div className="absolute top-2 left-2 bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Melhor Escolha</div>
+                        <div className="absolute top-2 left-2 bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Resultado {idx + 1}</div>
+                      )}
+                      {idx === 0 && (
+                        <div className="absolute bottom-2 right-2 bg-white/90 text-[8px] font-black px-2 py-1 rounded shadow-sm text-zinc-900 uppercase">Fundo Branco</div>
                       )}
                     </div>
                   ))}
+                </div>
+                <div className="mt-4 p-4 bg-zinc-50 rounded-xl border border-dashed border-zinc-200 text-center">
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    Escolha uma das {photoResults.length} imagens acima. O sistema prioriza fundos neutros.
+                  </p>
                 </div>
               </ScrollArea>
             )}
