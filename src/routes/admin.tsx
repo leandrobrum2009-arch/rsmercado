@@ -14,8 +14,10 @@ export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
     let session = null
     try {
-      const { data } = await supabase.auth.getSession()
-      session = data.session
+      if (supabase?.auth) {
+        const { data } = await supabase.auth.getSession()
+        session = data.session
+      }
     } catch (e) {
       console.error('Error getting session:', e)
     }
