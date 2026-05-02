@@ -13,13 +13,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export function ProductImporter() {
-  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
-  const [diagnosticLog, setDiagnosticLog] = useState<string[]>([])
-
-  const addLog = (msg: string) => {
-    setDiagnosticLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
-  }
-
   const [searchQuery, setSearchQuery] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -33,43 +26,24 @@ export function ProductImporter() {
   const [isSearchingPhotos, setIsSearchingPhotos] = useState(false)
   const [productBeingEdited, setProductBeingEdited] = useState<any>(null)
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
-  const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
-  const [isScraping, setIsScraping] = useState(false)
-  const [scrapingProgress, setScrapingProgress] = useState<{current: number, total: number} | null>(null)
-  const [bulkInput, setBulkInput] = useState('')
-  const [showBulkInput, setShowBulkInput] = useState(false)
-  const [sourceUrl, setSourceUrl] = useState('')
-  const [scrapingLimit, setScrapingLimit] = useState(25)
-  const [isAutoImporting, setIsAutoImporting] = useState(false)
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([])
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [batchSize, setBatchSize] = useState<number>(25)
+  const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
+  const [selectedForImport, setSelectedForImport] = useState<string[]>([])
+  const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
+  const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
 
-  const updateScrapedProduct = (id: string, field: string, value: any) => {
-    setScrapedProducts(prev => prev.map(p => 
+  const categories_list = [
+    "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios e Laticínios", "Pet Shop", "Utilidades"
+  ]
+
+  const updateSuggestedProduct = (id: string, field: string, value: any) => {
+    setSuggestedProducts(prev => prev.map(p => 
       p.id === id ? { ...p, [field]: value } : p
     ))
   }
-  const handleBulkImport = () => {
-    const lines = bulkInput.split('\n').filter(l => l.trim().length > 0);
-    const products = lines.map((line, idx) => {
-      const [name, price, brand] = line.split(',').map(s => s.trim());
-      return {
-        id: `bulk-${idx}-${Math.random()}`,
-        name: name || 'Produto Sem Nome',
-        price: parseFloat(price) || 0,
-        brand: brand || 'Marca Própria',
-        category: 'Mercearia',
-        description: 'Importado via entrada manual rápida.',
-        image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400'
-      }
-    });
-    
-    const uniqueProducts = products.filter(p => !existingProductNames.has(normalizeString(p.name)));
-    setScrapedProducts(uniqueProducts);
-    setSelectedForImport(uniqueProducts.map(p => p.id));
-    setShowBulkInput(false);
-    toast.success(`${uniqueProducts.length} produtos processados do texto.`);
-  }
-
-  const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
   const [importLogs, setImportLogs] = useState<any[]>([])
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
   const [isFetchingReview, setIsFetchingReview] = useState(false)
