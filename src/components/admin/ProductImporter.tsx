@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info, ImagePlus, RefreshCw } from 'lucide-react'
+import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info, ImagePlus, RefreshCw, Zap } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -37,6 +37,27 @@ export function ProductImporter() {
   const [activeTab, setActiveTab] = useState<'importer' | 'review'>('importer')
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
   const [isFetchingReview, setIsFetchingReview] = useState(false)
+
+  const handleAutoDeduplicate = async () => {
+    if (!confirm('Esta ação irá apagar permanentemente produtos duplicados do seu banco de dados. Deseja continuar?')) return
+    
+    setIsScraping(true)
+    try {
+      const { data, error } = await supabase.rpc('auto_deduplicate_products')
+      if (error) throw error
+      
+      if (data.success) {
+        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens.`)
+        fetchExistingNames()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (err: any) {
+      toast.error('Erro na desduplicação: ' + err.message)
+    } finally {
+      setIsScraping(false)
+    }
+  }
   const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
   const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
@@ -634,9 +655,14 @@ export function ProductImporter() {
             <CardTitle className="flex items-center gap-2">
               <Download className="text-primary" /> Importação Inteligente (Web Scraping)
             </CardTitle>
+          <div className="flex justify-between items-start">
             <CardDescription>
               Selecione as categorias do site parceiro para escanear e cadastrar.
             </CardDescription>
+            <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+              <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar Banco
+            </Button>
+          </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap gap-2">

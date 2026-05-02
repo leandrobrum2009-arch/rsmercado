@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
@@ -107,6 +107,27 @@ export function ProductManagement() {
     }
   }
 
+  const handleAutoDeduplicate = async () => {
+    if (!confirm('Esta ação irá apagar permanentemente produtos com nomes idênticos, mantendo apenas a versão com foto. Deseja continuar?')) return
+    
+    setIsLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('auto_deduplicate_products')
+      if (error) throw error
+      
+      if (data.success) {
+        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens duplicados.`)
+        fetchData()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (err: any) {
+      toast.error('Erro na desduplicação: ' + err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const checkDuplicates = () => {
     const names = products.map(p => p.name.toLowerCase().trim())
     const duplicates = products.filter((p, index) => names.indexOf(p.name.toLowerCase().trim()) !== index)
@@ -126,9 +147,14 @@ export function ProductManagement() {
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold">Catálogo de Produtos</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={checkDuplicates} title="Verificar duplicatas">
-            <SearchCheck className="mr-2 h-4 w-4" /> Duplicatas
-          </Button>
+          <div className="flex gap-1 bg-zinc-100 p-1 rounded-lg">
+            <Button variant="ghost" size="sm" onClick={checkDuplicates} className="text-[10px] font-bold uppercase">
+              <SearchCheck className="mr-1 h-3 w-3" /> Verificar
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-bold uppercase text-amber-600 hover:text-amber-700">
+              <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar
+            </Button>
+          </div>
           <Dialog>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
