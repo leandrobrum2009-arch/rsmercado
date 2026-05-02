@@ -535,8 +535,9 @@ export function ProductImporter() {
                     Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
                   </div>
                   <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                  <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                     {importProgress && (
-                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
                         <div 
                           className="h-full bg-green-500 transition-all duration-300" 
                           style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
@@ -561,6 +562,7 @@ export function ProductImporter() {
                         </>
                       )}
                     </Button>
+                  </div>
                   </div>
                 </div>
               </div>
