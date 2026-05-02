@@ -2,13 +2,20 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Zap, BookOpen } from 'lucide-react'
+import { Loader2, Plus, Trash2, Zap, BrainCircuit, MessageSquare, Save } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function RecipeManager() {
   const [recipes, setRecipes] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [aiInput, setAiInput] = useState('')
+  const [isAiGenerating, setIsAiGenerating] = useState(false)
 
   useEffect(() => {
     fetchRecipes()
@@ -31,90 +38,72 @@ export function RecipeManager() {
     }
   }
 
-  const handleGenerateRecipes = async () => {
-    toast.info('Gerando 5 receitas automáticas...')
+  const handleCreateAiRecipe = async () => {
+    if (!aiInput.trim()) return toast.error('Digite os produtos para a IA')
+    setIsAiGenerating(true)
     
-    // Simulate generation
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const mockRecipes = [
-      {
-        title: 'Brigadeiro de Panela',
-        description: 'Um clássico brasileiro rápido e delicioso.',
-        instructions: '1. Em uma panela, misture o leite condensado, a manteiga e o achocolatado.\n2. Leve ao fogo médio e mexa sem parar até desgrudar do fundo da panela.\n3. Deixe esfriar e sirva.',
-        category: 'Sobremesa',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=800&h=400&fit=crop',
-        ingredients: [
-          { name: 'Leite Condensado', quantity: '1 lata' },
-          { name: 'Manteiga', quantity: '1 colher de sopa' },
-          { name: 'Achocolatado', quantity: '3 colheres de sopa' }
-        ]
-      },
-      {
-        title: 'Arroz com Frango',
-        description: 'Prato único prático para o dia a dia.',
-        instructions: '1. Refogue o frango com temperos.\n2. Adicione o arroz e a água.\n3. Cozinhe até secar a água e o arroz ficar macio.',
-        category: 'Almoço',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1512058560550-427499684612?w=800&h=400&fit=crop',
-        ingredients: [
-          { name: 'Arroz', quantity: '2 xícaras' },
-          { name: 'Peito de Frango', quantity: '500g' },
-          { name: 'Cebola', quantity: '1 unidade' }
-        ]
-      },
-      {
-        title: 'Vitamina de Morango',
-        description: 'Bebida nutritiva e refrescante.',
-        instructions: '1. Bata todos os ingredientes no liquidificador até ficar homogêneo.\n2. Sirva gelado.',
-        category: 'Bebida',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?w=800&h=400&fit=crop',
-        ingredients: [
-          { name: 'Morango', quantity: '1 xícara' },
-          { name: 'Leite', quantity: '500ml' },
-          { name: 'Açúcar', quantity: 'a gosto' }
-        ]
-      },
-      {
-        title: 'Omelete de Queijo',
-        description: 'Refeição rápida e proteica.',
-        instructions: '1. Bata os ovos com sal.\n2. Leve à frigideira untada.\n3. Adicione o queijo e dobre.',
-        category: 'Lanche',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1510693206972-df098062cb71?w=800&h=400&fit=crop',
-        ingredients: [
-          { name: 'Ovos', quantity: '2 unidades' },
-          { name: 'Queijo Muçarela', quantity: '50g' },
-          { name: 'Sal', quantity: 'a gosto' }
-        ]
-      },
-      {
-        title: 'Salada de Frutas',
-        description: 'Sobremesa saudável e colorida.',
-        instructions: '1. Pique todas as frutas.\n2. Misture em uma tigela.\n3. Opcionalmente adicione suco de laranja.',
-        category: 'Sobremesa',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1546173159-315724a31696?w=800&h=400&fit=crop',
-        ingredients: [
-          { name: 'Banana', quantity: '1 unidade' },
-          { name: 'Maçã', quantity: '1 unidade' },
-          { name: 'Laranja', quantity: '1 unidade' }
-        ]
-      }
-    ]
-
     try {
-      const { error } = await supabase
-        .from('recipes')
-        .insert(mockRecipes)
+      // Simulate IA generation based on input products
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const products = aiInput.split(',').map(p => p.trim())
+      const mainProduct = products[0] || 'Ingrediente'
+      
+      const newRecipe = {
+        title: `Especial de ${mainProduct}`,
+        description: `Uma receita deliciosa criada pela IA usando ${aiInput}.`,
+        instructions: `1. Separe os ingredientes: ${aiInput}.\n2. Misture tudo em uma tigela.\n3. Cozinhe em fogo médio por 20 minutos.\n4. Sirva quente e aproveite!`,
+        category: 'Sugestão IA',
+        difficulty: 'Fácil',
+        image_url: 'https://images.unsplash.com/photo-1466632311177-a3d143ee79a1?w=800&h=400&fit=crop',
+        ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
+      }
 
+      const { error } = await supabase.from('recipes').insert(newRecipe)
       if (error) throw error
-      toast.success('Receitas geradas com sucesso!')
+      
+      toast.success('Receita criada pela IA com sucesso!')
+      setIsAiModalOpen(false)
+      setAiInput('')
       fetchRecipes()
     } catch (error) {
-      toast.error('Erro ao gerar receitas')
+      toast.error('Erro ao criar receita com IA')
+    } finally {
+      setIsAiGenerating(false)
+    }
+  }
+
+  const handleSeed40Recipes = async () => {
+    setIsLoading(true)
+    toast.info('Semeando 40 receitas no banco de dados...')
+    
+    const categories = ['Almoço', 'Jantar', 'Sobremesa', 'Lanche', 'Bebida', 'Café da Manhã']
+    const difficulties = ['Fácil', 'Média', 'Difícil']
+    
+    const mockRecipes = Array.from({ length: 40 }).map((_, i) => ({
+      title: `Receita Deliciosa #${i + 1}`,
+      description: `Uma descrição incrível para a nossa receita número ${i + 1}. Perfeita para qualquer ocasião.`,
+      instructions: `Passo 1: Prepare os ingredientes.\nPasso 2: Misture com amor.\nPasso 3: Cozinhe até ficar no ponto.\nPasso 4: Aproveite com a família!`,
+      category: categories[i % categories.length],
+      difficulty: difficulties[i % difficulties.length],
+      image_url: `https://images.unsplash.com/photo-${1500000000000 + (i * 1000000)}?w=800&h=400&fit=crop`,
+      ingredients: [
+        { name: 'Ingrediente A', quantity: '100g' },
+        { name: 'Ingrediente B', quantity: '1 unidade' },
+        { name: 'Ingrediente C', quantity: 'a gosto' }
+      ]
+    }))
+
+    try {
+      // First clear existing mock recipes if needed, or just append
+      const { error } = await supabase.from('recipes').insert(mockRecipes)
+      if (error) throw error
+      toast.success('40 receitas cadastradas com sucesso!')
+      fetchRecipes()
+    } catch (error) {
+      toast.error('Erro ao semear receitas')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -143,27 +132,30 @@ export function RecipeManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Gestão de Receitas</h2>
+      <div className="flex justify-between items-center gap-4 flex-wrap">
+        <h2 className="text-xl font-semibold uppercase font-black italic">Gestão de Receitas</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleGenerateRecipes}>
-            <Zap className="mr-2 h-4 w-4" /> Gerar Receitas
+          <Button variant="outline" onClick={handleSeed40Recipes} className="font-black uppercase text-[10px]">
+            <Zap className="mr-2 h-4 w-4" /> Semear 40 Receitas
           </Button>
-          <Button>
+          <Button variant="default" onClick={() => setIsAiModalOpen(true)} className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px]">
+            <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+          </Button>
+          <Button className="bg-zinc-900 font-black uppercase text-[10px]">
             <Plus className="mr-2 h-4 w-4" /> Nova Receita
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-white overflow-hidden shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-zinc-50">
             <TableRow>
-              <TableHead>Imagem</TableHead>
-              <TableHead>Título</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Dificuldade</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Título</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Dificuldade</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -174,14 +166,14 @@ export function RecipeManager() {
                     src={item.image_url} 
                     tableName="recipes" 
                     itemId={item.id} 
-                    className="w-16 h-10 object-cover rounded" 
+                    className="w-16 h-10 object-cover rounded shadow-sm" 
                   />
                 </TableCell>
-                <TableCell className="font-medium">{item.title}</TableCell>
-                <TableCell>{item.category}</TableCell>
-                <TableCell>{item.difficulty}</TableCell>
+                <TableCell className="font-bold text-xs uppercase">{item.title}</TableCell>
+                <TableCell className="text-xs uppercase">{item.category}</TableCell>
+                <TableCell className="text-xs uppercase">{item.difficulty}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-destructive">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-red-500">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -189,7 +181,7 @@ export function RecipeManager() {
             ))}
             {recipes.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground uppercase text-[10px] font-bold">
                   Nenhuma receita encontrada.
                 </TableCell>
               </TableRow>
@@ -197,6 +189,39 @@ export function RecipeManager() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Gerador de Receitas IA</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase">
+              Digite os produtos que você tem (separados por vírgula) e nossa IA criará uma receita exclusiva.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Produtos disponíveis</Label>
+              <Textarea 
+                placeholder="Ex: Leite condensado, Nescau, Manteiga..." 
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                className="min-h-[100px] border-2 border-zinc-100"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAiModalOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+            <Button 
+              onClick={handleCreateAiRecipe} 
+              disabled={isAiGenerating}
+              className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px]"
+            >
+              {isAiGenerating ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              Gerar e Salvar Receita
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
