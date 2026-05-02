@@ -10,8 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RecipesRouteImport } from './routes/recipes'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminFixRouteImport } from './routes/admin-fix'
@@ -23,14 +23,14 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RecipesRoute = RecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstallRoute = InstallRouteImport.update({
@@ -65,8 +65,8 @@ export interface FileRoutesByFullPath {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
+  '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesByTo {
@@ -75,8 +75,8 @@ export interface FileRoutesByTo {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
+  '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesById {
@@ -86,8 +86,8 @@ export interface FileRoutesById {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
+  '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRouteTypes {
@@ -98,8 +98,8 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/recipes'
     | '/profile'
+    | '/recipes'
     | '/search'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -108,8 +108,8 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/recipes'
     | '/profile'
+    | '/recipes'
     | '/search'
   id:
     | '__root__'
@@ -118,8 +118,8 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/recipes'
     | '/profile'
+    | '/recipes'
     | '/search'
   fileRoutesById: FileRoutesById
 }
@@ -129,8 +129,8 @@ export interface RootRouteChildren {
   AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
   InstallRoute: typeof InstallRoute
-  RecipesRoute: typeof RecipesRoute
   ProfileRoute: typeof ProfileRoute
+  RecipesRoute: typeof RecipesRoute
   SearchRoute: typeof SearchRoute
 }
 
@@ -143,18 +143,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/recipes': {
       id: '/recipes'
       path: '/recipes'
       fullPath: '/recipes'
       preLoaderRoute: typeof RecipesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/install': {
@@ -201,8 +201,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
   InstallRoute: InstallRoute,
-  RecipesRoute: RecipesRoute,
   ProfileRoute: ProfileRoute,
+  RecipesRoute: RecipesRoute,
   SearchRoute: SearchRoute,
 }
 export const routeTree = rootRouteImport

@@ -63,5 +63,11 @@ export const getRouter = () => {
     defaultErrorComponent: DefaultErrorComponent,
   });
 
-  return router;
-};
+   return router;
+ };
+ 
+ declare module '@tanstack/react-start' {
+   interface Register {
+     router: ReturnType<typeof getRouter>
+   }
+ }
