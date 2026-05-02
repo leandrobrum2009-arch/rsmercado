@@ -5,7 +5,30 @@ import { AuthForm } from '@/components/auth/AuthForm'
 import { AdminSetup } from '@/components/admin/AdminSetup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, LogOut, ShieldCheck, ShoppingBag } from 'lucide-react'
+import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat } from 'lucide-react'
+  const [savedRecipesCount, setSavedRecipesCount] = useState(0)
+        if (data.session) {
+          const { count } = await supabase
+            .from('user_recipes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', data.session.user.id)
+          setSavedRecipesCount(count || 0)
+        }
+        <Card 
+          className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-amber-500 active:scale-[0.98] group bg-white"
+          onClick={() => window.location.href = '/recipes'}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-black text-amber-500 uppercase tracking-widest">Minhas Receitas</CardTitle>
+            <ChefHat size={24} className="text-amber-500 group-hover:rotate-12 transition-transform" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
+              {savedRecipesCount} receitas salvas no seu painel.
+            </p>
+          </CardContent>
+        </Card>
+
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
