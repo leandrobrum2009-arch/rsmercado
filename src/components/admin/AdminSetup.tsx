@@ -44,25 +44,17 @@ export function AdminSetup() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Faça login primeiro')
 
-      if (secretKey === 'SETUP_ADMIN_2024') {
-        const { error } = await supabase
-          .from('user_roles')
-          .upsert({ user_id: session.user.id, role: 'admin' })
-        
-        if (error) {
-          // If upsert fails, try insert
-          const { error: insError } = await supabase
-            .from('user_roles')
-            .insert({ user_id: session.user.id, role: 'admin' })
-          if (insError) throw insError
-        }
-        
-        toast.success('Você agora é um administrador!')
-        alert('ACESS LIBERADO!\n\nVocê agora é um administrador do sistema. A página será atualizada.')
-        window.location.reload()
-      } else {
-        toast.error('Chave de segurança incorreta')
-      }
+       const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: secretKey })
+       
+       if (error) throw error
+       
+       if (data.success) {
+         toast.success(data.message)
+         alert('ACESSO LIBERADO!\n\n' + data.message + '. A página será atualizada.')
+         window.location.reload()
+       } else {
+         toast.error(data.message)
+       }
     } catch (error: any) {
       console.error('Setup error:', error)
       toast.error(error.message || 'Erro ao processar acesso')
