@@ -40,8 +40,8 @@ export function AuthForm() {
     } catch (error: any) {
       console.error('Auth Error:', error)
       let msg = error.message || 'Erro na autenticação'
-      if (msg === 'email rate limit exceeded') {
-        msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O Supabase bloqueou novos cadastros temporariamente por segurança. Por favor, aguarde de 5 a 10 minutos ou use um e-mail diferente.'
+      if (msg === 'email rate limit exceeded' || msg.includes('rate limit')) {
+        msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O sistema bloqueou novas tentativas por 10 minutos por segurança. \n\nSE VOCÊ JÁ SE CADASTROU: Não tente cadastrar de novo! Vá direto em "ATIVAR MINHA CONTA AGORA" abaixo para liberar seu acesso sem precisar do e-mail.'
        } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
           msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.'
        } else if (msg.includes('Invalid login credentials')) {
