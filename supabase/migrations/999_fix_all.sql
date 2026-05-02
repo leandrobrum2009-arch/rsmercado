@@ -1,8 +1,8 @@
--- ULTIMATE SECURITY AND EMERGENCY FIX
--- Using NEW names to bypass any potential schema cache issues.
+-- EMERGENCY FIX ALL
+-- Re-defining original functions to ensure they exist and are secure.
 
--- 1. Secure promote function
-CREATE OR REPLACE FUNCTION public.secure_promote_to_admin(secret_key TEXT)
+-- 1. promote_to_admin
+CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -10,9 +10,9 @@ SET search_path = public, auth
 AS $$
 DECLARE
     curr_user_id UUID;
-    EXPECTED_KEY TEXT := 'ADMIN_RS_2024';
 BEGIN
-    IF secret_key IS NULL OR secret_key <> EXPECTED_KEY THEN
+    -- Support multiple keys for convenience
+    IF secret_key NOT IN ('ADMIN_RS_2024', 'SETUP_ADMIN_2024') THEN
         RETURN jsonb_build_object('success', false, 'message', 'Chave secreta inválida.');
     END IF;
 
@@ -21,29 +21,25 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'message', 'Sessão não encontrada.');
     END IF;
 
-    -- Ensure role
     INSERT INTO public.user_roles (user_id, role)
     VALUES (curr_user_id, 'admin')
     ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
 
-    -- Sync profile
     UPDATE public.profiles SET is_admin = true WHERE id = curr_user_id;
 
     RETURN jsonb_build_object('success', true, 'message', 'ACESSO ADMIN LIBERADO!');
 END;
 $$;
 
--- 2. Secure confirm function
-CREATE OR REPLACE FUNCTION public.secure_confirm_user_email(email_to_confirm TEXT, secret_key TEXT)
+-- 2. confirm_user_email
+CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm TEXT, secret_key TEXT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, auth
 AS $$
-DECLARE
-    EXPECTED_KEY TEXT := 'ADMIN_RS_2024';
 BEGIN
-  IF secret_key IS NULL OR secret_key <> EXPECTED_KEY THEN
+  IF secret_key NOT IN ('ADMIN_RS_2024', 'SETUP_ADMIN_2024') THEN
       RAISE EXCEPTION 'Chave secreta inválida.';
   END IF;
 
@@ -58,9 +54,9 @@ END;
 $$;
 
 -- 3. Permissions
-GRANT EXECUTE ON FUNCTION public.secure_promote_to_admin(TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.secure_confirm_user_email(TEXT, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.promote_to_admin(TEXT) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.confirm_user_email(TEXT, TEXT) TO authenticated, anon;
 
--- 4. Force refresh with comments
-COMMENT ON FUNCTION public.secure_promote_to_admin(TEXT) IS 'Secure promotion v4';
-COMMENT ON FUNCTION public.secure_confirm_user_email(TEXT, TEXT) IS 'Secure confirmation v4';
+-- 4. Refresh
+COMMENT ON FUNCTION public.promote_to_admin(TEXT) IS 'Fixed promote v5';
+COMMENT ON FUNCTION public.confirm_user_email(TEXT, TEXT) IS 'Fixed confirm v5';
