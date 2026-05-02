@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
 import { CategoryManagement } from '@/components/admin/CategoryManagement'
+import { OrderManagement } from '@/components/admin/OrderManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { RecipeManager } from '@/components/admin/RecipeManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
@@ -111,7 +112,8 @@ function RouteComponent() {
       </div>
       
       <Tabs defaultValue="products" className="w-full">
-         <TabsList className="grid w-full grid-cols-3 md:grid-cols-10 gap-1 mb-8 text-[10px] md:text-xs">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-11 gap-1 mb-8 text-[10px] md:text-xs">
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="importer">Importação</TabsTrigger>
@@ -153,6 +155,10 @@ function RouteComponent() {
 
         <TabsContent value="banners">
           <BannerManager />
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <OrderManagement />
         </TabsContent>
 
         <TabsContent value="whatsapp">
