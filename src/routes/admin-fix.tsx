@@ -11,15 +11,35 @@ export const Route = createFileRoute('/admin-fix')({
 })
 
 function AdminFix() {
-  const [key, setKey] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
+   const [key, setKey] = useState('SETUP_ADMIN_2024') // Pre-filled for convenience if they are on this route
+   const [email, setEmail] = useState('')
+   const [loading, setLoading] = useState(false)
+   const [status, setStatus] = useState('')
+   const [confirming, setConfirming] = useState(false)
 
-  const handleFix = async () => {
-    if (key !== 'SETUP_ADMIN_2024') {
-       setStatus('Chave incorreta')
+   const handleConfirmEmail = async () => {
+     if (!email) {
+       setStatus('Digite o e-mail que deseja confirmar')
        return
-    }
+     }
+     setConfirming(true)
+     setStatus('Confirmando e-mail...')
+     try {
+       const { data, error } = await supabase.rpc('confirm_user_email', { 
+         email_to_confirm: email,
+         secret_key: key
+       })
+       if (error) throw error
+       setStatus('E-mail confirmado com sucesso! Agora você pode fazer login.')
+     } catch (err: any) {
+       setStatus('Erro ao confirmar: ' + err.message)
+     } finally {
+       setConfirming(false)
+     }
+   }
+ 
+   const handleFix = async () => {
+     if (key !== 'SETUP_ADMIN_2024') {
 
     setLoading(true)
     setStatus('Verificando sessão...')
