@@ -1,6 +1,7 @@
  import { Plus, Minus, ShoppingCart } from "lucide-react";
  import { useCart } from "../contexts/CartContext";
  import { toast } from "sonner";
+import { SmartImage } from "./ui/SmartImage";
  
  interface ProductProps {
    product: {
@@ -26,11 +27,13 @@
    return (
      <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col group">
        <div className="relative aspect-square overflow-hidden bg-gray-100">
-         <img 
-           src={product.image_url || "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=300&auto=format&fit=crop"} 
-           alt={product.name}
-           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-         />
+          <SmartImage 
+            src={product.image_url} 
+            tableName="products" 
+            itemId={product.id} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
          {product.points_value > 0 && (
            <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
              +{product.points_value} pts
