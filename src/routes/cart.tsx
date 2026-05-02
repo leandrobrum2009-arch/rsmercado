@@ -1,8 +1,9 @@
- import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
  import { useCart } from "../contexts/CartContext";
- import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2 } from "lucide-react";
  import { useState } from "react";
  import { formatCurrency } from "../lib/whatsapp";
+import { supabase } from "@/lib/supabase";
  import { toast } from "sonner";
  
  export const Route = createFileRoute("/cart")({
