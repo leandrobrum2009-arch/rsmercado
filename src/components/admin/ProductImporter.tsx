@@ -974,6 +974,64 @@ export function ProductImporter() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col gap-4">
+              <div className="bg-zinc-900 p-6 rounded-2xl shadow-2xl border-4 border-zinc-800 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-500 p-2 rounded-lg shadow-lg shadow-blue-500/20">
+                    <Search className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-black uppercase italic tracking-tighter text-lg">Varredura Inteligente por URL</h4>
+                    <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">Insira o link do site para extrair produtos automaticamente</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Input 
+                      placeholder="https://exemplo.com.br/categoria" 
+                      value={sourceUrl}
+                      onChange={(e) => setSourceUrl(e.target.value)}
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 h-12 rounded-xl focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="w-full md:w-32">
+                    <Input 
+                      type="number"
+                      placeholder="Limite" 
+                      value={scrapingLimit}
+                      onChange={(e) => setScrapingLimit(parseInt(e.target.value) || 25)}
+                      className="bg-zinc-800 border-zinc-700 text-white h-12 rounded-xl text-center font-black"
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => simulateScraping(['Importados'], sourceUrl, scrapingLimit, isAutoImporting)} 
+                    disabled={isScraping || !sourceUrl}
+                    className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic tracking-tighter px-8 shadow-xl shadow-blue-500/20"
+                  >
+                    {isScraping ? <Loader2 className="animate-spin mr-2" /> : <Zap className="mr-2 h-4 w-4 fill-white" />}
+                    Varrer e {isAutoImporting ? 'Cadastrar' : 'Analisar'}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 pt-2">
+                  <Checkbox 
+                    id="auto-import" 
+                    checked={isAutoImporting} 
+                    onCheckedChange={(checked) => setIsAutoImporting(!!checked)}
+                    className="border-zinc-700 data-[state=checked]:bg-blue-500"
+                  />
+                  <label htmlFor="auto-import" className="text-zinc-400 text-[10px] font-black uppercase cursor-pointer hover:text-white transition-colors">
+                    Ativar cadastro automático após varredura
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="h-[1px] bg-zinc-100 flex-1" />
+                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-4">Ou selecione categoria rápida</span>
+                <div className="h-[1px] bg-zinc-100 flex-1" />
+              </div>
+
               <div className="flex justify-between items-center bg-zinc-50 p-4 rounded-xl border border-zinc-100">
                 <div className="flex items-center gap-3">
                   <div className="bg-green-100 p-2 rounded-full">
