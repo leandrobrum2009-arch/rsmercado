@@ -347,21 +347,6 @@ export function ProductImporter() {
       checkMissingImages()
     } catch (error: any) {
       addLog(`ERRO CRÍTICO: ${error.message}`)
-      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
-        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
-          <DialogHeader>
-            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
-          </DialogHeader>
-          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
-            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
-            {isScraping && <div className="animate-pulse">_</div>}
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       toast.error('Erro ao salvar produtos: ' + error.message)
     } finally {
       setIsScraping(false)
@@ -573,26 +558,48 @@ export function ProductImporter() {
                         />
                       </div>
                     )}
-                    <Button 
-                      size="lg" 
-                      className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
-                      onClick={handleConfirmImport}
-                      disabled={isScraping || selectedForImport.length === 0}
-                    >
-                      {isScraping ? (
-                        <>
-                          <Loader2 className="animate-spin mr-2" />
-                          {importProgress ? `SALVANDO ${importProgress.current}/${importProgress.total}...` : 'PROCESSANDO...'}
-                        </>
-                      ) : (
-                        <>
-                          <Check className="mr-2" />
-                          Cadastrar Selecionados
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsDiagnosticOpen(true)}
+                        className="h-14 font-bold uppercase text-[10px]"
+                      >
+                        Ver Log
+                      </Button>
+                      <Button 
+                        size="lg" 
+                        className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
+                        onClick={handleConfirmImport}
+                        disabled={isScraping || selectedForImport.length === 0}
+                      >
+                        {isScraping ? (
+                          <>
+                            <Loader2 className="animate-spin mr-2" />
+                            {importProgress ? `SALVANDO ${importProgress.current}/${importProgress.total}...` : 'PROCESSANDO...'}
+                          </>
+                        ) : (
+                          <>
+                            <Check className="mr-2" />
+                            Cadastrar Selecionados
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  </div>
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
+          </DialogHeader>
+          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
+            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
+            {isScraping && <div className="animate-pulse">_</div>}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
                 </div>
               </div>
             )}
