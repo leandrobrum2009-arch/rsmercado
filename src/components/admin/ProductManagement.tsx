@@ -7,27 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap } from 'lucide-react'
-  const handleAutoDeduplicate = async () => {
-    if (!confirm('Esta ação irá apagar permanentemente produtos com nomes idênticos, mantendo apenas a versão com foto. Deseja continuar?')) return
-    
-    setIsLoading(true)
-    try {
-      const { data, error } = await supabase.rpc('auto_deduplicate_products')
-      if (error) throw error
-      
-      if (data.success) {
-        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens duplicados.`)
-        fetchData()
-      } else {
-        toast.error(data.message)
-      }
-    } catch (err: any) {
-      toast.error('Erro na desduplicação: ' + err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
@@ -125,6 +104,27 @@ export function ProductManagement() {
     else {
       toast.success('Produto excluído!')
       fetchData()
+    }
+  }
+
+  const handleAutoDeduplicate = async () => {
+    if (!confirm('Esta ação irá apagar permanentemente produtos com nomes idênticos, mantendo apenas a versão com foto. Deseja continuar?')) return
+    
+    setIsLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('auto_deduplicate_products')
+      if (error) throw error
+      
+      if (data.success) {
+        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens duplicados.`)
+        fetchData()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (err: any) {
+      toast.error('Erro na desduplicação: ' + err.message)
+    } finally {
+      setIsLoading(false)
     }
   }
 
