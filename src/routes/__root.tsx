@@ -84,11 +84,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
        const { data: { session } } = await supabase.auth.getSession();
        if (!session) return setIsAdmin(false);
        
-       if (session.user.email === 'leandrobrum2009@gmail.com') {
-         return setIsAdmin(true);
-       }
- 
-       const { data } = await supabase
          .from('user_roles')
          .select('role')
          .eq('user_id', session.user.id)
