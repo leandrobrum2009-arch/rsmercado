@@ -34,7 +34,8 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
-  const [activeTab, setActiveTab] = useState<'importer' | 'review'>('importer')
+  const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
+  const [importLogs, setImportLogs] = useState<any[]>([])
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
   const [isFetchingReview, setIsFetchingReview] = useState(false)
 
@@ -65,10 +66,26 @@ export function ProductImporter() {
     if (activeTab === 'importer') {
       checkMissingImages()
       fetchExistingNames()
-    } else {
+    } else if (activeTab === 'review') {
       fetchReviewProducts()
+    } else {
+      fetchImportLogs()
     }
   }, [activeTab])
+
+  const fetchImportLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('import_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (error) throw error
+      setImportLogs(data || [])
+    } catch (error) {
+      toast.error('Erro ao carregar histórico')
+    }
+  }
 
   const fetchReviewProducts = async () => {
     setIsFetchingReview(true)
@@ -447,7 +464,19 @@ export function ProductImporter() {
         setImportProgress({ current: i, total: toImport.length })
       }
       
-      addLog(`Importação finalizada. Sucesso: ${successCount}, Duplicados: ${toImport.length - successCount}`)
+      const duplicateCount = toImport.length - successCount;
+      addLog(`Importação finalizada. Sucesso: ${successCount}, Duplicados: ${duplicateCount}`)
+
+      // Save to import_logs
+      await supabase.from('import_logs').insert({
+        category: toImport[0]?.category || 'Múltiplas',
+        total_attempted: toImport.length,
+        successful_count: successCount,
+        duplicate_count: duplicateCount,
+        error_count: 0,
+        details: { products: toImport.map(p => p.name) }
+      })
+
       toast.success(`${successCount} produtos cadastrados com sucesso!`)
       fetchExistingNames() // Refresh duplicates list
       setScrapedProducts([])
@@ -480,9 +509,71 @@ export function ProductImporter() {
             <Badge className="ml-2 bg-red-500 text-[8px] h-4">{reviewProducts.length}</Badge>
           )}
         </button>
+        <button 
+          onClick={() => setActiveTab('history')}
+          className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}
+        >
+          Histórico
+        </button>
       </div>
 
-      {activeTab === 'review' ? (
+      {activeTab === 'history' ? (
+        <div className="space-y-6">
+          <Card className="border-2 border-zinc-100 shadow-xl overflow-hidden">
+            <div className="bg-zinc-900 text-white p-4 flex justify-between items-center">
+              <h3 className="font-black uppercase italic tracking-tighter">Relatórios de Importação</h3>
+              <Button variant="ghost" size="sm" onClick={fetchImportLogs} className="text-white hover:bg-white/10 h-8">
+                <RefreshCw className="h-3 w-3 mr-1" /> Atualizar
+              </Button>
+            </div>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-zinc-50">
+                  <TableRow>
+                    <TableHead className="text-[10px] font-black uppercase">Data</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-center">Tentativas</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-center text-green-600">Sucesso</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-center text-amber-600">Duplicados</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {importLogs.map(log => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-[10px] font-bold text-gray-500">
+                        {new Date(log.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter">
+                          {log.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center font-black text-sm">{log.total_attempted}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-0 text-[10px] font-black">
+                          {log.successful_count}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-0 text-[10px] font-black">
+                          {log.duplicate_count}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {importLogs.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-zinc-400 font-bold uppercase text-[10px]">
+                        Nenhuma importação registrada.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      ) : activeTab === 'review' ? (
         <div className="space-y-6">
           <Card className="border-4 border-amber-500 shadow-2xl overflow-hidden">
             <div className="bg-amber-500 p-2 text-center text-white font-black text-[10px] uppercase italic tracking-widest">
