@@ -12,7 +12,7 @@ export const Route = createFileRoute('/admin-fix')({
 
 function AdminFix() {
     // Removed hardcoded master key for security
-    const [key, setKey] = useState('MASTER_BYPASS') 
+    const [key, setKey] = useState('ADMIN_RS_2024') 
    const [email, setEmail] = useState('')
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
@@ -251,7 +251,16 @@ function AdminFix() {
                <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
                  1. Insira o E-mail para confirmar
                </p>
-               <div className="space-y-3">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-zinc-400">Chave de Mestre</label>
+                    <Input 
+                      placeholder="CHAVE_MESTRE" 
+                      value={key} 
+                      onChange={e => setKey(e.target.value)}
+                      className="bg-white h-10 text-xs border-amber-300"
+                    />
+                  </div>
                  <Input 
                    placeholder="E-mail do cadastro" 
                    value={email} 
