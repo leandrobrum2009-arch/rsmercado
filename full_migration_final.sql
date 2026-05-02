@@ -181,7 +181,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger to call the function on signup
 CREATE OR REPLACE TRIGGER on_auth_user_created
@@ -339,3 +339,37 @@ CREATE POLICY "Admins can view all orders" ON orders FOR SELECT USING (
 
 -- Remove the vulnerable column (optional but recommended for security)
 -- ALTER TABLE profiles DROP COLUMN is_admin;
+
+-- Recipes Table
+CREATE TABLE IF NOT EXISTS recipes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    instructions TEXT,
+    category TEXT,
+    difficulty TEXT,
+    image_url TEXT,
+    ingredients JSONB DEFAULT '[]'::jsonb,
+    author_id UUID REFERENCES auth.users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Recipes are viewable by everyone" ON recipes FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert recipes" ON recipes FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Users can update their own recipes" ON recipes FOR UPDATE USING (auth.uid() = author_id);
+CREATE POLICY "Admins can manage all recipes" ON recipes FOR ALL USING (
+    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
+);
+
+-- User Saved Recipes Table
+CREATE TABLE IF NOT EXISTS user_recipes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, recipe_id)
+);
+
+ALTER TABLE user_recipes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own saved recipes" ON user_recipes FOR ALL USING (auth.uid() = user_id);
