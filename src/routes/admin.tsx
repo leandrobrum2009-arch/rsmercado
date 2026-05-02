@@ -10,9 +10,10 @@ import {
   Webhook, 
   Settings, 
   ShieldCheck, 
-  Bug, 
-  Menu,
-  X
+   Bug, 
+   Menu,
+   X,
+   Users
 } from 'lucide-react'
 import { RLSAuditor } from '@/components/admin/RLSAuditor'
 import { createFileRoute, redirect } from '@tanstack/react-router'
@@ -29,6 +30,7 @@ import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { WebhookManager } from '@/components/admin/WebhookManager'
+import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -102,8 +104,9 @@ function RouteComponent() {
      {
        title: 'Vendas e Pedidos',
        items: [
-         { id: 'orders', label: 'Pedidos', icon: ClipboardList },
-         { id: 'products', label: 'Produtos', icon: ShoppingBag },
+          { id: 'orders', label: 'Pedidos', icon: ClipboardList },
+          { id: 'products', label: 'Produtos', icon: ShoppingBag },
+          { id: 'customers', label: 'Clientes', icon: Users },
          { id: 'categories', label: 'Categorias', icon: Tag },
          { id: 'importer', label: 'Importação', icon: Upload },
        ]
@@ -235,6 +238,9 @@ function RouteComponent() {
               </TabsContent>
               <TabsContent value="orders" className="mt-0 focus-visible:ring-0">
                 <OrderManagement />
+              </TabsContent>
+              <TabsContent value="customers" className="mt-0 focus-visible:ring-0">
+                <CustomerManagement />
               </TabsContent>
               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
                 <WhatsAppManager />
