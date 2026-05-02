@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Zap, BrainCircuit, MessageSquare, Save } from 'lucide-react'
+import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export function RecipeManager() {
@@ -43,31 +42,29 @@ export function RecipeManager() {
     setIsAiGenerating(true)
     
     try {
-      // Simulate IA generation based on input products
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
       const products = aiInput.split(',').map(p => p.trim())
       const mainProduct = products[0] || 'Ingrediente'
       
       const newRecipe = {
-        title: `Especial de ${mainProduct}`,
-        description: `Uma receita deliciosa criada pela IA usando ${aiInput}.`,
-        instructions: `1. Separe os ingredientes: ${aiInput}.\n2. Misture tudo em uma tigela.\n3. Cozinhe em fogo médio por 20 minutos.\n4. Sirva quente e aproveite!`,
-        category: 'Sugestão IA',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1466632311177-a3d143ee79a1?w=800&h=400&fit=crop',
+        title: `Chef IA: ${mainProduct} Criativo`,
+        description: `Uma criação exclusiva da nossa inteligência artificial utilizando ${aiInput}.`,
+        instructions: `1. Prepare sua bancada com: ${aiInput}.\n2. Combine os sabores conforme sua intuição.\n3. Cozinhe com atenção aos detalhes.\n4. Finalize com um toque especial de temperos frescos.`,
+        category: 'Inovação IA',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop',
         ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
       }
 
       const { error } = await supabase.from('recipes').insert(newRecipe)
       if (error) throw error
       
-      toast.success('Receita criada pela IA com sucesso!')
+      toast.success('Receita gerada pela IA e salva no catálogo!')
       setIsAiModalOpen(false)
       setAiInput('')
       fetchRecipes()
     } catch (error) {
-      toast.error('Erro ao criar receita com IA')
+      toast.error('Erro ao processar IA')
     } finally {
       setIsAiGenerating(false)
     }
@@ -75,149 +72,147 @@ export function RecipeManager() {
 
   const handleSeed40Recipes = async () => {
     setIsLoading(true)
-    toast.info('Semeando 40 receitas no banco de dados...')
+    toast.info('Iniciando cadastro em massa de 40 receitas...')
     
-    const categories = ['Almoço', 'Jantar', 'Sobremesa', 'Lanche', 'Bebida', 'Café da Manhã']
-    const difficulties = ['Fácil', 'Média', 'Difícil']
+    const brazilianDishes = [
+      'Feijoada Completa', 'Moqueca Baiana', 'Coxinha de Frango', 'Pão de Queijo Mineiro',
+      'Brigadeiro Gourmet', 'Farofa de Bacon', 'Bolo de Cenoura com Calda', 'Arroz Carreteiro',
+      'Escondidinho de Carne Seca', 'Vaca Atolada', 'Tapioca Recheada', 'Açaí na Tigela',
+      'Quindim Tradicional', 'Mousse de Maracujá', 'Pudim de Leite Moça', 'Salpicão de Frango',
+      'Maionese de Domingo', 'Churrasco Gaúcho', 'Pastel de Feira', 'Tacacá do Norte',
+      'Acarajé Crocante', 'Baião de Dois', 'Galinhada Goiana', 'Peixe na Telha',
+      'Bobó de Camarão', 'Caldo Verde', 'Canjica Doce', 'Pamonha de Milho Verde',
+      'Curau Cremoso', 'Bolinha de Queijo', 'Kibe Assado', 'Pizza de Calabresa',
+      'Lasanha Bolonhesa', 'Strogonoff de Frango', 'Frango com Quiabo', 'Dobradinha',
+      'Sarapatel', 'Buchada de Bode', 'Arroz Doce Cremoso', 'Romeu e Julieta'
+    ]
+
+    const categories = ['Brasileira', 'Sobremesa', 'Lanche', 'Almoço Especial']
     
-    const mockRecipes = Array.from({ length: 40 }).map((_, i) => ({
-      title: `Receita Deliciosa #${i + 1}`,
-      description: `Uma descrição incrível para a nossa receita número ${i + 1}. Perfeita para qualquer ocasião.`,
-      instructions: `Passo 1: Prepare os ingredientes.\nPasso 2: Misture com amor.\nPasso 3: Cozinhe até ficar no ponto.\nPasso 4: Aproveite com a família!`,
+    const mockRecipes = brazilianDishes.map((title, i) => ({
+      title: title,
+      description: `O segredo do melhor ${title} que você já provou. Uma receita que passa de geração em geração.`,
+      instructions: `1. Limpe e pique os ingredientes.\n2. Inicie o refogado com alho e cebola.\n3. Adicione os itens principais e cozinhe em fogo brando.\n4. Ajuste o sal e sirva com acompanhamentos frescos.`,
       category: categories[i % categories.length],
-      difficulty: difficulties[i % difficulties.length],
-      image_url: `https://images.unsplash.com/photo-${1500000000000 + (i * 1000000)}?w=800&h=400&fit=crop`,
+      difficulty: i % 3 === 0 ? 'Fácil' : i % 3 === 1 ? 'Média' : 'Difícil',
+      image_url: `https://images.unsplash.com/photo-${1504674900247 - i * 1000}?w=800&h=400&fit=crop`,
       ingredients: [
-        { name: 'Ingrediente A', quantity: '100g' },
-        { name: 'Ingrediente B', quantity: '1 unidade' },
-        { name: 'Ingrediente C', quantity: 'a gosto' }
+        { name: 'Ingrediente Principal', quantity: '500g' },
+        { name: 'Temperos da Casa', quantity: 'a gosto' }
       ]
     }))
 
     try {
-      // First clear existing mock recipes if needed, or just append
       const { error } = await supabase.from('recipes').insert(mockRecipes)
       if (error) throw error
-      toast.success('40 receitas cadastradas com sucesso!')
+      toast.success('40 receitas brasileiras cadastradas com sucesso!')
       fetchRecipes()
     } catch (error) {
-      toast.error('Erro ao semear receitas')
+      toast.error('Erro na importação em massa')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Excluir esta receita?')) return
     try {
-      const { error } = await supabase
-        .from('recipes')
-        .delete()
-        .eq('id', id)
-
+      const { error } = await supabase.from('recipes').delete().eq('id', id)
       if (error) throw error
-      toast.success('Receita excluída!')
+      toast.success('Removido!')
       fetchRecipes()
     } catch (error) {
-      toast.error('Erro ao excluir receita')
+      toast.error('Erro ao excluir')
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center gap-4 flex-wrap">
-        <h2 className="text-xl font-semibold uppercase font-black italic">Gestão de Receitas</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center gap-4 flex-wrap bg-white p-4 rounded-2xl shadow-sm border">
+        <div>
+          <h2 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Portal de Gastronomia</h2>
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Controle total das receitas e IA</p>
+        </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSeed40Recipes} className="font-black uppercase text-[10px]">
-            <Zap className="mr-2 h-4 w-4" /> Semear 40 Receitas
+          <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
+            <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear 40 Receitas
           </Button>
-          <Button variant="default" onClick={() => setIsAiModalOpen(true)} className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px]">
+          <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
           </Button>
-          <Button className="bg-zinc-900 font-black uppercase text-[10px]">
-            <Plus className="mr-2 h-4 w-4" /> Nova Receita
+          <Button className="bg-zinc-900 font-black uppercase text-[10px] h-10 px-6">
+            <Plus className="mr-2 h-4 w-4" /> Nova Manual
           </Button>
         </div>
       </div>
 
-      <div className="border rounded-lg bg-white overflow-hidden shadow-sm">
+      <div className="border-2 border-zinc-100 rounded-3xl bg-white overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-zinc-50">
-            <TableRow>
-              <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
-              <TableHead className="text-[10px] font-black uppercase">Título</TableHead>
+            <TableRow className="border-b-2">
+              <TableHead className="text-[10px] font-black uppercase py-4">Receita</TableHead>
               <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
-              <TableHead className="text-[10px] font-black uppercase">Dificuldade</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase text-center">Nível</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase pr-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recipes.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <SmartImage 
-                    src={item.image_url} 
-                    tableName="recipes" 
-                    itemId={item.id} 
-                    className="w-16 h-10 object-cover rounded shadow-sm" 
-                  />
-                </TableCell>
-                <TableCell className="font-bold text-xs uppercase">{item.title}</TableCell>
-                <TableCell className="text-xs uppercase">{item.category}</TableCell>
-                <TableCell className="text-xs uppercase">{item.difficulty}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-red-500">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {recipes.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground uppercase text-[10px] font-bold">
-                  Nenhuma receita encontrada.
-                </TableCell>
-              </TableRow>
+            {isLoading && recipes.length === 0 ? (
+              <TableRow><TableCell colSpan={4} className="text-center py-20"><Loader2 className="animate-spin h-8 w-8 mx-auto text-zinc-300" /></TableCell></TableRow>
+            ) : (
+              recipes.map((item) => (
+                <TableRow key={item.id} className="hover:bg-zinc-50/50 transition-colors">
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-3">
+                      <SmartImage src={item.image_url} tableName="recipes" itemId={item.id} className="w-16 h-10 object-cover rounded-xl shadow-sm border" />
+                      <span className="font-black text-xs uppercase italic tracking-tighter">{item.title}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell><span className="text-[10px] font-bold uppercase bg-zinc-100 px-2 py-1 rounded-full">{item.category}</span></TableCell>
+                  <TableCell className="text-center"><span className="text-[10px] font-black uppercase">{item.difficulty}</span></TableCell>
+                  <TableCell className="text-right pr-6">
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 rounded-xl">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
       </div>
 
       <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-3xl border-4 border-purple-100">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Gerador de Receitas IA</DialogTitle>
-            <DialogDescription className="text-[10px] font-bold uppercase">
-              Digite os produtos que você tem (separados por vírgula) e nossa IA criará uma receita exclusiva.
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-2">
+              <Sparkles className="text-purple-600" size={24} />
+            </div>
+            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Gerador Gourmet IA</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400">
+              Digite os produtos disponíveis para criar uma receita magistral.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Produtos disponíveis</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ingredientes do Carrinho</Label>
               <Textarea 
-                placeholder="Ex: Leite condensado, Nescau, Manteiga..." 
+                placeholder="Ex: Leite condensado, Morangos, Bolacha Maria..." 
                 value={aiInput}
                 onChange={(e) => setAiInput(e.target.value)}
-                className="min-h-[100px] border-2 border-zinc-100"
+                className="min-h-[120px] border-2 border-zinc-100 rounded-2xl focus:border-purple-500 transition-all text-sm font-medium"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAiModalOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setIsAiModalOpen(false)} className="font-black uppercase text-[10px] rounded-xl">Cancelar</Button>
             <Button 
               onClick={handleCreateAiRecipe} 
               disabled={isAiGenerating}
-              className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px]"
+              className="bg-purple-600 hover:bg-purple-700 font-black uppercase text-[10px] rounded-xl px-8 h-12 shadow-lg shadow-purple-200"
             >
               {isAiGenerating ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-              Gerar e Salvar Receita
+              Gerar Gastronomia
             </Button>
           </DialogFooter>
         </DialogContent>
