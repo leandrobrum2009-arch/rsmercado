@@ -24,7 +24,7 @@ function RouteComponent() {
     const getProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        navigate({ to: '/' })
+        setIsLoading(false)
         return
       }
 
@@ -48,7 +48,7 @@ function RouteComponent() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     toast.success('Logout realizado com sucesso!')
-    navigate({ to: '/' })
+    window.location.reload()
   }
 
   if (isLoading) {
@@ -59,10 +59,18 @@ function RouteComponent() {
     )
   }
 
+  if (!profile) {
+    return (
+      <div className="container mx-auto px-4 py-12 flex flex-col items-center">
+        <AuthForm />
+      </div>
+    )
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex flex-col items-center mb-8">
-        <Avatar className="w-24 h-24 mb-4">
+        <Avatar className="w-24 h-24 mb-4 ring-4 ring-primary/10">
           <AvatarImage src={profile?.avatar_url} />
           <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
             {profile?.full_name?.substring(0, 2).toUpperCase() || 'U'}
@@ -72,56 +80,68 @@ function RouteComponent() {
         <p className="text-muted-foreground">{profile?.whatsapp || 'Sem WhatsApp cadastrado'}</p>
         
         <div className="flex gap-4 mt-4">
-          <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-full font-bold flex items-center gap-2">
+          <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-full font-bold flex items-center gap-2 shadow-sm">
             <span className="text-xs">Pontos:</span> {profile?.points_balance || 0}
           </div>
-          <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold text-xs flex items-center">
-            Nível {profile?.loyalty_tier || 'Bronze'}
+          <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold text-xs flex items-center shadow-sm">
+            Nível {profile?.loyalty_tier?.toUpperCase() || 'BRONZE'}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <Card className="hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate({ to: '/admin' })}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Administração</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Gerencie produtos, notícias e pedidos.</p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsTrigger value="overview">Início</TabsTrigger>
+          <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          <TabsTrigger value="settings">Perfil</TabsTrigger>
+          <TabsTrigger value="logout" onClick={handleLogout}>Sair</TabsTrigger>
+        </TabsList>
 
-        <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Meus Pedidos</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Acompanhe suas compras e histórico.</p>
-          </CardContent>
-        </Card>
+        <TabsContent value="overview" className="space-y-6">
+          <AdminSetup />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {profile?.is_admin && (
+              <Card className="hover:bg-muted/50 cursor-pointer transition-all border-l-4 border-l-primary" onClick={() => navigate({ to: '/admin' })}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-bold">Painel Administrativo</CardTitle>
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">Acesso às configurações globais da loja.</p>
+                </CardContent>
+              </Card>
+            )}
 
-        <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Configurações</CardTitle>
-            <Settings className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Altere seus dados e preferências.</p>
-          </CardContent>
-        </Card>
+            <Card className="hover:bg-muted/50 cursor-pointer transition-all border-l-4 border-l-green-600">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-bold">Status de Entrega</CardTitle>
+                <ShoppingBag className="h-5 w-5 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">Você não possui pedidos em andamento.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-        <Card className="hover:bg-muted/50 cursor-pointer transition-colors" onClick={handleLogout}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sair</CardTitle>
-            <LogOut className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Finalizar sua sessão com segurança.</p>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="orders">
+          <div className="bg-white rounded-xl border p-8 text-center">
+            <History className="mx-auto h-12 w-12 text-muted-foreground mb-4 opacity-20" />
+            <h3 className="font-bold text-lg">Histórico Vazio</h3>
+            <p className="text-sm text-muted-foreground">Suas compras aparecerão aqui quando você realizar o primeiro pedido.</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <ProfileEditor profile={profile} onUpdate={() => window.location.reload()} />
+        </TabsContent>
+
+        <TabsContent value="logout">
+           <div className="flex justify-center p-12">
+             <Loader2 className="animate-spin text-primary" />
+           </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
