@@ -556,13 +556,6 @@ export function ProductImporter() {
       setImportProgress(null)
     }
   }
-    } catch (error) {
-      toast.error('Falha na conexão com o site parceiro.')
-    } finally {
-      setIsScraping(false)
-      setScrapingProgress(null)
-    }
-  }
 
   const handleConfirmImport = async () => {
     const toImport = scrapedProducts.filter(p => selectedForImport.includes(p.id))
