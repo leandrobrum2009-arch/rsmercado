@@ -27,7 +27,6 @@ function RecipesPage() {
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    fetchRecipes()
     checkUser()
   }, [])
 
@@ -65,27 +64,6 @@ function RecipesPage() {
     }
   }
 
-  const fetchRecipes = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false })
-      if (error) throw error
-      setRecipes(data || [])
-    } catch (error) {
-      toast.error('Erro ao carregar feed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="animate-spin h-12 w-12 text-green-600" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preparando o banquete...</p>
-      </div>
-    )
-  }
 
   return (
     <div className="bg-zinc-50 min-h-screen pb-20">
