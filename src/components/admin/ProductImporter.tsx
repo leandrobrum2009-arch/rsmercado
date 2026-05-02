@@ -1,3 +1,10 @@
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
+  const [diagnosticLog, setDiagnosticLog] = useState<string[]>([])
+
+  const addLog = (msg: string) => {
+    setDiagnosticLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
+  }
+
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -195,6 +202,8 @@ export function ProductImporter() {
   }
   const simulateScraping = async (categoryName: string) => {
     setIsScraping(true)
+    setDiagnosticLog([])
+    addLog(`Iniciando importação de ${toImport.length} produtos...`)
     setScrapedProducts([])
     setSelectedForImport([])
     toast.info(`Escaneando site parceiro para ${categoryName}...`)
@@ -283,7 +292,12 @@ export function ProductImporter() {
 
       for (const product of toImport) {
         // Duplicate check
-        const isDuplicate = Array.from(existingProductNames).includes(product.name.toLowerCase().trim());
+        const isDuplicate = existingProductNames.has(product.name.toLowerCase().trim());
+        addLog(`Processando: ${product.name}...`)
+          addLog(`Categoria ${product.category} não encontrada. Criando...`)
+          addLog(`Categoria ${product.category} criada com ID: ${newCat.id}`)
+        addLog(`Salvando produto no banco de dados...`)
+          addLog(`Produto salvo com sucesso!`)
         if (isDuplicate) {
           console.log(`Pulando duplicado: ${product.name}`);
           continue;
@@ -325,12 +339,29 @@ export function ProductImporter() {
         setImportProgress({ current: i, total: toImport.length })
       }
       
-      toast.success(`${successCount} produtos cadastrados com sucesso! (${toImport.length - successCount} duplicados pulados)`)
+      addLog(`Importação finalizada. Sucesso: ${successCount}, Duplicados: ${toImport.length - successCount}`)
+      toast.success(`${successCount} produtos cadastrados com sucesso!`)
       fetchExistingNames() // Refresh duplicates list
       setScrapedProducts([])
       setSelectedForImport([])
       checkMissingImages()
     } catch (error: any) {
+      addLog(`ERRO CRÍTICO: ${error.message}`)
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
+          </DialogHeader>
+          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
+            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
+            {isScraping && <div className="animate-pulse">_</div>}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       toast.error('Erro ao salvar produtos: ' + error.message)
     } finally {
       setIsScraping(false)
