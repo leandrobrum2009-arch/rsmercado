@@ -41,6 +41,12 @@ export function ProductImporter() {
   const [sourceUrl, setSourceUrl] = useState('')
   const [scrapingLimit, setScrapingLimit] = useState(25)
   const [isAutoImporting, setIsAutoImporting] = useState(false)
+
+  const updateScrapedProduct = (id: string, field: string, value: any) => {
+    setScrapedProducts(prev => prev.map(p => 
+      p.id === id ? { ...p, [field]: value } : p
+    ))
+  }
   const handleBulkImport = () => {
     const lines = bulkInput.split('\n').filter(l => l.trim().length > 0);
     const products = lines.map((line, idx) => {
@@ -1191,14 +1197,25 @@ export function ProductImporter() {
                               <RefreshCw className="h-3 w-3" />
                             </Button>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
-                              {existingProductNames.has(normalizeString(product.name)) && (
-                                <Badge variant="destructive" className="text-[8px] h-4 bg-amber-500 hover:bg-amber-600">JÁ EXISTE</Badge>
-                              )}
+                          <TableCell className="max-w-[300px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  className="h-8 font-black text-sm uppercase tracking-tight border-transparent hover:border-gray-300 focus:border-primary transition-colors bg-transparent px-1"
+                                  value={product.name}
+                                  onChange={(e) => updateScrapedProduct(product.id, 'name', e.target.value)}
+                                />
+                                {existingProductNames.has(normalizeString(product.name)) && (
+                                  <Badge variant="destructive" className="text-[8px] h-4 bg-amber-500 hover:bg-amber-600 whitespace-nowrap">JÁ EXISTE</Badge>
+                                )}
+                              </div>
+                              <Input 
+                                className="h-6 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-transparent hover:border-gray-200 focus:border-primary transition-colors bg-transparent px-1"
+                                value={product.brand}
+                                onChange={(e) => updateScrapedProduct(product.id, 'brand', e.target.value)}
+                                placeholder="MARCA"
+                              />
                             </div>
-                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.brand}</div>
                           </TableCell>
                           <TableCell className="font-black text-green-700">R$ {product.price.toFixed(2)}</TableCell>
                           <TableCell>
