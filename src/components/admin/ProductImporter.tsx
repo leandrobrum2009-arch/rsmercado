@@ -13,6 +13,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export function ProductImporter() {
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
+  const [diagnosticLog, setDiagnosticLog] = useState<string[]>([])
+
+  const addLog = (msg: string) => {
+    setDiagnosticLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
+  }
+
   const [searchQuery, setSearchQuery] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -195,6 +202,8 @@ export function ProductImporter() {
   }
   const simulateScraping = async (categoryName: string) => {
     setIsScraping(true)
+    setDiagnosticLog([])
+    addLog(`Escaneando site parceiro para ${categoryName}...`)
     setScrapedProducts([])
     setSelectedForImport([])
     toast.info(`Escaneando site parceiro para ${categoryName}...`)
@@ -283,7 +292,8 @@ export function ProductImporter() {
 
       for (const product of toImport) {
         // Duplicate check
-        const isDuplicate = Array.from(existingProductNames).includes(product.name.toLowerCase().trim());
+        const isDuplicate = existingProductNames.has(product.name.toLowerCase().trim());
+        addLog(`Processando: ${product.name}...`)
         if (isDuplicate) {
           console.log(`Pulando duplicado: ${product.name}`);
           continue;
@@ -325,12 +335,14 @@ export function ProductImporter() {
         setImportProgress({ current: i, total: toImport.length })
       }
       
-      toast.success(`${successCount} produtos cadastrados com sucesso! (${toImport.length - successCount} duplicados pulados)`)
+      addLog(`Importação finalizada. Sucesso: ${successCount}, Duplicados: ${toImport.length - successCount}`)
+      toast.success(`${successCount} produtos cadastrados com sucesso!`)
       fetchExistingNames() // Refresh duplicates list
       setScrapedProducts([])
       setSelectedForImport([])
       checkMissingImages()
     } catch (error: any) {
+      addLog(`ERRO CRÍTICO: ${error.message}`)
       toast.error('Erro ao salvar produtos: ' + error.message)
     } finally {
       setIsScraping(false)
@@ -530,9 +542,8 @@ export function ProductImporter() {
                 <div className="p-6 bg-gray-50 border-t flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
                     <Info className="h-4 w-4 text-blue-500" />
-                    Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
+                    Clique em Cadastrar para salvar os itens selecionados.
                   </div>
-                  <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                   <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                     {importProgress && (
                       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
@@ -542,25 +553,33 @@ export function ProductImporter() {
                         />
                       </div>
                     )}
-                    <Button 
-                      size="lg" 
-                      className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
-                      onClick={handleConfirmImport}
-                      disabled={isScraping || selectedForImport.length === 0}
-                    >
-                      {isScraping ? (
-                        <>
-                          <Loader2 className="animate-spin mr-2" />
-                          {importProgress ? `SALVANDO ${importProgress.current}/${importProgress.total}...` : 'PROCESSANDO...'}
-                        </>
-                      ) : (
-                        <>
-                          <Check className="mr-2" />
-                          Cadastrar Selecionados
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsDiagnosticOpen(true)}
+                        className="h-14 font-bold uppercase text-[10px]"
+                      >
+                        Ver Log
+                      </Button>
+                      <Button 
+                        size="lg" 
+                        className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
+                        onClick={handleConfirmImport}
+                        disabled={isScraping || selectedForImport.length === 0}
+                      >
+                        {isScraping ? (
+                          <>
+                            <Loader2 className="animate-spin mr-2" />
+                            {importProgress ? `SALVANDO ${importProgress.current}/${importProgress.total}...` : 'PROCESSANDO...'}
+                          </>
+                        ) : (
+                          <>
+                            <Check className="mr-2" />
+                            Cadastrar Selecionados
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -568,6 +587,21 @@ export function ProductImporter() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
+          </DialogHeader>
+          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
+            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
+            {isScraping && <div className="animate-pulse">_</div>}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Busca de Fotos via Google (Simulado) */}
       <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
