@@ -1,7 +1,6 @@
  import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
-import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
