@@ -398,23 +398,17 @@ export function ProductImporter() {
 
       setScrapedProducts(samples)
       setSelectedForImport(samples.map(p => p.id))
-      // Simulate finding more products
-      const moreSamples = [...samples];
-      if (samples.length > 0) {
-        for (let i = 1; i <= 21; i++) {
-          const base = samples[i % samples.length];
-          moreSamples.push({
-            ...base,
-            id: `s-extra-${i}`,
-            name: `${base.name} - Opção ${i}`,
-            price: base.price + (Math.random() * 5),
-          });
-        }
+      // Filter out products that already exist in the database to avoid showing "duplicates" to the user
+      const uniqueSamples = samples.filter(p => !existingProductNames.has(normalizeString(p.name)));
+      
+      setScrapedProducts(uniqueSamples)
+      setSelectedForImport(uniqueSamples.map(p => p.id))
+      
+      if (uniqueSamples.length === 0 && samples.length > 0) {
+        toast.info("Todos os produtos encontrados já estão no seu catálogo.")
+      } else {
+        toast.success(`${uniqueSamples.length} novos produtos encontrados. Pronto para importar!`)
       }
-
-      setScrapedProducts(moreSamples)
-      setSelectedForImport(moreSamples.map(p => p.id))
-      toast.success(`${moreSamples.length} produtos encontrados (lote de 25). Revise a lista abaixo.`)
     } catch (error) {
       toast.error('Erro ao conectar com o site parceiro.')
     } finally {
