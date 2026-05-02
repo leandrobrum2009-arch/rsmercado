@@ -7,6 +7,7 @@ import { ProductImporter } from '@/components/admin/ProductImporter'
 import { NewsManager } from '@/components/admin/NewsManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
+import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
@@ -54,12 +55,13 @@ function RouteComponent() {
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-8">
+        <TabsList className="grid w-full grid-cols-6 mb-8 text-[10px] md:text-sm">
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="importer">Importação Automática</TabsTrigger>
           <TabsTrigger value="news">Notícias/Blog</TabsTrigger>
           <TabsTrigger value="flyers">Gerador de Encartes</TabsTrigger>
           <TabsTrigger value="banners">Banners/CMS</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products">
@@ -80,6 +82,10 @@ function RouteComponent() {
 
         <TabsContent value="banners">
           <BannerManager />
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <WhatsAppManager />
         </TabsContent>
       </Tabs>
     </div>
