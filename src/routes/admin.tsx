@@ -8,6 +8,7 @@ import { NewsManager } from '@/components/admin/NewsManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
+import { WebhookManager } from '@/components/admin/WebhookManager'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
