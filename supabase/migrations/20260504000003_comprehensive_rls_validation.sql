@@ -170,7 +170,21 @@ DROP POLICY IF EXISTS "Admins can insert import logs" ON public.import_logs;
 
 CREATE POLICY "Admins can manage import logs" ON public.import_logs FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- 4. Final Verification: Ensure master email has role
+-- 4. Update profile protection trigger to use the robust is_admin() function
+CREATE OR REPLACE FUNCTION protect_profile_sensitive_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT public.is_admin() THEN
+        NEW.is_admin := OLD.is_admin;
+        NEW.points_balance := OLD.points_balance;
+        NEW.loyalty_tier := OLD.loyalty_tier;
+        NEW.id := OLD.id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. Final Verification: Ensure master email has role
 INSERT INTO public.user_roles (user_id, role)
 SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
 ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
