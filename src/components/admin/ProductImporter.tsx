@@ -89,24 +89,54 @@ export function ProductImporter() {
     }
   }
 
-  const handleUpdateProductImage = async (imageUrl: string) => {
-    if (!selectedProduct) return
+  const openPhotoModal = (product: any) => {
+    setProductBeingEdited(product)
+    setPhotoSearchQuery(`${product.name} ${product.brand || ''}`)
+    setIsPhotoModalOpen(true)
+    handlePhotoSearch(`${product.name} ${product.brand || ''}`)
+  }
+
+  const handlePhotoSearch = async (query: string) => {
+    setIsSearchingPhotos(true)
+    try {
+      // Simula resultados de busca do Google Imagens
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const randomSeeds = [1, 2, 3, 4, 5, 6].map(() => Math.floor(Math.random() * 1000))
+      const mockResults = randomSeeds.map(seed => `https://picsum.photos/seed/${seed}/600/600`)
+      setPhotoResults(mockResults)
+    } finally {
+      setIsSearchingPhotos(false)
+    }
+  }
+
+  const selectNewPhoto = (url: string) => {
+    if (productBeingEdited?.id?.toString().startsWith('s')) {
+      setScrapedProducts(prev => prev.map(p => 
+        p.id === productBeingEdited.id ? { ...p, image_url: url } : p
+      ))
+    } else {
+      handleUpdateProductImage(url, productBeingEdited.id)
+    }
+    setIsPhotoModalOpen(false)
+    setProductBeingEdited(null)
+  }
+
+  const handleUpdateProductImage = async (imageUrl: string, productId?: string) => {
+    const targetId = productId || selectedProduct?.id
+    if (!targetId) return
 
     try {
       const { error } = await supabase
         .from('products')
         .update({ 
           image_url: imageUrl,
-          has_media_error: false // Reset error flag when updating
+          has_media_error: false
         })
-        .eq('id', selectedProduct.id)
+        .eq('id', targetId)
 
       if (error) throw error
-      
-      toast.success('Imagem cadastrada com sucesso!')
-      setSelectedProduct(null)
-      setImages([])
-      checkMissingImages() // Refresh list
+      toast.success('Imagem atualizada!')
+      checkMissingImages()
     } catch (error) {
       toast.error('Erro ao salvar imagem')
     }
