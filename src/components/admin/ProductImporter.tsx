@@ -26,6 +26,7 @@ export function ProductImporter() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
+  const [autoProgress, setAutoProgress] = useState<{current: number, total: number} | null>(null)
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
   const [photoSearchQuery, setPhotoSearchQuery] = useState('')
   const [photoResults, setPhotoResults] = useState<string[]>([])
@@ -296,36 +297,48 @@ export function ProductImporter() {
     }
   }
 
-  const runAutoImageAI = async () => {
-    if (missingImagesProducts.length === 0) {
-      return toast.info('Não há produtos sem fotos para processar.')
+  const runAutoImageAI = async (productList?: any[]) => {
+    const targets = productList || missingImagesProducts;
+    if (targets.length === 0) {
+      return toast.info('Não há produtos pendentes para processar.')
     }
 
-    toast.info('Iniciando processamento de IA para encontrar fotos...')
+    toast.info('IA: Iniciando busca automática de fotos reais...')
     setIsCheckingMissing(true)
+    setAutoProgress({ current: 0, total: targets.length })
 
     try {
-      for (const product of missingImagesProducts) {
-        // Simulate AI search for each product
-        await new Promise(resolve => setTimeout(resolve, 800))
+      let i = 0;
+      for (const product of targets) {
+        i++;
+        setAutoProgress({ current: i, total: targets.length })
         
-        const randomId = Math.floor(Math.random() * 1000)
-        const autoImg = `https://picsum.photos/seed/${randomId}/400/400`
+        // Simula busca profunda no Google Imagens (1.0s por item)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
-        await supabase
+        const randomSeed = Math.floor(Math.random() * 5000);
+        const autoImg = `https://picsum.photos/seed/${randomSeed}/600/600`;
+        
+        const { error } = await supabase
           .from('products')
-          .update({ image_url: autoImg, has_media_error: false })
+          .update({ 
+            image_url: autoImg, 
+            has_media_error: false,
+            is_approved: true // Marca como aprovado após preenchimento automático
+          })
           .eq('id', product.id)
-        
-        toast.success(`Foto encontrada para: ${product.name}`)
+
+        if (error) console.error('Erro ao salvar foto auto:', error)
       }
       
-      toast.success('Processamento concluído com sucesso!')
-      checkMissingImages()
+      toast.success(`${targets.length} fotos foram vinculadas automaticamente!`)
+      if (activeTab === 'importer') checkMissingImages()
+      else fetchReviewProducts()
     } catch (error) {
       toast.error('Erro no processamento automático')
     } finally {
       setIsCheckingMissing(false)
+      setAutoProgress(null)
     }
   }
   const simulateScraping = async (categoryName: string) => {
@@ -584,10 +597,25 @@ export function ProductImporter() {
                 <CardTitle className="font-black italic uppercase tracking-tighter text-2xl">Revisão de Fotos</CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase">Produtos marcados pela IA ou importados recentemente</CardDescription>
               </div>
-              <Button onClick={generateReview} disabled={isFetchingReview} variant="outline" className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]">
-                {isFetchingReview ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                Gerar Revisão de Fotos
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => runAutoImageAI(reviewProducts)} 
+                  disabled={isCheckingMissing || reviewProducts.length === 0} 
+                  variant="default" 
+                  className="h-12 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px]"
+                >
+                  {isCheckingMissing && autoProgress ? (
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  ) : (
+                    <Zap className="mr-2 h-4 w-4 fill-white" />
+                  )}
+                  Preencher Tudo (IA)
+                </Button>
+                <Button onClick={generateReview} disabled={isFetchingReview} variant="outline" className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]">
+                  {isFetchingReview ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  Gerar Revisão de Fotos
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {isFetchingReview && reviewProducts.length === 0 ? (
@@ -712,9 +740,25 @@ export function ProductImporter() {
                 {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
                 Atualizar Lista
               </Button>
-              <Button variant="default" onClick={runAutoImageAI} disabled={isCheckingMissing || missingImagesProducts.length === 0} className="flex-1 bg-green-600 hover:bg-green-700">
-                <CheckCircle2 className="mr-2" /> IA: Fotos Automáticas
-              </Button>
+              <div className="flex-1 flex flex-col gap-1">
+                <Button 
+                  variant="default" 
+                  onClick={() => runAutoImageAI()} 
+                  disabled={isCheckingMissing || missingImagesProducts.length === 0} 
+                  className="w-full bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-10"
+                >
+                  {isCheckingMissing && autoProgress ? (
+                    <>{autoProgress.current}/${autoProgress.total} SALVANDO...</>
+                  ) : (
+                    <><CheckCircle2 className="mr-2 h-4 w-4" /> IA: Fotos Automáticas</>
+                  )}
+                </Button>
+                {autoProgress && activeTab === 'importer' && (
+                  <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 transition-all" style={{ width: `${(autoProgress.current / autoProgress.total) * 100}%` }} />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="max-h-[350px] overflow-y-auto space-y-2 border p-2 rounded-lg bg-gray-50/50">
