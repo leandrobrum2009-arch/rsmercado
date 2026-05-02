@@ -16,6 +16,10 @@ export function ProductImporter() {
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
 
+  useEffect(() => {
+    checkMissingImages()
+  }, [])
+
   // Mock function for Google Image search proxy
   const searchGoogleImages = async (query: string) => {
     setIsSearching(true)
