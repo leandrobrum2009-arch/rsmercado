@@ -17,7 +17,8 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
 
-   const handleConfirmEmail = async () => {
+    const handleConfirmEmail = async () => {
+      const trimmedKey = key.trim();
      if (!email) {
        setStatus('Digite o e-mail que deseja confirmar')
        return
@@ -25,10 +26,10 @@ function AdminFix() {
      setConfirming(true)
      setStatus('Confirmando e-mail...')
      try {
-       const { data, error } = await supabase.rpc('confirm_user_email', { 
-         email_to_confirm: email,
-         secret_key: key
-       })
+        const { data, error } = await supabase.rpc('confirm_user_email', { 
+          email_to_confirm: email.trim(),
+          secret_key: trimmedKey
+        })
        if (error) throw error
        setStatus('E-mail confirmado com sucesso! Agora você pode fazer login.')
      } catch (err: any) {
@@ -39,7 +40,10 @@ function AdminFix() {
    }
  
     const handleFix = async () => {
-      if (key !== 'ADMIN_RS_2024' && key !== 'SETUP_ADMIN_2024' && key !== 'CONFIGURAÇÃO_ADMIN_2024') {
+      const trimmedKey = key.trim();
+      const validKeys = ['ADMIN_RS_2024', 'SETUP_ADMIN_2024', 'CONFIGURAÇÃO_ADMIN_2024', 'CONFIGURACAO_ADMIN_2024'];
+      
+      if (!validKeys.includes(trimmedKey)) {
         setStatus('Chave incorreta')
         return
      }
