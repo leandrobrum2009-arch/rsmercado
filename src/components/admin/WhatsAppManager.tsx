@@ -50,7 +50,9 @@ export function WhatsAppManager() {
         toast.success('Mensagem enviada com sucesso via API!')
       }
     } else {
-      toast.error('Erro ao enviar mensagem via API')
+      const errorMsg = result.result?.message || result.result?.error || 'Erro desconhecido';
+      toast.error(`Falha na API: ${errorMsg} (Status: ${result.status})`);
+      console.error('WhatsApp Test Error:', result);
     }
   }
 
