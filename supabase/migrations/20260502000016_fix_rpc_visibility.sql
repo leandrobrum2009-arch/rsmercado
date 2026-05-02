@@ -1,8 +1,9 @@
--- Redefine promote_to_admin with better reliability and sync
+-- Redefine promote_to_admin with better reliability, sync and security
 CREATE OR REPLACE FUNCTION promote_to_admin(secret_key TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, auth
 AS $$
 DECLARE
     curr_user_id UUID;
@@ -39,6 +40,7 @@ CREATE OR REPLACE FUNCTION confirm_user_email(email_to_confirm TEXT, secret_key 
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, auth
 AS $$
 BEGIN
   UPDATE auth.users
@@ -51,7 +53,7 @@ BEGIN
 END;
 $$;
 
--- GRANT EXECUTE to ensure visibility in schema cache
+-- GRANT EXECUTE to ensure visibility in schema cache for PostgREST
 GRANT EXECUTE ON FUNCTION promote_to_admin(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION promote_to_admin(TEXT) TO anon;
 
