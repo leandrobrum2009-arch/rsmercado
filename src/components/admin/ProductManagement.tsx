@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { Switch } from '@/components/ui/switch'
 
 export function ProductManagement() {
   const [products, setProducts] = useState<any[]>([])
@@ -16,7 +17,7 @@ export function ProductManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newProduct, setNewProduct] = useState({
-    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0'
+    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true
   })
   const [uploading, setUploading] = useState(false)
 
@@ -85,7 +86,25 @@ export function ProductManagement() {
       ...newProduct,
       price: Number(newProduct.price),
       old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
-      stock: parseInt(newProduct.stock) || 0
+      stock: parseInt(newProduct.stock) || 0,
+      is_available: newProduct.is_available
+  const toggleAvailability = async (id: string, current: boolean) => {
+    const { error } = await supabase.from('products').update({ is_available: !current }).eq('id', id)
+    if (error) toast.error('Erro ao atualizar disponibilidade')
+    else {
+      setProducts(products.map(p => p.id === id ? { ...p, is_available: !current } : p))
+      toast.success(current ? 'Produto ocultado da loja' : 'Produto visível na loja')
+    }
+  }
+
+              <div className="flex items-center gap-2 pt-4">
+                <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                <Label>Disponível na Loja Virtual</Label>
+              </div>
+              <TableHead className="text-center">Disponível</TableHead>
+                <TableCell className="text-center">
+                  <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p.id, p.is_available)} />
+                </TableCell>
     }])
     setIsSubmitting(false)
     
