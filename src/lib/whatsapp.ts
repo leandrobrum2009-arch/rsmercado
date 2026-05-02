@@ -29,6 +29,13 @@ export const saveWhatsAppConfig = async (config: WhatsAppConfig) => {
   return { error };
 }
 
+export const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+}
+
 export const formatWhatsAppMessage = (type: 'promotion' | 'order', data: any) => {
   if (type === 'promotion') {
     return `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*${data.title}*\n\n${data.description}\n\n👉 Confira aqui: ${window.location.origin}/produtos/${data.id}\n\n*Aproveite enquanto durarem os estoques!* 🛒`;
