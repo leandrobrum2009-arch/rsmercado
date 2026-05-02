@@ -251,19 +251,24 @@ function AdminFix() {
                <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
                  1. Insira o E-mail para confirmar
                </p>
-              <Input 
-                placeholder="E-mail do cadastro" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)}
-                className="bg-white h-12 text-sm border-amber-300 focus:ring-amber-500"
-              />
-              <Button 
-                onClick={handleConfirmEmail} 
-                disabled={confirming || !key}
-                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest mt-2"
-              >
-                {confirming ? <Loader2 className="animate-spin mr-2" /> : 'FORÇAR CONFIRMAÇÃO'}
-              </Button>
+               <div className="space-y-3">
+                 <Input 
+                   placeholder="E-mail do cadastro" 
+                   value={email} 
+                   onChange={e => setEmail(e.target.value)}
+                   className="bg-white h-12 text-sm border-amber-300 focus:ring-amber-500"
+                 />
+                 <p className="text-[10px] text-zinc-500 font-bold italic">
+                   Nota: Apenas o administrador mestre (leandrobrum2009@gmail.com) pode autorizar esta ação agora.
+                 </p>
+                 <Button 
+                   onClick={handleConfirmEmail} 
+                   disabled={confirming}
+                   className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest mt-2"
+                 >
+                   {confirming ? <Loader2 className="animate-spin mr-2" /> : 'FORÇAR CONFIRMAÇÃO'}
+                 </Button>
+               </div>
             </div>
           </div>
  
