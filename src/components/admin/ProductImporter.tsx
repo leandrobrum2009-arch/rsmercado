@@ -1187,7 +1187,13 @@ export function ProductImporter() {
                             />
                           </TableCell>
                           <TableCell className="relative group">
-                            <img src={product.image_url} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="" />
+                            {product.image_url ? (
+                              <img src={product.image_url} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="" />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-200">
+                                <Search className="h-4 w-4 text-gray-300" />
+                              </div>
+                            )}
                             <Button 
                               variant="secondary" 
                               size="icon" 
