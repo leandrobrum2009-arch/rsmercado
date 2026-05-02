@@ -224,7 +224,7 @@ export function ProductImporter() {
           .maybeSingle()
         
         if (!catData) {
-          const { data: newCat } = await supabase
+          const { data: newCat, error: catError } = await supabase
             .from('categories')
             .insert({ 
               name: product.category, 
@@ -232,6 +232,11 @@ export function ProductImporter() {
             })
             .select()
             .single()
+          
+          if (catError) {
+            console.error('Category creation error:', catError)
+            throw new Error(`Erro ao criar categoria ${product.category}: ${catError.message}`)
+          }
           catData = newCat
         }
 
