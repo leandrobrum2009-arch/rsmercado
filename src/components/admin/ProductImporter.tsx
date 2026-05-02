@@ -775,8 +775,6 @@ export function ProductImporter() {
           </CardContent>
         </Card>
       </div>
-
-    </div>
         </>
       )}
 
