@@ -14,6 +14,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as AdminFixRouteImport } from './routes/admin-fix'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -42,6 +43,11 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminFixRoute = AdminFixRouteImport.update({
+  id: '/admin-fix',
+  path: '/admin-fix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
   '/news': typeof NewsRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
   '/news': typeof NewsRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
   '/news': typeof NewsRoute
@@ -86,17 +95,27 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/admin-fix'
     | '/cart'
     | '/install'
     | '/news'
     | '/profile'
     | '/search'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/cart' | '/install' | '/news' | '/profile' | '/search'
+  to:
+    | '/'
+    | '/admin'
+    | '/admin-fix'
+    | '/cart'
+    | '/install'
+    | '/news'
+    | '/profile'
+    | '/search'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/admin-fix'
     | '/cart'
     | '/install'
     | '/news'
@@ -107,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
   InstallRoute: typeof InstallRoute
   NewsRoute: typeof NewsRoute
@@ -151,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-fix': {
+      id: '/admin-fix'
+      path: '/admin-fix'
+      fullPath: '/admin-fix'
+      preLoaderRoute: typeof AdminFixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -171,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
   InstallRoute: InstallRoute,
   NewsRoute: NewsRoute,
@@ -180,3 +208,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
