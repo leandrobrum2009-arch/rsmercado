@@ -12,10 +12,14 @@ export function AuthForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setErrorMsg('')
+    setSuccessMsg('')
     console.log('Attempting authentication...', { email, isSignUp })
     
     try {
