@@ -43,7 +43,7 @@ function AdminFix() {
       const trimmedKey = key.trim();
       const validKeys = ['ADMIN_RS_2024', 'SETUP_ADMIN_2024', 'CONFIGURAÇÃO_ADMIN_2024', 'CONFIGURACAO_ADMIN_2024'];
       
-      if (!validKeys.includes(trimmedKey)) {
+      if (!validKeys.some(vk => vk.toUpperCase() === trimmedKey.toUpperCase())) {
         setStatus('Chave incorreta')
         return
      }
