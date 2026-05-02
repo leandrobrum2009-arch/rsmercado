@@ -11,7 +11,14 @@ import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
-    const { data: { session } } = await supabase.auth.getSession()
+    let session = null
+    try {
+      const { data } = await supabase.auth.getSession()
+      session = data.session
+    } catch (e) {
+      console.error('Error getting session:', e)
+    }
+
     if (!session) {
       throw redirect({
         to: '/',
@@ -19,14 +26,19 @@ export const Route = createFileRoute('/admin')({
       })
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', session.user.id)
-      .single()
+    try {
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single()
 
-    if (!profile?.is_admin) {
+      if (!profile?.is_admin) {
+        throw redirect({ to: '/' })
+      }
+    } catch (e) {
+      console.error('Error checking admin status:', e)
       throw redirect({ to: '/' })
     }
   },
