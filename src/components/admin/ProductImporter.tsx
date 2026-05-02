@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import { SmartImage } from '@/components/ui/SmartImage'
 
 export function ProductImporter() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -55,7 +56,10 @@ export function ProductImporter() {
     try {
       const { error } = await supabase
         .from('products')
-        .update({ image_url: imageUrl })
+        .update({ 
+          image_url: imageUrl,
+          has_media_error: false // Reset error flag when updating
+        })
         .eq('id', selectedProduct.id)
 
       if (error) throw error
