@@ -24,9 +24,9 @@ function AdminFix() {
      setConfirming(true)
      setStatus('Confirmando e-mail...')
      try {
-        const { data, error } = await supabase.rpc('confirm_user_email', { 
+        const { data, error } = await supabase.rpc('confirm_user_email', {
           email_to_confirm: email.trim().toLowerCase(),
-          secret_key: 'ignorado'
+          secret_key: key.trim()
         })
        if (error) throw error
        setStatus('E-mail confirmado com sucesso! Agora você pode fazer login.')
@@ -51,11 +51,13 @@ function AdminFix() {
        }
  
         setStatus('Concedendo privilégios de administrador...')
-        const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: 'ignorado' })
-        
+        const { data, error } = await supabase.rpc('promote_to_admin', { 
+          secret_key: key.trim() 
+        })
+
         if (error) {
           if (error.message.includes('Could not find the function')) {
-            setStatus('SISTEMA ESTÁ SENDO ATUALIZADO: Aguarde 30 segundos e tente clicar no botão novamente. O banco de dados está recebendo as novas permissões.')
+            setStatus('SISTEMA ESTÁ SENDO ATUALIZADO: O banco de dados está recebendo as novas permissões. Aguarde 15-30 segundos e clique no botão novamente.')
             return
           }
           throw error
