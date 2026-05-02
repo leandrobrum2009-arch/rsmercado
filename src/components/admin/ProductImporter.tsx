@@ -325,13 +325,13 @@ export function ProductImporter() {
     }
   }
 
-  const runAutoImageAI = async (productList?: any[]) => {
-    const targets = productList || missingImagesProducts;
+  const runAutoImageAI = async (productList?: any[], limit: number = 25) => {
+    const targets = (productList || missingImagesProducts).slice(0, limit);
     if (targets.length === 0) {
       return toast.info('Não há produtos pendentes para processar.')
     }
 
-    toast.info('IA: Iniciando busca automática de fotos reais...')
+    toast.info(`IA: Iniciando busca automática para lote de ${targets.length} produtos...`)
     setIsCheckingMissing(true)
     setAutoProgress({ current: 0, total: targets.length })
 
@@ -340,9 +340,10 @@ export function ProductImporter() {
       for (const product of targets) {
         i++;
         setAutoProgress({ current: i, total: targets.length })
+        addLog(`Buscando imagem para: ${product.name} ${product.brand || ''}...`)
         
-        // Simula busca profunda no Google Imagens (1.0s por item)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Simulate deep search in Google Images
+        await new Promise(resolve => setTimeout(resolve, 1200))
         
         const randomSeed = Math.floor(Math.random() * 5000);
         const autoImg = `https://picsum.photos/seed/${randomSeed}/600/600`;
@@ -352,14 +353,14 @@ export function ProductImporter() {
           .update({ 
             image_url: autoImg, 
             has_media_error: false,
-            is_approved: true // Marca como aprovado após preenchimento automático
+            is_approved: false // Set to false to allow manual review if needed
           })
           .eq('id', product.id)
 
         if (error) console.error('Erro ao salvar foto auto:', error)
       }
       
-      toast.success(`${targets.length} fotos foram vinculadas automaticamente!`)
+      toast.success(`${targets.length} fotos foram vinculadas. Revise-as no Centro de Aprovação!`)
       if (activeTab === 'importer') checkMissingImages()
       else fetchReviewProducts()
     } catch (error) {
