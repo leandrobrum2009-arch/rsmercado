@@ -148,7 +148,22 @@ function RootShell({ children }: { children: React.ReactNode }) {
    }
  
     const isAdminPage = location.pathname.startsWith('/admin');
-    const isSupabaseMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+    // Check for keys in environment or localStorage
+    const [supabaseConfig, setSupabaseConfig] = useState({
+      url: localStorage.getItem('supabase_url') || import.meta.env.VITE_SUPABASE_URL || '',
+      key: localStorage.getItem('supabase_anon_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+    });
+    
+    const isSupabaseMissing = !supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder';
+    const [showConfigModal, setShowConfigModal] = useState(false);
+    const [tempUrl, setTempUrl] = useState(supabaseConfig.url);
+    const [tempKey, setTempKey] = useState(supabaseConfig.key);
+
+    const saveConfig = () => {
+      localStorage.setItem('supabase_url', tempUrl);
+      localStorage.setItem('supabase_anon_key', tempKey);
+      window.location.reload();
+    };
 
  
     return (
