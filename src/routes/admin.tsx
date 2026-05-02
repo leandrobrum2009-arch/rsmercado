@@ -1,3 +1,4 @@
+ import { RLSAuditor } from '@/components/admin/RLSAuditor'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -109,7 +110,7 @@ function RouteComponent() {
       </div>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 mb-8 text-[10px] md:text-xs">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-9 gap-1 mb-8 text-[10px] md:text-xs">
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="importer">Importação</TabsTrigger>
@@ -118,7 +119,11 @@ function RouteComponent() {
           <TabsTrigger value="banners">Banners</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
+        <TabsContent value="security">
+          <RLSAuditor />
+        </TabsContent>
         
         <TabsContent value="products">
           <ProductManagement />
