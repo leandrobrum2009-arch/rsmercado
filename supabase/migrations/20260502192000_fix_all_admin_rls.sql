@@ -88,3 +88,15 @@ CREATE POLICY "Admins can manage coupons"
 ON public.coupons FOR ALL 
 USING (public.is_admin()) 
 WITH CHECK (public.is_admin());
+
+-- 7. Fix user_roles (Non-recursive with email bypass)
+DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
+CREATE POLICY "Admins can manage roles" ON public.user_roles 
+FOR ALL USING (
+  (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com'
+  OR 
+  EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_id = auth.uid() AND role = 'admin'
+  )
+);
