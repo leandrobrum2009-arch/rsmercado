@@ -34,13 +34,93 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
+  const [activeTab, setActiveTab] = useState<'importer' | 'review'>('importer')
+  const [reviewProducts, setReviewProducts] = useState<any[]>([])
+  const [isFetchingReview, setIsFetchingReview] = useState(false)
   const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
   const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
-    checkMissingImages()
-    fetchExistingNames()
-  }, [])
+    if (activeTab === 'importer') {
+      checkMissingImages()
+      fetchExistingNames()
+    } else {
+      fetchReviewProducts()
+    }
+  }, [activeTab])
+
+  const fetchReviewProducts = async () => {
+    setIsFetchingReview(true)
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .eq('is_approved', false)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      setReviewProducts(data || [])
+    } catch (error) {
+      toast.error('Erro ao carregar revisão')
+    } finally {
+      setIsFetchingReview(false)
+    }
+  }
+
+  const generateReview = async () => {
+    setIsFetchingReview(true)
+    try {
+      addLog('Gerando revisão automática de fotos...')
+      // Identify products with generic images (picsum, unsplash) or media errors
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, image_url')
+      
+      if (error) throw error
+      
+      const toReview = data.filter(p => 
+        !p.image_url || 
+        p.image_url.includes('picsum') || 
+        p.image_url.includes('unsplash') ||
+        p.has_media_error
+      ).map(p => p.id)
+
+      if (toReview.length === 0) {
+        toast.info('Nenhum produto precisa de revisão no momento.')
+        return
+      }
+
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ is_approved: false })
+        .in('id', toReview)
+
+      if (updateError) throw updateError
+      
+      addLog(`${toReview.length} produtos marcados para revisão.`)
+      toast.success(`${toReview.length} produtos enviados para a fila de revisão.`)
+      fetchReviewProducts()
+    } catch (error: any) {
+      toast.error('Erro ao gerar revisão: ' + error.message)
+    } finally {
+      setIsFetchingReview(false)
+    }
+  }
+
+  const approveProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_approved: true, last_reviewed_at: new Date().toISOString() })
+        .eq('id', id)
+      
+      if (error) throw error
+      setReviewProducts(prev => prev.filter(p => p.id !== id))
+      toast.success('Produto aprovado!')
+    } catch (error) {
+      toast.error('Erro ao aprovar')
+    }
+  }
 
   const normalizeString = (str: string) => {
     return str
