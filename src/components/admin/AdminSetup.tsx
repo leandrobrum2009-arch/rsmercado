@@ -66,7 +66,10 @@ export function AdminSetup() {
   if (isAdminExists === true) return null
 
   return (
-    <Card className="border-primary border-4 shadow-2xl bg-primary/5">
+    <Card className="border-green-500 border-8 shadow-2xl bg-green-50/50">
+      <div className="bg-green-600 text-white text-[10px] font-black py-2 text-center uppercase tracking-widest">
+        🔓 Acesso Livre Ativado - Não precisa de senha
+      </div>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-2xl font-black italic uppercase">
           <ShieldCheck className="text-primary h-8 w-8" /> Ativar Acesso Master
