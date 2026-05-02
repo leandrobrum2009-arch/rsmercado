@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { AuthForm } from '@/components/auth/AuthForm'
 import { AdminSetup } from '@/components/admin/AdminSetup'
+ import { ProfileDetails } from '@/components/profile/ProfileDetails'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat, Wrench } from 'lucide-react'
@@ -18,46 +19,45 @@ function ProfilePage() {
   const [isClient, setIsClient] = useState(false)
   const [savedRecipesCount, setSavedRecipesCount] = useState(0)
 
-  useEffect(() => {
-    setIsClient(true)
-    
-    const checkSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession()
-        setSession(data.session)
-        
-        if (data.session) {
-          const userId = data.session.user.id;
-          let { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single()
-          
-          if (error && error.code === 'PGRST116') {
-             const { data: newProfile, error: createError } = await supabase
-               .from('profiles')
-               .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
-               .select()
-               .single()
-             if (!createError) profileData = newProfile
-          }
-          setProfile(profileData)
-
-          const { count } = await supabase
-            .from('user_recipes')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId)
-          setSavedRecipesCount(count || 0)
-        }
-      } catch (err) {
-        console.error('Profile load error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkSession()
+   const checkSession = async () => {
+     try {
+       const { data } = await supabase.auth.getSession()
+       setSession(data.session)
+       
+       if (data.session) {
+         const userId = data.session.user.id;
+         let { data: profileData, error } = await supabase
+           .from('profiles')
+           .select('*')
+           .eq('id', userId)
+           .single()
+         
+         if (error && error.code === 'PGRST116') {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
+              .select()
+              .single()
+            if (!createError) profileData = newProfile
+         }
+         setProfile(profileData)
+ 
+         const { count } = await supabase
+           .from('user_recipes')
+           .select('*', { count: 'exact', head: true })
+           .eq('user_id', userId)
+         setSavedRecipesCount(count || 0)
+       }
+     } catch (err) {
+       console.error('Profile load error:', err)
+     } finally {
+       setLoading(false)
+     }
+   }
+ 
+   useEffect(() => {
+     setIsClient(true)
+     checkSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
@@ -91,16 +91,26 @@ function ProfilePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col items-center mb-10 p-10 bg-white rounded-3xl shadow-xl border-t-8 border-primary">
-        <Avatar className="w-28 h-28 mb-4 ring-8 ring-primary/5">
-          <AvatarFallback className="text-3xl bg-primary text-primary-foreground font-black">
-            {session.user.email?.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
-        <p className="text-gray-400 font-bold text-xs mb-6 tracking-widest">{session.user.email}</p>
-      </div>
-
-      <AdminSetup />
+         <div className="flex items-center gap-6">
+           <Avatar className="w-28 h-28 ring-8 ring-primary/5">
+             {profile?.avatar_url ? (
+               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+             ) : (
+               <AvatarFallback className="text-3xl bg-primary text-primary-foreground font-black">
+                 {session.user.email?.substring(0, 2).toUpperCase()}
+               </AvatarFallback>
+             )}
+           </Avatar>
+           <div>
+             <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
+             <p className="text-gray-400 font-bold text-xs tracking-widest">{session.user.email}</p>
+           </div>
+         </div>
+       </div>
+ 
+       <ProfileDetails profile={profile} onUpdate={checkSession} />
+ 
+       <AdminSetup />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
         <Card 

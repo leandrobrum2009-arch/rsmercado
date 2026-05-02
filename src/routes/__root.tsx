@@ -77,9 +77,37 @@ function RootShell({ children }: { children: React.ReactNode }) {
    const location = useLocation();
    const { items } = useCart();
    const [isAdmin, setIsAdmin] = useState(false);
+    const [storeSettings, setStoreSettings] = useState<any>({
+      site_name: 'SuperLoja',
+      logo_url: '',
+      colors: { primary: '#16a34a', secondary: '#facc15' }
+    });
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
  
    useEffect(() => {
+      const fetchSettings = async () => {
+        const { data } = await supabase.from('store_settings').select('*');
+        if (data) {
+          const newSettings = { ...storeSettings };
+          data.forEach(item => {
+            if (item.key === 'site_name') newSettings.site_name = item.value;
+            if (item.key === 'logo_url') newSettings.logo_url = item.value;
+            if (item.key === 'color_palette') newSettings.colors = item.value;
+          });
+          setStoreSettings(newSettings);
+          
+          // Apply colors to CSS variables
+          if (newSettings.colors.primary) {
+            document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
+          }
+          if (newSettings.colors.secondary) {
+            document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
+          }
+        }
+      };
+ 
+      fetchSettings();
+ 
      const checkAdmin = async () => {
        const { data: { session } } = await supabase.auth.getSession();
        if (!session) return setIsAdmin(false);
@@ -121,7 +149,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-           <Link to="/" className="text-2xl font-bold text-green-600">SuperLoja</Link>
+            <Link to="/" className="flex items-center gap-2">
+              {storeSettings.logo_url ? (
+                <img src={storeSettings.logo_url} alt="Logo" className="h-10 object-contain" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">{storeSettings.site_name}</span>
+              )}
+            </Link>
            <div className="flex items-center space-x-6">
              {navItems.map((item) => (
                <Link
@@ -150,7 +184,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
        {/* Mobile Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm md:hidden">
          <div className="flex items-center justify-between h-14 px-4">
-           <Link to="/" className="text-xl font-bold text-green-600">SuperLoja</Link>
+            <Link to="/" className="flex items-center gap-2">
+              {storeSettings.logo_url ? (
+                <img src={storeSettings.logo_url} alt="Logo" className="h-8 object-contain" />
+              ) : (
+                <span className="text-xl font-bold text-primary">{storeSettings.site_name}</span>
+              )}
+            </Link>
            <div className="flex items-center space-x-3">
              <Link to="/search" className="p-2 text-gray-600">
                <Search size={20} />

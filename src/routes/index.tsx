@@ -1,4 +1,5 @@
  import { createFileRoute } from "@tanstack/react-router";
+  import { BannerCarousel } from "@/components/home/BannerCarousel";
  import { CategoryBar } from "@/components/home/CategoryBar";
  import { ProductGrid } from "@/components/home/ProductGrid";
  import { StoriesCarousel } from "@/components/home/StoriesCarousel";
@@ -48,9 +49,11 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-        <StoriesCarousel />
-        
-        <CategoryBar />
+         <BannerCarousel />
+ 
+         <StoriesCarousel />
+ 
+         <CategoryBar />
 
         {/* Main Recipe Section (replacing news/flyers focus) */}
         <RecipeFeed />

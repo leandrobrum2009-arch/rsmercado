@@ -9,6 +9,7 @@ import { ProductImporter } from '@/components/admin/ProductImporter'
 import { RecipeManager } from '@/components/admin/RecipeManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
+ import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { WebhookManager } from '@/components/admin/WebhookManager'
 import { Button } from '@/components/ui/button'
@@ -110,7 +111,7 @@ function RouteComponent() {
       </div>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-9 gap-1 mb-8 text-[10px] md:text-xs">
+         <TabsList className="grid w-full grid-cols-3 md:grid-cols-10 gap-1 mb-8 text-[10px] md:text-xs">
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="importer">Importação</TabsTrigger>
@@ -119,8 +120,13 @@ function RouteComponent() {
           <TabsTrigger value="banners">Banners</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+           <TabsTrigger value="settings">Configurações</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
+         <TabsContent value="settings">
+           <StoreSettingsManager />
+         </TabsContent>
+ 
         <TabsContent value="security">
           <RLSAuditor />
         </TabsContent>
