@@ -12,15 +12,22 @@ import { Textarea } from '@/components/ui/textarea'
 
 export const Route = createFileRoute('/recipes')({
   loader: async () => {
-    const { data, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    
-    // If no recipes found, we could trigger an auto-seed or just return empty
-    // For automation, we'll return the data and let the component handle it
-    return { recipes: data || [] }
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Error fetching recipes:', error)
+        return { recipes: [] }
+      }
+      
+      return { recipes: data || [] }
+    } catch (err) {
+      console.error('Unexpected error in recipes loader:', err)
+      return { recipes: [] }
+    }
   },
   component: RecipesPage,
 })
@@ -43,7 +50,14 @@ function RecipesPage() {
     const { data } = await supabase.auth.getUser()
     setUser(data.user)
     if (data?.user) {
-      setIsAdmin(data.user.email === 'leandrobrum2009@gmail.com')
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .maybeSingle()
+      
+      setIsAdmin(roleData?.role === 'admin' || data.user.email === 'leandrobrum2009@gmail.com')
+      
       const { data: saved } = await supabase
         .from('user_recipes')
         .select('recipe_id')
