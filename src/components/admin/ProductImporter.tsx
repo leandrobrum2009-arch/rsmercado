@@ -1,75 +1,57 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info, ImagePlus, RefreshCw, Zap } from 'lucide-react'
-import { toast } from '@/lib/toast'
-import { SmartImage } from '@/components/ui/SmartImage'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { toast } from '@/lib/toast'
+import { Loader2, Zap, Save } from 'lucide-react'
 
 export function ProductImporter() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [images, setImages] = useState<string[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
-  const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
-  const [isCheckingMissing, setIsCheckingMissing] = useState(false)
-  const [autoProgress, setAutoProgress] = useState<{current: number, total: number} | null>(null)
-  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
-  const [photoSearchQuery, setPhotoSearchQuery] = useState('')
-  const [photoResults, setPhotoResults] = useState<string[]>([])
-  const [isSearchingPhotos, setIsSearchingPhotos] = useState(false)
-  const [productBeingEdited, setProductBeingEdited] = useState<any>(null)
-  const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
-  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [batchSize, setBatchSize] = useState<number>(25)
-  const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
-  const [selectedForImport, setSelectedForImport] = useState<string[]>([])
-  const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
-  const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
+  const [category, setCategory] = useState('')
+  const [batchSize, setBatchSize] = useState(25)
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [selected, setSelected] = useState<string[]>([])
 
-  const categories_list = [
-    "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios e Laticínios", "Pet Shop", "Utilidades"
+  const categories = [
+    "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
   ]
 
-  const updateSuggestedProduct = (id: string, field: string, value: any) => {
-    setSuggestedProducts(prev => prev.map(p => 
-      p.id === id ? { ...p, [field]: value } : p
-    ))
+  const generateSuggestions = () => {
+    setLoading(true)
+    // Simulated AI generation
+    setTimeout(() => {
+      const mockProducts = Array.from({ length: batchSize }).map((_, i) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: `${category} Item ${i + 1}`,
+        brand: "Marca Exemplo",
+        size: "500g",
+        price: (Math.random() * 20 + 5).toFixed(2),
+        category,
+        is_available: true
+      }))
+      setProducts(mockProducts)
+      setLoading(false)
+    }, 1000)
   }
-  const [importLogs, setImportLogs] = useState<any[]>([])
-  const [reviewProducts, setReviewProducts] = useState<any[]>([])
-  const [isFetchingReview, setIsFetchingReview] = useState(false)
 
-  const handleAutoDeduplicate = async () => {
-    if (!confirm('Esta ação irá apagar permanentemente produtos duplicados do seu banco de dados. Deseja continuar?')) return
-    
-    setIsScraping(true)
-    try {
-      const { data, error } = await supabase.rpc('auto_deduplicate_products')
-      if (error) throw error
-      
-      if (data.success) {
-        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens.`)
-        fetchExistingNames()
-      } else {
-        toast.error(data.message)
-      }
-    } catch (err: any) {
-      toast.error('Erro na desduplicação: ' + err.message)
-    } finally {
-      setIsScraping(false)
+  const saveProducts = async () => {
+    setImporting(true)
+    const toSave = products.filter(p => selected.includes(p.id))
+    for (const p of toSave) {
+      await supabase.from('products').insert({
+        name: `${p.name} ${p.brand} ${p.size}`,
+        price: p.price,
+        is_available: p.is_available,
+        is_approved: false
+      })
     }
+    setImporting(false)
+    toast.success('Produtos salvos!')
   }
-  const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
-  const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
     if (activeTab === 'importer') {
