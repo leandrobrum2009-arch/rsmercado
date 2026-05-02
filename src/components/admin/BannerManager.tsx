@@ -86,7 +86,7 @@ export function BannerManager() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">URL da Imagem</label>
+               <label className="text-xs font-black uppercase text-zinc-500">URL da Imagem</label>
               <Input 
                 placeholder="https://exemplo.com/banner.jpg" 
                 value={newBanner.image_url}
@@ -94,7 +94,7 @@ export function BannerManager() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Categoria (Opcional)</label>
+               <label className="text-xs font-black uppercase text-zinc-500">Categoria (Opcional)</label>
               <Select onValueChange={(val) => setNewBanner({...newBanner, category_id: val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
@@ -106,7 +106,7 @@ export function BannerManager() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Link de Destino</label>
+               <label className="text-xs font-black uppercase text-zinc-500">Link de Destino</label>
               <Input 
                 placeholder="/produtos/categoria" 
                 value={newBanner.link_url}
@@ -114,21 +114,21 @@ export function BannerManager() {
               />
             </div>
           </div>
-          <Button onClick={handleAddBanner} disabled={isAdding}>
+           <Button onClick={handleAddBanner} disabled={isAdding} className="w-full md:w-auto rounded-xl font-bold uppercase tracking-tight">
             {isAdding ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2" />}
             Cadastrar Banner
           </Button>
         </CardContent>
       </Card>
 
-      <div className="border rounded-lg overflow-hidden">
+       <div className="border rounded-2xl overflow-hidden bg-white shadow-sm border-zinc-200">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Preview</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Link</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Preview</TableHead>
+               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Categoria</TableHead>
+               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Link</TableHead>
+               <TableHead className="text-right text-[10px] font-black uppercase text-zinc-500">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
