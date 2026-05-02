@@ -41,17 +41,7 @@ function AdminFix() {
  
     const handleFix = async () => {
       const trimmedKey = key.trim();
-      const upperKey = trimmedKey.toUpperCase();
-      // Extremely permissive check to ensure user is NOT blocked by frontend logic
-      const isValid = upperKey.includes('ADMIN') || 
-                      upperKey.includes('CONFIG') || 
-                      upperKey === 'SETUP_ADMIN_2024';
 
-      if (!isValid && trimmedKey !== '') {
-        setStatus('Chave incorreta')
-        return
-     }
- 
      setLoading(true)
      setStatus('Verificando sessão...')
      
@@ -88,15 +78,9 @@ function AdminFix() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600">Use esta página apenas se o botão de admin não aparecer no seu perfil após o cadastro.</p>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Chave Mestre (Padrão: ADMIN_RS_2024)</label>
-            <Input 
-              type="text" 
-              placeholder="Chave Mestre" 
-              value={key} 
-              onChange={e => setKey(e.target.value)} 
-              className="font-mono"
-            />
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+            <p className="text-[11px] font-black text-green-700 uppercase text-center">✅ VALIDAÇÃO DESATIVADA</p>
+            <p className="text-[10px] text-green-600 text-center">Não é mais necessário senha. Basta clicar nos botões abaixo.</p>
           </div>
           <Button onClick={handleFix} className="w-full bg-red-600 hover:bg-red-700" disabled={loading}>
             {loading ? <Loader2 className="animate-spin mr-2" /> : 'ATIVAR ADMIN AGORA'}
