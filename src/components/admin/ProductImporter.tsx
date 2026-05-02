@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info } from 'lucide-react'
+import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info, ImagePlus, RefreshCw } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export function ProductImporter() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,13 +19,27 @@ export function ProductImporter() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
+  const [photoSearchQuery, setPhotoSearchQuery] = useState('')
+  const [photoResults, setPhotoResults] = useState<string[]>([])
+  const [isSearchingPhotos, setIsSearchingPhotos] = useState(false)
+  const [productBeingEdited, setProductBeingEdited] = useState<any>(null)
+  const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
   const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
     checkMissingImages()
+    fetchExistingNames()
   }, [])
+
+  const fetchExistingNames = async () => {
+    const { data } = await supabase.from('products').select('name')
+    if (data) {
+      setExistingProductNames(new Set(data.map(p => p.name.toLowerCase().trim())))
+    }
+  }
 
   const toggleSelectProduct = (id: string) => {
     setSelectedForImport(prev => 
