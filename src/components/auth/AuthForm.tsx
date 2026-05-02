@@ -56,7 +56,7 @@ export function AuthForm() {
           msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.'
        } else if (msg.includes('Invalid login credentials')) {
         msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados ou confirme se já ativou sua conta pelo e-mail.'
-      } else if (msg.toLowerCase().includes('apikey') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api inválida')) {
+      } else if (msg.toLowerCase().includes('apikey') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api inválida') || msg.toLowerCase().includes('failed to fetch')) {
         msg = 'ERRO DE CONFIGURAÇÃO (API INVÁLIDA): As chaves de conexão com o banco de dados (Supabase) não foram encontradas ou são inválidas. Por favor, verifique as "Configurações do Projeto" no Lovable.'
       }
 
