@@ -21,7 +21,7 @@ export function AuthForm() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        toast.success('Cadastro realizado! Verifique seu e-mail.')
+        toast.success('Cadastro realizado! Se o login não for automático, verifique seu e-mail para confirmar a conta.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error

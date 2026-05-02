@@ -1,12 +1,17 @@
  import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
-import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -69,6 +74,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
  function Layout() {
+   const [isClient, setIsClient] = useState(false);
+
+   useEffect(() => {
+     setIsClient(true);
+   }, []);
+
    const location = useLocation();
    const { items } = useCart();
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -164,7 +175,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
            </div>
          </nav>
        )}
-       <Toaster position="top-center" />
      </div>
    );
  }
