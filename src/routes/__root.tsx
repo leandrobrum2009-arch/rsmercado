@@ -1,17 +1,11 @@
  import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
-import { useEffect, useState } from "react";
+ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -38,14 +32,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "RS SUPERMERCADO" },
+      { name: "description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "RS SUPERMERCADO" },
+      { property: "og:description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "RS SUPERMERCADO" },
+      { name: "twitter:description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
     ],
     links: [
       {
@@ -74,12 +72,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
  function Layout() {
-   const [isClient, setIsClient] = useState(false);
-
-   useEffect(() => {
-     setIsClient(true);
-   }, []);
-
    const location = useLocation();
    const { items } = useCart();
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -175,6 +167,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
            </div>
          </nav>
        )}
+       <Toaster position="top-center" />
      </div>
    );
  }
