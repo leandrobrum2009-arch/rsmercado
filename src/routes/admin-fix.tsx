@@ -41,17 +41,7 @@ function AdminFix() {
  
     const handleFix = async () => {
       const trimmedKey = key.trim();
-      const upperKey = trimmedKey.toUpperCase();
-      // Extremely permissive check to ensure user is NOT blocked by frontend logic
-      const isValid = upperKey.includes('ADMIN') || 
-                      upperKey.includes('CONFIG') || 
-                      upperKey === 'SETUP_ADMIN_2024';
 
-      if (!isValid && trimmedKey !== '') {
-        setStatus('Chave incorreta')
-        return
-     }
- 
      setLoading(true)
      setStatus('Verificando sessão...')
      
