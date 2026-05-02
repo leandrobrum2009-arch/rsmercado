@@ -56,7 +56,7 @@ function RecipesPage() {
         .eq('user_id', data.user.id)
         .maybeSingle()
       
-      setIsAdmin(roleData?.role === 'admin' || data.user.email === 'leandrobrum2009@gmail.com')
+       setIsAdmin(roleData?.role === 'admin')
       
       const { data: saved } = await supabase
         .from('user_recipes')
