@@ -38,7 +38,12 @@ export function ProductManagement() {
     }
     
     setIsSubmitting(true)
-    const { error } = await supabase.from('products').insert([newProduct])
+    const { error } = await supabase.from('products').insert([{
+      ...newProduct,
+      price: Number(newProduct.price),
+      old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
+      stock: parseInt(newProduct.stock) || 0
+    }])
     setIsSubmitting(false)
     
     if (error) toast.error('Erro ao adicionar produto')
