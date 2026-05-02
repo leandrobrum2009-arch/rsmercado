@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { Switch } from '@/components/ui/switch'
 
 export function ProductManagement() {
   const [products, setProducts] = useState<any[]>([])
@@ -16,7 +17,7 @@ export function ProductManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newProduct, setNewProduct] = useState({
-    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0'
+    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true
   })
   const [uploading, setUploading] = useState(false)
 
@@ -38,7 +39,6 @@ export function ProductManagement() {
       
       setProducts(prodData || [])
       setCategories(catData || [])
-      console.log('Admin Dashboard: Loaded', prodData?.length, 'products and', catData?.length, 'categories')
     } catch (err) {
       console.error('Fetch error:', err)
     }
@@ -68,7 +68,6 @@ export function ProductManagement() {
       setNewProduct({ ...newProduct, image_url: publicUrl })
       toast.success('Imagem carregada com sucesso!')
     } catch (error: any) {
-      console.error('Upload error:', error)
       toast.error('Erro no upload: ' + error.message)
     } finally {
       setUploading(false)
@@ -82,17 +81,21 @@ export function ProductManagement() {
     
     setIsSubmitting(true)
     const { error } = await supabase.from('products').insert([{
-      ...newProduct,
+      name: newProduct.name,
+      description: newProduct.description,
       price: Number(newProduct.price),
       old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
-      stock: parseInt(newProduct.stock) || 0
+      category_id: newProduct.category_id,
+      image_url: newProduct.image_url,
+      stock: parseInt(newProduct.stock) || 0,
+      is_available: newProduct.is_available
     }])
     setIsSubmitting(false)
     
     if (error) toast.error('Erro ao adicionar produto')
     else {
       toast.success('Produto adicionado!')
-      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0' })
+      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true })
       fetchData()
     }
   }
@@ -107,36 +110,12 @@ export function ProductManagement() {
     }
   }
 
-  const handleAutoDeduplicate = async () => {
-    if (!confirm('Esta ação irá apagar permanentemente produtos com nomes idênticos, mantendo apenas a versão com foto. Deseja continuar?')) return
-    
-    setIsLoading(true)
-    try {
-      const { data, error } = await supabase.rpc('auto_deduplicate_products')
-      if (error) throw error
-      
-      if (data.success) {
-        toast.success(`${data.message} Foram removidos ${data.deleted_count} itens duplicados.`)
-        fetchData()
-      } else {
-        toast.error(data.message)
-      }
-    } catch (err: any) {
-      toast.error('Erro na desduplicação: ' + err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const checkDuplicates = () => {
-    const names = products.map(p => p.name.toLowerCase().trim())
-    const duplicates = products.filter((p, index) => names.indexOf(p.name.toLowerCase().trim()) !== index)
-    
-    if (duplicates.length > 0) {
-      toast.warning(`Foram encontrados ${duplicates.length} produtos com nomes repetidos no catálogo.`)
-      console.log('Duplicates found:', duplicates)
-    } else {
-      toast.success('Nenhum produto repetido encontrado no catálogo.')
+  const toggleAvailability = async (id: string, current: boolean) => {
+    const { error } = await supabase.from('products').update({ is_available: !current }).eq('id', id)
+    if (error) toast.error('Erro ao atualizar disponibilidade')
+    else {
+      setProducts(products.map(p => p.id === id ? { ...p, is_available: !current } : p))
+      toast.success(current ? 'Produto ocultado' : 'Produto visível')
     }
   }
 
@@ -145,137 +124,69 @@ export function ProductManagement() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center gap-4 flex-wrap">
-        <h2 className="text-xl font-semibold">Catálogo de Produtos</h2>
+        <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
         <div className="flex gap-2">
-          <div className="flex gap-1 bg-zinc-100 p-1 rounded-lg">
-            <Button variant="ghost" size="sm" onClick={checkDuplicates} className="text-[10px] font-bold uppercase">
-              <SearchCheck className="mr-1 h-3 w-3" /> Verificar
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-bold uppercase text-amber-600 hover:text-amber-700">
-              <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar
-            </Button>
-          </div>
           <Dialog>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Cadastrar Produto</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="space-y-2 col-span-2">
-                <Label>Nome do Produto</Label>
-                <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Preço Atual</Label>
-                <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Preço Antigo (Opcional)</Label>
-                <Input type="number" step="0.01" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Categoria</Label>
-                <Select onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Estoque</Label>
-                <Input type="number" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
-              </div>
-              <div className="space-y-4 col-span-2 border-t pt-4">
-                <Label className="font-bold">Foto do Produto</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase text-gray-500">Enviar Arquivo</Label>
-                    <div className="relative">
-                      <Input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleFileUpload} 
-                        className="hidden" 
-                        id="product-image-upload"
-                        disabled={uploading}
-                      />
-                      <label 
-                        htmlFor="product-image-upload"
-                        className="flex items-center justify-center gap-2 h-12 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
-                      >
-                        {uploading ? <Loader2 className="animate-spin h-4 w-4" /> : <Upload className="h-4 w-4" />}
-                        <span className="text-xs font-bold uppercase">Escolher Foto</span>
-                      </label>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase text-gray-500">Ou use uma URL</Label>
-                    <Input 
-                      value={newProduct.image_url} 
-                      onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})}
-                      placeholder="https://..."
-                      className="h-12"
-                    />
-                  </div>
+            <DialogTrigger asChild>
+              <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader><DialogTitle className="font-black uppercase">Cadastrar Produto</DialogTitle></DialogHeader>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="space-y-2 col-span-2">
+                  <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
+                  <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                 </div>
-                {newProduct.image_url && (
-                  <div className="mt-2 p-2 border rounded-xl bg-gray-50 flex items-center gap-4">
-                    <img src={newProduct.image_url} alt="Preview" className="w-16 h-16 object-cover rounded-lg shadow-sm" />
-                    <div className="flex-1">
-                      <p className="text-[10px] font-bold text-green-600 uppercase">Imagem selecionada</p>
-                      <p className="text-[8px] text-gray-400 truncate max-w-[200px]">{newProduct.image_url}</p>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setNewProduct({...newProduct, image_url: ''})}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
+                  <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold">Categoria</Label>
+                  <Select onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2 col-span-2 py-2">
+                  <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                  <Label className="font-bold">Disponível para venda na loja</Label>
+                </div>
+                <Button onClick={handleAddProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
+                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Produto'}
+                </Button>
               </div>
-              <Button onClick={handleAddProduct} disabled={isSubmitting} className="w-full col-span-2">
-                {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Produto'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      <div className="border rounded-lg bg-white overflow-hidden">
+      <div className="border-2 border-zinc-100 rounded-xl bg-white overflow-hidden shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-zinc-50">
             <TableRow>
-              <TableHead>Imagem</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
+              <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
+              <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+              <TableHead className="text-[10px] font-black uppercase text-center">Venda Online</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map((p) => (
               <TableRow key={p.id}>
-                <TableCell className="relative">
-                  <SmartImage 
-                    src={p.image_url} 
-                    tableName="products" 
-                    itemId={p.id} 
-                    className="w-10 h-10 object-cover rounded" 
-                  />
-                  {p.has_media_error && (
-                    <div className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5">
-                      <AlertTriangle size={8} />
-                    </div>
-                  )}
+                <TableCell>
+                  <SmartImage src={p.image_url} tableName="products" itemId={p.id} className="w-10 h-10 object-cover rounded shadow-sm" />
                 </TableCell>
-                <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell>{p.categories?.name}</TableCell>
-                <TableCell>R$ {Number(p.price).toFixed(2)}</TableCell>
+                <TableCell className="font-bold text-xs uppercase">{p.name}</TableCell>
+                <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
+                <TableCell className="text-center">
+                  <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p.id, p.is_available)} />
+                </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-destructive">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-red-500">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
