@@ -38,6 +38,9 @@ export function ProductImporter() {
   const [scrapingProgress, setScrapingProgress] = useState<{current: number, total: number} | null>(null)
   const [bulkInput, setBulkInput] = useState('')
   const [showBulkInput, setShowBulkInput] = useState(false)
+  const [sourceUrl, setSourceUrl] = useState('')
+  const [scrapingLimit, setScrapingLimit] = useState(25)
+  const [isAutoImporting, setIsAutoImporting] = useState(false)
   const handleBulkImport = () => {
     const lines = bulkInput.split('\n').filter(l => l.trim().length > 0);
     const products = lines.map((line, idx) => {
