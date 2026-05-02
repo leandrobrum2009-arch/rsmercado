@@ -84,9 +84,20 @@ export function AuthForm() {
       </CardHeader>
       <CardContent className="pt-8">
         {errorMsg && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-xl mb-6 border border-red-100 flex gap-3 animate-in slide-in-from-top-2 duration-300">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p className="text-xs font-bold leading-relaxed">{errorMsg}</p>
+          <div className="bg-red-50 text-red-700 p-4 rounded-xl mb-6 border-2 border-red-200 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-300">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-xs font-black leading-relaxed">{errorMsg}</p>
+            </div>
+            {errorMsg.includes('LIMITE') && (
+              <Button 
+                variant="destructive" 
+                className="w-full text-[10px] font-black h-10 bg-red-600 animate-pulse"
+                onClick={() => window.location.href = '/admin-fix'}
+              >
+                JÁ TENHO CADASTRO? ATIVAR ACESSO AGORA
+              </Button>
+            )}
           </div>
         )}
         
