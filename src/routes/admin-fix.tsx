@@ -85,7 +85,7 @@ function AdminFix() {
             <p className="text-[11px] font-black text-green-700 uppercase text-center">✅ VALIDAÇÃO DESATIVADA</p>
             <p className="text-[10px] text-green-600 text-center">Não é mais necessário senha. Basta clicar nos botões abaixo.</p>
           </div>
-          <Button onClick={handleFix} className="w-full bg-red-600 hover:bg-red-700" disabled={loading}>
+          <Button onClick={handleFix} className="w-full bg-green-600 hover:bg-green-700 h-16 text-lg font-black" disabled={loading}>
             {loading ? <Loader2 className="animate-spin mr-2" /> : 'ATIVAR ADMIN AGORA'}
           </Button>
            {status && <p className="text-center font-bold text-sm mt-4 text-red-600">{status}</p>}
