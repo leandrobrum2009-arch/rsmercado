@@ -9,12 +9,19 @@ import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/recipes')({
+  loader: async () => {
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return { recipes: data || [] }
+  },
   component: RecipesPage,
 })
 
 function RecipesPage() {
-  const [recipes, setRecipes] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { recipes } = Route.useLoaderData()
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
   const [savedRecipes, setSavedRecipes] = useState<string[]>([])
   const [user, setUser] = useState<any>(null)
