@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL || 'https://woelvkuxkkhvausaoudk.supabase.co';
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://woelvkuxkkhvausaoudk.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'MISSING_ANON_KEY';
 
-export const supabase = createClient(url, key, {
+if (supabaseKey === 'MISSING_ANON_KEY') {
+  console.warn('Supabase Anon Key is missing. Check your environment variables.');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
