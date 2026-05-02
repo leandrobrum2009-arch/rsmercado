@@ -75,6 +75,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
  function Layout() {
+   const [isClient, setIsClient] = useState(false);
+
+   useEffect(() => {
+     setIsClient(true);
+   }, []);
+
    const location = useLocation();
    const { items } = useCart();
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
