@@ -35,6 +35,7 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
+  const [scrapingProgress, setScrapingProgress] = useState<{current: number, total: number} | null>(null)
   const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
   const [importLogs, setImportLogs] = useState<any[]>([])
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
@@ -341,21 +342,32 @@ export function ProductImporter() {
       setAutoProgress(null)
     }
   }
-  const simulateScraping = async (categoryName: string) => {
+  const simulateScraping = async (categoryNames: string | string[]) => {
+    const cats = Array.isArray(categoryNames) ? categoryNames : [categoryNames];
     setIsScraping(true)
     setDiagnosticLog([])
-    addLog(`Escaneando site parceiro para ${categoryName}...`)
     setScrapedProducts([])
     setSelectedForImport([])
-    toast.info(`Escaneando site parceiro para ${categoryName}...`)
+    setScrapingProgress({ current: 0, total: cats.length })
     
+    addLog(`Iniciando escaneamento inteligente de ${cats.length} categorias...`)
+    toast.info(`Escanenando ${cats.length} categorias...`)
+    
+    let allSamples: any[] = [];
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      let samples: any[] = []
-      const catKey = categoryName.toLowerCase()
-      
-      if (catKey.includes('mercearia')) {
+      for (let i = 0; i < cats.length; i++) {
+        const categoryName = cats[i];
+        setScrapingProgress({ current: i + 1, total: cats.length })
+        addLog(`Conectando ao site parceiro para: ${categoryName}...`)
+        
+        // Artificial delay for realism
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        let samples: any[] = []
+        const catKey = categoryName.toLowerCase()
+
+        if (catKey.includes('mercearia')) {
         samples = [
           { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
           { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
@@ -390,29 +402,30 @@ export function ProductImporter() {
         samples = [
           { id: 's12', name: 'Picanha Bovina Resfriada (kg)', price: 79.90, description: 'Carne bovina de primeira.', category: 'Açougue', brand: 'Swift', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
         ]
-      } else {
-        samples = [
-          { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
-        ]
+        } else {
+          samples = [
+            { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
+          ]
+        }
+        allSamples = [...allSamples, ...samples];
       }
 
-      setScrapedProducts(samples)
-      setSelectedForImport(samples.map(p => p.id))
-      // Filter out products that already exist in the database to avoid showing "duplicates" to the user
-      const uniqueSamples = samples.filter(p => !existingProductNames.has(normalizeString(p.name)));
+      // Final filter to remove duplicates already in DB
+      const uniqueSamples = allSamples.filter(p => !existingProductNames.has(normalizeString(p.name)));
       
       setScrapedProducts(uniqueSamples)
       setSelectedForImport(uniqueSamples.map(p => p.id))
       
-      if (uniqueSamples.length === 0 && samples.length > 0) {
-        toast.info("Todos os produtos encontrados já estão no seu catálogo.")
+      if (uniqueSamples.length === 0 && allSamples.length > 0) {
+        toast.info("Todos os produtos encontrados já constam no catálogo.")
       } else {
-        toast.success(`${uniqueSamples.length} novos produtos encontrados. Pronto para importar!`)
+        toast.success(`${uniqueSamples.length} novos produtos identificados para importação.`)
       }
     } catch (error) {
-      toast.error('Erro ao conectar com o site parceiro.')
+      toast.error('Falha na conexão com o site parceiro.')
     } finally {
       setIsScraping(false)
+      setScrapingProgress(null)
     }
   }
 
