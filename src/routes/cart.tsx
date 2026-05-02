@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
  import { useCart } from "../contexts/CartContext";
-import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2 } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat } from "lucide-react";
+import { RecipeSuggestions } from "@/components/RecipeSuggestions";
  import { useState } from "react";
  import { formatCurrency } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
@@ -119,8 +120,10 @@ import { supabase } from "@/lib/supabase";
            </div>
          </div>
  
-         {/* Summary */}
-         <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+          {/* Recipe Suggestions */}
+          <RecipeSuggestions cartItems={items} />
+
+          {/* Summary */}
            <div className="flex justify-between text-gray-500">
              <span>Subtotal</span>
              <span>{formatCurrency(total)}</span>
