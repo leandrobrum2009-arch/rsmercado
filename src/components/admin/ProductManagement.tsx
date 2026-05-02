@@ -2,70 +2,118 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Edit, Trash2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function ProductManagement() {
   const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [newProduct, setNewProduct] = useState({
+    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0'
+  })
 
   useEffect(() => {
-    fetchProducts()
+    fetchData()
   }, [])
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     setIsLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(name)')
-        .order('created_at', { ascending: false })
+    const { data: prodData } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
+    const { data: catData } = await supabase.from('categories').select('*').order('name')
+    setProducts(prodData || [])
+    setCategories(catData || [])
+    setIsLoading(false)
+  }
 
-      if (error) throw error
-      setProducts(data || [])
-    } catch (error) {
-      toast.error('Erro ao carregar produtos')
-    } finally {
-      setIsLoading(false)
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.category_id) {
+      return toast.error('Nome, preço e categoria são obrigatórios')
+    }
+    
+    setIsSubmitting(true)
+    const { error } = await supabase.from('products').insert([newProduct])
+    setIsSubmitting(false)
+    
+    if (error) toast.error('Erro ao adicionar produto')
+    else {
+      toast.success('Produto adicionado!')
+      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0' })
+      fetchData()
     }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este produto?')) return
-
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
+    if (!confirm('Tem certeza?')) return
+    const { error } = await supabase.from('products').delete().eq('id', id)
+    if (error) toast.error('Erro ao excluir')
+    else {
       toast.success('Produto excluído!')
-      fetchProducts()
-    } catch (error) {
-      toast.error('Erro ao excluir produto')
+      fetchData()
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin h-8 w-8 text-primary" />
-      </div>
-    )
-  }
+  if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Lista de Produtos</h2>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Novo Produto
-        </Button>
+        <h2 className="text-xl font-semibold">Catálogo de Produtos</h2>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Cadastrar Produto</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <div className="space-y-2 col-span-2">
+                <Label>Nome do Produto</Label>
+                <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Preço Atual</Label>
+                <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Preço Antigo (Opcional)</Label>
+                <Input type="number" step="0.01" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Categoria</Label>
+                <Select onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Estoque</Label>
+                <Input type="number" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>URL da Imagem</Label>
+                <div className="flex gap-2">
+                  <Input value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                  <Button variant="outline" size="icon"><ImageIcon className="w-4 h-4" /></Button>
+                </div>
+              </div>
+              <Button onClick={handleAddProduct} disabled={isSubmitting} className="w-full col-span-2">
+                {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Produto'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-white overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -73,33 +121,22 @@ export function ProductManagement() {
               <TableHead>Nome</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Preço</TableHead>
-              <TableHead>Estoque</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
+            {products.map((p) => (
+              <TableRow key={p.id}>
                 <TableCell>
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover rounded" />
-                  ) : (
-                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground">Sem foto</div>
-                  )}
+                  <img src={p.image_url} className="w-10 h-10 object-cover rounded" />
                 </TableCell>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.categories?.name}</TableCell>
-                <TableCell>R$ {Number(product.price).toFixed(2)}</TableCell>
-                <TableCell>{product.stock}</TableCell>
+                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell>{p.categories?.name}</TableCell>
+                <TableCell>R$ {Number(p.price).toFixed(2)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(product.id)} className="text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

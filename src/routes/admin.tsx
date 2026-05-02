@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
+import { CategoryManagement } from '@/components/admin/CategoryManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { NewsManager } from '@/components/admin/NewsManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
@@ -39,8 +40,14 @@ export const Route = createFileRoute('/admin')({
         .eq('id', session.user.id)
         .single()
 
+      // If no profile found or not admin, we might want to be more helpful
+      // For testing purposes, if it's the very first user, we could potentially allow access
+      // But for security, we'll keep the check and just log it for now
+      console.log('Admin check for user:', session.user.id, 'Result:', profile?.is_admin);
+
       if (!profile?.is_admin) {
-        throw redirect({ to: '/' })
+        // Redirect to profile instead of home, so they can see their status
+        throw redirect({ to: '/profile' })
       }
     } catch (e) {
       console.error('Error checking admin status:', e)
