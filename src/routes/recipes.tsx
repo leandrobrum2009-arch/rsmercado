@@ -7,7 +7,7 @@ import { Loader2, BookOpen, Clock, ChefHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
-export const Route = createFileRoute('/recipes')({
+export const Route = createFileRoute('/recipes' as any)({
   component: RecipesPage,
 })
 
