@@ -175,7 +175,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
            </div>
          </nav>
        )}
-       <Toaster position="top-center" />
      </div>
    );
  }
