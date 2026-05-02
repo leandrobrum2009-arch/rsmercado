@@ -27,6 +27,7 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
+  const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
   const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
@@ -278,6 +279,8 @@ export function ProductImporter() {
     setIsScraping(true)
     try {
       let successCount = 0;
+      let i = 0;
+
       for (const product of toImport) {
         // Duplicate check
         const isDuplicate = Array.from(existingProductNames).includes(product.name.toLowerCase().trim());
@@ -318,9 +321,12 @@ export function ProductImporter() {
           stock: 100
         });
         successCount++;
+        i++;
+        setImportProgress({ current: i, total: toImport.length })
       }
       
       toast.success(`${successCount} produtos cadastrados com sucesso! (${toImport.length - successCount} duplicados pulados)`)
+      fetchExistingNames() // Refresh duplicates list
       setScrapedProducts([])
       setSelectedForImport([])
       checkMissingImages()
@@ -328,6 +334,7 @@ export function ProductImporter() {
       toast.error('Erro ao salvar produtos: ' + error.message)
     } finally {
       setIsScraping(false)
+      setImportProgress(null)
     }
   }
 
@@ -525,15 +532,36 @@ export function ProductImporter() {
                     <Info className="h-4 w-4 text-blue-500" />
                     Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
                   </div>
-                  <Button 
-                    size="lg" 
-                    className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
-                    onClick={handleConfirmImport}
-                    disabled={isScraping || selectedForImport.length === 0}
-                  >
-                    {isScraping ? <Loader2 className="animate-spin mr-2" /> : <Check className="mr-2" />}
-                    Cadastrar Selecionados
-                  </Button>
+                  <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                  <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                    {importProgress && (
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
+                        <div 
+                          className="h-full bg-green-500 transition-all duration-300" 
+                          style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    )}
+                    <Button 
+                      size="lg" 
+                      className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
+                      onClick={handleConfirmImport}
+                      disabled={isScraping || selectedForImport.length === 0}
+                    >
+                      {isScraping ? (
+                        <>
+                          <Loader2 className="animate-spin mr-2" />
+                          {importProgress ? `SALVANDO ${importProgress.current}/${importProgress.total}...` : 'PROCESSANDO...'}
+                        </>
+                      ) : (
+                        <>
+                          <Check className="mr-2" />
+                          Cadastrar Selecionados
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  </div>
                 </div>
               </div>
             )}
