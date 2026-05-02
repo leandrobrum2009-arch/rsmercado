@@ -73,8 +73,25 @@ export const Route = createFileRoute('/admin')({
 })
 
 function RouteComponent() {
+  const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+  
+  useEffect(() => {
+    const check = async () => {
+      const { data } = await supabase.rpc('is_admin')
+      setIsAdminDiagnostic(data)
+      console.log('Diagnostic: User is admin?', data)
+    }
+    check()
+  }, [])
+
   return (
     <div className="container mx-auto py-8 px-4">
+      {isAdminDiagnostic === false && (
+        <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+          <p className="font-bold uppercase text-xs">Atenção: O Banco de Dados não te reconheceu como Admin.</p>
+          <p className="text-[10px]">Isso pode impedir que os produtos apareçam. Use a página /admin-fix para restaurar seu acesso.</p>
+        </div>
+      )}
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
       
       <Tabs defaultValue="products" className="w-full">
