@@ -111,7 +111,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
      { name: "Início", path: "/", icon: Home },
      { name: "Buscar", path: "/search", icon: Search },
      { name: "Carrinho", path: "/cart", icon: ShoppingCart, badge: cartCount },
-     { name: "Notícias", path: "/news", icon: Newspaper },
+     { name: "Receitas", path: "/recipes", icon: ChefHat },
      { name: "Perfil", path: "/profile", icon: User },
    ];
  
