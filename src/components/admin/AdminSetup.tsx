@@ -9,7 +9,7 @@ import { toast } from '@/lib/toast'
 export function AdminSetup() {
   const [loading, setLoading] = useState(false)
   const [isAdminExists, setIsAdminExists] = useState<boolean | null>(null)
-  const [secretKey, setSecretKey] = useState('')
+  const [secretKey, setSecretKey] = useState('ADMIN_RS_2024')
 
   useEffect(() => {
     checkAdminExists()
