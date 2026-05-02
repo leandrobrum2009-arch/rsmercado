@@ -450,18 +450,37 @@ export function ProductImporter() {
                     </TableHeader>
                     <TableBody>
                       {scrapedProducts.map(product => (
-                        <TableRow key={product.id} className={selectedForImport.includes(product.id) ? 'bg-green-50/30' : 'opacity-60'}>
+                        <TableRow 
+                          key={product.id} 
+                          className={`
+                            ${selectedForImport.includes(product.id) ? 'bg-green-50/30' : 'opacity-60'}
+                            ${existingProductNames.has(product.name.toLowerCase().trim()) ? 'border-l-4 border-l-amber-500' : ''}
+                          `}
+                        >
                           <TableCell>
                             <Checkbox 
                               checked={selectedForImport.includes(product.id)}
                               onCheckedChange={() => toggleSelectProduct(product.id)}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="relative group">
                             <img src={product.image_url} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="" />
+                            <Button 
+                              variant="secondary" 
+                              size="icon" 
+                              className="absolute top-0 right-0 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => openPhotoModal(product)}
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
                           </TableCell>
                           <TableCell>
-                            <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
+                            <div className="flex items-center gap-2">
+                              <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
+                              {existingProductNames.has(product.name.toLowerCase().trim()) && (
+                                <Badge variant="destructive" className="text-[8px] h-4 bg-amber-500 hover:bg-amber-600">JÁ EXISTE</Badge>
+                              )}
+                            </div>
                             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.brand}</div>
                           </TableCell>
                           <TableCell className="font-black text-green-700">R$ {product.price.toFixed(2)}</TableCell>
