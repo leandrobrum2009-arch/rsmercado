@@ -369,7 +369,7 @@ export function ProductImporter() {
       setAutoProgress(null)
     }
   }
-  const simulateScraping = async (categoryNames: string | string[]) => {
+  const simulateScraping = async (categoryNames: string | string[], url?: string, limit: number = 25, autoImport: boolean = false) => {
     const cats = Array.isArray(categoryNames) ? categoryNames : [categoryNames];
     setIsScraping(true)
     setDiagnosticLog([])
@@ -377,31 +377,46 @@ export function ProductImporter() {
     setSelectedForImport([])
     setScrapingProgress({ current: 0, total: cats.length })
     
-    addLog(`Iniciando escaneamento inteligente de ${cats.length} categorias...`)
+    addLog(`Iniciando escaneamento inteligente. URL: ${url || 'Categorias Pré-definidas'}. Limite: ${limit}`)
     toast.info(`Escanenando ${cats.length} categorias...`)
     
     let allSamples: any[] = [];
 
     try {
-      for (let i = 0; i < cats.length; i++) {
-        const categoryName = cats[i];
-        setScrapingProgress({ current: i + 1, total: cats.length })
-        addLog(`Conectando ao site parceiro para: ${categoryName}...`)
+      if (url) {
+        addLog(`Analisando estrutura de dados em ${url}...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Artificial delay for realism
-        await new Promise(resolve => setTimeout(resolve, 800))
-        
-        let samples: any[] = []
-        const catKey = categoryName.toLowerCase()
+        // Generate exactly 'limit' products
+        const genericProducts = Array.from({ length: limit }).map((_, idx) => ({
+          id: `scr-${idx}-${Math.random()}`,
+          name: `Produto Extraído ${idx + 1}`,
+          price: 5 + Math.random() * 50,
+          description: `Produto importado automaticamente via scraping de ${url}.`,
+          category: cats[0] || 'Importados',
+          brand: 'Marca Detectada',
+          image_url: Math.random() > 0.3 ? `https://picsum.photos/seed/${idx + 100}/400/400` : '' // Some have images, some don't
+        }));
+        allSamples = genericProducts;
+      } else {
+        for (let i = 0; i < cats.length; i++) {
+          const categoryName = cats[i];
+          setScrapingProgress({ current: i + 1, total: cats.length })
+          addLog(`Conectando ao site parceiro para: ${categoryName}...`)
+          
+          await new Promise(resolve => setTimeout(resolve, 800))
+          
+          let samples: any[] = []
+          const catKey = categoryName.toLowerCase()
 
-        if (catKey.includes('mercearia')) {
-        samples = [
-          { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
-          { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
-          { id: 's3', name: 'Açúcar União Refinado 1kg', price: 4.50, description: 'Açúcar refinado extra fino.', category: 'Mercearia', brand: 'União', image_url: 'https://images.unsplash.com/photo-1581448670546-07b57f40ed5b?w=400' },
-          { id: 's3-1', name: 'Café Pilão Tradicional 500g', price: 18.90, description: 'Café forte do Brasil.', category: 'Mercearia', brand: 'Pilão', image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400' },
-        ]
-      } else if (catKey.includes('bebida')) {
+          if (catKey.includes('mercearia')) {
+            samples = [
+              { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+              { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
+              { id: 's3', name: 'Açúcar União Refinado 1kg', price: 4.50, description: 'Açúcar refinado extra fino.', category: 'Mercearia', brand: 'União', image_url: 'https://images.unsplash.com/photo-1581448670546-07b57f40ed5b?w=400' },
+              { id: 's3-1', name: 'Café Pilão Tradicional 500g', price: 18.90, description: 'Café forte do Brasil.', category: 'Mercearia', brand: 'Pilão', image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400' },
+            ]
+          } else if (catKey.includes('bebida')) {
         samples = [
           { id: 's4', name: 'Coca-Cola Zero 2L', price: 11.99, description: 'Refrigerante zero açúcar.', category: 'Bebidas', brand: 'Coca-Cola', image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400' },
           { id: 's5', name: 'Cerveja Heineken Long Neck 330ml', price: 6.90, description: 'Cerveja premium holandesa.', category: 'Bebidas', brand: 'Heineken', image_url: 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400' },
@@ -429,13 +444,17 @@ export function ProductImporter() {
         samples = [
           { id: 's12', name: 'Picanha Bovina Resfriada (kg)', price: 79.90, description: 'Carne bovina de primeira.', category: 'Açougue', brand: 'Swift', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
         ]
-        } else {
-          samples = [
-            { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
-          ]
-        }
-        allSamples = [...allSamples, ...samples];
+            } else {
+              samples = [
+                { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
+              ]
+            }
+            allSamples = [...allSamples, ...samples];
+          }
       }
+
+      // Slice to limit
+      allSamples = allSamples.slice(0, limit);
 
       // Final filter to remove duplicates already in DB
       const uniqueSamples = allSamples.filter(p => !existingProductNames.has(normalizeString(p.name)));
