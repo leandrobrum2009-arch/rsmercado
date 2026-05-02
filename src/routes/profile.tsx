@@ -16,6 +16,7 @@ function ProfilePage() {
   const [session, setSession] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [savedRecipesCount, setSavedRecipesCount] = useState(0)
 
@@ -68,9 +69,19 @@ function ProfilePage() {
      setIsClient(true)
      checkSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (!session) setProfile(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', _event, session?.user?.id);
+      setSession(session);
+      if (!session) {
+        setProfile(null);
+        setLoading(false);
+      } else {
+        // Se o estado mudou para logado e não temos o perfil, buscamos
+        if (!profile || profile.id !== session.user.id) {
+          setLoading(true);
+          await checkSession();
+        }
+      }
     })
 
     return () => subscription.unsubscribe()

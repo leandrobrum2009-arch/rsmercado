@@ -55,7 +55,6 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
       }
 
       setLoading(true)
-     setLoading(true)
      const { error } = await supabase
        .from('profiles')
        .update(formData)
