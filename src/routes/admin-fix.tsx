@@ -16,10 +16,11 @@ function AdminFix() {
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
-
-       setStatus('Digite o e-mail que deseja confirmar')
-       return
-     }
+    const handleConfirmEmail = async () => {
+      if (!email) {
+        setStatus('Digite o e-mail que deseja confirmar')
+        return
+      }
      setConfirming(true)
      setStatus('Confirmando e-mail...')
      try {
