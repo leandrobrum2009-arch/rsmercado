@@ -286,7 +286,54 @@ function RootShell({ children }: { children: React.ReactNode }) {
            </div>
          </nav>
        )}
-       <Toaster position="top-center" />
+        {showConfigModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Configurar Supabase</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Cole aqui as chaves do seu projeto Supabase para restaurar a conexão.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">URL do Projeto</label>
+                  <input 
+                    type="text" 
+                    value={tempUrl} 
+                    onChange={(e) => setTempUrl(e.target.value)}
+                    placeholder="https://xxxx.supabase.co"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Chave Anon (Public)</label>
+                  <textarea 
+                    value={tempKey} 
+                    onChange={(e) => setTempKey(e.target.value)}
+                    placeholder="eyJhbGci..."
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm h-24 resize-none"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-8">
+                <button 
+                  onClick={() => setShowConfigModal(false)}
+                  className="flex-1 px-4 py-2 border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={saveConfig}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 shadow-md"
+                >
+                  Salvar e Recarregar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <Toaster position="top-center" />
      </div>
    );
  }
