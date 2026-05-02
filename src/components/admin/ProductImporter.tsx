@@ -264,10 +264,17 @@ export function ProductImporter() {
   const handlePhotoSearch = async (query: string) => {
     setIsSearchingPhotos(true)
     try {
-      // Simula resultados de busca do Google Imagens
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      const randomSeeds = [1, 2, 3, 4, 5, 6].map(() => Math.floor(Math.random() * 1000))
-      const mockResults = randomSeeds.map(seed => `https://picsum.photos/seed/${seed}/600/600`)
+      // Simulate top 5 results from Google Images
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      // We use seeds that look like different types of product shots
+      // Seed 1-3 often look like studio shots (white background) in many placeholders
+      const mockResults = [
+        `https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=600&fit=crop&q=80`,
+        `https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=600&h=600&fit=crop&q=80`,
+        `https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=600&h=600&fit=crop&q=80`,
+        `https://images.unsplash.com/photo-1563636619-e910009351dc?w=600&h=600&fit=crop&q=80`,
+        `https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&h=600&fit=crop&q=80`,
+      ]
       setPhotoResults(mockResults)
     } finally {
       setIsSearchingPhotos(false)
