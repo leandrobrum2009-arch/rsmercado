@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProfileEditor } from '@/components/profile/ProfileEditor'
 import { AuthForm } from '@/components/auth/AuthForm'
+import { AdminSetup } from '@/components/admin/AdminSetup'
 import { Loader2, Settings, LogOut, ShieldCheck, ShoppingBag, History, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -27,13 +28,17 @@ function RouteComponent() {
         return
       }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single()
+      const [profileRes, roleRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+        supabase.from('user_roles').select('role').eq('user_id', session.user.id).single()
+      ])
 
-      setProfile(data)
+      if (profileRes.data) {
+        setProfile({
+          ...profileRes.data,
+          is_admin: roleRes.data?.role === 'admin'
+        })
+      }
       setIsLoading(false)
     }
 

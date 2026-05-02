@@ -33,19 +33,17 @@ export const Route = createFileRoute('/admin')({
     }
 
     try {
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', session.user.id)
+      // Secure check using user_roles table
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
         .single()
 
-      // If no profile found or not admin, we might want to be more helpful
-      // For testing purposes, if it's the very first user, we could potentially allow access
-      // But for security, we'll keep the check and just log it for now
-      console.log('Admin check for user:', session.user.id, 'Result:', profile?.is_admin);
+      const isAdmin = roleData?.role === 'admin';
+      console.log('Secure Admin check for user:', session.user.id, 'Result:', isAdmin);
 
-      if (!profile?.is_admin) {
+      if (!isAdmin) {
         // Redirect to profile instead of home, so they can see their status
         throw redirect({ to: '/profile' })
       }
