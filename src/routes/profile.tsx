@@ -27,13 +27,17 @@ function RouteComponent() {
         return
       }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single()
+      const [profileRes, roleRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+        supabase.from('user_roles').select('role').eq('user_id', session.user.id).single()
+      ])
 
-      setProfile(data)
+      if (profileRes.data) {
+        setProfile({
+          ...profileRes.data,
+          is_admin: roleRes.data?.role === 'admin'
+        })
+      }
       setIsLoading(false)
     }
 
