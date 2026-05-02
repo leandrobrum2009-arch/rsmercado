@@ -9,16 +9,25 @@
    const [currentIndex, setCurrentIndex] = useState(0)
  
    useEffect(() => {
-     const fetchBanners = async () => {
-       const { data } = await supabase
-         .from('banners')
-         .select('*')
-         .eq('is_active', true)
-         .order('created_at', { ascending: false })
-       
-       setBanners(data || [])
-       setIsLoading(false)
-     }
+      const fetchBanners = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('banners')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+          
+          if (error) {
+            console.error('Error fetching banners:', error)
+            // Don't show toast for home page banners to avoid annoying users if table is empty
+          }
+          setBanners(data || [])
+        } catch (err) {
+          console.error('Catch fetching banners:', err)
+        } finally {
+          setIsLoading(false)
+        }
+      }
      fetchBanners()
    }, [])
  
