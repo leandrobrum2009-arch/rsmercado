@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Save, User, Calendar, Users, Camera } from 'lucide-react'
+import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
@@ -80,13 +80,26 @@
      toast.success('Foto carregada!')
    }
  
+    const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status
+
    return (
      <Card className="bg-white border-2 border-zinc-100 shadow-xl overflow-hidden">
        <CardHeader className="bg-zinc-50 border-b">
          <CardTitle className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
            <User className="text-primary" /> Dados Pessoais
          </CardTitle>
-         <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Complete seu cadastro para receber descontos</CardDescription>
+          <div className="flex justify-between items-center">
+            <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Complete seu cadastro para receber descontos</CardDescription>
+            {isComplete ? (
+              <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
+                <CheckCircle size={12} /> Perfil Completo
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase animate-pulse">
+                <AlertCircle size={12} /> Dados Pendentes
+              </div>
+            )}
+          </div>
        </CardHeader>
        <CardContent className="p-6 space-y-6">
          <div className="flex flex-col items-center mb-6">
