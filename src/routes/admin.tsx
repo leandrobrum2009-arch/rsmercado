@@ -11,7 +11,7 @@ import { BannerManager } from '@/components/admin/BannerManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { WebhookManager } from '@/components/admin/WebhookManager'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Bug } from 'lucide-react'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
@@ -73,9 +73,40 @@ export const Route = createFileRoute('/admin')({
 })
 
 function RouteComponent() {
+  const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+  
+  useEffect(() => {
+    const check = async () => {
+      const { data } = await supabase.rpc('is_admin')
+      setIsAdminDiagnostic(data)
+      console.log('Diagnostic: User is admin?', data)
+    }
+    check()
+  }, [])
+
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
+      {isAdminDiagnostic === false && (
+        <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+          <p className="font-bold uppercase text-xs">Atenção: O Banco de Dados não te reconheceu como Admin.</p>
+          <p className="text-[10px]">Isso pode impedir que os produtos apareçam. Use a página /admin-fix para restaurar seu acesso.</p>
+        </div>
+      )}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-[10px] text-gray-400"
+          onClick={() => {
+            supabase.auth.getSession().then(({data}) => {
+              alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nID: ${data.session?.user.id}\nAdmin State: ${isAdminDiagnostic}`)
+            })
+          }}
+        >
+          <Bug className="h-3 w-3 mr-1" /> Diagnóstico
+        </Button>
+      </div>
       
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 mb-8 text-[10px] md:text-xs">

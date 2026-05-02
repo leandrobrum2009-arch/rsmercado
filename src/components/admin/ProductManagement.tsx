@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
@@ -26,10 +26,22 @@ export function ProductManagement() {
 
   const fetchData = async () => {
     setIsLoading(true)
-    const { data: prodData } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
-    const { data: catData } = await supabase.from('categories').select('*').order('name')
-    setProducts(prodData || [])
-    setCategories(catData || [])
+    try {
+      const { data: prodData, error: prodError } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
+      if (prodError) {
+        console.error('Fetch products error:', prodError)
+        toast.error('Erro ao carregar produtos: ' + prodError.message)
+      }
+      
+      const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
+      if (catError) console.error('Fetch categories error:', catError)
+      
+      setProducts(prodData || [])
+      setCategories(catData || [])
+      console.log('Admin Dashboard: Loaded', prodData?.length, 'products and', catData?.length, 'categories')
+    } catch (err) {
+      console.error('Fetch error:', err)
+    }
     setIsLoading(false)
   }
 
@@ -95,13 +107,29 @@ export function ProductManagement() {
     }
   }
 
+  const checkDuplicates = () => {
+    const names = products.map(p => p.name.toLowerCase().trim())
+    const duplicates = products.filter((p, index) => names.indexOf(p.name.toLowerCase().trim()) !== index)
+    
+    if (duplicates.length > 0) {
+      toast.warning(`Foram encontrados ${duplicates.length} produtos com nomes repetidos no catálogo.`)
+      console.log('Duplicates found:', duplicates)
+    } else {
+      toast.success('Nenhum produto repetido encontrado no catálogo.')
+    }
+  }
+
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold">Catálogo de Produtos</h2>
-        <Dialog>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={checkDuplicates} title="Verificar duplicatas">
+            <SearchCheck className="mr-2 h-4 w-4" /> Duplicatas
+          </Button>
+          <Dialog>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
           </DialogTrigger>
@@ -187,6 +215,7 @@ export function ProductManagement() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="border rounded-lg bg-white overflow-hidden">
