@@ -22,23 +22,33 @@ function RouteComponent() {
 
   useEffect(() => {
     const getProfile = async () => {
+      console.log('Starting getProfile...')
       try {
       const { data: { session } } = await supabase.auth.getSession()
+        console.log('Session data:', session?.user?.id)
       if (!session) {
+          console.log('No session found')
         setIsLoading(false)
         return
       }
 
+        console.log('Fetching profile and roles...')
       const [profileRes, roleRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('user_roles').select('role').eq('user_id', session.user.id).single()
       ])
+
+        console.log('Fetch results:', { profile: profileRes.data, role: roleRes.data })
 
       if (profileRes.data) {
         setProfile({
           ...profileRes.data,
           is_admin: roleRes.data?.role === 'admin'
         })
+        } else {
+          console.warn('Profile record not found in database')
+          // Even if no profile, we should probably allow them to see something
+          setProfile({ id: session.user.id, full_name: 'Novo Usuário', is_admin: false })
       }
       } catch (error) {
         console.error('Error fetching profile:', error)
