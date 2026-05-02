@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,15 @@ export function AuthForm() {
    const [isSignUp, setIsSignUp] = useState(false)
    const [errorMsg, setErrorMsg] = useState('')
    const [resending, setResending] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,6 +59,28 @@ export function AuthForm() {
       setErrorMsg(msg)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setErrorMsg('DIGITE SEU E-MAIL PRIMEIRO para receber o link de recuperação.')
+      return
+    }
+    setResetting(true)
+    setErrorMsg('')
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/profile`,
+      })
+      if (error) throw error
+      alert('LINK ENVIADO!\n\nVerifique seu e-mail (incluindo spam) para redefinir sua senha.')
+      setCountdown(60)
+    } catch (error: any) {
+      console.error('Reset error:', error)
+      setErrorMsg('ERRO AO ENVIAR: ' + (error.message || 'Verifique se o e-mail está correto.'))
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -130,10 +161,25 @@ export function AuthForm() {
             />
           </div>
           
-           <Button type="submit" className="w-full h-14 text-base font-black shadow-lg rounded-xl transition-all active:scale-[0.98] bg-primary hover:bg-primary/90" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-14 text-base font-black shadow-lg rounded-xl transition-all active:scale-[0.98] bg-primary hover:bg-primary/90" 
+            disabled={loading}
+          >
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isSignUp ? <UserPlus className="mr-2 h-5 w-5" /> : <LogIn className="mr-2 h-5 w-5" />)}
             {isSignUp ? 'CADASTRAR AGORA' : 'ENTRAR NO SISTEMA'}
           </Button>
+
+          {!isSignUp && (
+            <button 
+              type="button" 
+              onClick={handleResetPassword}
+              disabled={resetting || countdown > 0}
+              className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors disabled:opacity-50"
+            >
+              {resetting ? 'ENVIANDO...' : countdown > 0 ? `AGUARDE ${countdown}s` : 'ESQUECI MINHA SENHA / RECUPERAR ACESSO'}
+            </button>
+          )}
 
           {errorMsg.includes('E-MAIL') && (
             <Button 
