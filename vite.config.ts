@@ -13,7 +13,7 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        'sonner': 'sonner/dist/index.mjs'
+        'sonner': new URL('./node_modules/sonner/dist/index.mjs', import.meta.url).pathname
       }
     }
   }
