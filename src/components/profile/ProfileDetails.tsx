@@ -17,9 +17,29 @@
      avatar_url: profile?.avatar_url || ''
    })
  
-   const handleSave = async () => {
-     if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
-     
+    const handleSave = async () => {
+      if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
+      if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
+      if (!formData.gender) return toast.error('Por favor, selecione seu sexo!')
+
+      // Validar idade
+      const birthDate = new Date(formData.birth_date)
+      const today = new Date()
+      if (birthDate > today) {
+        return toast.error('Data de nascimento não pode ser no futuro!')
+      }
+
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        // ainda não fez aniversário este ano
+      }
+      
+      if (age < 0 || age > 120) {
+        return toast.error('Data de nascimento inválida!')
+      }
+
+      setLoading(true)
      setLoading(true)
      const { error } = await supabase
        .from('profiles')
