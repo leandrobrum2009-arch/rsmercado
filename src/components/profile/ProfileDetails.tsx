@@ -88,41 +88,43 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
         onUpdate();
       }
  
-      setLoading(false);
- 
-     setLoading(false)
-     if (error) {
-       toast.error('Erro ao atualizar perfil')
-     } else {
-       toast.success('Perfil atualizado!')
-       onUpdate()
-     }
-   }
- 
-   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-     const file = e.target.files?.[0]
-     if (!file) return
- 
-     setLoading(true)
-     const fileExt = file.name.split('.').pop()
-     const fileName = `${profile.id}/${Math.random()}.${fileExt}`
-     const filePath = `${fileName}`
- 
-     const { error: uploadError, data } = await supabase.storage
-       .from('avatars')
-       .upload(filePath, file, { upsert: true })
- 
-     if (uploadError) {
-       toast.error('Erro ao subir foto: ' + uploadError.message)
        setLoading(false)
-       return
-     }
- 
-     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
-     setFormData({ ...formData, avatar_url: publicUrl })
-     setLoading(false)
-     toast.success('Foto carregada!')
    }
+ 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      // Validação de segurança e tamanho
+      if (!file.type.startsWith('image/')) {
+        return toast.error('Por favor, selecione um arquivo de imagem.')
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        return toast.error('A imagem deve ter no máximo 2MB.')
+      }
+  
+      setLoading(true)
+      try {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${profile.id}/${Math.random().toString(36).substring(2)}.${fileExt}`
+        const filePath = `${fileName}`
+    
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, { upsert: true })
+    
+        if (uploadError) throw uploadError
+    
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
+        setFormData(prev => ({ ...prev, avatar_url: publicUrl }))
+        toast.success('Foto carregada! Clique em "Salvar" para confirmar.')
+      } catch (err: any) {
+        console.error('Upload error:', err)
+        toast.error('Erro ao subir foto: ' + (err.message || 'Erro desconhecido'))
+      } finally {
+        setLoading(false)
+      }
+    }
  
      const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status && profile?.whatsapp
 
