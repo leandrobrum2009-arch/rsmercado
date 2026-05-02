@@ -26,10 +26,22 @@ export function ProductManagement() {
 
   const fetchData = async () => {
     setIsLoading(true)
-    const { data: prodData } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
-    const { data: catData } = await supabase.from('categories').select('*').order('name')
-    setProducts(prodData || [])
-    setCategories(catData || [])
+    try {
+      const { data: prodData, error: prodError } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
+      if (prodError) {
+        console.error('Fetch products error:', prodError)
+        toast.error('Erro ao carregar produtos: ' + prodError.message)
+      }
+      
+      const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
+      if (catError) console.error('Fetch categories error:', catError)
+      
+      setProducts(prodData || [])
+      setCategories(catData || [])
+      console.log('Admin Dashboard: Loaded', prodData?.length, 'products and', catData?.length, 'categories')
+    } catch (err) {
+      console.error('Fetch error:', err)
+    }
     setIsLoading(false)
   }
 
