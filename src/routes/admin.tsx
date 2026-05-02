@@ -39,8 +39,14 @@ export const Route = createFileRoute('/admin')({
         .eq('id', session.user.id)
         .single()
 
+      // If no profile found or not admin, we might want to be more helpful
+      // For testing purposes, if it's the very first user, we could potentially allow access
+      // But for security, we'll keep the check and just log it for now
+      console.log('Admin check for user:', session.user.id, 'Result:', profile?.is_admin);
+
       if (!profile?.is_admin) {
-        throw redirect({ to: '/' })
+        // Redirect to profile instead of home, so they can see their status
+        throw redirect({ to: '/profile' })
       }
     } catch (e) {
       console.error('Error checking admin status:', e)
