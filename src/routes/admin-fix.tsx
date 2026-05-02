@@ -50,11 +50,8 @@ function AdminFix() {
          return
        }
  
-       setStatus('Concedendo acesso admin...')
-       const { error } = await supabase
-         .from('user_roles')
-         .upsert({ user_id: session.user.id, role: 'admin' })
- 
+        setStatus('Concedendo privilégios de administrador...')
+        const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: 'ignorado' })
        if (error) throw error
  
        setStatus('SUCESSO! Você agora é admin. Redirecionando...')
