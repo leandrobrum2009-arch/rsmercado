@@ -6,11 +6,5 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig({
-  vite: {
-    resolve: {
-      dedupe: ['react', 'react-dom']
-    }
-  }
-});
+export default defineConfig();
 // Force reload 2
