@@ -36,6 +36,30 @@ export function ProductImporter() {
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
   const [scrapingProgress, setScrapingProgress] = useState<{current: number, total: number} | null>(null)
+  const [bulkInput, setBulkInput] = useState('')
+  const [showBulkInput, setShowBulkInput] = useState(false)
+  const handleBulkImport = () => {
+    const lines = bulkInput.split('\n').filter(l => l.trim().length > 0);
+    const products = lines.map((line, idx) => {
+      const [name, price, brand] = line.split(',').map(s => s.trim());
+      return {
+        id: `bulk-${idx}-${Math.random()}`,
+        name: name || 'Produto Sem Nome',
+        price: parseFloat(price) || 0,
+        brand: brand || 'Marca Própria',
+        category: 'Mercearia',
+        description: 'Importado via entrada manual rápida.',
+        image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400'
+      }
+    });
+    
+    const uniqueProducts = products.filter(p => !existingProductNames.has(normalizeString(p.name)));
+    setScrapedProducts(uniqueProducts);
+    setSelectedForImport(uniqueProducts.map(p => p.id));
+    setShowBulkInput(false);
+    toast.success(`${uniqueProducts.length} produtos processados do texto.`);
+  }
+
   const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
   const [importLogs, setImportLogs] = useState<any[]>([])
   const [reviewProducts, setReviewProducts] = useState<any[]>([])
