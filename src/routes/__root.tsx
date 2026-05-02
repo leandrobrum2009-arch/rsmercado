@@ -34,7 +34,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RS SUPERMERCADO" },
+      { title: "SuperLoja" },
       { name: "description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "RS SUPERMERCADO" },
@@ -117,7 +117,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
           .eq('user_id', session.user.id)
           .maybeSingle();
         
-        setIsAdmin(data?.role === 'admin' || session.user.email === 'leandrobrum2009@gmail.com');
+        setIsAdmin(data?.role === 'admin');
      };
  
      checkAdmin();
