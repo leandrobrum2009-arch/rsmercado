@@ -78,19 +78,25 @@ function RouteComponent() {
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 mb-8 text-[10px] md:text-sm">
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 mb-8 text-[10px] md:text-xs">
           <TabsTrigger value="products">Produtos</TabsTrigger>
-          <TabsTrigger value="importer">Importação Automática</TabsTrigger>
-          <TabsTrigger value="news">Notícias/Blog</TabsTrigger>
-          <TabsTrigger value="flyers">Gerador de Encartes</TabsTrigger>
-          <TabsTrigger value="banners">Banners/CMS</TabsTrigger>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="importer">Importação</TabsTrigger>
+          <TabsTrigger value="news">Notícias</TabsTrigger>
+          <TabsTrigger value="flyers">Encartes</TabsTrigger>
+          <TabsTrigger value="banners">Banners</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products">
           <ProductManagement />
         </TabsContent>
         
+        <TabsContent value="categories">
+          <CategoryManagement />
+        </TabsContent>
+
         <TabsContent value="importer">
           <ProductImporter />
         </TabsContent>
@@ -109,6 +115,10 @@ function RouteComponent() {
 
         <TabsContent value="whatsapp">
           <WhatsAppManager />
+        </TabsContent>
+
+        <TabsContent value="webhooks">
+          <WebhookManager />
         </TabsContent>
       </Tabs>
     </div>
