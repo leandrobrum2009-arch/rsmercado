@@ -19,12 +19,12 @@ type FlyerProduct = {
 
 export function FlyerCreator() {
   const [layout, setLayout] = useState('grid-4')
+  const [designStyle, setDesignStyle] = useState('varejo')
   const [primaryColor, setPrimaryColor] = useState('#e11d48')
   const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
   const [title, setTitle] = useState('Ofertas Especiais')
   const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
   const [allProducts, setAllProducts] = useState<any[]>([])
-  const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -70,20 +70,37 @@ export function FlyerCreator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Modelo de Layout</Label>
-              <Select value={layout} onValueChange={setLayout}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="grid-3">3 Produtos (Destaque)</SelectItem>
-                  <SelectItem value="grid-4">4 Produtos (Quadrado)</SelectItem>
-                  <SelectItem value="grid-8">8 Produtos (Compacto)</SelectItem>
-                  <SelectItem value="grid-12">12 Produtos (Varejo)</SelectItem>
-                  <SelectItem value="story">Instagram Story</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Modelo de Layout</Label>
+                <Select value={layout} onValueChange={setLayout}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grid-3">3 Produtos</SelectItem>
+                    <SelectItem value="grid-4">4 Produtos</SelectItem>
+                    <SelectItem value="grid-8">8 Produtos</SelectItem>
+                    <SelectItem value="grid-12">12 Produtos</SelectItem>
+                    <SelectItem value="story">Story</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Estilo Visual</Label>
+                <Select value={designStyle} onValueChange={setDesignStyle}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="varejo">Varejo Clássico</SelectItem>
+                    <SelectItem value="minimal">Minimalista</SelectItem>
+                    <SelectItem value="elegante">Premium/Elegante</SelectItem>
+                    <SelectItem value="promo">Super Promo</SelectItem>
+                    <SelectItem value="dark">Black Edition</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -177,44 +194,58 @@ export function FlyerCreator() {
           style={{ borderColor: primaryColor }}
         >
           {/* Header */}
-          <div className="h-32 relative flex items-center justify-center text-white overflow-hidden" style={{ backgroundColor: primaryColor }}>
+          <div 
+            className={`h-32 relative flex items-center justify-center text-white overflow-hidden ${designStyle === 'dark' ? 'bg-black' : ''}`} 
+            style={{ backgroundColor: designStyle === 'dark' ? '#000' : primaryColor }}
+          >
             <div className="absolute inset-0 opacity-20">
               <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M0 0 L100 0 L100 100 L0 80 Z" fill="black" />
+                <path d="M0 0 L100 0 L100 100 L0 80 Z" fill={designStyle === 'promo' ? 'yellow' : 'black'} />
               </svg>
             </div>
             <div className="relative z-10 text-center">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter">{title}</h2>
+              <h2 className={`text-4xl font-black italic uppercase tracking-tighter ${designStyle === 'elegante' ? 'font-serif normal-case italic' : ''}`}>{title}</h2>
               <p className="text-sm font-bold opacity-80">QUALIDADE E PREÇO BAIXO TODO DIA</p>
             </div>
-            {/* Top Logo placeholder */}
             <div className="absolute top-4 left-4 bg-white p-2 rounded shadow-lg">
               <div className="w-12 h-6 bg-primary flex items-center justify-center text-[8px] font-black italic">SUPERMERCADO</div>
             </div>
           </div>
 
           {/* Products Grid */}
-          <div className={`flex-1 p-6 grid gap-4 ${
+          <div className={`flex-1 p-6 grid gap-4 ${designStyle === 'dark' ? 'bg-zinc-900' : ''} ${
             layout === 'grid-3' ? 'grid-cols-1' : 
             layout === 'grid-4' ? 'grid-cols-2' : 
             layout === 'grid-8' ? 'grid-cols-2' : 
             'grid-cols-3'
           }`}>
             {selectedProducts.map((p, i) => (
-              <div key={i} className="border-2 rounded-2xl p-4 flex flex-col items-center justify-between text-center relative overflow-hidden bg-white shadow-sm" style={{ borderColor: `${primaryColor}20` }}>
+              <div 
+                key={i} 
+                className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-between text-center relative overflow-hidden bg-white shadow-sm ${
+                  designStyle === 'minimal' ? 'border-none shadow-none bg-gray-50' : 
+                  designStyle === 'elegante' ? 'rounded-none border-x-0 border-t-0 border-b' : 
+                  ''
+                }`} 
+                style={{ borderColor: `${primaryColor}20` }}
+              >
                 <img src={p.image_url} alt={p.name} className="w-32 h-32 object-contain mb-2" />
-                <h3 className="font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2">{p.name}</h3>
+                <h3 className={`font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2 ${designStyle === 'elegante' ? 'font-serif italic' : ''}`}>{p.name}</h3>
                 
                 <div className="mt-2 w-full">
-                  <p className="text-[10px] text-gray-400 line-through">De: R$ {p.original_price.toFixed(2)}</p>
-                  <div className="bg-yellow-400 text-black rounded-lg py-1 px-4 inline-block font-black text-xl shadow-sm" style={{ backgroundColor: secondaryColor }}>
+                  {designStyle !== 'minimal' && <p className="text-[10px] text-gray-400 line-through">De: R$ {p.original_price.toFixed(2)}</p>}
+                  <div 
+                    className={`bg-yellow-400 text-black rounded-lg py-1 px-4 inline-block font-black text-xl shadow-sm ${
+                      designStyle === 'elegante' ? 'bg-transparent text-rose-700 shadow-none' : 
+                      designStyle === 'dark' ? 'bg-amber-400' : ''
+                    }`} 
+                    style={{ backgroundColor: (designStyle === 'elegante' || designStyle === 'minimal') ? 'transparent' : secondaryColor }}
+                  >
                     <span className="text-xs align-top mt-1 mr-0.5">R$</span>
-                    {p.price.toFixed(2).split('.')[0]}
+                    <span className={designStyle === 'elegante' ? 'text-3xl' : ''}>{p.price.toFixed(2).split('.')[0]}</span>
                     <span className="text-sm align-top">,{p.price.toFixed(2).split('.')[1]}</span>
                   </div>
                 </div>
-
-                {/* Offer tag */}
                 <div className="absolute top-2 right-2 bg-red-600 text-white text-[8px] font-bold py-1 px-2 rounded-full rotate-12">OFERTA</div>
               </div>
             ))}
@@ -238,7 +269,6 @@ export function FlyerCreator() {
                   <p className="text-[10px] font-bold">PEÇA PELO WHATSAPP</p>
                   <p className="font-black text-lg" style={{ color: primaryColor }}>(11) 99999-9999</p>
                 </div>
-                {/* QR Code placeholder */}
                 <div className="w-12 h-12 bg-black flex items-center justify-center text-white text-[6px]">QR CODE</div>
               </div>
             </div>
