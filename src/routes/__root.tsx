@@ -96,6 +96,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
           });
           setStoreSettings(newSettings);
           
+          // Update document title
+          if (newSettings.site_name) {
+            document.title = newSettings.site_name;
+          }
+
           // Apply colors to CSS variables
           if (newSettings.colors.primary) {
             document.documentElement.style.setProperty('--primary', newSettings.colors.primary);

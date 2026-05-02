@@ -40,6 +40,7 @@ export function AuthForm() {
         })
         if (error) throw error
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Por favor, verifique sua caixa de entrada (e pasta de spam) para ativar sua conta antes de tentar entrar.')
+        alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Se não chegar em 2 minutos, use a opção "Esqueci minha senha" para ativar seu acesso.')
         setIsSignUp(false)
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
