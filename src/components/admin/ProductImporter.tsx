@@ -203,7 +203,7 @@ export function ProductImporter() {
   const simulateScraping = async (categoryName: string) => {
     setIsScraping(true)
     setDiagnosticLog([])
-    addLog(`Iniciando importação de ${toImport.length} produtos...`)
+    addLog(`Escaneando site parceiro para ${categoryName}...`)
     setScrapedProducts([])
     setSelectedForImport([])
     toast.info(`Escaneando site parceiro para ${categoryName}...`)
@@ -294,10 +294,6 @@ export function ProductImporter() {
         // Duplicate check
         const isDuplicate = existingProductNames.has(product.name.toLowerCase().trim());
         addLog(`Processando: ${product.name}...`)
-          addLog(`Categoria ${product.category} não encontrada. Criando...`)
-          addLog(`Categoria ${product.category} criada com ID: ${newCat.id}`)
-        addLog(`Salvando produto no banco de dados...`)
-          addLog(`Produto salvo com sucesso!`)
         if (isDuplicate) {
           console.log(`Pulando duplicado: ${product.name}`);
           continue;
