@@ -9,11 +9,11 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   vite: {
     ssr: {
-      noExternal: ['lucide-react']
+      noExternal: ['sonner', 'lucide-react']
     },
-    build: {
-      rollupOptions: {
-        external: ['sonner']
+    resolve: {
+      alias: {
+        'sonner': 'sonner/dist/index.mjs'
       }
     }
   }
