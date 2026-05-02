@@ -2,7 +2,7 @@
  import { CategoryBar } from "../components/home/CategoryBar";
  import { ProductGrid } from "../components/home/ProductGrid";
  import { StoriesCarousel } from "../components/home/StoriesCarousel";
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, Smartphone, PlusSquare } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
