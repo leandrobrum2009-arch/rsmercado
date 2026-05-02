@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function ProductImporter() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -15,10 +18,27 @@ export function ProductImporter() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
+  const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
+  const [isScraping, setIsScraping] = useState(false)
+  const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
     checkMissingImages()
   }, [])
+
+  const toggleSelectProduct = (id: string) => {
+    setSelectedForImport(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    )
+  }
+
+  const selectAll = () => {
+    setSelectedForImport(scrapedProducts.map(p => p.id))
+  }
+
+  const deselectAll = () => {
+    setSelectedForImport([])
+  }
 
   // Mock function for Google Image search proxy
   const searchGoogleImages = async (query: string) => {
@@ -127,70 +147,112 @@ export function ProductImporter() {
       setIsCheckingMissing(false)
     }
   }
-
-  const simulateCompetitorImport = async (categoryName: string) => {
-    toast.info(`Iniciando importação de produtos de ${categoryName}...`)
-    setIsCheckingMissing(true)
+  const simulateScraping = async (categoryName: string) => {
+    setIsScraping(true)
+    setScrapedProducts([])
+    setSelectedForImport([])
+    toast.info(`Escaneando site parceiro para ${categoryName}...`)
     
     try {
-      // 1. Ensure category exists
-      let { data: catData } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('name', categoryName)
-        .maybeSingle()
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
-      if (!catData) {
-        const { data: newCat, error: catErr } = await supabase
-          .from('categories')
-          .insert({ name: categoryName, slug: categoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') })
-          .select()
-          .single()
-        if (catErr) throw catErr
-        catData = newCat
-      }
-
-      // 2. Sample products based on category
-      const samples: any[] = []
-      if (categoryName === 'Mercearia') {
-        samples.push(
-          { name: 'Arroz Tio João Tipo 1 5kg', price: 29.90, description: 'Arroz agulhinha tipo 1 de alta qualidade.' },
-          { name: 'Feijão Carioca Camil 1kg', price: 8.50, description: 'Feijão carioca selecionado.' },
-          { name: 'Açúcar Refinado União 1kg', price: 4.20, description: 'Açúcar de cana refinado.' },
-          { name: 'Óleo de Soja Liza 900ml', price: 6.75, description: 'Óleo de soja refinado.' },
-          { name: 'Macarrão Espaguete Adria 500g', price: 3.90, description: 'Macarrão de sêmola.' }
-        )
-      } else if (categoryName === 'Bebidas') {
-        samples.push(
-          { name: 'Cerveja Skol Lata 350ml', price: 3.49, description: 'Cerveja pilsen leve.' },
-          { name: 'Refrigerante Coca-Cola 2L', price: 11.90, description: 'Refrigerante de cola original.' },
-          { name: 'Suco de Laranja Prats 900ml', price: 14.50, description: 'Suco de laranja 100% natural.' },
-          { name: 'Água Mineral Crystal 500ml', price: 2.00, description: 'Água mineral sem gás.' }
-        )
+      let samples: any[] = []
+      const catKey = categoryName.toLowerCase()
+      
+      if (catKey.includes('mercearia')) {
+        samples = [
+          { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+          { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
+          { id: 's3', name: 'Açúcar União Refinado 1kg', price: 4.50, description: 'Açúcar refinado extra fino.', category: 'Mercearia', brand: 'União', image_url: 'https://images.unsplash.com/photo-1581448670546-07b57f40ed5b?w=400' },
+          { id: 's3-1', name: 'Café Pilão Tradicional 500g', price: 18.90, description: 'Café forte do Brasil.', category: 'Mercearia', brand: 'Pilão', image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400' },
+        ]
+      } else if (catKey.includes('bebida')) {
+        samples = [
+          { id: 's4', name: 'Coca-Cola Zero 2L', price: 11.99, description: 'Refrigerante zero açúcar.', category: 'Bebidas', brand: 'Coca-Cola', image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400' },
+          { id: 's5', name: 'Cerveja Heineken Long Neck 330ml', price: 6.90, description: 'Cerveja premium holandesa.', category: 'Bebidas', brand: 'Heineken', image_url: 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400' },
+          { id: 's5-1', name: 'Suco Prats Laranja 900ml', price: 14.50, description: 'Suco de laranja 100% natural.', category: 'Bebidas', brand: 'Prats', image_url: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400' },
+        ]
+      } else if (catKey.includes('hort') || catKey.includes('fruit')) {
+        samples = [
+          { id: 's6', name: 'Banana Nanica Climatizada (kg)', price: 5.90, description: 'Bananas maduras e selecionadas.', category: 'Hortifruti', brand: 'Produtor Local', image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902d83f4e?w=400' },
+          { id: 's7', name: 'Maçã Fuji Argentina (kg)', price: 12.50, description: 'Maçãs crocantes importadas.', category: 'Hortifruti', brand: 'Argentina', image_url: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=400' },
+        ]
+      } else if (catKey.includes('limpeza')) {
+        samples = [
+          { id: 's8', name: 'Sabão em Pó OMO Lavagem Perfeita 1.6kg', price: 24.90, description: 'Sabão em pó de alta performance.', category: 'Limpeza', brand: 'OMO', image_url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=400' },
+          { id: 's9', name: 'Detergente Ypê Maçã 500ml', price: 2.65, description: 'Lava louças líquido.', category: 'Limpeza', brand: 'Ypê', image_url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400' },
+        ]
+      } else if (catKey.includes('pet')) {
+        samples = [
+          { id: 's10', name: 'Ração Pedigree Adulto Raças Médias 10kg', price: 129.90, description: 'Alimento completo para cães.', category: 'Pet Shop', brand: 'Pedigree', image_url: 'https://images.unsplash.com/photo-1589924691106-073b69759fbb?w=400' },
+        ]
+      } else if (catKey.includes('padaria')) {
+        samples = [
+          { id: 's11', name: 'Pão Francês Unidade', price: 0.85, description: 'Pão crocante e quentinho.', category: 'Padaria', brand: 'Própria', image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400' },
+        ]
+      } else if (catKey.includes('açougue')) {
+        samples = [
+          { id: 's12', name: 'Picanha Bovina Resfriada (kg)', price: 79.90, description: 'Carne bovina de primeira.', category: 'Açougue', brand: 'Swift', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+        ]
       } else {
-        samples.push(
-          { name: `${categoryName} Produto Exemplo 1`, price: 15.00, description: 'Descrição do produto importado.' },
-          { name: `${categoryName} Produto Exemplo 2`, price: 22.50, description: 'Descrição do produto importado.' }
-        )
+        samples = [
+          { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
+        ]
       }
 
-      const toInsert = samples.map(s => ({
-        ...s,
-        category_id: catData?.id,
-        image_url: '', // Intentionally empty to test the auto-photo system
-        stock: 50
-      }))
-
-      const { error: insErr } = await supabase.from('products').insert(toInsert)
-      if (insErr) throw insErr
-
-      toast.success(`Sucesso! ${toInsert.length} produtos de ${categoryName} foram adicionados sem fotos.`)
-      await checkMissingImages()
-    } catch (error: any) {
-      console.error('Import error:', error)
-      toast.error('Erro na importação: ' + error.message)
+      setScrapedProducts(samples)
+      setSelectedForImport(samples.map(p => p.id))
+      toast.success(`${samples.length} produtos encontrados. Revise a lista abaixo.`)
+    } catch (error) {
+      toast.error('Erro ao conectar com o site parceiro.')
     } finally {
-      setIsCheckingMissing(false)
+      setIsScraping(false)
+    }
+  }
+
+  const handleConfirmImport = async () => {
+    const toImport = scrapedProducts.filter(p => selectedForImport.includes(p.id))
+    if (toImport.length === 0) return toast.error('Nenhum produto selecionado.')
+
+    setIsScraping(true)
+    try {
+      for (const product of toImport) {
+        let { data: catData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', product.category)
+          .maybeSingle()
+        
+        if (!catData) {
+          const { data: newCat } = await supabase
+            .from('categories')
+            .insert({ 
+              name: product.category, 
+              slug: product.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
+            })
+            .select()
+            .single()
+          catData = newCat
+        }
+
+        await supabase.from('products').insert({
+          name: product.name,
+          description: `${product.description} Marca: ${product.brand}`,
+          price: product.price,
+          category_id: catData?.id,
+          image_url: product.image_url,
+          stock: 100
+        })
+      }
+      
+      toast.success(`${toImport.length} produtos cadastrados com sucesso!`)
+      setScrapedProducts([])
+      setSelectedForImport([])
+      checkMissingImages()
+    } catch (error: any) {
+      toast.error('Erro ao salvar produtos: ' + error.message)
+    } finally {
+      setIsScraping(false)
     }
   }
 
