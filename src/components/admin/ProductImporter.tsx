@@ -746,6 +746,19 @@ export function ProductImporter() {
               </div>
               <div className="flex gap-2">
                 <Button 
+                  onClick={() => runAutoImageAI(reviewProducts, 25)} 
+                  disabled={isCheckingMissing || reviewProducts.length === 0} 
+                  variant="outline" 
+                  className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]"
+                >
+                  {isCheckingMissing && autoProgress ? (
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Processar Lote (25)
+                </Button>
+                <Button 
                   onClick={() => runAutoImageAI(reviewProducts)} 
                   disabled={isCheckingMissing || reviewProducts.length === 0} 
                   variant="default" 
