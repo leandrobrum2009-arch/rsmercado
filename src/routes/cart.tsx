@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
 import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat } from "lucide-react";
-import { useState } from "react";
-import { formatCurrency } from "../lib/whatsapp";
+import { useState, useEffect } from "react";
+import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
 import { RecipeSuggestions } from "@/components/RecipeSuggestions";
@@ -15,6 +15,24 @@ function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        setProfile(data);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -33,8 +51,68 @@ function CartPage() {
     );
   }
 
-  const handleCheckout = () => {
-    toast.success("Pedido enviado com sucesso!");
+  const handleCheckout = async () => {
+    if (!profile) {
+      toast.error("Você precisa estar logado para finalizar o pedido.");
+      navigate({ to: "/profile" });
+      return;
+    }
+
+    if (!profile.whatsapp) {
+      toast.error("Por favor, preencha seu WhatsApp no perfil para receber notificações.");
+      navigate({ to: "/profile" });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // 1. Create Order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: profile.id,
+          total_amount: total,
+          payment_method: paymentMethod,
+          status: 'pending',
+          points_earned: Math.floor(total) // Example points calculation
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Create Order Items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // 3. Send WhatsApp Notification
+      const message = formatWhatsAppMessage('order', {
+        id: order.id,
+        total_amount: total,
+        status: 'Recebido'
+      });
+      
+      await sendWhatsAppMessage(profile.whatsapp, message);
+
+      toast.success("Pedido enviado com sucesso!");
+      clearCart();
+      navigate({ to: "/profile" });
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      toast.error("Erro ao processar pedido: " + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -122,10 +200,20 @@ function CartPage() {
         {/* Action Button */}
         <button 
           onClick={handleCheckout}
-          className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform"
+          disabled={isProcessing}
+          className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Finalizar Pedido
-          <ArrowRight size={20} />
+          {isProcessing ? (
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              Processando...
+            </>
+          ) : (
+            <>
+              Finalizar Pedido
+              <ArrowRight size={20} />
+            </>
+          )}
         </button>
       </div>
     </div>
