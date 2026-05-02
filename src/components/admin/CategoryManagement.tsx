@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
 export function CategoryManagement() {

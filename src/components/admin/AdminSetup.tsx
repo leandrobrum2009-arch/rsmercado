@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ShieldCheck, Loader2, AlertCircle } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 export function AdminSetup() {
   const [loading, setLoading] = useState(false)
@@ -16,12 +16,24 @@ export function AdminSetup() {
   }, [])
 
   const checkAdminExists = async () => {
-    const { count } = await supabase
-      .from('user_roles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'admin')
-    
-    setIsAdminExists(count !== null && count > 0)
+    try {
+      const { count, error } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'admin')
+      
+      if (error) {
+        console.error('Role check error:', error)
+        // If table doesn't exist, we might get an error.
+        setIsAdminExists(false)
+        return
+      }
+      
+      setIsAdminExists(count !== null && count > 0)
+    } catch (err) {
+      console.error('Role check catch:', err)
+      setIsAdminExists(false)
+    }
   }
 
   const handlePromoteMe = async () => {
@@ -32,21 +44,29 @@ export function AdminSetup() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Faça login primeiro')
 
-      // Secure check: only allow if NO admin exists or if secret matches
-      // In a real app, this secret would be an environment variable
       if (secretKey === 'SETUP_ADMIN_2024') {
         const { error } = await supabase
           .from('user_roles')
           .upsert({ user_id: session.user.id, role: 'admin' })
         
-        if (error) throw error
+        if (error) {
+          // If upsert fails, try insert
+          const { error: insError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: session.user.id, role: 'admin' })
+          if (insError) throw insError
+        }
+        
         toast.success('Você agora é um administrador!')
+        alert('ACESS LIBERADO!\n\nVocê agora é um administrador do sistema. A página será atualizada.')
         window.location.reload()
       } else {
         toast.error('Chave de segurança incorreta')
       }
     } catch (error: any) {
-      toast.error(error.message)
+      console.error('Setup error:', error)
+      toast.error(error.message || 'Erro ao processar acesso')
+      alert('ERRO NO BANCO:\n\n' + (error.message || 'Verifique se você rodou o script SQL no painel do Supabase.'))
     } finally {
       setLoading(false)
     }
@@ -55,31 +75,34 @@ export function AdminSetup() {
   if (isAdminExists === true) return null
 
   return (
-    <Card className="border-primary border-2">
+    <Card className="border-primary border-4 shadow-2xl bg-primary/5">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ShieldCheck className="text-primary" /> Configuração Inicial de Admin
+        <CardTitle className="flex items-center gap-2 text-2xl font-black italic uppercase">
+          <ShieldCheck className="text-primary h-8 w-8" /> Ativar Acesso Master
         </CardTitle>
-        <CardDescription>
-          Nenhum administrador detectado no sistema. Use esta ferramenta para configurar o primeiro acesso.
+        <CardDescription className="text-gray-900 font-bold">
+          Configuração de segurança para o primeiro administrador.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="bg-amber-50 p-4 rounded-lg flex gap-3 text-amber-800 text-xs">
-          <AlertCircle className="flex-shrink-0" />
-          <p>Esta opção desaparecerá assim que o primeiro administrador for criado via banco de dados ou chave secreta.</p>
+      <CardContent className="space-y-6">
+        <div className="bg-white p-4 rounded-xl border-2 border-primary/20 flex gap-4 text-gray-700 shadow-sm">
+          <AlertCircle className="flex-shrink-0 text-amber-500 h-6 w-6" />
+          <p className="text-xs font-medium leading-relaxed">
+            Se você já se cadastrou e confirmou seu e-mail, digite a chave de segurança abaixo para liberar as ferramentas administrativas.
+          </p>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-bold">Chave de Segurança Temporária</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Chave de Segurança</label>
           <Input 
             type="password" 
-            placeholder="Digite a chave para se tornar admin" 
+            placeholder="Digite a chave mestre..." 
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value)}
+            className="h-14 text-lg font-mono border-2 border-gray-200 focus:border-primary transition-all"
           />
         </div>
-        <Button onClick={handlePromoteMe} disabled={loading} className="w-full">
-          {loading ? <Loader2 className="animate-spin mr-2" /> : 'Tornar-me Administrador'}
+        <Button onClick={handlePromoteMe} disabled={loading} className="w-full h-14 text-lg font-black shadow-xl uppercase tracking-tighter">
+          {loading ? <Loader2 className="animate-spin mr-2" /> : 'Liberar Área Administrativa'}
         </Button>
       </CardContent>
     </Card>

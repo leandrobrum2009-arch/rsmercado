@@ -1,6 +1,6 @@
  import { Plus, Minus, ShoppingCart } from "lucide-react";
  import { useCart } from "../contexts/CartContext";
- import { toast } from "sonner";
+ import { toast } from "@/lib/toast";
 import { SmartImage } from "./ui/SmartImage";
  
  interface ProductProps {

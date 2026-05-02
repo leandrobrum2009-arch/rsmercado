@@ -6,5 +6,11 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['sonner', 'lucide-react']
+    }
+  }
+});
 // Force reload 2
