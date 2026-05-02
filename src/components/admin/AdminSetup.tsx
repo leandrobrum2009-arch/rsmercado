@@ -37,8 +37,7 @@ export function AdminSetup() {
   }
 
   const handlePromoteMe = async () => {
-    if (!secretKey) return toast.error('Insira a chave de segurança')
-    
+
     setLoading(true)
     try {
     const { data: { session } } = await supabase.auth.getSession()
