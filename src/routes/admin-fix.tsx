@@ -69,8 +69,11 @@ function AdminFix() {
    }
 
   return (
-    <div className="container mx-auto px-4 py-20 flex justify-center">
-      <Card className="w-full max-w-md border-4 border-red-500">
+    <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center">
+      <div className="mb-6 px-10 py-4 bg-green-600 text-white rounded-full font-black animate-pulse shadow-2xl">
+        🚀 VERSÃO 2.0 - TUDO DESBLOQUEADO
+      </div>
+      <Card className="w-full max-w-md border-8 border-green-500 shadow-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldAlert className="text-red-500" /> Recuperar Acesso Admin
