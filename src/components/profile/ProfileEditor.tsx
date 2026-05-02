@@ -1,18 +1,25 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/lib/toast'
-import { Loader2, Save, User, Phone, MapPin, Plus, Trash2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Loader2, Save, User, Phone, MapPin, Plus, Trash2, Camera, Calendar, Users } from 'lucide-react'
 
 export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
     whatsapp: profile.whatsapp || '',
-    avatar_url: profile.avatar_url || ''
+    avatar_url: profile.avatar_url || '',
+    birthday: profile.birthday || '',
+    gender: profile.gender || '',
+    family_status: profile.family_status || ''
   })
   const [addresses, setAddresses] = useState<any[]>([])
   const [showAddressForm, setShowShowAddressForm] = useState(false)
