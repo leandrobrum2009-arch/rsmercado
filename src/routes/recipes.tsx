@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, BookOpen, Clock, ChefHat } from 'lucide-react'
+import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck } from 'lucide-react'
+  const [savedRecipes, setSavedRecipes] = useState<string[]>([])
+  const [user, setUser] = useState<any>(null)
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
@@ -17,7 +19,48 @@ function RecipesPage() {
 
   useEffect(() => {
     fetchRecipes()
+    checkUser()
   }, [])
+
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getUser()
+    setUser(data.user)
+    if (data.user) {
+      const { data: saved } = await supabase
+        .from('user_recipes')
+        .select('recipe_id')
+        .eq('user_id', data.user.id)
+      setSavedRecipes(saved?.map(s => s.recipe_id) || [])
+    }
+  }
+  const toggleSaveRecipe = async (recipeId: string) => {
+    if (!user) {
+      toast.error('Faça login para salvar receitas!')
+      return
+    }
+
+    const isSaved = savedRecipes.includes(recipeId)
+    
+    try {
+      if (isSaved) {
+        await supabase
+          .from('user_recipes')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('recipe_id', recipeId)
+        setSavedRecipes(prev => prev.filter(id => id !== recipeId))
+        toast.success('Receita removida dos salvos')
+      } else {
+        await supabase
+          .from('user_recipes')
+          .insert({ user_id: user.id, recipe_id: recipeId })
+        setSavedRecipes(prev => [...prev, recipeId])
+        toast.success('Receita salva com sucesso!')
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar favoritos')
+    }
+  }
 
   const fetchRecipes = async () => {
     setLoading(true)
@@ -68,15 +111,28 @@ function RecipesPage() {
                 </Badge>
               </div>
             </div>
-            <CardHeader>
+            <CardHeader className="relative">
               <div className="flex justify-between items-start">
-                <CardTitle className="group-hover:text-primary transition-colors">{recipe.title}</CardTitle>
+                <CardTitle className="group-hover:text-primary transition-colors pr-8">{recipe.title}</CardTitle>
                 <div className="flex items-center text-xs font-medium text-muted-foreground">
                   <ChefHat className="h-3 w-3 mr-1" />
                   {recipe.difficulty}
                 </div>
               </div>
               <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleSaveRecipe(recipe.id);
+                }}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                {savedRecipes.includes(recipe.id) ? (
+                  <BookmarkCheck className="text-green-600 fill-green-600" size={20} />
+                ) : (
+                  <Bookmark className="text-gray-400" size={20} />
+                )}
+              </button>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
