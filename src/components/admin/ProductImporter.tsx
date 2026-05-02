@@ -597,10 +597,25 @@ export function ProductImporter() {
                 <CardTitle className="font-black italic uppercase tracking-tighter text-2xl">Revisão de Fotos</CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase">Produtos marcados pela IA ou importados recentemente</CardDescription>
               </div>
-              <Button onClick={generateReview} disabled={isFetchingReview} variant="outline" className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]">
-                {isFetchingReview ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                Gerar Revisão de Fotos
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => runAutoImageAI(reviewProducts)} 
+                  disabled={isCheckingMissing || reviewProducts.length === 0} 
+                  variant="default" 
+                  className="h-12 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px]"
+                >
+                  {isCheckingMissing && autoProgress ? (
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  ) : (
+                    <Zap className="mr-2 h-4 w-4 fill-white" />
+                  )}
+                  Preencher Tudo (IA)
+                </Button>
+                <Button onClick={generateReview} disabled={isFetchingReview} variant="outline" className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]">
+                  {isFetchingReview ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  Gerar Revisão de Fotos
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {isFetchingReview && reviewProducts.length === 0 ? (
