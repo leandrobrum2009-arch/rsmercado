@@ -195,8 +195,6 @@ export function ProductImporter() {
   }
   const simulateScraping = async (categoryName: string) => {
     setIsScraping(true)
-    setImportProgress({ current: 0, total: toImport.length })
-
     setScrapedProducts([])
     setSelectedForImport([])
     toast.info(`Escaneando site parceiro para ${categoryName}...`)
