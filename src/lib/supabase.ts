@@ -8,16 +8,16 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
    console.error('ERRO: Conexão com Supabase não configurada. Por favor, clique no ícone do Supabase na barra lateral do Lovable e clique em "Connect".');
  }
 
- // Use the real values or empty strings to let Supabase SDK throw a more descriptive error if needed
- // but avoid using a fake URL that causes confusing "Failed to fetch" on a non-existent domain.
- export const supabase = createClient(
-   supabaseUrl || 'https://missing-supabase-url.supabase.co',
-   supabaseKey || 'missing-supabase-key',
-   {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  }
-});
+ // Use the real values or placeholder that won't cause "Failed to fetch" immediately
+ // We check for these in the UI to show a better error message
+ const finalUrl = supabaseUrl || 'https://placeholder.supabase.co';
+ const finalKey = supabaseKey || 'placeholder';
+
+ export const supabase = createClient(finalUrl, finalKey, {
+   auth: {
+     persistSession: true,
+     autoRefreshToken: true,
+     detectSessionInUrl: true,
+     flowType: 'pkce'
+   }
+ });

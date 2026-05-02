@@ -1,5 +1,5 @@
   import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-  import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck } from "lucide-react";
+  import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
   import { supabase } from "@/lib/supabase";
@@ -147,10 +147,31 @@ function RootShell({ children }: { children: React.ReactNode }) {
      navItems.splice(4, 0, { name: "Admin", path: "/admin", icon: ShieldCheck });
    }
  
-   const isAdminPage = location.pathname.startsWith('/admin');
+    const isAdminPage = location.pathname.startsWith('/admin');
+    const isSupabaseMissing = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+
  
-   return (
-     <div className="flex flex-col min-h-screen bg-gray-50">
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        {isSupabaseMissing && (
+          <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse z-[60]">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="flex-shrink-0" />
+              <div>
+                <p className="text-xs font-black uppercase tracking-tight">Conexão Supabase Perdida</p>
+                <p className="text-[10px] opacity-90 font-bold uppercase leading-tight">
+                  Clique no ícone do Supabase na barra lateral e em "Connect" para restaurar o banco de dados.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => window.location.href = 'https://lovable.dev'}
+              className="bg-white text-red-600 p-2 rounded-lg"
+            >
+              <ExternalLink size={16} />
+            </button>
+          </div>
+        )}
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
