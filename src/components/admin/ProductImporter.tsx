@@ -1023,6 +1023,7 @@ export function ProductImporter() {
                         )}
                       </Button>
                     </div>
+                  </div>
                 </div>
               </div>
             )}
