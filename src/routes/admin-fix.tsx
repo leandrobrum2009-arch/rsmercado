@@ -11,7 +11,7 @@ export const Route = createFileRoute('/admin-fix')({
 })
 
 function AdminFix() {
-   const [key, setKey] = useState('SETUP_ADMIN_2024') // Pre-filled for convenience if they are on this route
+    const [key, setKey] = useState('ADMIN_RS_2024') // Simplified key
    const [email, setEmail] = useState('')
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
@@ -38,8 +38,8 @@ function AdminFix() {
      }
    }
  
-   const handleFix = async () => {
-     if (key !== 'SETUP_ADMIN_2024') {
+    const handleFix = async () => {
+      if (key !== 'ADMIN_RS_2024' && key !== 'SETUP_ADMIN_2024' && key !== 'CONFIGURAÇÃO_ADMIN_2024') {
         setStatus('Chave incorreta')
         return
      }
