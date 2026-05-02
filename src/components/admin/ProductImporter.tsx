@@ -74,7 +74,7 @@ export function ProductImporter() {
       // Identify products with generic images (picsum, unsplash) or media errors
       const { data, error } = await supabase
         .from('products')
-        .select('id, image_url')
+        .select('id, image_url, has_media_error')
       
       if (error) throw error
       
