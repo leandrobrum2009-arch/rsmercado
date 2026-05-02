@@ -56,9 +56,12 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 ring-1 ring-black/5">
       <CardHeader className="bg-zinc-50/50 border-b pb-6 relative">
-         <div className="absolute -top-16 left-0 right-0 bg-green-600 text-white p-4 rounded-xl text-[11px] font-black leading-tight shadow-2xl z-10 animate-pulse border-4 border-white">
-           🔓 ATIVAÇÃO INSTANTÂNEA DISPONÍVEL <br/>
-           Se o link do e-mail não abrir, use o botão vermelho que aparecerá se o login falhar.
+         <div 
+           className="absolute -top-20 left-0 right-0 bg-green-600 text-white p-4 rounded-xl text-[12px] font-black leading-tight shadow-2xl z-20 animate-bounce border-4 border-white cursor-pointer"
+           onClick={() => window.location.href = '/admin-fix'}
+         >
+           🔓 NÃO CONSEGUE ENTRAR? CLIQUE AQUI! <br/>
+           <span className="text-[10px] opacity-90 uppercase">Ativação instantânea sem precisar de e-mail</span>
          </div>
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
