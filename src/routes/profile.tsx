@@ -5,7 +5,7 @@ import { AuthForm } from '@/components/auth/AuthForm'
 import { AdminSetup } from '@/components/admin/AdminSetup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat } from 'lucide-react'
+import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat, Wrench } from 'lucide-react'
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -135,6 +135,19 @@ function ProfilePage() {
             <ShoppingBag size={24} className="text-green-600 group-hover:rotate-12 transition-transform" />
           </CardHeader>
           <CardContent><p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Histórico de compras e entregas.</p></CardContent>
+        </Card>
+
+        <Card 
+          className="hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-zinc-400 active:scale-[0.98] group bg-zinc-100" 
+          onClick={() => window.location.href = '/admin-fix'}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Suporte / Reparo</CardTitle>
+            <Wrench size={16} className="text-zinc-600" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Corrigir problemas de acesso ou dados.</p>
+          </CardContent>
         </Card>
 
         <Card 
