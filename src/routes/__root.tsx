@@ -1,6 +1,8 @@
- import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
- import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu } from "lucide-react";
+  import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
+  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu, ShieldCheck } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
+  import { useState, useEffect } from "react";
+  import { supabase } from "@/lib/supabase";
  import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
@@ -74,7 +76,36 @@ function RootShell({ children }: { children: React.ReactNode }) {
  function Layout() {
    const location = useLocation();
    const { items } = useCart();
+   const [isAdmin, setIsAdmin] = useState(false);
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
+ 
+   useEffect(() => {
+     const checkAdmin = async () => {
+       const { data: { session } } = await supabase.auth.getSession();
+       if (!session) return setIsAdmin(false);
+       
+       if (session.user.email === 'leandrobrum2009@gmail.com') {
+         return setIsAdmin(true);
+       }
+ 
+       const { data } = await supabase
+         .from('user_roles')
+         .select('role')
+         .eq('user_id', session.user.id)
+         .maybeSingle();
+       
+       setIsAdmin(data?.role === 'admin');
+     };
+ 
+     checkAdmin();
+     
+     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       if (!session) setIsAdmin(false);
+       else checkAdmin();
+     });
+ 
+     return () => subscription.unsubscribe();
+   }, []);
  
    const navItems = [
      { name: "Início", path: "/", icon: Home },
@@ -83,6 +114,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
      { name: "Notícias", path: "/news", icon: Newspaper },
      { name: "Perfil", path: "/profile", icon: User },
    ];
+ 
+   if (isAdmin) {
+     navItems.splice(4, 0, { name: "Admin", path: "/admin", icon: ShieldCheck });
+   }
  
    const isAdminPage = location.pathname.startsWith('/admin');
  
