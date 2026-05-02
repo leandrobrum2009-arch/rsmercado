@@ -197,10 +197,10 @@ function AdminFix() {
             
             <div className="bg-amber-50 p-4 rounded-xl border-2 border-amber-200 shadow-sm space-y-3">
               <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
-                Use isso se o e-mail não chegou ou deu erro
+                Use se não recebeu o e-mail de confirmação
               </p>
               <Input 
-                placeholder="Digite seu e-mail de cadastro" 
+                placeholder="E-mail do cadastro" 
                 value={email} 
                 onChange={e => setEmail(e.target.value)}
                 className="bg-white h-12 text-sm border-amber-300 focus:ring-amber-500"
@@ -210,28 +210,28 @@ function AdminFix() {
                 disabled={confirming}
                 className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest"
               >
-                {confirming ? <Loader2 className="animate-spin mr-2" /> : 'CONFIRMAR E-MAIL AGORA'}
+                {confirming ? <Loader2 className="animate-spin mr-2" /> : 'FORÇAR CONFIRMAÇÃO'}
               </Button>
             </div>
           </div>
-
+ 
           {/* STEP 2: Get Admin */}
           <div className="space-y-4 border-t pt-8">
             <div className="flex items-center gap-3">
               <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
-              <h3 className="font-black text-gray-900 uppercase tracking-tight">Liberar Painel Admin</h3>
+              <h3 className="font-black text-gray-900 uppercase tracking-tight">Privilégios Admin</h3>
             </div>
-
+ 
             <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200 shadow-sm space-y-3 text-center">
               <p className="text-[10px] text-green-800 font-bold leading-tight uppercase mb-4">
-                Primeiro faça login em seu perfil, depois volte aqui
+                Concede privilégios totais de administrador
               </p>
               <Button 
                 onClick={handleFix} 
                 disabled={loading}
                 className="w-full h-16 bg-green-600 hover:bg-green-700 text-white font-black text-lg uppercase tracking-tighter"
               >
-                {loading ? <Loader2 className="animate-spin mr-2" /> : 'LIBERAR ACESSO ADMIN'}
+                {loading ? <Loader2 className="animate-spin mr-2" /> : 'LIBERAR ACESSO TOTAL'}
               </Button>
             </div>
           </div>
