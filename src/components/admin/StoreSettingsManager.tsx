@@ -36,6 +36,13 @@
    }
  
    const handleSave = async () => {
+     if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
+     
+     // Basic URL validation
+     if (settings.logo_url && !settings.logo_url.startsWith('http')) {
+       return toast.error('URL da logomarca inválida');
+     }
+ 
      setIsSaving(true)
      try {
        await Promise.all([
