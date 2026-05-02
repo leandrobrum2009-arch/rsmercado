@@ -179,12 +179,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={() => window.location.href = 'https://lovable.dev'}
-              className="bg-white text-red-600 p-2 rounded-lg"
-            >
-              <ExternalLink size={16} />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowConfigModal(true)}
+                className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors"
+              >
+                INSERIR CHAVES
+              </button>
+              <button 
+                onClick={() => window.location.href = 'https://lovable.dev'}
+                className="bg-white text-red-600 p-2 rounded-lg"
+              >
+                <ExternalLink size={16} />
+              </button>
+            </div>
           </div>
         )}
        {/* Desktop Header */}
