@@ -91,25 +91,28 @@ function AdminFix() {
           </Button>
            {status && <p className="text-center font-bold text-sm mt-4 text-red-600">{status}</p>}
            
-           {(status.includes('logado') || status.includes('e-mail')) && (
-             <div className="mt-6 p-4 bg-amber-50 rounded-xl border-2 border-amber-200 animate-in fade-in slide-in-from-bottom-4">
-               <p className="text-xs font-black text-amber-900 mb-3 uppercase tracking-tight">⚠️ PROBLEMAS COM E-MAIL?</p>
-               <p className="text-[11px] text-amber-800 mb-4 leading-relaxed font-medium">
-                 Se o link do e-mail não funciona, você pode confirmar sua conta manualmente no painel do Supabase rodando este código no <b>SQL Editor</b>:
-               </p>
-               <div className="relative group">
-                 <pre className="bg-zinc-900 text-green-400 p-4 rounded-lg text-[10px] font-mono overflow-x-auto mb-4 border-l-4 border-green-500 shadow-lg">
-                   {`UPDATE auth.users 
-SET email_confirmed_at = NOW(), 
-    confirmed_at = NOW() 
-WHERE email = 'SEU_EMAIL_AQUI';`}
-                 </pre>
-               </div>
-               <p className="text-[10px] text-amber-700 italic font-bold">
-                 * Substitua SEU_EMAIL_AQUI pelo seu e-mail de cadastro.
-               </p>
-             </div>
-           )}
+            <div className="mt-6 p-4 bg-amber-50 rounded-xl border-2 border-amber-300 shadow-inner">
+              <p className="text-xs font-black text-amber-900 mb-3 uppercase tracking-tight">🚀 ATIVAÇÃO EXPRESSA (SEM E-MAIL)</p>
+              <p className="text-[10px] text-amber-800 mb-4 leading-relaxed font-medium">
+                Se o link do e-mail não chegou ou não funcionou, confirme sua conta por aqui mesmo:
+              </p>
+              <div className="space-y-2">
+                <Input 
+                  placeholder="Seu e-mail de cadastro" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)}
+                  className="bg-white text-xs h-9"
+                />
+                <Button 
+                  onClick={handleConfirmEmail} 
+                  disabled={confirming}
+                  variant="secondary"
+                  className="w-full h-9 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white border-0"
+                >
+                  {confirming ? <Loader2 className="animate-spin mr-2 h-3 w-3" /> : 'CONFIRMAR MEU E-MAIL AGORA'}
+                </Button>
+              </div>
+            </div>
            
            <div className="mt-8 pt-6 border-t border-gray-100">
              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center mb-4">Dica de Redirecionamento</p>
