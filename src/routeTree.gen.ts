@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as NewsRouteImport } from './routes/news'
+import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminFixRouteImport } from './routes/admin-fix'
@@ -28,9 +28,9 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NewsRoute = NewsRouteImport.update({
-  id: '/news',
-  path: '/news',
+const RecipesRoute = RecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstallRoute = InstallRouteImport.update({
@@ -65,7 +65,7 @@ export interface FileRoutesByFullPath {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/news': typeof NewsRoute
+  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
 }
@@ -75,7 +75,7 @@ export interface FileRoutesByTo {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/news': typeof NewsRoute
+  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
 }
@@ -86,7 +86,7 @@ export interface FileRoutesById {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/install': typeof InstallRoute
-  '/news': typeof NewsRoute
+  '/recipes': typeof RecipesRoute
   '/profile': typeof ProfileRoute
   '/search': typeof SearchRoute
 }
@@ -98,7 +98,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/news'
+    | '/recipes'
     | '/profile'
     | '/search'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +108,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/news'
+    | '/recipes'
     | '/profile'
     | '/search'
   id:
@@ -118,7 +118,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/install'
-    | '/news'
+    | '/recipes'
     | '/profile'
     | '/search'
   fileRoutesById: FileRoutesById
@@ -129,7 +129,7 @@ export interface RootRouteChildren {
   AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
   InstallRoute: typeof InstallRoute
-  NewsRoute: typeof NewsRoute
+  RecipesRoute: typeof RecipesRoute
   ProfileRoute: typeof ProfileRoute
   SearchRoute: typeof SearchRoute
 }
@@ -150,11 +150,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/news': {
-      id: '/news'
-      path: '/news'
-      fullPath: '/news'
-      preLoaderRoute: typeof NewsRouteImport
+    '/recipes': {
+      id: '/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof RecipesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/install': {
@@ -201,7 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
   InstallRoute: InstallRoute,
-  NewsRoute: NewsRoute,
+  RecipesRoute: RecipesRoute,
   ProfileRoute: ProfileRoute,
   SearchRoute: SearchRoute,
 }

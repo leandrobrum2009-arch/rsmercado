@@ -8,7 +8,7 @@ import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Spa
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
-export const Route = createFileRoute('/recipes' as any)({
+export const Route = createFileRoute('/recipes')({
   component: RecipesPage,
 })
 

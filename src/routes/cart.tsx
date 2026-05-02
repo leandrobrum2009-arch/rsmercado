@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
 import { RecipeSuggestions } from "@/components/RecipeSuggestions";
 
-export const Route = createFileRoute("/cart" as any)({
+export const Route = createFileRoute("/cart")({
   component: CartPage,
 });
 
