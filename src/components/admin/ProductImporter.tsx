@@ -91,14 +91,70 @@ export function ProductImporter() {
     }
   }
 
-  const simulateCompetitorImport = async (category: string) => {
-    toast.info(`Iniciando importação de 25 produtos da categoria ${category}...`)
+  const simulateCompetitorImport = async (categoryName: string) => {
+    toast.info(`Iniciando importação de produtos de ${categoryName}...`)
+    setIsCheckingMissing(true)
     
-    // Simulate process
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    
-    toast.success('Importação concluída! 25 produtos adicionados ao catálogo.')
-    checkMissingImages()
+    try {
+      // 1. Ensure category exists
+      let { data: catData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', categoryName)
+        .maybeSingle()
+      
+      if (!catData) {
+        const { data: newCat, error: catErr } = await supabase
+          .from('categories')
+          .insert({ name: categoryName, slug: categoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') })
+          .select()
+          .single()
+        if (catErr) throw catErr
+        catData = newCat
+      }
+
+      // 2. Sample products based on category
+      const samples: any[] = []
+      if (categoryName === 'Mercearia') {
+        samples.push(
+          { name: 'Arroz Tio João Tipo 1 5kg', price: 29.90, description: 'Arroz agulhinha tipo 1 de alta qualidade.' },
+          { name: 'Feijão Carioca Camil 1kg', price: 8.50, description: 'Feijão carioca selecionado.' },
+          { name: 'Açúcar Refinado União 1kg', price: 4.20, description: 'Açúcar de cana refinado.' },
+          { name: 'Óleo de Soja Liza 900ml', price: 6.75, description: 'Óleo de soja refinado.' },
+          { name: 'Macarrão Espaguete Adria 500g', price: 3.90, description: 'Macarrão de sêmola.' }
+        )
+      } else if (categoryName === 'Bebidas') {
+        samples.push(
+          { name: 'Cerveja Skol Lata 350ml', price: 3.49, description: 'Cerveja pilsen leve.' },
+          { name: 'Refrigerante Coca-Cola 2L', price: 11.90, description: 'Refrigerante de cola original.' },
+          { name: 'Suco de Laranja Prats 900ml', price: 14.50, description: 'Suco de laranja 100% natural.' },
+          { name: 'Água Mineral Crystal 500ml', price: 2.00, description: 'Água mineral sem gás.' }
+        )
+      } else {
+        samples.push(
+          { name: `${categoryName} Produto Exemplo 1`, price: 15.00, description: 'Descrição do produto importado.' },
+          { name: `${categoryName} Produto Exemplo 2`, price: 22.50, description: 'Descrição do produto importado.' }
+        )
+      }
+
+      const toInsert = samples.map(s => ({
+        ...s,
+        category_id: catData?.id,
+        image_url: '', // Intentionally empty to test the auto-photo system
+        stock: 50
+      }))
+
+      const { error: insErr } = await supabase.from('products').insert(toInsert)
+      if (insErr) throw insErr
+
+      toast.success(`Sucesso! ${toInsert.length} produtos de ${categoryName} foram adicionados sem fotos.`)
+      await checkMissingImages()
+    } catch (error: any) {
+      console.error('Import error:', error)
+      toast.error('Erro na importação: ' + error.message)
+    } finally {
+      setIsCheckingMissing(false)
+    }
   }
 
   return (
