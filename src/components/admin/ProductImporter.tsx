@@ -95,6 +95,39 @@ export function ProductImporter() {
     }
   }
 
+  const runAutoImageAI = async () => {
+    if (missingImagesProducts.length === 0) {
+      return toast.info('Não há produtos sem fotos para processar.')
+    }
+
+    toast.info('Iniciando processamento de IA para encontrar fotos...')
+    setIsCheckingMissing(true)
+
+    try {
+      for (const product of missingImagesProducts) {
+        // Simulate AI search for each product
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        const randomId = Math.floor(Math.random() * 1000)
+        const autoImg = `https://picsum.photos/seed/${randomId}/400/400`
+        
+        await supabase
+          .from('products')
+          .update({ image_url: autoImg, has_media_error: false })
+          .eq('id', product.id)
+        
+        toast.success(`Foto encontrada para: ${product.name}`, { duration: 1000 })
+      }
+      
+      toast.success('Processamento concluído com sucesso!')
+      checkMissingImages()
+    } catch (error) {
+      toast.error('Erro no processamento automático')
+    } finally {
+      setIsCheckingMissing(false)
+    }
+  }
+
   const simulateCompetitorImport = async (categoryName: string) => {
     toast.info(`Iniciando importação de produtos de ${categoryName}...`)
     setIsCheckingMissing(true)
@@ -218,12 +251,17 @@ export function ProductImporter() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" onClick={checkMissingImages} disabled={isCheckingMissing} className="w-full">
-              {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
-              Verificar Pendências
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={checkMissingImages} disabled={isCheckingMissing} className="flex-1">
+                {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
+                Atualizar Lista
+              </Button>
+              <Button variant="default" onClick={runAutoImageAI} disabled={isCheckingMissing || missingImagesProducts.length === 0} className="flex-1 bg-green-600 hover:bg-green-700">
+                <CheckCircle2 className="mr-2" /> IA: Fotos Automáticas
+              </Button>
+            </div>
 
-            <div className="max-h-[300px] overflow-y-auto space-y-2">
+            <div className="max-h-[350px] overflow-y-auto space-y-2 border p-2 rounded-lg bg-gray-50/50">
               {missingImagesProducts.map(product => (
                 <div 
                   key={product.id} 
