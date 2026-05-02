@@ -181,7 +181,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger to call the function on signup
 CREATE OR REPLACE TRIGGER on_auth_user_created
@@ -339,3 +339,131 @@ CREATE POLICY "Admins can view all orders" ON orders FOR SELECT USING (
 
 -- Remove the vulnerable column (optional but recommended for security)
 -- ALTER TABLE profiles DROP COLUMN is_admin;
+
+-- Recipes Table
+CREATE TABLE IF NOT EXISTS recipes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    description TEXT,
+    instructions TEXT,
+    category TEXT,
+    difficulty TEXT,
+    image_url TEXT,
+    ingredients JSONB DEFAULT '[]'::jsonb,
+    author_id UUID REFERENCES auth.users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Recipes are viewable by everyone" ON recipes FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert recipes" ON recipes FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Users can update their own recipes" ON recipes FOR UPDATE USING (auth.uid() = author_id);
+CREATE POLICY "Admins can manage all recipes" ON recipes FOR ALL USING (
+    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
+);
+
+-- User Saved Recipes Table
+CREATE TABLE IF NOT EXISTS user_recipes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, recipe_id)
+);
+
+ALTER TABLE user_recipes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own saved recipes" ON user_recipes FOR ALL USING (auth.uid() = user_id);
+
+-- Security Fix: Add missing RPCs and secure them
+
+-- 1. is_admin()
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM user_roles
+    WHERE user_id = auth.uid()
+    AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 2. promote_to_admin(secret_key TEXT)
+CREATE OR REPLACE FUNCTION promote_to_admin(secret_key TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Validate secret key
+  IF secret_key != 'ADMIN_RS_2024' THEN
+    RAISE EXCEPTION 'Invalid secret key';
+  END IF;
+
+  -- Ensure user is authenticated
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- Upsert role
+  INSERT INTO user_roles (user_id, role)
+  VALUES (auth.uid(), 'admin')
+  ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+
+  -- Update profiles just in case
+  UPDATE profiles SET is_admin = true WHERE id = auth.uid();
+
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 3. confirm_user_email(email_to_confirm TEXT, secret_key TEXT)
+CREATE OR REPLACE FUNCTION confirm_user_email(email_to_confirm TEXT, secret_key TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Validate secret key
+  IF secret_key != 'ADMIN_RS_2024' THEN
+    RAISE EXCEPTION 'Invalid secret key';
+  END IF;
+
+  -- Confirm email in auth.users (requires SECURITY DEFINER and careful search_path)
+  -- Note: auth schema access is restricted, but SECURITY DEFINER allows this.
+  UPDATE auth.users 
+  SET email_confirmed_at = NOW(),
+      confirmed_at = NOW(),
+      last_sign_in_at = NOW()
+  WHERE email = email_to_confirm;
+
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = auth, public;
+
+-- 4. report_media_error (stub)
+CREATE OR REPLACE FUNCTION report_media_error(metadata JSONB)
+RETURNS VOID AS $$
+BEGIN
+  -- For now, just a stub. Could log to a table if created.
+  -- We'll use store_settings as a temporary log
+  INSERT INTO store_settings (key, value)
+  VALUES ('media_error_' || md5(metadata::text) || '_' || NOW(), metadata)
+  ON CONFLICT (key) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 5. audit_rls_status
+CREATE OR REPLACE FUNCTION audit_rls_status()
+RETURNS TABLE(table_name TEXT, rls_enabled BOOLEAN, policies_count BIGINT) AS $$
+BEGIN
+  -- Check if caller is admin
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    t.relname::TEXT as table_name,
+    t.relrowsecurity as rls_enabled,
+    (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid) as policies_count
+  FROM pg_class t
+  JOIN pg_namespace n ON n.oid = t.relnamespace
+  WHERE n.nspname = 'public'
+    AND t.relkind = 'r';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog;
