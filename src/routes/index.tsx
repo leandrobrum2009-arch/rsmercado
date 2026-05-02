@@ -1,8 +1,10 @@
  import { createFileRoute } from "@tanstack/react-router";
- import { CategoryBar } from "../components/home/CategoryBar";
- import { ProductGrid } from "../components/home/ProductGrid";
- import { StoriesCarousel } from "../components/home/StoriesCarousel";
-import { Search, BookOpen, Smartphone, PlusSquare } from "lucide-react";
+ import { CategoryBar } from "@/components/home/CategoryBar";
+ import { ProductGrid } from "@/components/home/ProductGrid";
+ import { StoriesCarousel } from "@/components/home/StoriesCarousel";
+ import { RecipeFeed } from "@/components/home/RecipeFeed";
+ import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
+ import { Search, BookOpen, Smartphone, PlusSquare, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -46,9 +48,17 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-       <StoriesCarousel />
-       
+        <StoriesCarousel />
+        
         <CategoryBar />
+
+        {/* Main Recipe Section (replacing news/flyers focus) */}
+        <RecipeFeed />
+
+        {/* AI Generator Prominent Banner */}
+        <AiRecipeBanner />
+
+        <ProductGrid title="Ingredientes em Oferta" />
 
         {/* PWA Install Banner */}
         <div className="px-4 py-2">
@@ -68,28 +78,10 @@ export const Route = createFileRoute("/")({
             <PlusSquare size={20} className="text-white/40" />
           </Link>
         </div>
- 
-       {/* Banner Promo */}
-       <div className="px-4 py-4">
-         <div className="w-full h-40 rounded-3xl overflow-hidden shadow-md relative">
-           <img 
-             src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1000&auto=format&fit=crop" 
-             className="w-full h-full object-cover"
-             alt="Promoção da semana"
-           />
-           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center p-6">
-             <span className="text-green-400 font-bold text-xs uppercase">Oferta da Semana</span>
-             <h2 className="text-white text-xl font-bold max-w-[150px]">Até 40% OFF em Hortifruti</h2>
-             <button className="mt-3 bg-white text-black text-xs font-bold w-max px-4 py-2 rounded-lg">
-               APROVEITAR
-             </button>
-           </div>
-         </div>
-       </div>
- 
-        <ProductGrid title="Destaques" />
 
-        {/* Encartes Digitais */}
+        <ProductGrid title="Destaques" />
+ 
+        {/* Encartes Digitais - Moved down */}
         <div className="px-4 py-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
