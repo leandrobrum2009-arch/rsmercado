@@ -5,66 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  import { ShieldAlert, Loader2, Zap } from 'lucide-react'
-    const [seeding, setSeeding] = useState(false)
- 
-    const handleSeedRecipes = async () => {
-      setSeeding(true)
-      setStatus('Semeando 40 receitas brasileiras...')
-      try {
-        const brazilianDishes = [
-          'Feijoada Completa', 'Moqueca Baiana', 'Coxinha de Frango', 'Pão de Queijo Mineiro',
-          'Brigadeiro Gourmet', 'Farofa de Bacon', 'Bolo de Cenoura com Calda', 'Arroz Carreteiro',
-          'Escondidinho de Carne Seca', 'Vaca Atolada', 'Tapioca Recheada', 'Açaí na Tigela',
-          'Quindim Tradicional', 'Mousse de Maracujá', 'Pudim de Leite Moça', 'Salpicão de Frango',
-          'Maionese de Domingo', 'Churrasco Gaúcho', 'Pastel de Feira', 'Tacacá do Norte',
-          'Acarajé Crocante', 'Baião de Dois', 'Galinhada Goiana', 'Peixe na Telha',
-          'Bobó de Camarão', 'Caldo Verde', 'Canjica Doce', 'Pamonha de Milho Verde',
-          'Curau Cremoso', 'Bolinha de Queijo', 'Kibe Assado', 'Pizza de Calabresa',
-          'Lasanha Bolonhesa', 'Strogonoff de Frango', 'Frango com Quiabo', 'Dobradinha',
-          'Sarapatel', 'Buchada de Bode', 'Arroz Doce Cremoso', 'Romeu e Julieta'
-        ]
-        const categories = ['Brasileira', 'Sobremesa', 'Lanche', 'Almoço Especial']
-        const mockRecipes = brazilianDishes.map((title, i) => ({
-          title: title,
-          description: `O segredo do melhor ${title} que você já provou. Uma receita que passa de geração em geração.`,
-          instructions: `1. Limpe e pique os ingredientes.\n2. Inicie o refogado com alho e cebola.\n3. Adicione os itens principais e cozinhe em fogo brando.\n4. Ajuste o sal e sirva com acompanhamentos frescos.`,
-          category: categories[i % categories.length],
-          difficulty: i % 3 === 0 ? 'Fácil' : i % 3 === 1 ? 'Média' : 'Difícil',
-          image_url: `https://images.unsplash.com/photo-${1504674900247 + i}?w=800&h=400&fit=crop`,
-          ingredients: [{ name: 'Ingrediente Principal', quantity: '500g' }, { name: 'Temperos', quantity: 'a gosto' }]
-        }))
- 
-        const { error } = await supabase.from('recipes').insert(mockRecipes)
-        if (error) throw error
-        setStatus('SUCESSO! 40 receitas foram cadastradas no sistema.')
-      } catch (err: any) {
-        setStatus('ERRO ao semear: ' + err.message + '\n\nDica: Se erro for de permissão (RLS), clique primeiro em LIBERAR ACESSO ADMIN.')
-      } finally {
-        setSeeding(false)
-      }
-    }
- 
- 
-           {/* STEP 3: Seed Data (Optional) */}
-           <div className="space-y-4 border-t pt-8">
-             <div className="flex items-center gap-3">
-               <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">3</div>
-               <h3 className="font-black text-gray-900 uppercase tracking-tight">Carga de Receitas</h3>
-             </div>
- 
-             <div className="bg-purple-50 p-4 rounded-xl border-2 border-purple-200 shadow-sm space-y-3">
-               <p className="text-[10px] text-purple-800 font-bold leading-tight uppercase">
-                 Clique aqui se o site estiver sem receitas
-               </p>
-               <Button 
-                 onClick={handleSeedRecipes} 
-                 disabled={seeding}
-                 className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase tracking-widest"
-               >
-                 {seeding ? <Loader2 className="animate-spin mr-2" /> : <><Zap className="mr-2 h-4 w-4" /> SEMEAR 40 RECEITAS</>}
-               </Button>
-             </div>
-           </div>
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -76,6 +16,44 @@ function AdminFix() {
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
+   const [seeding, setSeeding] = useState(false)
+
+   const handleSeedRecipes = async () => {
+     setSeeding(true)
+     setStatus('Semeando 40 receitas brasileiras...')
+     try {
+       const brazilianDishes = [
+         'Feijoada Completa', 'Moqueca Baiana', 'Coxinha de Frango', 'Pão de Queijo Mineiro',
+         'Brigadeiro Gourmet', 'Farofa de Bacon', 'Bolo de Cenoura com Calda', 'Arroz Carreteiro',
+         'Escondidinho de Carne Seca', 'Vaca Atolada', 'Tapioca Recheada', 'Açaí na Tigela',
+         'Quindim Tradicional', 'Mousse de Maracujá', 'Pudim de Leite Moça', 'Salpicão de Frango',
+         'Maionese de Domingo', 'Churrasco Gaúcho', 'Pastel de Feira', 'Tacacá do Norte',
+         'Acarajé Crocante', 'Baião de Dois', 'Galinhada Goiana', 'Peixe na Telha',
+         'Bobó de Camarão', 'Caldo Verde', 'Canjica Doce', 'Pamonha de Milho Verde',
+         'Curau Cremoso', 'Bolinha de Queijo', 'Kibe Assado', 'Pizza de Calabresa',
+         'Lasanha Bolonhesa', 'Strogonoff de Frango', 'Frango com Quiabo', 'Dobradinha',
+         'Sarapatel', 'Buchada de Bode', 'Arroz Doce Cremoso', 'Romeu e Julieta'
+       ]
+       const categories = ['Brasileira', 'Sobremesa', 'Lanche', 'Almoço Especial']
+       const mockRecipes = brazilianDishes.map((title, i) => ({
+         title: title,
+         description: `O segredo do melhor ${title} que você já provou. Uma receita que passa de geração em geração.`,
+         instructions: `1. Limpe e pique os ingredientes.\n2. Inicie o refogado com alho e cebola.\n3. Adicione os itens principais e cozinhe em fogo brando.\n4. Ajuste o sal e sirva com acompanhamentos frescos.`,
+         category: categories[i % categories.length],
+         difficulty: i % 3 === 0 ? 'Fácil' : i % 3 === 1 ? 'Média' : 'Difícil',
+         image_url: `https://images.unsplash.com/photo-${1504674900247 + i}?w=800&h=400&fit=crop`,
+         ingredients: [{ name: 'Ingrediente Principal', quantity: '500g' }, { name: 'Temperos', quantity: 'a gosto' }]
+       }))
+
+       const { error } = await supabase.from('recipes').insert(mockRecipes)
+       if (error) throw error
+       setStatus('SUCESSO! 40 receitas foram cadastradas no sistema.')
+     } catch (err: any) {
+       setStatus('ERRO ao semear: ' + err.message + '\n\nDica: Se erro for de permissão (RLS), clique primeiro em LIBERAR ACESSO ADMIN.')
+     } finally {
+       setSeeding(false)
+     }
+   }
     const handleConfirmEmail = async () => {
       if (!email) {
         setStatus('Digite o e-mail que deseja confirmar')
@@ -197,11 +175,32 @@ function AdminFix() {
             </div>
           </div>
 
-          {status && (
-            <div className="p-4 bg-zinc-900 text-green-400 rounded-lg text-xs font-mono border-l-4 border-green-500 animate-in fade-in slide-in-from-bottom-2">
-              {status}
-            </div>
-          )}
+           {/* STEP 3: Seed Data (Optional) */}
+           <div className="space-y-4 border-t pt-8">
+             <div className="flex items-center gap-3">
+               <div className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">3</div>
+               <h3 className="font-black text-gray-900 uppercase tracking-tight">Carga de Receitas</h3>
+             </div>
+
+             <div className="bg-purple-50 p-4 rounded-xl border-2 border-purple-200 shadow-sm space-y-3">
+               <p className="text-[10px] text-purple-800 font-bold leading-tight uppercase">
+                 Clique aqui se o site estiver sem receitas
+               </p>
+               <Button 
+                 onClick={handleSeedRecipes} 
+                 disabled={seeding}
+                 className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase tracking-widest"
+               >
+                 {seeding ? <Loader2 className="animate-spin mr-2" /> : <><Zap className="mr-2 h-4 w-4" /> SEMEAR 40 RECEITAS</>}
+               </Button>
+             </div>
+           </div>
+
+           {status && (
+             <div className="p-4 bg-zinc-900 text-green-400 rounded-lg text-xs font-mono border-l-4 border-green-500 animate-in fade-in slide-in-from-bottom-2">
+               {status}
+             </div>
+           )}
         </CardContent>
       </Card>
     </div>
