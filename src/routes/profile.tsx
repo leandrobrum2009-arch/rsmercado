@@ -60,8 +60,6 @@ function ProfilePage() {
       }
     } catch (err) {
       console.error('Profile load error:', err);
-    } catch (err) {
-      console.error('Profile load error:', err);
       setError('Erro ao carregar perfil. Verifique sua conexão.');
     } finally {
       setLoading(false);
