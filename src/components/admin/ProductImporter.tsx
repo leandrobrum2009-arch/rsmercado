@@ -848,6 +848,7 @@ export function ProductImporter() {
                   Escanear {cat}
                 </Button>
               ))}
+              </div>
             </div>
 
             {scrapedProducts.length > 0 && (
