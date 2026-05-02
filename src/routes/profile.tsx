@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProfileEditor } from '@/components/profile/ProfileEditor'
+import { AuthForm } from '@/components/auth/AuthForm'
 import { Loader2, Settings, LogOut, ShieldCheck, ShoppingBag, History, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 
