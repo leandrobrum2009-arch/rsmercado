@@ -6,6 +6,7 @@ import { ProductManagement } from '@/components/admin/ProductManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { NewsManager } from '@/components/admin/NewsManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
+import { BannerManager } from '@/components/admin/BannerManager'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
@@ -51,11 +52,12 @@ function RouteComponent() {
       <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
+        <TabsList className="grid w-full grid-cols-5 mb-8">
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="importer">Importação Automática</TabsTrigger>
           <TabsTrigger value="news">Notícias/Blog</TabsTrigger>
           <TabsTrigger value="flyers">Gerador de Encartes</TabsTrigger>
+          <TabsTrigger value="banners">Banners/CMS</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products">
@@ -72,6 +74,10 @@ function RouteComponent() {
 
         <TabsContent value="flyers">
           <FlyerCreator />
+        </TabsContent>
+
+        <TabsContent value="banners">
+          <BannerManager />
         </TabsContent>
       </Tabs>
     </div>
