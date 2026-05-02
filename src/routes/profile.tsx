@@ -60,6 +60,9 @@ function ProfilePage() {
       }
     } catch (err) {
       console.error('Profile load error:', err);
+    } catch (err) {
+      console.error('Profile load error:', err);
+      setError('Erro ao carregar perfil. Verifique sua conexão.');
     } finally {
       setLoading(false);
     }
@@ -87,7 +90,7 @@ function ProfilePage() {
     return () => subscription.unsubscribe()
   }, [])
 
-  if (!isClient || loading) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
         <Loader2 className="animate-spin text-primary h-12 w-12" />
