@@ -16,7 +16,8 @@
      opening_hours: '',
      instagram_url: '',
      facebook_url: '',
-     store_description: ''
+      store_description: '',
+      points_ratio: '1'
    })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
@@ -42,6 +43,7 @@
          if (item.key === 'instagram_url') newSettings.instagram_url = item.value
          if (item.key === 'facebook_url') newSettings.facebook_url = item.value
          if (item.key === 'store_description') newSettings.store_description = item.value
+          if (item.key === 'points_ratio') newSettings.points_ratio = item.value
        })
        setSettings(newSettings)
      }
@@ -96,7 +98,8 @@
          { key: 'opening_hours', value: settings.opening_hours },
          { key: 'instagram_url', value: settings.instagram_url },
          { key: 'facebook_url', value: settings.facebook_url },
-         { key: 'store_description', value: settings.store_description }
+          { key: 'store_description', value: settings.store_description },
+          { key: 'points_ratio', value: settings.points_ratio }
        ];
  
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
@@ -188,15 +191,30 @@
              </CardContent>
            </Card>
    
-           {/* Cores */}
+            {/* Cores e Fidelidade */}
            <Card className="border-zinc-200 shadow-sm">
              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                <CardTitle className="flex items-center gap-2 text-zinc-800">
                  <Palette className="h-5 w-5 text-purple-500" />
-                 Visual e Cores
+                  Visual e Fidelidade
                </CardTitle>
-               <CardDescription>Personalize a identidade visual da interface</CardDescription>
+                <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
              </CardHeader>
+                <div className="space-y-2 pt-2 border-t">
+                  <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
+                  <div className="flex items-center gap-3">
+                    <Input 
+                      type="number" 
+                      value={settings.points_ratio}
+                      onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
+                      placeholder="Ex: 1"
+                      className="rounded-xl border-zinc-200 w-24"
+                    />
+                    <p className="text-[10px] text-zinc-500 font-bold italic">
+                      Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                    </p>
+                  </div>
+                </div>
              <CardContent className="space-y-4 pt-6">
                <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
