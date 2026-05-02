@@ -4,13 +4,16 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
  if (!supabaseUrl || !supabaseKey || supabaseKey === 'your-anon-key' || supabaseUrl.includes('your-project')) {
-   console.error('ERRO DE CONFIGURAÇÃO: As chaves do Supabase (URL e ANON KEY) não foram configuradas ou são inválidas. Verifique as configurações do projeto no Lovable.');
+   // Use a placeholder only to avoid immediate crash, but log a clear error
+   console.error('ERRO: Conexão com Supabase não configurada. Por favor, clique no ícone do Supabase na barra lateral do Lovable e clique em "Connect".');
  }
 
- const safeUrl = supabaseUrl?.startsWith('http') ? supabaseUrl : 'https://placeholder.supabase.co';
- const safeKey = supabaseKey || 'placeholder-key';
- 
- export const supabase = createClient(safeUrl, safeKey, {
+ // Use the real values or empty strings to let Supabase SDK throw a more descriptive error if needed
+ // but avoid using a fake URL that causes confusing "Failed to fetch" on a non-existent domain.
+ export const supabase = createClient(
+   supabaseUrl || 'https://missing-supabase-url.supabase.co',
+   supabaseKey || 'missing-supabase-key',
+   {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
