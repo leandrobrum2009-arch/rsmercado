@@ -215,6 +215,7 @@ export function ProductManagement() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="border rounded-lg bg-white overflow-hidden">
