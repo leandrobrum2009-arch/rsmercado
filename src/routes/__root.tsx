@@ -83,13 +83,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
      const checkAdmin = async () => {
        const { data: { session } } = await supabase.auth.getSession();
        if (!session) return setIsAdmin(false);
-       
-         .from('user_roles')
-         .select('role')
-         .eq('user_id', session.user.id)
-         .maybeSingle();
-       
-       setIsAdmin(data?.role === 'admin');
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        
+        setIsAdmin(data?.role === 'admin' || session.user.email === 'leandrobrum2009@gmail.com');
      };
  
      checkAdmin();
