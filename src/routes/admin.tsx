@@ -98,19 +98,34 @@ function RouteComponent() {
     check()
   }, [])
 
-  const menuItems = [
-    { id: 'orders', label: 'Pedidos', icon: ClipboardList },
-    { id: 'products', label: 'Produtos', icon: ShoppingBag },
-    { id: 'categories', label: 'Categorias', icon: Tag },
-    { id: 'importer', label: 'Importação', icon: Upload },
-    { id: 'recipes', label: 'Receitas', icon: ChefHat },
-    { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-    { id: 'banners', label: 'Banners', icon: ImageIcon },
-    { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
-    { id: 'webhooks', label: 'Webhooks', icon: Webhook },
-    { id: 'settings', label: 'Configurações', icon: Settings },
-    { id: 'security', label: 'Segurança', icon: ShieldCheck },
-  ]
+   const menuGroups = [
+     {
+       title: 'Vendas e Pedidos',
+       items: [
+         { id: 'orders', label: 'Pedidos', icon: ClipboardList },
+         { id: 'products', label: 'Produtos', icon: ShoppingBag },
+         { id: 'categories', label: 'Categorias', icon: Tag },
+         { id: 'importer', label: 'Importação', icon: Upload },
+       ]
+     },
+     {
+       title: 'Marketing e Conteúdo',
+       items: [
+         { id: 'banners', label: 'Banners', icon: ImageIcon },
+         { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+         { id: 'recipes', label: 'Receitas', icon: ChefHat },
+       ]
+     },
+     {
+       title: 'Configurações e Integrações',
+       items: [
+         { id: 'settings', label: 'Dados da Loja', icon: Settings },
+         { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare },
+         { id: 'webhooks', label: 'Webhooks / ERP', icon: Webhook },
+         { id: 'security', label: 'Segurança RLS', icon: ShieldCheck },
+       ]
+     }
+   ];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
@@ -132,26 +147,33 @@ function RouteComponent() {
           <p className="text-[10px] uppercase font-bold text-zinc-500 mt-1">Controle de Operações</p>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto pb-20 md:pb-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id)
-                setSidebarOpen(false)
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase transition-all",
-                activeTab === item.id 
-                  ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
-                  : "hover:bg-zinc-800 hover:text-white"
-              )}
-            >
-              <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
+         <nav className="flex-1 px-4 space-y-6 mt-4 overflow-y-auto pb-20 md:pb-4">
+           {menuGroups.map((group) => (
+             <div key={group.title} className="space-y-2">
+               <h3 className="px-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{group.title}</h3>
+               <div className="space-y-1">
+                 {group.items.map((item) => (
+                   <button
+                     key={item.id}
+                     onClick={() => {
+                       setActiveTab(item.id)
+                       setSidebarOpen(false)
+                     }}
+                     className={cn(
+                       "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase transition-all",
+                       activeTab === item.id 
+                         ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
+                         : "hover:bg-zinc-800 hover:text-white"
+                     )}
+                   >
+                     <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
+                     {item.label}
+                   </button>
+                 ))}
+               </div>
+             </div>
+           ))}
+         </nav>
 
         <div className="p-4 border-t border-zinc-800">
           <Button 
