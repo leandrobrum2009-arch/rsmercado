@@ -65,11 +65,17 @@ function ProfilePage() {
   if (!session) {
     return (
       <div className="container mx-auto px-4 py-12 flex flex-col items-center min-h-[80vh]">
-        <div className="mb-8 text-center">
+        <div className="mb-14 text-center">
           <h1 className="text-3xl font-black text-gray-900 mb-2">Bem-vindo à SuperLoja</h1>
           <p className="text-gray-500">Crie sua conta para aproveitar ofertas exclusivas e acumular pontos.</p>
         </div>
         <AuthForm />
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-8 text-xs font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-widest"
+        >
+          Já ativei meu e-mail? Clique aqui para atualizar
+        </button>
       </div>
     )
   }
