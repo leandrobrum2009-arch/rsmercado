@@ -3,7 +3,7 @@
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon } from 'lucide-react'
+ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function StoreSettingsManager() {
@@ -20,6 +20,7 @@
    })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
+    const [uploading, setUploading] = useState(false)
  
    useEffect(() => {
      fetchSettings()
@@ -47,6 +48,35 @@
      setIsLoading(false)
    }
  
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      setUploading(true)
+      try {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+        const filePath = `store/${fileName}`
+
+        const { data, error } = await supabase.storage
+          .from('products') // Using 'products' bucket as it's already configured in Supabase
+          .upload(filePath, file)
+
+        if (error) throw error
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath)
+
+        setSettings({ ...settings, logo_url: publicUrl })
+        toast.success('Logomarca carregada com sucesso!')
+      } catch (error: any) {
+        toast.error('Erro no upload: ' + error.message)
+      } finally {
+        setUploading(false)
+      }
+    }
+
    const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
@@ -116,14 +146,39 @@
                    className="rounded-xl border-zinc-200 focus:ring-primary"
                  />
                </div>
-               <div className="space-y-2">
-                 <label className="text-xs font-black uppercase text-zinc-500">URL da Logomarca</label>
-                 <Input 
-                   value={settings.logo_url}
-                   onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                   placeholder="https://exemplo.com/logo.png"
-                   className="rounded-xl border-zinc-200 focus:ring-primary"
-                 />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={settings.logo_url}
+                        onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                        placeholder="https://exemplo.com/logo.png"
+                        className="rounded-xl border-zinc-200 focus:ring-primary flex-1"
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          id="logo-upload"
+                          disabled={uploading}
+                        />
+                        <Button 
+                          asChild 
+                          variant="outline" 
+                          className="rounded-xl border-zinc-200"
+                          disabled={uploading}
+                        >
+                          <label htmlFor="logo-upload" className="cursor-pointer flex items-center gap-2">
+                            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            <span className="hidden md:inline">Upload</span>
+                          </label>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                  {settings.logo_url && (
                    <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
                      <img src={settings.logo_url} alt="Logo Preview" className="h-16 object-contain drop-shadow-md" />
