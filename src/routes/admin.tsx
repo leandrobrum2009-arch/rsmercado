@@ -25,32 +25,49 @@ export const Route = createFileRoute('/admin')({
       console.error('Error getting session:', e)
     }
 
-    if (!session) {
-      throw redirect({
-        to: '/',
-        search: { redirect: location.href },
-      })
-    }
+    const checkAdmin = async () => {
+      if (!session) {
+        console.log('Admin check: No session found, redirecting to home');
+        throw redirect({
+          to: '/',
+          search: { redirect: location.href },
+        })
+      }
 
-    try {
-      // Secure check using user_roles table
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single()
+      // MASTER BYPASS for the owner
+      if (session.user.email === 'leandrobrum2009@gmail.com') {
+        console.log('Admin check: MASTER BYPASS for owner');
+        return true;
+      }
 
-      const isAdmin = roleData?.role === 'admin';
-      console.log('Secure Admin check for user:', session.user.id, 'Result:', isAdmin);
+      try {
+        // Secure check using user_roles table
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle()
 
-      if (!isAdmin) {
-        // Redirect to profile instead of home, so they can see their status
+        if (roleError) {
+          console.error('Role check error:', roleError)
+        }
+
+        const isAdmin = roleData?.role === 'admin';
+        console.log('Secure Admin check for user:', session.user.id, 'Result:', isAdmin);
+
+        if (!isAdmin) {
+          console.log('Admin check: User is not admin, redirecting to profile');
+          throw redirect({ to: '/profile' })
+        }
+        return true;
+      } catch (e) {
+        if (e instanceof Error && e.message.includes('redirect')) throw e;
+        console.error('Error checking admin status:', e)
         throw redirect({ to: '/profile' })
       }
-    } catch (e) {
-      console.error('Error checking admin status:', e)
-      throw redirect({ to: '/profile' })
-    }
+    };
+
+    await checkAdmin();
   },
   component: RouteComponent,
 })
