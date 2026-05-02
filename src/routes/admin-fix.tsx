@@ -52,7 +52,14 @@ function AdminFix() {
  
         setStatus('Concedendo privilégios de administrador...')
         const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: 'ignorado' })
-       if (error) throw error
+        
+        if (error) {
+          if (error.message.includes('Could not find the function')) {
+            setStatus('SISTEMA ESTÁ SENDO ATUALIZADO: Aguarde 30 segundos e tente clicar no botão novamente. O banco de dados está recebendo as novas permissões.')
+            return
+          }
+          throw error
+        }
  
        setStatus('SUCESSO! Você agora é admin. Redirecionando...')
        setTimeout(() => window.location.href = '/admin', 2000)
