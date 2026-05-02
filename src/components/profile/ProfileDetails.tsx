@@ -82,6 +82,20 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle 
  
     const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status
 
+    const calculateAge = (date: string) => {
+      if (!date) return null
+      const birthDate = new Date(date)
+      const today = new Date()
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      return age
+    }
+
+    const age = calculateAge(formData.birth_date)
+
    return (
      <Card className="bg-white border-2 border-zinc-100 shadow-xl overflow-hidden">
        <CardHeader className="bg-zinc-50 border-b">
@@ -130,8 +144,13 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle 
              />
            </div>
  
-           <div className="space-y-2">
-             <label className="text-[10px] font-black uppercase text-zinc-500">Data de Nascimento <span className="text-red-500">*</span></label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black uppercase text-zinc-500">Data de Nascimento <span className="text-red-500">*</span></label>
+                {age !== null && age >= 0 && (
+                  <span className="text-[10px] font-black text-primary uppercase">{age} Anos</span>
+                )}
+              </div>
              <div className="relative">
                <Input 
                  type="date"
