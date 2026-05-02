@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles, AlertCircle } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -11,14 +11,20 @@ import { Label } from '@/components/ui/label'
 
 export function RecipeManager() {
   const [recipes, setRecipes] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+   const [isLoading, setIsLoading] = useState(true)
+   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
   const [aiInput, setAiInput] = useState('')
   const [isAiGenerating, setIsAiGenerating] = useState(false)
 
-  useEffect(() => {
-    fetchRecipes()
-  }, [])
+   useEffect(() => {
+     const check = async () => {
+       const { data } = await supabase.rpc('is_admin')
+       setIsAdmin(data)
+     }
+     check()
+     fetchRecipes()
+   }, [])
 
   const fetchRecipes = async () => {
     setIsLoading(true)
@@ -128,6 +134,16 @@ export function RecipeManager() {
 
   return (
     <div className="space-y-6">
+       {isAdmin === false && (
+         <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-6 flex items-center gap-3">
+           <AlertCircle className="text-red-600" />
+           <div>
+             <p className="text-xs font-black text-red-700 uppercase">Acesso Restrito pelo Banco de Dados</p>
+             <p className="text-[10px] text-red-600 font-bold uppercase">Suas permissões RLS não permitem salvar. Use a página /admin-fix primeiro.</p>
+           </div>
+         </div>
+       )}
+
       <div className="flex justify-between items-center gap-4 flex-wrap bg-white p-4 rounded-2xl shadow-sm border">
         <div>
           <h2 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Portal de Gastronomia</h2>
