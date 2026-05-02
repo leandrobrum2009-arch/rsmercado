@@ -80,12 +80,16 @@ function AdminFix() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600">Use esta página apenas se o botão de admin não aparecer no seu perfil após o cadastro.</p>
-          <Input 
-            type="password" 
-            placeholder="Chave Mestre" 
-            value={key} 
-            onChange={e => setKey(e.target.value)} 
-          />
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Chave Mestre (Padrão: ADMIN_RS_2024)</label>
+            <Input 
+              type="text" 
+              placeholder="Chave Mestre" 
+              value={key} 
+              onChange={e => setKey(e.target.value)} 
+              className="font-mono"
+            />
+          </div>
           <Button onClick={handleFix} className="w-full bg-red-600 hover:bg-red-700" disabled={loading}>
             {loading ? <Loader2 className="animate-spin mr-2" /> : 'ATIVAR ADMIN AGORA'}
           </Button>
