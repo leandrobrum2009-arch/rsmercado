@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { AuthForm } from '@/components/auth/AuthForm'
+import { AdminSetup } from '@/components/admin/AdminSetup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Loader2, LogOut, ShieldCheck, ShoppingBag, User } from 'lucide-react'
@@ -40,7 +41,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
       <div className="flex flex-col items-center mb-10">
         <Avatar className="w-24 h-24 mb-4 ring-4 ring-primary/10">
           <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
@@ -52,6 +53,8 @@ function ProfilePage() {
           Pontos: {profile?.points_balance || 0}
         </div>
       </div>
+
+      <AdminSetup />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => window.location.href = '/admin'}>
