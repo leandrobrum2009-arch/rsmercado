@@ -77,9 +77,34 @@ function RootShell({ children }: { children: React.ReactNode }) {
    const location = useLocation();
    const { items } = useCart();
    const [isAdmin, setIsAdmin] = useState(false);
+    const [storeSettings, setStoreSettings] = useState<any>({
+      site_name: 'SuperLoja',
+      logo_url: '',
+      colors: { primary: '#16a34a', secondary: '#facc15' }
+    });
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
  
    useEffect(() => {
+      const fetchSettings = async () => {
+        const { data } = await supabase.from('store_settings').select('*');
+        if (data) {
+          const newSettings = { ...storeSettings };
+          data.forEach(item => {
+            if (item.key === 'site_name') newSettings.site_name = item.value;
+            if (item.key === 'logo_url') newSettings.logo_url = item.value;
+            if (item.key === 'color_palette') newSettings.colors = item.value;
+          });
+          setStoreSettings(newSettings);
+          
+          // Apply colors to CSS variables
+          if (newSettings.colors.primary) {
+            document.documentElement.style.setProperty('--primary', hexToHSL(newSettings.colors.primary));
+          }
+        }
+      };
+ 
+      fetchSettings();
+ 
      const checkAdmin = async () => {
        const { data: { session } } = await supabase.auth.getSession();
        if (!session) return setIsAdmin(false);
@@ -116,12 +141,48 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
    const isAdminPage = location.pathname.startsWith('/admin');
  
+    // Helper to convert hex to HSL (needed for tailwind variables if they use hsl)
+    function hexToHSL(hex: string) {
+      let r = 0, g = 0, b = 0;
+      if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+      } else if (hex.length === 7) {
+        r = parseInt(hex[1] + hex[2], 16);
+        g = parseInt(hex[3] + hex[4], 16);
+        b = parseInt(hex[5] + hex[6], 16);
+      }
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h = 0, s, l = (max + min) / 2;
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+    }
+ 
    return (
      <div className="flex flex-col min-h-screen bg-gray-50">
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-           <Link to="/" className="text-2xl font-bold text-green-600">SuperLoja</Link>
+            <Link to="/" className="flex items-center gap-2">
+              {storeSettings.logo_url ? (
+                <img src={storeSettings.logo_url} alt="Logo" className="h-10 object-contain" />
+              ) : (
+                <span className="text-2xl font-bold text-primary">{storeSettings.site_name}</span>
+              )}
+            </Link>
            <div className="flex items-center space-x-6">
              {navItems.map((item) => (
                <Link
@@ -150,7 +211,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
        {/* Mobile Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm md:hidden">
          <div className="flex items-center justify-between h-14 px-4">
-           <Link to="/" className="text-xl font-bold text-green-600">SuperLoja</Link>
+            <Link to="/" className="flex items-center gap-2">
+              {storeSettings.logo_url ? (
+                <img src={storeSettings.logo_url} alt="Logo" className="h-8 object-contain" />
+              ) : (
+                <span className="text-xl font-bold text-primary">{storeSettings.site_name}</span>
+              )}
+            </Link>
            <div className="flex items-center space-x-3">
              <Link to="/search" className="p-2 text-gray-600">
                <Search size={20} />
