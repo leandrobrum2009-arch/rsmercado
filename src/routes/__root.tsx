@@ -159,7 +159,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       key: (typeof window !== 'undefined' ? localStorage.getItem('supabase_anon_key') : null) || import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     });
     
-    const isSupabaseMissing = !supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder';
+     const isSupabaseMissing = isConnected === false || (!supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder');
     const [showConfigModal, setShowConfigModal] = useState(false);
     const [tempUrl, setTempUrl] = useState(supabaseConfig.url);
     const [tempKey, setTempKey] = useState(supabaseConfig.key);
