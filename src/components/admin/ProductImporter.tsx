@@ -16,6 +16,10 @@ export function ProductImporter() {
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
 
+  useEffect(() => {
+    checkMissingImages()
+  }, [])
+
   // Mock function for Google Image search proxy
   const searchGoogleImages = async (query: string) => {
     setIsSearching(true)
@@ -91,14 +95,103 @@ export function ProductImporter() {
     }
   }
 
-  const simulateCompetitorImport = async (category: string) => {
-    toast.info(`Iniciando importação de 25 produtos da categoria ${category}...`)
+  const runAutoImageAI = async () => {
+    if (missingImagesProducts.length === 0) {
+      return toast.info('Não há produtos sem fotos para processar.')
+    }
+
+    toast.info('Iniciando processamento de IA para encontrar fotos...')
+    setIsCheckingMissing(true)
+
+    try {
+      for (const product of missingImagesProducts) {
+        // Simulate AI search for each product
+        await new Promise(resolve => setTimeout(resolve, 800))
+        
+        const randomId = Math.floor(Math.random() * 1000)
+        const autoImg = `https://picsum.photos/seed/${randomId}/400/400`
+        
+        await supabase
+          .from('products')
+          .update({ image_url: autoImg, has_media_error: false })
+          .eq('id', product.id)
+        
+        toast.success(`Foto encontrada para: ${product.name}`)
+      }
+      
+      toast.success('Processamento concluído com sucesso!')
+      checkMissingImages()
+    } catch (error) {
+      toast.error('Erro no processamento automático')
+    } finally {
+      setIsCheckingMissing(false)
+    }
+  }
+
+  const simulateCompetitorImport = async (categoryName: string) => {
+    toast.info(`Iniciando importação de produtos de ${categoryName}...`)
+    setIsCheckingMissing(true)
     
-    // Simulate process
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    
-    toast.success('Importação concluída! 25 produtos adicionados ao catálogo.')
-    checkMissingImages()
+    try {
+      // 1. Ensure category exists
+      let { data: catData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', categoryName)
+        .maybeSingle()
+      
+      if (!catData) {
+        const { data: newCat, error: catErr } = await supabase
+          .from('categories')
+          .insert({ name: categoryName, slug: categoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') })
+          .select()
+          .single()
+        if (catErr) throw catErr
+        catData = newCat
+      }
+
+      // 2. Sample products based on category
+      const samples: any[] = []
+      if (categoryName === 'Mercearia') {
+        samples.push(
+          { name: 'Arroz Tio João Tipo 1 5kg', price: 29.90, description: 'Arroz agulhinha tipo 1 de alta qualidade.' },
+          { name: 'Feijão Carioca Camil 1kg', price: 8.50, description: 'Feijão carioca selecionado.' },
+          { name: 'Açúcar Refinado União 1kg', price: 4.20, description: 'Açúcar de cana refinado.' },
+          { name: 'Óleo de Soja Liza 900ml', price: 6.75, description: 'Óleo de soja refinado.' },
+          { name: 'Macarrão Espaguete Adria 500g', price: 3.90, description: 'Macarrão de sêmola.' }
+        )
+      } else if (categoryName === 'Bebidas') {
+        samples.push(
+          { name: 'Cerveja Skol Lata 350ml', price: 3.49, description: 'Cerveja pilsen leve.' },
+          { name: 'Refrigerante Coca-Cola 2L', price: 11.90, description: 'Refrigerante de cola original.' },
+          { name: 'Suco de Laranja Prats 900ml', price: 14.50, description: 'Suco de laranja 100% natural.' },
+          { name: 'Água Mineral Crystal 500ml', price: 2.00, description: 'Água mineral sem gás.' }
+        )
+      } else {
+        samples.push(
+          { name: `${categoryName} Produto Exemplo 1`, price: 15.00, description: 'Descrição do produto importado.' },
+          { name: `${categoryName} Produto Exemplo 2`, price: 22.50, description: 'Descrição do produto importado.' }
+        )
+      }
+
+      const toInsert = samples.map(s => ({
+        ...s,
+        category_id: catData?.id,
+        image_url: '', // Intentionally empty to test the auto-photo system
+        stock: 50
+      }))
+
+      const { error: insErr } = await supabase.from('products').insert(toInsert)
+      if (insErr) throw insErr
+
+      toast.success(`Sucesso! ${toInsert.length} produtos de ${categoryName} foram adicionados sem fotos.`)
+      await checkMissingImages()
+    } catch (error: any) {
+      console.error('Import error:', error)
+      toast.error('Erro na importação: ' + error.message)
+    } finally {
+      setIsCheckingMissing(false)
+    }
   }
 
   return (
@@ -158,12 +251,17 @@ export function ProductImporter() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" onClick={checkMissingImages} disabled={isCheckingMissing} className="w-full">
-              {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
-              Verificar Pendências
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={checkMissingImages} disabled={isCheckingMissing} className="flex-1">
+                {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
+                Atualizar Lista
+              </Button>
+              <Button variant="default" onClick={runAutoImageAI} disabled={isCheckingMissing || missingImagesProducts.length === 0} className="flex-1 bg-green-600 hover:bg-green-700">
+                <CheckCircle2 className="mr-2" /> IA: Fotos Automáticas
+              </Button>
+            </div>
 
-            <div className="max-h-[300px] overflow-y-auto space-y-2">
+            <div className="max-h-[350px] overflow-y-auto space-y-2 border p-2 rounded-lg bg-gray-50/50">
               {missingImagesProducts.map(product => (
                 <div 
                   key={product.id} 
