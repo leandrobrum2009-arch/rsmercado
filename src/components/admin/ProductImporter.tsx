@@ -1,10 +1,3 @@
-  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
-  const [diagnosticLog, setDiagnosticLog] = useState<string[]>([])
-
-  const addLog = (msg: string) => {
-    setDiagnosticLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
-  }
-
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -20,6 +13,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export function ProductImporter() {
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
+  const [diagnosticLog, setDiagnosticLog] = useState<string[]>([])
+
+  const addLog = (msg: string) => {
+    setDiagnosticLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`])
+  }
+
   const [searchQuery, setSearchQuery] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [isSearching, setIsSearching] = useState(false)
