@@ -562,9 +562,9 @@ export function ProductImporter() {
           description: `${product.description} Marca: ${product.brand}`,
           price: product.price,
           category_id: catData?.id,
-          image_url: product.image_url,
+          image_url: product.image_url || null,
           stock: 100,
-          is_approved: !!product.image_url // Approve automatically if it has a photo
+          is_approved: false // User wants to review/organize later
         });
         successCount++;
         i++;
@@ -648,8 +648,9 @@ export function ProductImporter() {
           description: `${product.description} Marca: ${product.brand}`,
           price: product.price,
           category_id: catData?.id,
-          image_url: product.image_url,
-          stock: 100
+          image_url: product.image_url || null,
+          stock: 100,
+          is_approved: false // Force review even if it has photo
         });
         successCount++;
         i++;
