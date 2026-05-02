@@ -6,29 +6,6 @@ import { AdminSetup } from '@/components/admin/AdminSetup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat } from 'lucide-react'
-  const [savedRecipesCount, setSavedRecipesCount] = useState(0)
-        if (data.session) {
-          const { count } = await supabase
-            .from('user_recipes')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', data.session.user.id)
-          setSavedRecipesCount(count || 0)
-        }
-        <Card 
-          className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-amber-500 active:scale-[0.98] group bg-white"
-          onClick={() => window.location.href = '/recipes'}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-black text-amber-500 uppercase tracking-widest">Minhas Receitas</CardTitle>
-            <ChefHat size={24} className="text-amber-500 group-hover:rotate-12 transition-transform" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
-              {savedRecipesCount} receitas salvas no seu painel.
-            </p>
-          </CardContent>
-        </Card>
-
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
@@ -39,6 +16,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
+  const [savedRecipesCount, setSavedRecipesCount] = useState(0)
 
   useEffect(() => {
     setIsClient(true)
@@ -57,17 +35,20 @@ function ProfilePage() {
             .single()
           
           if (error && error.code === 'PGRST116') {
-             // Profile missing, try to create it manually as fallback to the trigger
              const { data: newProfile, error: createError } = await supabase
                .from('profiles')
                .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
                .select()
                .single()
-             
              if (!createError) profileData = newProfile
           }
-          
           setProfile(profileData)
+
+          const { count } = await supabase
+            .from('user_recipes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+          setSavedRecipesCount(count || 0)
         }
       } catch (err) {
         console.error('Profile load error:', err)
@@ -103,12 +84,6 @@ function ProfilePage() {
           <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Ofertas exclusivas e pontos de fidelidade</p>
         </div>
         <AuthForm />
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-8 text-[10px] font-black text-gray-400 hover:text-primary transition-colors uppercase tracking-widest border-b border-gray-200"
-        >
-          Já ativei meu e-mail? Clique para atualizar
-        </button>
       </div>
     )
   }
@@ -123,15 +98,6 @@ function ProfilePage() {
         </Avatar>
         <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
         <p className="text-gray-400 font-bold text-xs mb-6 tracking-widest">{session.user.email}</p>
-        
-        <div className="flex gap-4">
-          <div className="bg-amber-100 text-amber-700 px-8 py-3 rounded-2xl text-[10px] font-black flex items-center gap-2 shadow-inner border border-amber-200">
-            PONTOS: {profile?.points_balance || 0}
-          </div>
-          <div className="bg-green-100 text-green-700 px-8 py-3 rounded-2xl text-[10px] font-black flex items-center gap-2 shadow-inner border border-green-200">
-            NÍVEL: {profile?.loyalty_tier?.toUpperCase() || 'BRONZE'}
-          </div>
-        </div>
       </div>
 
       <AdminSetup />
@@ -148,6 +114,21 @@ function ProfilePage() {
           <CardContent><p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Gestão completa da sua loja virtual.</p></CardContent>
         </Card>
 
+        <Card 
+          className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-amber-500 active:scale-[0.98] group bg-white"
+          onClick={() => window.location.href = '/recipes'}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-black text-amber-500 uppercase tracking-widest">Minhas Receitas</CardTitle>
+            <ChefHat size={24} className="text-amber-500 group-hover:rotate-12 transition-transform" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
+              {savedRecipesCount} receitas salvas no seu painel.
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-green-600 active:scale-[0.98] group bg-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-black text-green-600 uppercase tracking-widest">Meus Pedidos</CardTitle>
@@ -157,7 +138,7 @@ function ProfilePage() {
         </Card>
 
         <Card 
-          className="md:col-span-2 hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-red-500 active:scale-[0.98] group bg-zinc-50" 
+          className="hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-red-500 active:scale-[0.98] group bg-zinc-50" 
           onClick={() => supabase.auth.signOut().then(() => window.location.reload())}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
