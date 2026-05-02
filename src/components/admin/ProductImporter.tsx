@@ -347,31 +347,102 @@ export function ProductImporter() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Importação em Lote (Web Scraping)</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="text-primary" /> Importação Inteligente (Web Scraping)
+            </CardTitle>
             <CardDescription>
-              Importe produtos diretamente de grandes redes de supermercado.
+              Selecione as categorias do site parceiro para escanear e cadastrar.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Selecione uma categoria para importar automaticamente nome, descrição e categoria de sites como Pão de Açúcar.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Mercearia')}>
-                <Download className="mr-2 h-4 w-4" /> Mercearia
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Bebidas')}>
-                <Download className="mr-2 h-4 w-4" /> Bebidas
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Hortifruti')}>
-                <Download className="mr-2 h-4 w-4" /> Hortifruti
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Limpeza')}>
-                <Download className="mr-2 h-4 w-4" /> Limpeza
-              </Button>
+          <CardContent className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              {['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'].map(cat => (
+                <Button 
+                  key={cat}
+                  variant="secondary" 
+                  className="h-10 px-4 font-bold uppercase text-[10px] tracking-wider"
+                  onClick={() => simulateScraping(cat)}
+                  disabled={isScraping}
+                >
+                  {isScraping ? <Loader2 className="animate-spin mr-2 h-3 w-3" /> : <Search className="mr-2 h-3 w-3" />}
+                  Escanear {cat}
+                </Button>
+              ))}
             </div>
+
+            {scrapedProducts.length > 0 && (
+              <div className="mt-8 border rounded-2xl overflow-hidden bg-white shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-zinc-900 text-white p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <h3 className="font-black uppercase italic tracking-tighter text-lg">Produtos Encontrados</h3>
+                    <Badge variant="outline" className="text-white border-white/20">
+                      {selectedForImport.length} selecionados
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-[10px] font-bold" onClick={selectAll}>MARCAR TODOS</Button>
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-[10px] font-bold" onClick={deselectAll}>DESMARCAR</Button>
+                  </div>
+                </div>
+                
+                <ScrollArea className="h-[400px]">
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead className="w-[80px]">Foto</TableHead>
+                        <TableHead>Produto / Marca</TableHead>
+                        <TableHead>Preço Est.</TableHead>
+                        <TableHead>Categoria</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {scrapedProducts.map(product => (
+                        <TableRow key={product.id} className={selectedForImport.includes(product.id) ? 'bg-green-50/30' : 'opacity-60'}>
+                          <TableCell>
+                            <Checkbox 
+                              checked={selectedForImport.includes(product.id)}
+                              onCheckedChange={() => toggleSelectProduct(product.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <img src={product.image_url} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="" />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.brand}</div>
+                          </TableCell>
+                          <TableCell className="font-black text-green-700">R$ {product.price.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter">
+                              {product.category}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+                
+                <div className="p-6 bg-gray-50 border-t flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <Info className="h-4 w-4 text-blue-500" />
+                    Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
+                    onClick={handleConfirmImport}
+                    disabled={isScraping || selectedForImport.length === 0}
+                  >
+                    {isScraping ? <Loader2 className="animate-spin mr-2" /> : <Check className="mr-2" />}
+                    Cadastrar Selecionados
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
