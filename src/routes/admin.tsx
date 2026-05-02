@@ -49,7 +49,7 @@ export const Route = createFileRoute('/admin')({
       }
     } catch (e) {
       console.error('Error checking admin status:', e)
-      throw redirect({ to: '/' })
+      throw redirect({ to: '/profile' })
     }
   },
   component: RouteComponent,
