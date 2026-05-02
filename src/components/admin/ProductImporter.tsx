@@ -725,9 +725,25 @@ export function ProductImporter() {
                 {isCheckingMissing ? <Loader2 className="animate-spin mr-2" /> : <AlertCircle className="mr-2" />}
                 Atualizar Lista
               </Button>
-              <Button variant="default" onClick={runAutoImageAI} disabled={isCheckingMissing || missingImagesProducts.length === 0} className="flex-1 bg-green-600 hover:bg-green-700">
-                <CheckCircle2 className="mr-2" /> IA: Fotos Automáticas
-              </Button>
+              <div className="flex-1 flex flex-col gap-1">
+                <Button 
+                  variant="default" 
+                  onClick={() => runAutoImageAI()} 
+                  disabled={isCheckingMissing || missingImagesProducts.length === 0} 
+                  className="w-full bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-10"
+                >
+                  {isCheckingMissing && autoProgress ? (
+                    <>{autoProgress.current}/${autoProgress.total} SALVANDO...</>
+                  ) : (
+                    <><CheckCircle2 className="mr-2 h-4 w-4" /> IA: Fotos Automáticas</>
+                  )}
+                </Button>
+                {autoProgress && activeTab === 'importer' && (
+                  <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 transition-all" style={{ width: `${(autoProgress.current / autoProgress.total) * 100}%` }} />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="max-h-[350px] overflow-y-auto space-y-2 border p-2 rounded-lg bg-gray-50/50">
