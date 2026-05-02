@@ -123,14 +123,15 @@ function RecipesPage() {
             <p className="text-zinc-500 font-medium text-sm max-w-xl">
               Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade SuperLoja em formato de notícias.
             </p>
-            {isAdmin && (
-              <Button 
-                onClick={() => setIsAiModalOpen(true)}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-200 rounded-2xl self-start md:self-center"
-              >
-                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-              </Button>
-            )}
+            <Button 
+              onClick={() => {
+                if (!user) return toast.error('Faça login para criar receitas!');
+                setIsAiModalOpen(true);
+              }}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-200 rounded-2xl self-start md:self-center"
+            >
+              <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+            </Button>
           </div>
         </div>
       </div>
