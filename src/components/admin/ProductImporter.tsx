@@ -425,16 +425,20 @@ export function ProductImporter() {
       let successCount = 0;
       let i = 0;
 
+      const currentExisting = new Set(existingProductNames);
+      
       for (const product of toImport) {
-        // Duplicate check
         const normalizedCurrent = normalizeString(product.name);
-        const isDuplicate = existingProductNames.has(normalizedCurrent);
         addLog(`Processando: ${product.name}...`)
-        if (isDuplicate) {
-          console.log(`Pulando duplicado: ${product.name}`);
+        
+        if (currentExisting.has(normalizedCurrent)) {
+          addLog(`Pulando duplicado detectado: ${product.name}`)
           continue;
         }
 
+        // Add to local set immediately to prevent duplicates within the same batch
+        currentExisting.add(normalizedCurrent);
+        
         let { data: catData } = await supabase
           .from('categories')
           .select('id')
