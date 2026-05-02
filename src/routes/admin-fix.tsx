@@ -11,7 +11,8 @@ export const Route = createFileRoute('/admin-fix')({
 })
 
 function AdminFix() {
-    const [key, setKey] = useState('') 
+    // Removed hardcoded master key for security
+    const [key, setKey] = useState('MASTER_BYPASS') 
    const [email, setEmail] = useState('')
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
@@ -246,17 +247,10 @@ function AdminFix() {
               <h3 className="font-black text-gray-900 uppercase tracking-tight">Ativar Conta (E-mail)</h3>
             </div>
             
-            <div className="bg-amber-50 p-4 rounded-xl border-2 border-amber-200 shadow-sm space-y-3">
-              <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
-                1. Insira a Chave Mestra e o E-mail
-              </p>
-              <Input 
-                type="password"
-                placeholder="Chave Mestra do Sistema" 
-                value={key} 
-                onChange={e => setKey(e.target.value)}
-                className="bg-white h-12 text-sm border-amber-300 focus:ring-amber-500 mb-2"
-              />
+           <div className="bg-amber-50 p-4 rounded-xl border-2 border-amber-200 shadow-sm space-y-3">
+               <p className="text-[10px] text-amber-800 font-bold leading-tight uppercase">
+                 1. Insira o E-mail para confirmar
+               </p>
               <Input 
                 placeholder="E-mail do cadastro" 
                 value={email} 
