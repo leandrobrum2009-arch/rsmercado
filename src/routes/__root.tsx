@@ -120,6 +120,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
    }
  
    const isAdminPage = location.pathname.startsWith('/admin');
+ 
+   return (
+     <div className="flex flex-col min-h-screen bg-gray-50">
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
