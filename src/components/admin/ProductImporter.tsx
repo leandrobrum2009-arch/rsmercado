@@ -1023,15 +1023,14 @@ export function ProductImporter() {
                         )}
                       </Button>
                     </div>
-                  </div>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-        </>
-      )}
+    </>
+  )}
 
       <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
         <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
