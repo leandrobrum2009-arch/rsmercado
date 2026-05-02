@@ -30,7 +30,11 @@
          ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
        };
  
-       const { error } = await supabase.from('recipes').insert(newRecipe);
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase.from('recipes').insert({
+          ...newRecipe,
+          author_id: userData.user?.id
+        });
        if (error) throw error;
  
        toast.success("Receita criada com sucesso! Veja no seu feed.");
