@@ -180,6 +180,17 @@ export function ProductManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {products.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-zinc-400">
+                    <ShoppingBag className="h-12 w-12 opacity-20" />
+                    <p className="font-bold uppercase text-xs">Nenhum produto cadastrado ainda</p>
+                    <p className="text-[10px]">Clique em "Novo Produto" para começar a vender.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             {products.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
