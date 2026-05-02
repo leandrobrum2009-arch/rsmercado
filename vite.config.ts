@@ -13,7 +13,7 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        'sonner': '/dev-server/node_modules/sonner/dist/index.js'
+        'sonner': 'sonner/dist/index.js'
       }
     }
   }
