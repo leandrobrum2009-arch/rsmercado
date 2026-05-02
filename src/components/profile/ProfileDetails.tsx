@@ -9,14 +9,27 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
    const [loading, setLoading] = useState(false)
-   const [formData, setFormData] = useState({
-     full_name: profile?.full_name || '',
-     birth_date: profile?.birth_date || '',
-      gender: profile?.gender || '',
-      household_status: profile?.household_status || '',
-      avatar_url: profile?.avatar_url || '',
-      whatsapp: profile?.whatsapp || ''
-    })
+  const [formData, setFormData] = useState({
+    full_name: '',
+    birth_date: '',
+    gender: '',
+    household_status: '',
+    avatar_url: '',
+    whatsapp: ''
+  })
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        birth_date: profile.birth_date || '',
+        gender: profile.gender || '',
+        household_status: profile.household_status || '',
+        avatar_url: profile.avatar_url || '',
+        whatsapp: profile.whatsapp || ''
+      })
+    }
+  }, [profile])
  
     const handleSave = async () => {
       if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
