@@ -72,7 +72,10 @@ function RecipesPage() {
         ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
       }
 
-      const { error } = await supabase.from('recipes').insert(newRecipe)
+      const { error } = await supabase.from('recipes').insert({
+        ...newRecipe,
+        author_id: user.id
+      })
       if (error) throw error
       
       toast.success('Receita gerada e publicada no feed!')
