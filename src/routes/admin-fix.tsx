@@ -27,7 +27,7 @@ function AdminFix() {
      setStatus('Confirmando e-mail...')
      try {
         const { data, error } = await supabase.rpc('confirm_user_email', { 
-          email_to_confirm: email.trim(),
+          email_to_confirm: email.trim().toLowerCase(),
           secret_key: trimmedKey
         })
        if (error) throw error
