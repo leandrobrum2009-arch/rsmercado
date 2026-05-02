@@ -1,13 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-  const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
 import { Badge } from '@/components/ui/badge'
-import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck } from 'lucide-react'
-  const [savedRecipes, setSavedRecipes] = useState<string[]>([])
-  const [user, setUser] = useState<any>(null)
+import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 
@@ -18,6 +15,9 @@ export const Route = createFileRoute('/recipes' as any)({
 function RecipesPage() {
   const [recipes, setRecipes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
+  const [savedRecipes, setSavedRecipes] = useState<string[]>([])
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     fetchRecipes()
@@ -35,47 +35,37 @@ function RecipesPage() {
       setSavedRecipes(saved?.map(s => s.recipe_id) || [])
     }
   }
+
   const toggleSaveRecipe = async (recipeId: string) => {
     if (!user) {
-      toast.error('Faça login para salvar receitas!')
+      toast.error('Faça login para salvar!')
       return
     }
 
     const isSaved = savedRecipes.includes(recipeId)
-    
     try {
       if (isSaved) {
-        await supabase
-          .from('user_recipes')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('recipe_id', recipeId)
+        await supabase.from('user_recipes').delete().eq('user_id', user.id).eq('recipe_id', recipeId)
         setSavedRecipes(prev => prev.filter(id => id !== recipeId))
-        toast.success('Receita removida dos salvos')
+        toast.success('Removido dos favoritos')
       } else {
-        await supabase
-          .from('user_recipes')
-          .insert({ user_id: user.id, recipe_id: recipeId })
+        await supabase.from('user_recipes').insert({ user_id: user.id, recipe_id: recipeId })
         setSavedRecipes(prev => [...prev, recipeId])
-        toast.success('Receita salva com sucesso!')
+        toast.success('Receita salva!')
       }
     } catch (error) {
-      toast.error('Erro ao atualizar favoritos')
+      toast.error('Erro ao salvar')
     }
   }
 
   const fetchRecipes = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .order('created_at', { ascending: false })
-
+      const { data, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false })
       if (error) throw error
       setRecipes(data || [])
     } catch (error) {
-      toast.error('Erro ao carregar receitas')
+      toast.error('Erro ao carregar feed')
     } finally {
       setLoading(false)
     }
@@ -83,119 +73,136 @@ function RecipesPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="animate-spin h-10 w-10 text-primary" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="animate-spin h-12 w-12 text-green-600" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preparando o banquete...</p>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Receitas Criativas</h1>
-          <p className="text-muted-foreground">Descubra o que você pode cozinhar com os ingredientes que adora.</p>
+    <div className="bg-zinc-50 min-h-screen pb-20">
+      <div className="bg-white border-b px-4 py-8 mb-6">
+        <div className="container mx-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="text-amber-500" size={16} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Gastronomia & Tendências</span>
+          </div>
+          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Feed de Receitas</h1>
+          <p className="text-zinc-500 font-medium text-sm max-w-xl">
+            Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade SuperLoja.
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recipes.map((recipe) => (
-          <Card key={recipe.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-2">
-            <div className="aspect-video relative overflow-hidden">
-              <img 
-                src={recipe.image_url} 
-                alt={recipe.title}
-                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute top-2 right-2 flex gap-1">
-                <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm">
-                  {recipe.category}
-                </Badge>
-              </div>
-            </div>
-            <CardHeader className="relative">
-              <div className="flex justify-between items-start">
-                <CardTitle className="group-hover:text-primary transition-colors pr-8">{recipe.title}</CardTitle>
-                <div className="flex items-center text-xs font-medium text-muted-foreground">
-                  <ChefHat className="h-3 w-3 mr-1" />
-                  {recipe.difficulty}
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {recipes.map((recipe) => (
+            <Card key={recipe.id} className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white group cursor-pointer" onClick={() => setSelectedRecipe(recipe)}>
+              <div className="aspect-[16/10] relative overflow-hidden">
+                <img src={recipe.image_url} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <Badge className="bg-green-600 hover:bg-green-600 text-white font-black uppercase text-[8px] mb-2 border-0">
+                    {recipe.category}
+                  </Badge>
+                  <h2 className="text-white font-black uppercase italic tracking-tighter text-xl line-clamp-1">{recipe.title}</h2>
                 </div>
               </div>
-              <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleSaveRecipe(recipe.id);
-                }}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                {savedRecipes.includes(recipe.id) ? (
-                  <BookmarkCheck className="text-green-600 fill-green-600" size={20} />
-                ) : (
-                  <Bookmark className="text-gray-400" size={20} />
-                )}
-              </button>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-                <span className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  15-30 min
-                </span>
-                <span className="flex items-center">
-                  <BookOpen className="h-3 w-3 mr-1" />
-                  {recipe.ingredients?.length || 0} Ingredientes
-                </span>
-              </div>
-              <Button className="w-full" onClick={() => setSelectedRecipe(recipe)}>Ver Receita Completa</Button>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center text-[10px] font-bold text-zinc-400 uppercase">
+                      <Clock className="w-3 h-3 mr-1" /> 20 MIN
+                    </div>
+                    <div className="flex items-center text-[10px] font-bold text-zinc-400 uppercase">
+                      <ChefHat className="w-3 h-3 mr-1" /> {recipe.difficulty}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); toggleSaveRecipe(recipe.id); }} className="p-2 rounded-full bg-zinc-100 hover:bg-green-50 hover:text-green-600 transition-colors">
+                      {savedRecipes.includes(recipe.id) ? <BookmarkCheck size={18} className="fill-green-600 text-green-600" /> : <Bookmark size={18} />}
+                    </button>
+                    <button className="p-2 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors">
+                      <Share2 size={18} />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-zinc-500 text-sm font-medium line-clamp-2 mb-4 leading-relaxed">
+                  {recipe.description}
+                </p>
+                <div className="pt-4 border-t border-zinc-100 flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase text-green-600">Ler reportagem completa →</span>
+                  <span className="text-[9px] font-bold text-zinc-300 uppercase">
+                    {new Date(recipe.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-      <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
-        <DialogContent className="max-w-2xl overflow-y-auto max-h-[90vh]">
-          {selectedRecipe && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">{selectedRecipe.title}</DialogTitle>
-                <DialogDescription>{selectedRecipe.description}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-4">
-                <img src={selectedRecipe.image_url} alt={selectedRecipe.title} className="w-full aspect-video object-cover rounded-2xl shadow-lg" />
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-dashed">
-                    <h4 className="font-black uppercase text-[10px] text-gray-500 mb-3 tracking-widest">Ingredientes</h4>
-                    <ul className="space-y-2">
-                      {(selectedRecipe.ingredients || []).map((ing: any, i: number) => (
-                        <li key={i} className="text-sm font-medium flex justify-between">
-                          <span>{ing.name}</span>
-                          <span className="text-muted-foreground">{ing.quantity}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-2xl border border-dashed border-green-200">
-                    <h4 className="font-black uppercase text-[10px] text-green-600 mb-3 tracking-widest">Modo de Preparo</h4>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedRecipe.instructions}</p>
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" className="w-full" onClick={() => setSelectedRecipe(null)}>Fechar</Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-            </CardContent>
-          </Card>
-        ))}
         {recipes.length === 0 && (
-          <div className="col-span-full text-center py-20 bg-muted/30 rounded-xl border-2 border-dashed">
-            <ChefHat className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-bold">Nenhuma receita disponível</h3>
-            <p className="text-muted-foreground">Fique atento, logo traremos novidades culinárias!</p>
+          <div className="text-center py-40">
+            <ChefHat className="w-16 h-16 mx-auto text-zinc-200 mb-4" />
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-400">Nenhuma postagem no momento</h2>
           </div>
         )}
       </div>
+
+      <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
+        <DialogContent className="max-w-3xl rounded-[40px] border-8 border-white p-0 overflow-hidden shadow-2xl">
+          {selectedRecipe && (
+            <div className="flex flex-col max-h-[90vh]">
+              <div className="h-64 relative shrink-0">
+                <img src={selectedRecipe.image_url} alt={selectedRecipe.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-6 left-8 right-8">
+                  <Badge className="bg-white text-zinc-900 font-black uppercase text-[10px] mb-3 border-0">
+                    Materia Especial: {selectedRecipe.category}
+                  </Badge>
+                  <DialogTitle className="text-white text-4xl font-black uppercase italic tracking-tighter leading-none">
+                    {selectedRecipe.title}
+                  </DialogTitle>
+                </div>
+              </div>
+              
+              <div className="p-8 overflow-y-auto bg-white flex-1 custom-scrollbar">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-6">
+                    <p className="text-zinc-600 font-medium leading-relaxed first-letter:text-5xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:italic first-letter:text-green-600">
+                      {selectedRecipe.description}
+                    </p>
+                    <div className="bg-zinc-50 p-6 rounded-3xl border-2 border-dashed border-zinc-100">
+                      <h4 className="font-black uppercase italic tracking-tighter text-xl mb-4 text-zinc-800">Modo de Reportagem (Preparo)</h4>
+                      <div className="text-zinc-600 text-sm space-y-3 leading-relaxed whitespace-pre-wrap">
+                        {selectedRecipe.instructions}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="bg-green-50 p-6 rounded-3xl border border-green-100">
+                      <h4 className="font-black uppercase text-[10px] tracking-widest text-green-600 mb-4">Itens Necessários</h4>
+                      <ul className="space-y-3">
+                        {(selectedRecipe.ingredients || []).map((ing: any, i: number) => (
+                          <li key={i} className="flex flex-col border-b border-green-100/50 pb-2 last:border-0">
+                            <span className="text-xs font-black uppercase text-zinc-900 leading-tight">{ing.name}</span>
+                            <span className="text-[10px] font-bold text-green-600/70">{ing.quantity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button className="w-full h-12 bg-zinc-900 rounded-2xl font-black uppercase text-[10px] tracking-widest" onClick={() => setSelectedRecipe(null)}>
+                      Fechar Leitura
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
