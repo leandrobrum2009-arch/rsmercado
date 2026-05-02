@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+ import { useState, useEffect } from 'react'
+ import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +23,20 @@ export function FlyerCreator() {
   const [designStyle, setDesignStyle] = useState('varejo')
   const [primaryColor, setPrimaryColor] = useState('#e11d48')
   const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
-  const [title, setTitle] = useState('Ofertas Especiais')
+   const { settings: storeSettings } = useStoreSettings()
+   const [title, setTitle] = useState('Ofertas Especiais')
+   useEffect(() => {
+     if (storeSettings.site_name) {
+       setTitle(`Ofertas - ${storeSettings.site_name}`)
+     }
+     if (storeSettings.colors.primary) {
+       setPrimaryColor(storeSettings.colors.primary)
+     }
+     if (storeSettings.colors.secondary) {
+       setSecondaryColor(storeSettings.colors.secondary)
+     }
+   }, [storeSettings])
+ 
   const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
   const [allProducts, setAllProducts] = useState<any[]>([])
 
@@ -267,7 +281,7 @@ export function FlyerCreator() {
               <div className="text-right flex items-center gap-4">
                 <div className="flex flex-col items-end">
                   <p className="text-[10px] font-bold">PEÇA PELO WHATSAPP</p>
-                  <p className="font-black text-lg" style={{ color: primaryColor }}>(11) 99999-9999</p>
+                   <p className="font-black text-lg" style={{ color: primaryColor }}>{storeSettings.whatsapp || '(11) 99999-9999'}</p>
                 </div>
                 <div className="w-12 h-12 bg-black flex items-center justify-center text-white text-[6px]">QR CODE</div>
               </div>
