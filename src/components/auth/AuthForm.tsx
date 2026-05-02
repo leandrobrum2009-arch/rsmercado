@@ -54,7 +54,10 @@ export function AuthForm() {
 
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 ring-1 ring-black/5">
-      <CardHeader className="bg-zinc-50/50 border-b pb-6">
+      <CardHeader className="bg-zinc-50/50 border-b pb-6 relative">
+        <div className="absolute -top-12 left-0 right-0 bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] font-bold text-amber-800 leading-tight shadow-sm">
+          💡 SE O LINK DO E-MAIL DER ERRO: Não se preocupe, isso ocorre por causa do redirecionamento. Apenas volte aqui e faça login manualmente com seu e-mail e senha.
+        </div>
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
         </CardTitle>
