@@ -5,8 +5,10 @@
  import { StoriesCarousel } from "@/components/home/StoriesCarousel";
  import { RecipeFeed } from "@/components/home/RecipeFeed";
  import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
- import { Search, BookOpen, Smartphone, PlusSquare, Sparkles } from "lucide-react";
+ import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+ import { useEffect, useState } from "react";
+ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -14,7 +16,30 @@ export const Route = createFileRoute("/")({
 
 // IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
 // create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
- function Index() {
+  function Index() {
+    const [points, setPoints] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+      const fetchPoints = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setLoading(true);
+          const { data } = await supabase
+            .from('profiles')
+            .select('loyalty_points')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (data) {
+            setPoints(data.loyalty_points || 0);
+          }
+          setLoading(false);
+        }
+      };
+      fetchPoints();
+    }, []);
+
    return (
      <div className="bg-gray-50 pb-10">
        {/* Hero Search */}
@@ -38,10 +63,16 @@ export const Route = createFileRoute("/")({
              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">
                P
              </div>
-             <div>
-               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Seus Pontos</p>
-               <p className="text-lg font-bold text-gray-800">1.250 pts</p>
-             </div>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Seus Pontos</p>
+                <p className="text-lg font-bold text-gray-800">
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin inline" />
+                  ) : (
+                    `${points !== null ? points.toLocaleString('pt-BR') : '0'} pts`
+                  )}
+                </p>
+              </div>
            </div>
            <button className="bg-green-50 text-green-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-100 transition-colors">
              RESGATAR

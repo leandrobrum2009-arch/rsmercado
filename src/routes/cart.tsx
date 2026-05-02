@@ -17,6 +17,7 @@ function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [isProcessing, setIsProcessing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [pointsRatio, setPointsRatio] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +32,16 @@ function CartPage() {
         setProfile(data);
       }
     };
+
+    const fetchSettings = async () => {
+      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_ratio').maybeSingle();
+      if (data) {
+        setPointsRatio(Number(data.value) || 1);
+      }
+    };
+
     fetchProfile();
+    fetchSettings();
   }, []);
 
   if (items.length === 0) {
@@ -74,7 +84,7 @@ function CartPage() {
           total_amount: total,
           payment_method: paymentMethod,
           status: 'pending',
-          points_earned: Math.floor(total) // Example points calculation
+          points_earned: Math.floor(total * pointsRatio)
         })
         .select()
         .single();

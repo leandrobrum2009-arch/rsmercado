@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff } from 'lucide-react'
+ import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Switch } from '@/components/ui/switch'
@@ -17,7 +17,7 @@ export function ProductManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newProduct, setNewProduct] = useState({
-    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true
+    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0'
   })
   const [uploading, setUploading] = useState(false)
 
@@ -88,14 +88,15 @@ export function ProductManagement() {
       category_id: newProduct.category_id,
       image_url: newProduct.image_url,
       stock: parseInt(newProduct.stock) || 0,
-      is_available: newProduct.is_available
+      is_available: newProduct.is_available,
+      points_value: parseInt(newProduct.points_value) || 0
     }])
     setIsSubmitting(false)
     
     if (error) toast.error('Erro ao adicionar produto')
     else {
       toast.success('Produto adicionado!')
-      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true })
+      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0' })
       fetchData()
     }
   }
@@ -137,9 +138,13 @@ export function ProductManagement() {
                   <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
                   <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
                   <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                </div>
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>
+                  <Input type="number" value={newProduct.points_value} onChange={(e) => setNewProduct({...newProduct, points_value: e.target.value})} />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold">Categoria</Label>
@@ -175,6 +180,17 @@ export function ProductManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {products.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-zinc-400">
+                    <ShoppingBag className="h-12 w-12 opacity-20" />
+                    <p className="font-bold uppercase text-xs">Nenhum produto cadastrado ainda</p>
+                    <p className="text-[10px]">Clique em "Novo Produto" para começar a vender.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
             {products.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
