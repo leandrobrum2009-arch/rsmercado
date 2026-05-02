@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from 
 import { Label } from '@/components/ui/label'
 import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
 import { toast } from 'sonner'
+import { SmartImage } from '@/components/ui/SmartImage'
 
 export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
@@ -103,7 +104,12 @@ export function CategoryManagement() {
               {categories.map((cat) => (
                 <TableRow key={cat.id}>
                   <TableCell>
-                    <img src={cat.icon_url} className="w-8 h-8 object-contain" />
+                    <SmartImage 
+                      src={cat.icon_url} 
+                      tableName="categories" 
+                      itemId={cat.id} 
+                      className="w-8 h-8 object-contain" 
+                    />
                   </TableCell>
                   <TableCell className="font-bold">{cat.name}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{cat.slug}</TableCell>

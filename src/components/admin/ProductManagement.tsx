@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import { SmartImage } from '@/components/ui/SmartImage'
 
 export function ProductManagement() {
   const [products, setProducts] = useState<any[]>([])
@@ -127,8 +128,18 @@ export function ProductManagement() {
           <TableBody>
             {products.map((p) => (
               <TableRow key={p.id}>
-                <TableCell>
-                  <img src={p.image_url} className="w-10 h-10 object-cover rounded" />
+                <TableCell className="relative">
+                  <SmartImage 
+                    src={p.image_url} 
+                    tableName="products" 
+                    itemId={p.id} 
+                    className="w-10 h-10 object-cover rounded" 
+                  />
+                  {p.has_media_error && (
+                    <div className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5">
+                      <AlertTriangle size={8} />
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell>{p.categories?.name}</TableCell>

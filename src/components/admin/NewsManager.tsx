@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Loader2, Plus, Trash2, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { SmartImage } from '@/components/ui/SmartImage'
 
 export function NewsManager() {
   const [news, setNews] = useState<any[]>([])
@@ -109,7 +110,12 @@ export function NewsManager() {
             {news.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
-                  <img src={item.image_url} alt={item.title} className="w-16 h-10 object-cover rounded" />
+                  <SmartImage 
+                    src={item.image_url} 
+                    tableName="news" 
+                    itemId={item.id} 
+                    className="w-16 h-10 object-cover rounded" 
+                  />
                 </TableCell>
                 <TableCell className="font-medium">{item.title}</TableCell>
                 <TableCell>{item.category}</TableCell>
