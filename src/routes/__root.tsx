@@ -1,5 +1,5 @@
   import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-  import { Home, ShoppingCart, User, Search, Newspaper, Settings, Menu, ShieldCheck } from "lucide-react";
+  import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck } from "lucide-react";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
   import { supabase } from "@/lib/supabase";
