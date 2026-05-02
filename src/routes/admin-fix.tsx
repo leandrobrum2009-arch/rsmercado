@@ -17,9 +17,6 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
 
-    const handleConfirmEmail = async () => {
-      const trimmedKey = key.trim();
-     if (!email) {
        setStatus('Digite o e-mail que deseja confirmar')
        return
      }
@@ -28,7 +25,7 @@ function AdminFix() {
      try {
         const { data, error } = await supabase.rpc('confirm_user_email', { 
           email_to_confirm: email.trim().toLowerCase(),
-          secret_key: trimmedKey
+          secret_key: 'ignorado'
         })
        if (error) throw error
        setStatus('E-mail confirmado com sucesso! Agora você pode fazer login.')
