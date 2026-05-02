@@ -11,30 +11,37 @@ export function AdminSetup() {
   const [isAdminExists, setIsAdminExists] = useState<boolean | null>(null)
   const [secretKey, setSecretKey] = useState('ADMIN_RS_2024')
 
-  useEffect(() => {
-    checkAdminExists()
-  }, [])
+ useEffect(() => {
+   const init = async () => {
+     const { data: { session } } = await supabase.auth.getSession();
+     if (session?.user.email === 'leandrobrum2009@gmail.com') {
+       setIsAdminExists(true);
+       return;
+     }
+     checkAdminExists();
+   };
+   init();
+ }, []);
 
-  const checkAdminExists = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'admin')
-      
-      if (error) {
-        console.error('Role check error:', error)
-        // If table doesn't exist, we might get an error.
-        setIsAdminExists(false)
-        return
-      }
-      
-      setIsAdminExists(count !== null && count > 0)
-    } catch (err) {
-      console.error('Role check catch:', err)
-      setIsAdminExists(false)
-    }
-  }
+ const checkAdminExists = async () => {
+   try {
+     const { count, error } = await supabase
+       .from('user_roles')
+       .select('*', { count: 'exact', head: true })
+       .eq('role', 'admin')
+     
+     if (error) {
+       console.error('Role check error:', error)
+       setIsAdminExists(false)
+       return
+     }
+     
+     setIsAdminExists(count !== null && count > 0)
+   } catch (err) {
+     console.error('Role check catch:', err)
+     setIsAdminExists(false)
+   }
+ }
 
   const handlePromoteMe = async () => {
 
