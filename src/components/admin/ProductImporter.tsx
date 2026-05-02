@@ -465,8 +465,97 @@ export function ProductImporter() {
       if (uniqueSamples.length === 0 && allSamples.length > 0) {
         toast.info("Todos os produtos encontrados já constam no catálogo.")
       } else {
-        toast.success(`${uniqueSamples.length} novos produtos identificados para importação.`)
+        toast.success(`${uniqueSamples.length} novos produtos identificados.`)
+        if (autoImport && uniqueSamples.length > 0) {
+          addLog(`Iniciando importação automática de ${uniqueSamples.length} itens...`);
+          // We need to pass the samples directly because state might not have updated yet
+          await processImport(uniqueSamples);
+        }
       }
+    } catch (error) {
+      toast.error('Falha na conexão com o site parceiro.')
+    } finally {
+      setIsScraping(false)
+      setScrapingProgress(null)
+    }
+  }
+
+  const processImport = async (toImport: any[]) => {
+    setIsScraping(true)
+    try {
+      let successCount = 0;
+      let i = 0;
+      const currentExisting = new Set(existingProductNames);
+
+      for (const product of toImport) {
+        const normalizedCurrent = normalizeString(product.name);
+        addLog(`Cadastrando: ${product.name}...`)
+        
+        if (currentExisting.has(normalizedCurrent)) {
+          addLog(`Ignorado (já existe): ${product.name}`)
+          continue;
+        }
+
+        currentExisting.add(normalizedCurrent);
+
+        let { data: catData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', product.category)
+          .maybeSingle()
+        
+        if (!catData) {
+          const { data: newCat, error: catError } = await supabase
+            .from('categories')
+            .insert({ 
+              name: product.category, 
+              slug: product.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
+            })
+            .select()
+            .single()
+          
+          if (!catError) catData = newCat
+        }
+
+        await supabase.from('products').insert({
+          name: product.name,
+          description: `${product.description} Marca: ${product.brand}`,
+          price: product.price,
+          category_id: catData?.id,
+          image_url: product.image_url,
+          stock: 100,
+          is_approved: !!product.image_url // Approve automatically if it has a photo
+        });
+        successCount++;
+        i++;
+        setImportProgress({ current: i, total: toImport.length })
+      }
+      
+      const duplicateCount = toImport.length - successCount;
+      addLog(`Importação finalizada. Sucesso: ${successCount}, Duplicados: ${duplicateCount}`)
+
+      await supabase.from('import_logs').insert({
+        category: toImport[0]?.category || 'Múltiplas',
+        total_attempted: toImport.length,
+        successful_count: successCount,
+        duplicate_count: duplicateCount,
+        error_count: 0,
+        details: { products: toImport.map(p => p.name) }
+      })
+
+      toast.success(`${successCount} produtos importados automaticamente!`)
+      fetchExistingNames()
+      setScrapedProducts([])
+      setSelectedForImport([])
+      checkMissingImages()
+    } catch (error: any) {
+      addLog(`ERRO: ${error.message}`)
+      toast.error('Erro ao salvar produtos: ' + error.message)
+    } finally {
+      setIsScraping(false)
+      setImportProgress(null)
+    }
+  }
     } catch (error) {
       toast.error('Falha na conexão com o site parceiro.')
     } finally {
