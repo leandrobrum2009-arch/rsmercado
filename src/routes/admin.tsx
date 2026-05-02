@@ -1,4 +1,20 @@
- import { RLSAuditor } from '@/components/admin/RLSAuditor'
+import { 
+  ShoppingBag, 
+  Tag, 
+  ClipboardList, 
+  Upload, 
+  ChefHat, 
+  LayoutTemplate, 
+  Image as ImageIcon, 
+  MessageSquare, 
+  Webhook, 
+  Settings, 
+  ShieldCheck, 
+  Bug, 
+  Menu,
+  X
+} from 'lucide-react'
+import { RLSAuditor } from '@/components/admin/RLSAuditor'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -10,11 +26,11 @@ import { ProductImporter } from '@/components/admin/ProductImporter'
 import { RecipeManager } from '@/components/admin/RecipeManager'
 import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
- import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
+import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { WebhookManager } from '@/components/admin/WebhookManager'
 import { Button } from '@/components/ui/button'
-import { Loader2, Bug } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
