@@ -588,6 +588,21 @@ export function ProductImporter() {
         </Card>
       </div>
 
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
+          </DialogHeader>
+          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
+            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
+            {isScraping && <div className="animate-pulse">_</div>}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Busca de Fotos via Google (Simulado) */}
       <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
         <DialogContent className="max-w-3xl">
