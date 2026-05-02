@@ -62,8 +62,19 @@ export function RecipeManager() {
         ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
       }
 
-      const { error } = await supabase.from('recipes').insert(newRecipe)
-      if (error) throw error
+       const { data: { user } } = await supabase.auth.getUser()
+       const { error: insertError } = await supabase.from('recipes').insert({
+         ...newRecipe,
+         author_id: user?.id
+       })
+       
+       if (insertError) {
+         console.error('Recipe creation error:', insertError);
+         if (insertError.message.includes('API key')) {
+           throw new Error('Chave de API inválida no Supabase');
+         }
+         throw insertError;
+       }
       
       toast.success('Receita gerada pela IA e salva no catálogo!')
       setIsAiModalOpen(false)

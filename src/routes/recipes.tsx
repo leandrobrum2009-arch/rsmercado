@@ -56,7 +56,7 @@ function RecipesPage() {
         .eq('user_id', data.user.id)
         .maybeSingle()
       
-      setIsAdmin(roleData?.role === 'admin' || data.user.email === 'leandrobrum2009@gmail.com')
+       setIsAdmin(roleData?.role === 'admin')
       
       const { data: saved } = await supabase
         .from('user_recipes')
@@ -86,11 +86,18 @@ function RecipesPage() {
         ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
       }
 
-      const { error } = await supabase.from('recipes').insert({
-        ...newRecipe,
-        author_id: user.id
-      })
-      if (error) throw error
+       const { error: insertError } = await supabase.from('recipes').insert({
+         ...newRecipe,
+         author_id: user.id
+       })
+       
+       if (insertError) {
+         console.error('Insert error:', insertError);
+         if (insertError.message.includes('API key')) {
+           throw new Error('Chave de API do Supabase inválida. Verifique as configurações.');
+         }
+         throw insertError;
+       }
       
       toast.success('Receita gerada e publicada no feed!')
       setIsAiModalOpen(false)
