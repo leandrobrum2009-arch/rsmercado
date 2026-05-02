@@ -11,7 +11,7 @@ import { BannerManager } from '@/components/admin/BannerManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
 import { WebhookManager } from '@/components/admin/WebhookManager'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Bug } from 'lucide-react'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
@@ -92,7 +92,21 @@ function RouteComponent() {
           <p className="text-[10px]">Isso pode impedir que os produtos apareçam. Use a página /admin-fix para restaurar seu acesso.</p>
         </div>
       )}
-      <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-[10px] text-gray-400"
+          onClick={() => {
+            supabase.auth.getSession().then(({data}) => {
+              alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nID: ${data.session?.user.id}\nAdmin State: ${isAdminDiagnostic}`)
+            })
+          }}
+        >
+          <Bug className="h-3 w-3 mr-1" /> Diagnóstico
+        </Button>
+      </div>
       
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 gap-1 mb-8 text-[10px] md:text-xs">
