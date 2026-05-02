@@ -5,7 +5,7 @@
   import { supabase } from "@/lib/supabase";
  import { Toaster } from "sonner";
 
-import appCss from "../styles.css?url";
+import "../styles.css";
 
 function NotFoundComponent() {
   return (
@@ -46,12 +46,6 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
     ],
   }),
   shellComponent: RootShell,
