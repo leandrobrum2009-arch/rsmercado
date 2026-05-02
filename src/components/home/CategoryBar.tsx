@@ -16,11 +16,11 @@
      <div className="py-6 overflow-x-auto no-scrollbar">
        <div className="flex gap-4 px-4 min-w-max">
          {categories.map((cat) => (
-           <Link
-             key={cat.slug}
-             to={`/category/${cat.slug}`}
-             className="flex flex-col items-center gap-2 group"
-           >
+            <button
+              key={cat.slug}
+              onClick={() => window.location.href = `/search?q=${cat.name}`}
+              className="flex flex-col items-center gap-2 group border-0 bg-transparent p-0 cursor-pointer"
+            >
              <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border flex items-center justify-center text-3xl group-hover:border-green-500 group-hover:bg-green-50 transition-all duration-300">
                {cat.icon}
              </div>
