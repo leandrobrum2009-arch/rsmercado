@@ -34,13 +34,93 @@ export function ProductImporter() {
   const [existingProductNames, setExistingProductNames] = useState<Set<string>>(new Set())
   const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
   const [isScraping, setIsScraping] = useState(false)
+  const [activeTab, setActiveTab] = useState<'importer' | 'review'>('importer')
+  const [reviewProducts, setReviewProducts] = useState<any[]>([])
+  const [isFetchingReview, setIsFetchingReview] = useState(false)
   const [importProgress, setImportProgress] = useState<{current: number, total: number} | null>(null)
   const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
-    checkMissingImages()
-    fetchExistingNames()
-  }, [])
+    if (activeTab === 'importer') {
+      checkMissingImages()
+      fetchExistingNames()
+    } else {
+      fetchReviewProducts()
+    }
+  }, [activeTab])
+
+  const fetchReviewProducts = async () => {
+    setIsFetchingReview(true)
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .eq('is_approved', false)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      setReviewProducts(data || [])
+    } catch (error) {
+      toast.error('Erro ao carregar revisão')
+    } finally {
+      setIsFetchingReview(false)
+    }
+  }
+
+  const generateReview = async () => {
+    setIsFetchingReview(true)
+    try {
+      addLog('Gerando revisão automática de fotos...')
+      // Identify products with generic images (picsum, unsplash) or media errors
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, image_url, has_media_error')
+      
+      if (error) throw error
+      
+      const toReview = data.filter(p => 
+        !p.image_url || 
+        p.image_url.includes('picsum') || 
+        p.image_url.includes('unsplash') ||
+        p.has_media_error
+      ).map(p => p.id)
+
+      if (toReview.length === 0) {
+        toast.info('Nenhum produto precisa de revisão no momento.')
+        return
+      }
+
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ is_approved: false })
+        .in('id', toReview)
+
+      if (updateError) throw updateError
+      
+      addLog(`${toReview.length} produtos marcados para revisão.`)
+      toast.success(`${toReview.length} produtos enviados para a fila de revisão.`)
+      fetchReviewProducts()
+    } catch (error: any) {
+      toast.error('Erro ao gerar revisão: ' + error.message)
+    } finally {
+      setIsFetchingReview(false)
+    }
+  }
+
+  const approveProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_approved: true, last_reviewed_at: new Date().toISOString() })
+        .eq('id', id)
+      
+      if (error) throw error
+      setReviewProducts(prev => prev.filter(p => p.id !== id))
+      toast.success('Produto aprovado!')
+    } catch (error) {
+      toast.error('Erro ao aprovar')
+    }
+  }
 
   const normalizeString = (str: string) => {
     return str
@@ -363,6 +443,103 @@ export function ProductImporter() {
 
   return (
     <div className="space-y-8">
+      <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
+        <button 
+          onClick={() => setActiveTab('importer')}
+          className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'importer' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}
+        >
+          Scanner & Importação
+        </button>
+        <button 
+          onClick={() => setActiveTab('review')}
+          className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'review' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}
+        >
+          Centro de Aprovação
+          {reviewProducts.length > 0 && (
+            <Badge className="ml-2 bg-red-500 text-[8px] h-4">{reviewProducts.length}</Badge>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'review' ? (
+        <div className="space-y-6">
+          <Card className="border-4 border-amber-500 shadow-2xl overflow-hidden">
+            <div className="bg-amber-500 p-2 text-center text-white font-black text-[10px] uppercase italic tracking-widest">
+              Fila de Curadoria e Aprovação de Catálogo
+            </div>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="font-black italic uppercase tracking-tighter text-2xl">Revisão de Fotos</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase">Produtos marcados pela IA ou importados recentemente</CardDescription>
+              </div>
+              <Button onClick={generateReview} disabled={isFetchingReview} variant="outline" className="h-12 border-2 border-zinc-900 font-black uppercase text-[10px]">
+                {isFetchingReview ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                Gerar Revisão de Fotos
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isFetchingReview && reviewProducts.length === 0 ? (
+                <div className="flex flex-col items-center py-20 gap-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-amber-500" />
+                  <p className="font-black uppercase text-xs animate-pulse">Sincronizando fila de aprovação...</p>
+                </div>
+              ) : reviewProducts.length === 0 ? (
+                <div className="flex flex-col items-center py-20 text-center space-y-4">
+                  <CheckCircle2 className="h-16 w-16 text-green-500" />
+                  <div>
+                    <h3 className="font-black uppercase text-xl italic tracking-tighter">Catálogo 100% Limpo!</h3>
+                    <p className="text-muted-foreground text-[10px] font-bold uppercase">Não há produtos pendentes de aprovação no momento.</p>
+                  </div>
+                  <Button onClick={generateReview} variant="secondary">Escanear por Problemas</Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reviewProducts.map(product => (
+                    <Card key={product.id} className="overflow-hidden border-2 hover:border-amber-500 transition-all group shadow-lg">
+                      <div className="aspect-square relative overflow-hidden bg-gray-100">
+                        <img src={product.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        <div className="absolute top-2 right-2 flex gap-1">
+                          {(!product.image_url || product.image_url.includes('picsum')) && (
+                            <Badge className="bg-amber-500 text-[8px]">IA/TEMP</Badge>
+                          )}
+                          {product.has_media_error && (
+                            <Badge variant="destructive" className="text-[8px]">ERRO</Badge>
+                          )}
+                        </div>
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity gap-4">
+                          <Button variant="secondary" size="sm" className="font-black uppercase text-[10px]" onClick={() => openPhotoModal(product)}>
+                            <RefreshCw className="mr-1 h-3 w-3" /> Trocar
+                          </Button>
+                          <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px]" onClick={() => approveProduct(product.id)}>
+                            <Check className="mr-1 h-3 w-3" /> Aprovar
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-black uppercase tracking-tight text-sm truncate max-w-[150px]">{product.name}</h4>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase">{product.categories?.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black text-zinc-900 text-xs">R$ {Number(product.price).toFixed(2)}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button variant="outline" size="sm" className="w-full text-[10px] font-bold uppercase h-8" onClick={() => approveProduct(product.id)}>
+                            Aprovar Foto
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <>
       <Card>
         <CardHeader>
           <CardTitle>Busca Automática de Imagens (Proxy Google)</CardTitle>
@@ -598,6 +775,8 @@ export function ProductImporter() {
           </CardContent>
         </Card>
       </div>
+        </>
+      )}
 
       <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
         <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
