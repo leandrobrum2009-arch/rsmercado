@@ -4,7 +4,7 @@ import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, 
  import { useState } from "react";
  import { formatCurrency } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
- import { toast } from "sonner";
+ import { toast } from "@/lib/toast";
  
  export const Route = createFileRoute("/cart")({
    component: CartPage,
