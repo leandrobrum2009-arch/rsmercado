@@ -22,6 +22,7 @@ function RouteComponent() {
 
   useEffect(() => {
     const getProfile = async () => {
+      try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         setIsLoading(false)
@@ -39,7 +40,12 @@ function RouteComponent() {
           is_admin: roleRes.data?.role === 'admin'
         })
       }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        toast.error('Erro ao carregar perfil. Tente novamente.')
+      } finally {
       setIsLoading(false)
+      }
     }
 
     getProfile()
