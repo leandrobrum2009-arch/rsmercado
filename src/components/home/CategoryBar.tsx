@@ -24,10 +24,10 @@
              <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border flex items-center justify-center text-3xl group-hover:border-green-500 group-hover:bg-green-50 transition-all duration-300">
                {cat.icon}
              </div>
-             <span className="text-xs font-medium text-gray-600 group-hover:text-green-600">
-               {cat.name}
-             </span>
-           </Link>
+              <span className="text-xs font-medium text-gray-600 group-hover:text-green-600">
+                {cat.name}
+              </span>
+            </button>
          ))}
        </div>
      </div>
