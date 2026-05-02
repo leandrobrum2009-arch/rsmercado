@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Loader2, Search, Download, CheckCircle2, AlertCircle, AlertTriangle, Check, X, Info } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function ProductImporter() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -15,10 +18,27 @@ export function ProductImporter() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [missingImagesProducts, setMissingImagesProducts] = useState<any[]>([])
   const [isCheckingMissing, setIsCheckingMissing] = useState(false)
+  const [scrapedProducts, setScrapedProducts] = useState<any[]>([])
+  const [isScraping, setIsScraping] = useState(false)
+  const [selectedForImport, setSelectedForImport] = useState<string[]>([])
 
   useEffect(() => {
     checkMissingImages()
   }, [])
+
+  const toggleSelectProduct = (id: string) => {
+    setSelectedForImport(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    )
+  }
+
+  const selectAll = () => {
+    setSelectedForImport(scrapedProducts.map(p => p.id))
+  }
+
+  const deselectAll = () => {
+    setSelectedForImport([])
+  }
 
   // Mock function for Google Image search proxy
   const searchGoogleImages = async (query: string) => {
@@ -127,70 +147,112 @@ export function ProductImporter() {
       setIsCheckingMissing(false)
     }
   }
-
-  const simulateCompetitorImport = async (categoryName: string) => {
-    toast.info(`Iniciando importação de produtos de ${categoryName}...`)
-    setIsCheckingMissing(true)
+  const simulateScraping = async (categoryName: string) => {
+    setIsScraping(true)
+    setScrapedProducts([])
+    setSelectedForImport([])
+    toast.info(`Escaneando site parceiro para ${categoryName}...`)
     
     try {
-      // 1. Ensure category exists
-      let { data: catData } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('name', categoryName)
-        .maybeSingle()
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
-      if (!catData) {
-        const { data: newCat, error: catErr } = await supabase
-          .from('categories')
-          .insert({ name: categoryName, slug: categoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') })
-          .select()
-          .single()
-        if (catErr) throw catErr
-        catData = newCat
-      }
-
-      // 2. Sample products based on category
-      const samples: any[] = []
-      if (categoryName === 'Mercearia') {
-        samples.push(
-          { name: 'Arroz Tio João Tipo 1 5kg', price: 29.90, description: 'Arroz agulhinha tipo 1 de alta qualidade.' },
-          { name: 'Feijão Carioca Camil 1kg', price: 8.50, description: 'Feijão carioca selecionado.' },
-          { name: 'Açúcar Refinado União 1kg', price: 4.20, description: 'Açúcar de cana refinado.' },
-          { name: 'Óleo de Soja Liza 900ml', price: 6.75, description: 'Óleo de soja refinado.' },
-          { name: 'Macarrão Espaguete Adria 500g', price: 3.90, description: 'Macarrão de sêmola.' }
-        )
-      } else if (categoryName === 'Bebidas') {
-        samples.push(
-          { name: 'Cerveja Skol Lata 350ml', price: 3.49, description: 'Cerveja pilsen leve.' },
-          { name: 'Refrigerante Coca-Cola 2L', price: 11.90, description: 'Refrigerante de cola original.' },
-          { name: 'Suco de Laranja Prats 900ml', price: 14.50, description: 'Suco de laranja 100% natural.' },
-          { name: 'Água Mineral Crystal 500ml', price: 2.00, description: 'Água mineral sem gás.' }
-        )
+      let samples: any[] = []
+      const catKey = categoryName.toLowerCase()
+      
+      if (catKey.includes('mercearia')) {
+        samples = [
+          { id: 's1', name: 'Arroz Prato Fino 5kg', price: 32.90, description: 'Arroz agulhinha premium.', category: 'Mercearia', brand: 'Prato Fino', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400' },
+          { id: 's2', name: 'Feijão Camil Carioca 1kg', price: 9.40, description: 'Feijão carioca selecionado.', category: 'Mercearia', brand: 'Camil', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400' },
+          { id: 's3', name: 'Açúcar União Refinado 1kg', price: 4.50, description: 'Açúcar refinado extra fino.', category: 'Mercearia', brand: 'União', image_url: 'https://images.unsplash.com/photo-1581448670546-07b57f40ed5b?w=400' },
+          { id: 's3-1', name: 'Café Pilão Tradicional 500g', price: 18.90, description: 'Café forte do Brasil.', category: 'Mercearia', brand: 'Pilão', image_url: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400' },
+        ]
+      } else if (catKey.includes('bebida')) {
+        samples = [
+          { id: 's4', name: 'Coca-Cola Zero 2L', price: 11.99, description: 'Refrigerante zero açúcar.', category: 'Bebidas', brand: 'Coca-Cola', image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400' },
+          { id: 's5', name: 'Cerveja Heineken Long Neck 330ml', price: 6.90, description: 'Cerveja premium holandesa.', category: 'Bebidas', brand: 'Heineken', image_url: 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400' },
+          { id: 's5-1', name: 'Suco Prats Laranja 900ml', price: 14.50, description: 'Suco de laranja 100% natural.', category: 'Bebidas', brand: 'Prats', image_url: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=400' },
+        ]
+      } else if (catKey.includes('hort') || catKey.includes('fruit')) {
+        samples = [
+          { id: 's6', name: 'Banana Nanica Climatizada (kg)', price: 5.90, description: 'Bananas maduras e selecionadas.', category: 'Hortifruti', brand: 'Produtor Local', image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902d83f4e?w=400' },
+          { id: 's7', name: 'Maçã Fuji Argentina (kg)', price: 12.50, description: 'Maçãs crocantes importadas.', category: 'Hortifruti', brand: 'Argentina', image_url: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=400' },
+        ]
+      } else if (catKey.includes('limpeza')) {
+        samples = [
+          { id: 's8', name: 'Sabão em Pó OMO Lavagem Perfeita 1.6kg', price: 24.90, description: 'Sabão em pó de alta performance.', category: 'Limpeza', brand: 'OMO', image_url: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=400' },
+          { id: 's9', name: 'Detergente Ypê Maçã 500ml', price: 2.65, description: 'Lava louças líquido.', category: 'Limpeza', brand: 'Ypê', image_url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400' },
+        ]
+      } else if (catKey.includes('pet')) {
+        samples = [
+          { id: 's10', name: 'Ração Pedigree Adulto Raças Médias 10kg', price: 129.90, description: 'Alimento completo para cães.', category: 'Pet Shop', brand: 'Pedigree', image_url: 'https://images.unsplash.com/photo-1589924691106-073b69759fbb?w=400' },
+        ]
+      } else if (catKey.includes('padaria')) {
+        samples = [
+          { id: 's11', name: 'Pão Francês Unidade', price: 0.85, description: 'Pão crocante e quentinho.', category: 'Padaria', brand: 'Própria', image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400' },
+        ]
+      } else if (catKey.includes('açougue')) {
+        samples = [
+          { id: 's12', name: 'Picanha Bovina Resfriada (kg)', price: 79.90, description: 'Carne bovina de primeira.', category: 'Açougue', brand: 'Swift', image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+        ]
       } else {
-        samples.push(
-          { name: `${categoryName} Produto Exemplo 1`, price: 15.00, description: 'Descrição do produto importado.' },
-          { name: `${categoryName} Produto Exemplo 2`, price: 22.50, description: 'Descrição do produto importado.' }
-        )
+        samples = [
+          { id: `s-${Math.random()}`, name: `${categoryName} Item Selecionado`, price: 19.90, description: 'Produto importado de alta qualidade.', category: categoryName, brand: 'Marca Selecionada', image_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400' },
+        ]
       }
 
-      const toInsert = samples.map(s => ({
-        ...s,
-        category_id: catData?.id,
-        image_url: '', // Intentionally empty to test the auto-photo system
-        stock: 50
-      }))
-
-      const { error: insErr } = await supabase.from('products').insert(toInsert)
-      if (insErr) throw insErr
-
-      toast.success(`Sucesso! ${toInsert.length} produtos de ${categoryName} foram adicionados sem fotos.`)
-      await checkMissingImages()
-    } catch (error: any) {
-      console.error('Import error:', error)
-      toast.error('Erro na importação: ' + error.message)
+      setScrapedProducts(samples)
+      setSelectedForImport(samples.map(p => p.id))
+      toast.success(`${samples.length} produtos encontrados. Revise a lista abaixo.`)
+    } catch (error) {
+      toast.error('Erro ao conectar com o site parceiro.')
     } finally {
-      setIsCheckingMissing(false)
+      setIsScraping(false)
+    }
+  }
+
+  const handleConfirmImport = async () => {
+    const toImport = scrapedProducts.filter(p => selectedForImport.includes(p.id))
+    if (toImport.length === 0) return toast.error('Nenhum produto selecionado.')
+
+    setIsScraping(true)
+    try {
+      for (const product of toImport) {
+        let { data: catData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', product.category)
+          .maybeSingle()
+        
+        if (!catData) {
+          const { data: newCat } = await supabase
+            .from('categories')
+            .insert({ 
+              name: product.category, 
+              slug: product.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
+            })
+            .select()
+            .single()
+          catData = newCat
+        }
+
+        await supabase.from('products').insert({
+          name: product.name,
+          description: `${product.description} Marca: ${product.brand}`,
+          price: product.price,
+          category_id: catData?.id,
+          image_url: product.image_url,
+          stock: 100
+        })
+      }
+      
+      toast.success(`${toImport.length} produtos cadastrados com sucesso!`)
+      setScrapedProducts([])
+      setSelectedForImport([])
+      checkMissingImages()
+    } catch (error: any) {
+      toast.error('Erro ao salvar produtos: ' + error.message)
+    } finally {
+      setIsScraping(false)
     }
   }
 
@@ -285,31 +347,102 @@ export function ProductImporter() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Importação em Lote (Web Scraping)</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="text-primary" /> Importação Inteligente (Web Scraping)
+            </CardTitle>
             <CardDescription>
-              Importe produtos diretamente de grandes redes de supermercado.
+              Selecione as categorias do site parceiro para escanear e cadastrar.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Selecione uma categoria para importar automaticamente nome, descrição e categoria de sites como Pão de Açúcar.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Mercearia')}>
-                <Download className="mr-2 h-4 w-4" /> Mercearia
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Bebidas')}>
-                <Download className="mr-2 h-4 w-4" /> Bebidas
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Hortifruti')}>
-                <Download className="mr-2 h-4 w-4" /> Hortifruti
-              </Button>
-              <Button variant="outline" onClick={() => simulateCompetitorImport('Limpeza')}>
-                <Download className="mr-2 h-4 w-4" /> Limpeza
-              </Button>
+          <CardContent className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              {['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'].map(cat => (
+                <Button 
+                  key={cat}
+                  variant="secondary" 
+                  className="h-10 px-4 font-bold uppercase text-[10px] tracking-wider"
+                  onClick={() => simulateScraping(cat)}
+                  disabled={isScraping}
+                >
+                  {isScraping ? <Loader2 className="animate-spin mr-2 h-3 w-3" /> : <Search className="mr-2 h-3 w-3" />}
+                  Escanear {cat}
+                </Button>
+              ))}
             </div>
+
+            {scrapedProducts.length > 0 && (
+              <div className="mt-8 border rounded-2xl overflow-hidden bg-white shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-zinc-900 text-white p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <h3 className="font-black uppercase italic tracking-tighter text-lg">Produtos Encontrados</h3>
+                    <Badge variant="outline" className="text-white border-white/20">
+                      {selectedForImport.length} selecionados
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-[10px] font-bold" onClick={selectAll}>MARCAR TODOS</Button>
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 text-[10px] font-bold" onClick={deselectAll}>DESMARCAR</Button>
+                  </div>
+                </div>
+                
+                <ScrollArea className="h-[400px]">
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="w-[50px]"></TableHead>
+                        <TableHead className="w-[80px]">Foto</TableHead>
+                        <TableHead>Produto / Marca</TableHead>
+                        <TableHead>Preço Est.</TableHead>
+                        <TableHead>Categoria</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {scrapedProducts.map(product => (
+                        <TableRow key={product.id} className={selectedForImport.includes(product.id) ? 'bg-green-50/30' : 'opacity-60'}>
+                          <TableCell>
+                            <Checkbox 
+                              checked={selectedForImport.includes(product.id)}
+                              onCheckedChange={() => toggleSelectProduct(product.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <img src={product.image_url} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="" />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{product.brand}</div>
+                          </TableCell>
+                          <TableCell className="font-black text-green-700">R$ {product.price.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter">
+                              {product.category}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+                
+                <div className="p-6 bg-gray-50 border-t flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <Info className="h-4 w-4 text-blue-500" />
+                    Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="w-full md:w-auto px-10 h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase italic tracking-tighter text-lg shadow-xl"
+                    onClick={handleConfirmImport}
+                    disabled={isScraping || selectedForImport.length === 0}
+                  >
+                    {isScraping ? <Loader2 className="animate-spin mr-2" /> : <Check className="mr-2" />}
+                    Cadastrar Selecionados
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
