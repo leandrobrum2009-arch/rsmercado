@@ -5,7 +5,7 @@
   import { supabase } from "@/lib/supabase";
  import { Toaster } from "sonner";
 
-import appCss from "../styles.css?url";
+import "../styles.css";
 
 function NotFoundComponent() {
   return (
@@ -47,12 +47,6 @@ export const Route = createRootRoute({
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
     ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -84,9 +78,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
     });
    const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
  
-   useEffect(() => {
-      const fetchSettings = async () => {
-        const { data } = await supabase.from('store_settings').select('*');
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase.from('store_settings').select('*');
+        if (error) throw error;
         if (data) {
           const newSettings = { ...storeSettings };
           data.forEach(item => {
@@ -95,45 +93,52 @@ function RootShell({ children }: { children: React.ReactNode }) {
             if (item.key === 'color_palette') newSettings.colors = item.value;
           });
           setStoreSettings(newSettings);
-          
-          // Update document title
-          if (newSettings.site_name) {
-            document.title = newSettings.site_name;
-          }
-
-          // Apply colors to CSS variables
-          if (newSettings.colors.primary) {
-            document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
-          }
-          if (newSettings.colors.secondary) {
-            document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
-          }
+          if (newSettings.site_name) document.title = newSettings.site_name;
+          if (newSettings.colors.primary) document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
+          if (newSettings.colors.secondary) document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
         }
-      };
- 
-      fetchSettings();
- 
-     const checkAdmin = async () => {
-       const { data: { session } } = await supabase.auth.getSession();
-       if (!session) return setIsAdmin(false);
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+        setIsConnected(true);
+      } catch (err) {
+        console.log('Store settings not available, using defaults');
+      }
+    };
+
+    fetchSettings();
+
+    const checkAdmin = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
         
-        setIsAdmin(data?.role === 'admin');
-     };
- 
-     checkAdmin();
-     
-     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-       if (!session) setIsAdmin(false);
-       else checkAdmin();
-     });
- 
-     return () => subscription.unsubscribe();
-   }, []);
+        if (session) {
+          setIsConnected(true);
+          const { data, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          
+          if (!roleError) setIsAdmin(data?.role === 'admin');
+        } else {
+          // Even if not logged in, if we got here without a network error, we're likely connected
+          if (isConnected === null) setIsConnected(true);
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error('Connection check failed:', err);
+        setIsConnected(false);
+      }
+    };
+
+    checkAdmin();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) setIsAdmin(false);
+      else checkAdmin();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
  
    const navItems = [
      { name: "Início", path: "/", icon: Home },
@@ -154,7 +159,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       key: (typeof window !== 'undefined' ? localStorage.getItem('supabase_anon_key') : null) || import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     });
     
-    const isSupabaseMissing = !supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder';
+     const isSupabaseMissing = isConnected === false || (!supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder');
     const [showConfigModal, setShowConfigModal] = useState(false);
     const [tempUrl, setTempUrl] = useState(supabaseConfig.url);
     const [tempKey, setTempKey] = useState(supabaseConfig.key);

@@ -19,41 +19,50 @@ function ProfilePage() {
   const [isClient, setIsClient] = useState(false)
   const [savedRecipesCount, setSavedRecipesCount] = useState(0)
 
-   const checkSession = async () => {
-     try {
-       const { data } = await supabase.auth.getSession()
-       setSession(data.session)
-       
-       if (data.session) {
-         const userId = data.session.user.id;
-         let { data: profileData, error } = await supabase
-           .from('profiles')
-           .select('*')
-           .eq('id', userId)
-           .single()
-         
-         if (error && error.code === 'PGRST116') {
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
-              .select()
-              .single()
-            if (!createError) profileData = newProfile
-         }
-         setProfile(profileData)
- 
-         const { count } = await supabase
-           .from('user_recipes')
-           .select('*', { count: 'exact', head: true })
-           .eq('user_id', userId)
-         setSavedRecipesCount(count || 0)
-       }
-     } catch (err) {
-       console.error('Profile load error:', err)
-     } finally {
-       setLoading(false)
-     }
-   }
+  const checkSession = async () => {
+    console.log('Checking session...');
+    try {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      
+      setSession(data.session);
+      console.log('Session status:', data.session ? 'Logged in' : 'Logged out');
+      
+      if (data.session) {
+        const userId = data.session.user.id;
+        let { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+        
+        if (!profileData && !error) {
+           console.log('Profile not found, creating...');
+           const { data: newProfile, error: createError } = await supabase
+             .from('profiles')
+             .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
+             .select()
+             .maybeSingle();
+           if (!createError) profileData = newProfile;
+        }
+        setProfile(profileData);
+
+        try {
+          const { count } = await supabase
+            .from('user_recipes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+          setSavedRecipesCount(count || 0);
+        } catch (e) {
+          console.log('User recipes table might not exist yet');
+        }
+      }
+    } catch (err) {
+      console.error('Profile load error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
  
    useEffect(() => {
      setIsClient(true)
