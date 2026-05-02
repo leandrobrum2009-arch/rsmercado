@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw } from 'lucide-react'
+import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key } from 'lucide-react'
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -17,6 +17,7 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
    const [seeding, setSeeding] = useState(false)
+   const [testing, setTesting] = useState(false)
    const [currentUser, setCurrentUser] = useState<any>(null)
    const [userRole, setUserRole] = useState<string | null>(null)
  
@@ -35,6 +36,28 @@ function AdminFix() {
      }
      fetchUser()
    }, [])
+
+   const handleTestConnection = async () => {
+     setTesting(true)
+     setStatus('Testando conexão com Supabase...')
+     try {
+       const { data, error } = await supabase.from('categories').select('count', { count: 'exact', head: true })
+       if (error) throw error
+       setStatus('CONEXÃO OK! Banco de dados respondendo corretamente.')
+     } catch (err: any) {
+       setStatus('ERRO DE CONEXÃO: ' + err.message)
+     } finally {
+       setTesting(false)
+     }
+   }
+
+   const handleClearAll = () => {
+     localStorage.clear()
+     sessionStorage.clear()
+     supabase.auth.signOut()
+     setStatus('LIMPANDO TUDO... Recarregando página em 2 segundos.')
+     setTimeout(() => window.location.reload(), 2000)
+   }
 
    const handleSeedRecipes = async () => {
      setSeeding(true)
@@ -157,11 +180,32 @@ function AdminFix() {
 
    return (
      <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
-       <div className="mb-6 px-8 py-4 bg-red-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center max-w-md">
+        <div className="mb-6 px-8 py-4 bg-red-600 text-white rounded-2xl font-black shadow-2xl text-center max-w-md">
          ⚠️ MODO DE REPARAÇÃO AVANÇADO <br/>
          <span className="text-[10px] opacity-80 uppercase tracking-widest">Utilize apenas se o acesso administrativo estiver bloqueado</span>
        </div>
  
+
+       <div className="flex gap-4 w-full max-w-md mb-6">
+         <Button 
+           variant="outline" 
+           className="flex-1 bg-white border-2 border-zinc-300 h-14 font-black text-[10px] uppercase"
+           onClick={handleTestConnection}
+           disabled={testing}
+         >
+           <Database className={`mr-2 h-4 w-4 ${testing ? 'animate-spin' : ''}`} />
+           Testar Banco
+         </Button>
+         <Button 
+           variant="destructive" 
+           className="flex-1 border-2 border-red-700 h-14 font-black text-[10px] uppercase"
+           onClick={handleClearAll}
+         >
+           <Trash2 className="mr-2 h-4 w-4" />
+           Limpar Cache
+         </Button>
+       </div>
+
        {currentUser && (
          <div className="w-full max-w-md mb-6 bg-white p-4 rounded-xl border-2 border-zinc-200 shadow-sm flex items-center gap-4">
            <div className="bg-zinc-100 p-3 rounded-full">
@@ -188,6 +232,13 @@ function AdminFix() {
            </CardTitle>
          </CardHeader>
         <CardContent className="p-6 space-y-8">
+          <div className="p-4 bg-zinc-100 rounded-xl border-2 border-zinc-300 space-y-2">
+            <p className="text-[10px] font-black uppercase text-zinc-500">Dica de Acesso:</p>
+            <p className="text-xs font-bold leading-tight">
+              Se você esqueceu sua senha, agora existe um botão "ESQUECI MINHA SENHA" na tela de login que envia um link para seu e-mail.
+            </p>
+          </div>
+
           {/* STEP 1: Confirm Email */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
