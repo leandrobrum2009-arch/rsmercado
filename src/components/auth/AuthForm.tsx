@@ -12,23 +12,33 @@ export function AuthForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setErrorMsg('')
+    setSuccessMsg('')
+    console.log('Attempting authentication...', { email, isSignUp })
     
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        toast.success('Cadastro realizado! Se o login não for automático, verifique seu e-mail para confirmar a conta.')
+        console.log('Signup successful')
+        alert('Cadastro realizado! Verifique seu e-mail para confirmar a conta (se necessário).')
+        toast.success('Cadastro realizado com sucesso!')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        console.log('Login successful')
         toast.success('Login realizado com sucesso!')
         window.location.reload()
       }
     } catch (error: any) {
+      console.error('Authentication error:', error)
+      alert('Erro: ' + (error.message || 'Erro desconhecido'))
       toast.error(error.message || 'Erro na autenticação')
     } finally {
       setLoading(false)
