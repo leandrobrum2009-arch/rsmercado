@@ -21,10 +21,32 @@ export function BannerManager() {
 
   const fetchData = async () => {
     setIsLoading(true)
-    const { data: bannersData } = await supabase.from('banners').select('*, categories(name)')
-    const { data: catData } = await supabase.from('categories').select('*')
-    setBanners(bannersData || [])
-    setCategories(catData || [])
+    try {
+      // Try a simpler query first to avoid join errors if relations are not set
+      const { data: bannersData, error: bError } = await supabase.from('banners').select('*')
+      if (bError) {
+        console.error('Error fetching banners:', bError)
+        toast.error('Erro ao carregar banners do banco de dados')
+      }
+
+      const { data: catData } = await supabase.from('categories').select('*')
+      
+      // If we have banners, try to manually map categories if the join failed in a separate call or just keep as is
+      if (bannersData && catData) {
+        const mappedBanners = bannersData.map(banner => ({
+          ...banner,
+          categories: catData.find(c => c.id === banner.category_id)
+        }))
+        setBanners(mappedBanners)
+      } else {
+        setBanners(bannersData || [])
+      }
+      
+      setCategories(catData || [])
+    } catch (err: any) {
+      console.error('Fetch data catch:', err)
+      toast.error('Erro de conexão: ' + err.message)
+    }
     setIsLoading(false)
   }
 
