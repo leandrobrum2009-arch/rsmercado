@@ -41,10 +41,10 @@ export function AdminSetup() {
     
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Faça login primeiro')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Faça login primeiro')
 
-       const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: secretKey })
+     const { data, error } = await supabase.rpc('promote_to_admin', { secret_key: secretKey.trim() })
        
        if (error) throw error
        
