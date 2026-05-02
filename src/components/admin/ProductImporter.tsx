@@ -546,9 +546,8 @@ export function ProductImporter() {
                 <div className="p-6 bg-gray-50 border-t flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
                     <Info className="h-4 w-4 text-blue-500" />
-                    Clique em Cadastrar para salvar os itens selecionados no seu banco de dados.
+                    Clique em Cadastrar para salvar os itens selecionados.
                   </div>
-                  <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                   <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                     {importProgress && (
                       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
@@ -586,20 +585,6 @@ export function ProductImporter() {
                       </Button>
                     </div>
                   </div>
-      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
-        <DialogContent className="max-w-2xl bg-zinc-950 text-green-500 font-mono text-[10px]">
-          <DialogHeader>
-            <DialogTitle className="text-white">Console de Importação Real</DialogTitle>
-          </DialogHeader>
-          <div className="h-[300px] overflow-y-auto space-y-1 p-2 bg-black rounded">
-            {diagnosticLog.map((log, i) => <div key={i}>{log}</div>)}
-            {isScraping && <div className="animate-pulse">_</div>}
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setIsDiagnosticOpen(false)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
                 </div>
               </div>
             )}
