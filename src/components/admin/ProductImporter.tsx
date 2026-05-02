@@ -42,10 +42,20 @@ export function ProductImporter() {
     fetchExistingNames()
   }, [])
 
+  const normalizeString = (str: string) => {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^\w\s]/gi, '') // Remove special chars
+      .replace(/\s+/g, ' ') // Collapse spaces
+      .trim();
+  }
+
   const fetchExistingNames = async () => {
     const { data } = await supabase.from('products').select('name')
     if (data) {
-      setExistingProductNames(new Set(data.map(p => p.name.toLowerCase().trim())))
+      setExistingProductNames(new Set(data.map(p => normalizeString(p.name))))
     }
   }
 
@@ -292,7 +302,8 @@ export function ProductImporter() {
 
       for (const product of toImport) {
         // Duplicate check
-        const isDuplicate = existingProductNames.has(product.name.toLowerCase().trim());
+        const normalizedCurrent = normalizeString(product.name);
+        const isDuplicate = existingProductNames.has(normalizedCurrent);
         addLog(`Processando: ${product.name}...`)
         if (isDuplicate) {
           console.log(`Pulando duplicado: ${product.name}`);
@@ -498,7 +509,7 @@ export function ProductImporter() {
                           key={product.id} 
                           className={`
                             ${selectedForImport.includes(product.id) ? 'bg-green-50/30' : 'opacity-60'}
-                            ${existingProductNames.has(product.name.toLowerCase().trim()) ? 'border-l-4 border-l-amber-500' : ''}
+                            ${existingProductNames.has(normalizeString(product.name)) ? 'border-l-4 border-l-amber-500' : ''}
                           `}
                         >
                           <TableCell>
@@ -521,7 +532,7 @@ export function ProductImporter() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="font-black text-sm uppercase tracking-tight">{product.name}</div>
-                              {existingProductNames.has(product.name.toLowerCase().trim()) && (
+                              {existingProductNames.has(normalizeString(product.name)) && (
                                 <Badge variant="destructive" className="text-[8px] h-4 bg-amber-500 hover:bg-amber-600">JÁ EXISTE</Badge>
                               )}
                             </div>
