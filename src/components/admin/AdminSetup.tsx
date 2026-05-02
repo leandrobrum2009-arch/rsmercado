@@ -82,15 +82,9 @@ export function AdminSetup() {
             Se você já se cadastrou e confirmou seu e-mail, digite a chave de segurança abaixo para liberar as ferramentas administrativas.
           </p>
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Chave de Segurança</label>
-          <Input 
-            type="password" 
-            placeholder="Digite a chave mestre..." 
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            className="h-14 text-lg font-mono border-2 border-gray-200 focus:border-primary transition-all"
-          />
+        <div className="bg-green-50 p-4 rounded-xl border-2 border-green-200 text-center">
+          <p className="text-xs font-black text-green-700 uppercase">SENHA REMOVIDA</p>
+          <p className="text-[10px] text-green-600 font-bold">O acesso está liberado. Clique no botão abaixo para ativar.</p>
         </div>
         <Button onClick={handlePromoteMe} disabled={loading} className="w-full h-14 text-lg font-black shadow-xl uppercase tracking-tighter">
           {loading ? <Loader2 className="animate-spin mr-2" /> : 'Liberar Área Administrativa'}
