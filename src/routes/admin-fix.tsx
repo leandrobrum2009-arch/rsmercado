@@ -155,22 +155,38 @@ function AdminFix() {
      }
    }
 
-  return (
-    <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
-      <div className="mb-6 px-8 py-4 bg-green-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center">
-        🚀 RECUPERAÇÃO TOTAL ATIVADA <br/>
-        <span className="text-[10px] opacity-80 uppercase tracking-widest">Não precisa mais de senha ou chaves (v2.1)</span>
-      </div>
-      
-      <Card className="w-full max-w-md border-8 border-green-500 shadow-2xl overflow-hidden">
-        <div className="bg-green-500 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
-          Siga os passos abaixo na ordem
-        </div>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShieldAlert className="text-red-500" /> Recuperar Acesso Admin
-          </CardTitle>
-        </CardHeader>
+   return (
+     <div className="container mx-auto px-4 py-10 flex flex-col items-center justify-center min-h-screen">
+       <div className="mb-6 px-8 py-4 bg-red-600 text-white rounded-2xl font-black animate-pulse shadow-2xl text-center max-w-md">
+         ⚠️ MODO DE REPARAÇÃO AVANÇADO <br/>
+         <span className="text-[10px] opacity-80 uppercase tracking-widest">Utilize apenas se o acesso administrativo estiver bloqueado</span>
+       </div>
+ 
+       {currentUser && (
+         <div className="w-full max-w-md mb-6 bg-white p-4 rounded-xl border-2 border-zinc-200 shadow-sm flex items-center gap-4">
+           <div className="bg-zinc-100 p-3 rounded-full">
+             <UserCheck className="text-zinc-600" />
+           </div>
+           <div className="flex-1">
+             <p className="text-[10px] text-zinc-500 uppercase font-bold">Logado como:</p>
+             <p className="text-sm font-black text-zinc-900 truncate">{currentUser.email}</p>
+             <p className="text-[10px] font-bold text-green-600 uppercase">Role: {userRole || 'Carregando...'}</p>
+           </div>
+           <Button variant="ghost" size="sm" onClick={handleSyncProfile} disabled={loading}>
+             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+           </Button>
+         </div>
+       )}
+       
+       <Card className="w-full max-w-md border-4 border-zinc-900 shadow-2xl overflow-hidden">
+         <div className="bg-zinc-900 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
+           Painel de Diagnóstico e Reparo
+         </div>
+         <CardHeader>
+           <CardTitle className="flex items-center gap-2">
+             <ShieldAlert className="text-amber-500" /> Recuperação de Sistema
+           </CardTitle>
+         </CardHeader>
         <CardContent className="p-6 space-y-8">
           {/* STEP 1: Confirm Email */}
           <div className="space-y-4">
