@@ -515,6 +515,64 @@ export function ProductImporter() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de Busca de Fotos via Google (Simulado) */}
+      <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 uppercase font-black tracking-tighter italic">
+              <ImagePlus className="text-primary" /> Trocar Foto do Produto
+            </DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+              Buscando a melhor imagem para: {photoSearchQuery}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 pt-4">
+            <div className="flex gap-2">
+              <Input 
+                value={photoSearchQuery} 
+                onChange={(e) => setPhotoSearchQuery(e.target.value)}
+                className="font-bold uppercase text-xs"
+              />
+              <Button onClick={() => handlePhotoSearch(photoSearchQuery)} disabled={isSearchingPhotos}>
+                {isSearchingPhotos ? <Loader2 className="animate-spin" /> : <Search size={18} />}
+              </Button>
+            </div>
+
+            {isSearchingPhotos ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="text-xs font-black uppercase text-gray-400 animate-pulse">Consultando Banco de Imagens do Google...</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[400px]">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-1">
+                  {photoResults.map((url, idx) => (
+                    <div 
+                      key={idx} 
+                      className="relative group cursor-pointer rounded-2xl overflow-hidden border-4 border-transparent hover:border-primary transition-all shadow-md active:scale-95"
+                      onClick={() => selectNewPhoto(url)}
+                    >
+                      <img src={url} alt="" className="w-full h-40 object-cover" />
+                      <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Check className="text-white h-10 w-10 drop-shadow-lg" />
+                      </div>
+                      {idx === 0 && (
+                        <div className="absolute top-2 left-2 bg-green-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase">Melhor Escolha</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+          
+          <DialogFooter className="border-t pt-4">
+            <Button variant="ghost" onClick={() => setIsPhotoModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest">Cancelar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
