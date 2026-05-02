@@ -40,32 +40,35 @@ function AdminFix() {
  
    const handleFix = async () => {
      if (key !== 'SETUP_ADMIN_2024') {
-
-    setLoading(true)
-    setStatus('Verificando sessão...')
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        setStatus('ERRO: Você precisa estar logado! Vá em /profile primeiro.')
+        setStatus('Chave incorreta')
         return
-      }
-
-      setStatus('Concedendo acesso admin...')
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert({ user_id: session.user.id, role: 'admin' })
-
-      if (error) throw error
-
-      setStatus('SUCESSO! Você agora é admin. Redirecionando...')
-      setTimeout(() => window.location.href = '/admin', 2000)
-    } catch (err: any) {
-      setStatus('ERRO: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+     }
+ 
+     setLoading(true)
+     setStatus('Verificando sessão...')
+     
+     try {
+       const { data: { session } } = await supabase.auth.getSession()
+       if (!session) {
+         setStatus('ERRO: Você precisa estar logado! Se o e-mail não confirmou, use o botão "Confirmar E-mail" abaixo primeiro.')
+         return
+       }
+ 
+       setStatus('Concedendo acesso admin...')
+       const { error } = await supabase
+         .from('user_roles')
+         .upsert({ user_id: session.user.id, role: 'admin' })
+ 
+       if (error) throw error
+ 
+       setStatus('SUCESSO! Você agora é admin. Redirecionando...')
+       setTimeout(() => window.location.href = '/admin', 2000)
+     } catch (err: any) {
+       setStatus('ERRO: ' + err.message)
+     } finally {
+       setLoading(false)
+     }
+   }
 
   return (
     <div className="container mx-auto px-4 py-20 flex justify-center">
