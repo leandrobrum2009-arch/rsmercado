@@ -56,11 +56,10 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 ring-1 ring-black/5">
       <CardHeader className="bg-zinc-50/50 border-b pb-6 relative">
-         <div className="absolute -top-16 left-0 right-0 bg-amber-50 border-2 border-amber-300 p-4 rounded-xl text-[11px] font-black text-amber-900 leading-tight shadow-xl z-10 animate-bounce">
-           ⚠️ SE O LINK DO E-MAIL NÃO FUNCIONAR: <br/>
-           Isso acontece se o Supabase estiver configurado para "localhost". <br/>
-           <span className="text-red-600 underline">SOLUÇÃO:</span> Copie o link recebido e substitua <span className="bg-white px-1">localhost:5173</span> pelo endereço deste site no seu navegador.
-        </div>
+         <div className="absolute -top-16 left-0 right-0 bg-green-600 text-white p-4 rounded-xl text-[11px] font-black leading-tight shadow-2xl z-10 animate-pulse border-4 border-white">
+           🔓 ATIVAÇÃO INSTANTÂNEA DISPONÍVEL <br/>
+           Se o link do e-mail não abrir, use o botão vermelho que aparecerá se o login falhar.
+         </div>
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
         </CardTitle>
