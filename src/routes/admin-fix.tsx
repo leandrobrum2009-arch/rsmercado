@@ -24,7 +24,7 @@ function AdminFix() {
      setConfirming(true)
      setStatus('Confirmando e-mail...')
      try {
-        const { data, error } = await supabase.rpc('confirm_user_email', {
+        const { data, error } = await supabase.rpc('secure_confirm_user_email', {
           email_to_confirm: email.trim().toLowerCase(),
           secret_key: key.trim()
         })
@@ -51,7 +51,7 @@ function AdminFix() {
        }
  
         setStatus('Concedendo privilégios de administrador...')
-        const { data, error } = await supabase.rpc('promote_to_admin', { 
+        const { data, error } = await supabase.rpc('secure_promote_to_admin', { 
           secret_key: key.trim() 
         })
 
