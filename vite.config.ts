@@ -9,7 +9,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   vite: {
     ssr: {
-      noExternal: ['sonner', 'lucide-react']
+       noExternal: ['lucide-react']
     }
   }
 });
