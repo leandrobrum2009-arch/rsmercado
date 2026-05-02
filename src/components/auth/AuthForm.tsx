@@ -43,8 +43,8 @@ export function AuthForm() {
       if (msg === 'email rate limit exceeded') {
         msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O Supabase bloqueou novos cadastros temporariamente por segurança. Por favor, aguarde de 5 a 10 minutos ou use um e-mail diferente.'
        } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
-         msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO. \n\n1. Verifique sua caixa de entrada e SPAM. \n2. Se o link do e-mail deu erro, é porque ele tentou abrir no "localhost". \n3. SOLUÇÃO: Copie o link do e-mail, cole no navegador e mude "localhost:5173" pelo endereço deste site.'
-      } else if (msg.includes('Invalid login credentials')) {
+          msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.'
+       } else if (msg.includes('Invalid login credentials')) {
         msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados ou confirme se já ativou sua conta pelo e-mail.'
       }
       setErrorMsg(msg)
@@ -64,9 +64,24 @@ export function AuthForm() {
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
         </CardTitle>
-        <CardDescription className="font-medium">
-          {isSignUp ? 'Cadastre-se para gerenciar sua loja.' : 'Informe suas credenciais de acesso.'}
-        </CardDescription>
+         <CardDescription className="font-medium">
+           {isSignUp ? 'Cadastre-se para gerenciar sua loja.' : 'Informe suas credenciais de acesso.'}
+         </CardDescription>
+         {errorMsg === 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.' && (
+           <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl animate-bounce">
+             <p className="text-xs font-black text-red-700 uppercase mb-2">🚨 PROBLEMAS COM O E-MAIL?</p>
+             <p className="text-[10px] text-red-600 font-bold leading-tight mb-3">
+               Se você já clicou no link e ele não funcionou (tentou abrir no localhost), você pode ativar sua conta agora mesmo sem precisar do e-mail:
+             </p>
+             <Button 
+               variant="destructive" 
+               className="w-full text-[10px] font-black h-8"
+               onClick={() => window.location.href = '/admin-fix'}
+             >
+               ATIVAR MINHA CONTA AGORA
+             </Button>
+           </div>
+         )}
       </CardHeader>
       <CardContent className="pt-8">
         {errorMsg && (
