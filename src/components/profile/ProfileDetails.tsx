@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle } from 'lucide-react'
+import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle, Phone } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
@@ -12,15 +12,17 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle 
    const [formData, setFormData] = useState({
      full_name: profile?.full_name || '',
      birth_date: profile?.birth_date || '',
-     gender: profile?.gender || '',
-     household_status: profile?.household_status || '',
-     avatar_url: profile?.avatar_url || ''
-   })
+      gender: profile?.gender || '',
+      household_status: profile?.household_status || '',
+      avatar_url: profile?.avatar_url || '',
+      whatsapp: profile?.whatsapp || ''
+    })
  
     const handleSave = async () => {
       if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
       if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
       if (!formData.gender) return toast.error('Por favor, selecione seu sexo!')
+      if (!formData.whatsapp) return toast.error('WhatsApp é necessário para notificações!')
 
       // Validar idade
       const birthDate = new Date(formData.birth_date)
@@ -80,7 +82,7 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle 
      toast.success('Foto carregada!')
    }
  
-    const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status
+     const isComplete = profile?.full_name && profile?.birth_date && profile?.gender && profile?.household_status && profile?.whatsapp
 
     const calculateAge = (date: string) => {
       if (!date) return null
@@ -179,26 +181,39 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle 
              </Select>
            </div>
  
-           <div className="space-y-2">
-             <label className="text-[10px] font-black uppercase text-zinc-500">Situação Familiar</label>
-             <div className="relative">
-               <Select 
-                 value={formData.household_status} 
-                 onValueChange={val => setFormData({ ...formData, household_status: val })}
-               >
-                 <SelectTrigger className="h-12 border-zinc-200 pl-10">
-                   <SelectValue placeholder="Selecione" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="alone">Moro sozinho(a)</SelectItem>
-                   <SelectItem value="couple">Casal</SelectItem>
-                   <SelectItem value="family">Família em casa</SelectItem>
-                 </SelectContent>
-               </Select>
-               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 z-10" size={18} />
-             </div>
-           </div>
-         </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">WhatsApp (com DDD)</label>
+              <div className="relative">
+                <Input 
+                  placeholder="Ex: 11988887777"
+                  value={formData.whatsapp} 
+                  onChange={e => setFormData({ ...formData, whatsapp: e.target.value.replace(/\D/g, '') })}
+                  className="border-zinc-200 h-12 pl-10"
+                />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Situação Familiar</label>
+              <div className="relative">
+                <Select 
+                  value={formData.household_status} 
+                  onValueChange={val => setFormData({ ...formData, household_status: val })}
+                >
+                  <SelectTrigger className="h-12 border-zinc-200 pl-10">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="alone">Moro sozinho(a)</SelectItem>
+                    <SelectItem value="couple">Casal</SelectItem>
+                    <SelectItem value="family">Família em casa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 z-10" size={18} />
+              </div>
+            </div>
+          </div>
  
          <Button 
            onClick={handleSave} 
