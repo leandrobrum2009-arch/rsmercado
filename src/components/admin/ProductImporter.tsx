@@ -830,9 +830,40 @@ export function ProductImporter() {
               Selecione as categorias do site parceiro para escanear e cadastrar.
             </CardDescription>
             <Button variant="ghost" size="sm" onClick={handleAutoDeduplicate} className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 hover:bg-amber-50">
-              <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar Banco
-            </Button>
-          </div>
+                  <Zap className="mr-1 h-3 w-3 fill-amber-600" /> Auto-Limpar Banco
+                </Button>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowBulkInput(!showBulkInput)}
+                className="text-[10px] font-black uppercase"
+              >
+                {showBulkInput ? 'Ocultar Entrada Manual' : 'Entrada Manual (CSV/Lista)'}
+              </Button>
+            </div>
+            {showBulkInput && (
+              <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 space-y-4 animate-in fade-in slide-in-from-top-2">
+                <div className="flex justify-between items-center">
+                  <p className="font-black uppercase text-[10px] text-zinc-500 tracking-widest">Importação por Texto</p>
+                  <p className="text-[9px] text-zinc-400">Formato: Nome, Preço, Marca (uma por linha)</p>
+                </div>
+                <textarea 
+                  className="w-full h-32 p-3 text-xs font-mono border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                  placeholder="Arroz 5kg, 32.90, Prato Fino&#10;Feijão 1kg, 9.40, Camil"
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                />
+                <Button 
+                  onClick={handleBulkImport}
+                  className="w-full bg-zinc-900 text-white font-black uppercase text-[10px]"
+                  disabled={!bulkInput.trim()}
+                >
+                  Processar Lista
+                </Button>
+              </div>
+            )}
+
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col gap-4">
