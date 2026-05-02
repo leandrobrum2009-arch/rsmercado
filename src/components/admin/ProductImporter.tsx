@@ -811,7 +811,31 @@ export function ProductImporter() {
           </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center bg-zinc-50 p-4 rounded-xl border border-zinc-100">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Zap className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-500 tracking-widest">Escaneamento Rápido</p>
+                    <p className="font-bold text-sm">Capturar todas as categorias principais agora</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => simulateScraping(['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'])} 
+                  disabled={isScraping}
+                  className="bg-green-600 hover:bg-green-700 font-black uppercase italic tracking-tighter"
+                >
+                  {isScraping && scrapingProgress ? (
+                    <><Loader2 className="animate-spin mr-2 h-4 w-4" /> {Math.round((scrapingProgress.current / scrapingProgress.total) * 100)}%</>
+                  ) : (
+                    'Escanear Tudo'
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
               {['Mercearia', 'Bebidas', 'Hortifruti', 'Limpeza', 'Padaria', 'Açougue', 'Laticínios', 'Pet Shop'].map(cat => (
                 <Button 
                   key={cat}
