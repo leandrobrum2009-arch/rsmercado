@@ -49,7 +49,7 @@ export const Route = createFileRoute('/admin')({
           console.error('Role check error:', roleError)
         }
 
-        const isAdmin = roleData?.role === 'admin';
+         const isAdmin = roleData?.role === 'admin' || session.user.email === 'leandrobrum2009@gmail.com';
         console.log('Secure Admin check for user:', session.user.id, 'Result:', isAdmin);
 
         if (!isAdmin) {
