@@ -1,4 +1,4 @@
--- UNIFIED ADMIN RLS FIX
+-- UNIFIED ADMIN RLS FIX - V2 (using auth.jwt() for email bypass)
 
 -- 1. Ensure the is_admin() function is robust
 CREATE OR REPLACE FUNCTION public.is_admin() 
@@ -8,8 +8,8 @@ SECURITY DEFINER
 SET search_path = public, auth
 AS \$\$
 BEGIN
-  -- Check if user is the master owner by email first
-  IF (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com' THEN
+  -- Check if user is the master owner by email in JWT (fastest)
+  IF (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com' THEN
     RETURN TRUE;
   END IF;
 
@@ -93,7 +93,7 @@ WITH CHECK (public.is_admin());
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
 CREATE POLICY "Admins can manage roles" ON public.user_roles 
 FOR ALL USING (
-  (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com'
+  (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com'
   OR 
   EXISTS (
     SELECT 1 FROM public.user_roles 
