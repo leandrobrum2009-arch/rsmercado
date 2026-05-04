@@ -24,14 +24,19 @@
   }
  
   async function testInsert() {
-    console.log('Testing insert...')
-    const { error: insertError } = await supabase.from('products').insert({
-      name: 'Test Product',
-      price: 10.0,
-      is_available: true,
-      stock: 100
-    })
-    console.log('Insert error:', insertError)
+    const fields = ['name', 'price', 'description', 'category_id', 'image_url', 'stock', 'brand', 'is_approved', 'is_available', 'points_value']
+    const product: any = { name: 'Test' }
+    
+    for (const field of fields) {
+       const { error } = await supabase.from('products').insert({ ...product, [field]: (field === 'price' ? 10 : 'test') })
+       if (error && error.message.includes('column')) {
+         console.log(`Column ${field} is MISSING`)
+       } else if (error) {
+         console.log(`Column ${field} exists but failed with other error:`, error.message)
+       } else {
+         console.log(`Column ${field} EXISTS`)
+       }
+    }
   }
 
   async function run() {
