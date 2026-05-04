@@ -374,8 +374,9 @@ export function ProductImporter() {
                        <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
                        <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
                        <TableHead className="text-[10px] font-black uppercase">Tam/Peso</TableHead>
-                       <TableHead className="text-[10px] font-black uppercase">Preço</TableHead>
-                       <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase text-center">Foto</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
                      </TableRow>
                    </TableHeader>
                    <TableBody>
@@ -385,8 +386,18 @@ export function ProductImporter() {
                          <TableCell><Input value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="h-8 text-xs font-bold" /></TableCell>
                          <TableCell><Input value={p.brand} onChange={e => updateProduct(p.id, 'brand', e.target.value)} className="h-8 text-xs" /></TableCell>
                          <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                         <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                         <TableCell><Input value={p.category} onChange={e => updateProduct(p.id, 'category', e.target.value)} className="h-8 text-xs w-32" /></TableCell>
+                          <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-8 h-8 rounded border overflow-hidden bg-zinc-100 flex-shrink-0">
+                                {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-full h-full p-2 text-zinc-300" />}
+                              </div>
+                              <Button onClick={() => openImageSearch(p)} variant="outline" size="icon" className="h-8 w-8 rounded-full border-zinc-200">
+                                <Search className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell><Input value={p.category} onChange={e => updateProduct(p.id, 'category', e.target.value)} className="h-8 text-xs w-32" /></TableCell>
                        </TableRow>
                      ))}
                    </TableBody>
@@ -461,9 +472,10 @@ export function ProductImporter() {
                       <TableHead className="w-12"><Checkbox checked={selectedIds.length === suggestedProducts.length} onCheckedChange={(checked) => setSelectedIds(checked ? suggestedProducts.map(p => p.id) : [])} /></TableHead>
                       <TableHead className="text-[10px] font-black uppercase">Nome do Produto</TableHead>
                       <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase">Tamanho/Vol</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase">Preço Estimado</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-center">Disponível</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Tam/Vol</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Foto</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -472,10 +484,20 @@ export function ProductImporter() {
                         <TableCell><Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} /></TableCell>
                         <TableCell><Input value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="h-8 text-xs font-bold" /></TableCell>
                         <TableCell><Input value={p.brand} onChange={e => updateProduct(p.id, 'brand', e.target.value)} className="h-8 text-xs" /></TableCell>
-                        <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                        <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                        <TableCell className="text-center">
-                          <Switch checked={p.is_available} onCheckedChange={v => updateProduct(p.id, 'is_available', v)} />
+                         <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                         <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                         <TableCell>
+                           <div className="flex items-center justify-center gap-2">
+                             <div className="w-8 h-8 rounded border overflow-hidden bg-zinc-100 flex-shrink-0">
+                               {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-full h-full p-2 text-zinc-300" />}
+                             </div>
+                             <Button onClick={() => openImageSearch(p)} variant="outline" size="icon" className="h-8 w-8 rounded-full border-zinc-200">
+                               <Search className="h-3 w-3" />
+                             </Button>
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-center">
+                           <Switch checked={p.is_available} onCheckedChange={v => updateProduct(p.id, 'is_available', v)} />
                         </TableCell>
                       </TableRow>
                     ))}
