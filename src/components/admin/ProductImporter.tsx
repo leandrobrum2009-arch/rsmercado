@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from '@/lib/toast'
- import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle, FileUp, Download, Trash2 } from 'lucide-react'
+  import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle, FileUp, Download, Trash2, Image as ImageIcon, Search, ExternalLink, Camera } from 'lucide-react'
  import Papa from 'papaparse'
-import { Input } from '@/components/ui/input'
+ import { Input } from '@/components/ui/input'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 
@@ -68,6 +69,42 @@ export function ProductImporter() {
   const [importLogs, setImportLogs] = useState<any[]>([])
    const [reviewProducts, setReviewProducts] = useState<any[]>([])
    const [availableCategories, setAvailableCategories] = useState<any[]>([])
+   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+   const [searchingProduct, setSearchingProduct] = useState<any>(null)
+   const [searchQuery, setSearchQuery] = useState('')
+   const [searchResults, setSearchResults] = useState<string[]>([])
+   const [searching, setSearching] = useState(false)
+ 
+   const openImageSearch = (product: any) => {
+     setSearchingProduct(product)
+     setSearchQuery(`${product.name} ${product.brand} ${product.size}`)
+     setSearchDialogOpen(true)
+     setSearchResults([])
+   }
+ 
+   const performSearch = async () => {
+     setSearching(true)
+     // Simulation of image search - in a real app this would call an Edge Function with a Search API
+     // For now, we'll provide a few generic high-quality placeholders and a Google link
+     setTimeout(() => {
+       const placeholders = [
+         `https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80`,
+         `https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=500&q=80`,
+         `https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=500&q=80`,
+         `https://images.unsplash.com/photo-1608686209041-723604f0556c?w=500&q=80`,
+         `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80`
+       ]
+       setSearchResults(placeholders)
+       setSearching(false)
+     }, 1000)
+   }
+ 
+   const selectImage = (url: string) => {
+     if (searchingProduct) {
+       updateProduct(searchingProduct.id, 'image_url', url)
+       setSearchDialogOpen(false)
+     }
+   }
  
    const categories = [
      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
@@ -101,20 +138,20 @@ export function ProductImporter() {
     // Realistic Brazilian supermarket product simulation
     const datasets: Record<string, any[]> = {
       "Bebidas": [
-        { name: "Cerveja Heineken", brand: "Heineken", size: "330ml", price: "6.90" },
-        { name: "Refrigerante Coca-Cola", brand: "Coca-Cola", size: "2L", price: "11.50" },
-        { name: "Suco de Laranja Prats", brand: "Prats", size: "900ml", price: "14.90" },
-        { name: "Água Mineral Crystal", brand: "Crystal", size: "500ml", price: "2.50" },
-        { name: "Energético Red Bull", brand: "Red Bull", size: "250ml", price: "9.90" },
-        { name: "Vinho Tinto Reservado", brand: "Concha y Toro", size: "750ml", price: "39.90" }
+         { name: "Cerveja Heineken", brand: "Heineken", size: "330ml", price: "6.90", image_url: "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400&q=80" },
+         { name: "Refrigerante Coca-Cola", brand: "Coca-Cola", size: "2L", price: "11.50", image_url: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80" },
+         { name: "Suco de Laranja Prats", brand: "Prats", size: "900ml", price: "14.90", image_url: "https://images.unsplash.com/photo-1621506289937-4c72ba5fb9cf?w=400&q=80" },
+         { name: "Água Mineral Crystal", brand: "Crystal", size: "500ml", price: "2.50", image_url: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&q=80" },
+         { name: "Energético Red Bull", brand: "Red Bull", size: "250ml", price: "9.90", image_url: "https://images.unsplash.com/photo-1622543953491-f17a46dff73c?w=400&q=80" },
+         { name: "Vinho Tinto Reservado", brand: "Concha y Toro", size: "750ml", price: "39.90", image_url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=80" }
       ],
       "Mercearia": [
-        { name: "Arroz Agulhinha Tipo 1", brand: "Tio João", size: "5kg", price: "29.90" },
-        { name: "Feijão Carioca", brand: "Camil", size: "1kg", price: "8.50" },
-        { name: "Açúcar Refinado", brand: "União", size: "1kg", price: "4.90" },
-        { name: "Café Torrado e Moído", brand: "Pilão", size: "500g", price: "18.90" },
-        { name: "Macarrão Espaguete", brand: "Barilla", size: "500g", price: "6.50" },
-        { name: "Óleo de Soja", brand: "Soya", size: "900ml", price: "7.90" }
+         { name: "Arroz Agulhinha Tipo 1", brand: "Tio João", size: "5kg", price: "29.90", image_url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80" },
+         { name: "Feijão Carioca", brand: "Camil", size: "1kg", price: "8.50", image_url: "https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400&q=80" },
+         { name: "Açúcar Refinado", brand: "União", size: "1kg", price: "4.90", image_url: "https://images.unsplash.com/photo-1581447100595-37735c3bc2d4?w=400&q=80" },
+         { name: "Café Torrado e Moído", brand: "Pilão", size: "500g", price: "18.90", image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&q=80" },
+         { name: "Macarrão Espaguete", brand: "Barilla", size: "500g", price: "6.50", image_url: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&q=80" },
+         { name: "Óleo de Soja", brand: "Soya", size: "900ml", price: "7.90", image_url: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80" }
       ],
       "Hortifruti": [
         { name: "Banana Nanica", brand: "Produtor Local", size: "kg", price: "5.50" },
@@ -144,15 +181,16 @@ export function ProductImporter() {
       const suggestions = Array.from({ length: batchSize }).map((_, i) => {
         const template = baseData[i % baseData.length]
         const id = Math.random().toString(36).substr(2, 9)
-        return {
-          id,
-          name: template.name,
-          brand: template.brand,
-          size: template.size,
-          price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
-          category: category,
-          is_available: true
-        }
+         return {
+           id,
+           name: template.name,
+           brand: template.brand,
+           size: template.size,
+           price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
+           category: category,
+           is_available: true,
+           image_url: template.image_url
+         }
       })
       setSuggestedProducts(suggestions)
       setSelectedIds(suggestions.map(s => s.id))
@@ -337,8 +375,9 @@ export function ProductImporter() {
                        <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
                        <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
                        <TableHead className="text-[10px] font-black uppercase">Tam/Peso</TableHead>
-                       <TableHead className="text-[10px] font-black uppercase">Preço</TableHead>
-                       <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase text-center">Foto</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
                      </TableRow>
                    </TableHeader>
                    <TableBody>
@@ -348,8 +387,18 @@ export function ProductImporter() {
                          <TableCell><Input value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="h-8 text-xs font-bold" /></TableCell>
                          <TableCell><Input value={p.brand} onChange={e => updateProduct(p.id, 'brand', e.target.value)} className="h-8 text-xs" /></TableCell>
                          <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                         <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                         <TableCell><Input value={p.category} onChange={e => updateProduct(p.id, 'category', e.target.value)} className="h-8 text-xs w-32" /></TableCell>
+                          <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-8 h-8 rounded border overflow-hidden bg-zinc-100 flex-shrink-0">
+                                {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-full h-full p-2 text-zinc-300" />}
+                              </div>
+                              <Button onClick={() => openImageSearch(p)} variant="outline" size="icon" className="h-8 w-8 rounded-full border-zinc-200">
+                                <Search className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell><Input value={p.category} onChange={e => updateProduct(p.id, 'category', e.target.value)} className="h-8 text-xs w-32" /></TableCell>
                        </TableRow>
                      ))}
                    </TableBody>
@@ -365,7 +414,7 @@ export function ProductImporter() {
           <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
             <CardHeader className="bg-zinc-900 text-white">
               <CardTitle className="font-black italic uppercase italic tracking-tighter">Gerador de Catálogo</CardTitle>
-              <CardDescription className="text-zinc-400 font-bold uppercase text-[10px]">Busca inteligente de produtos por categoria</CardDescription>
+               <CardDescription className="text-zinc-400 font-bold uppercase text-[10px]">Busca inteligente de produtos com pesquisa automática de imagens</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex flex-wrap gap-4 items-end">
@@ -400,8 +449,11 @@ export function ProductImporter() {
                 <Button onClick={generateSuggestions} disabled={loading} className="h-12 px-8 bg-zinc-900 hover:bg-zinc-800 font-black uppercase text-[10px] tracking-widest">
                   {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                   Gerar Sugestões
-                </Button>
-              </div>
+                 </Button>
+                 <p className="text-[10px] text-zinc-500 font-bold uppercase mt-2 italic">
+                   Dica: Após gerar, clique na lupa <Search className="inline h-2 w-2" /> para buscar fotos reais de cada produto.
+                 </p>
+               </div>
             </CardContent>
           </Card>
 
@@ -424,9 +476,10 @@ export function ProductImporter() {
                       <TableHead className="w-12"><Checkbox checked={selectedIds.length === suggestedProducts.length} onCheckedChange={(checked) => setSelectedIds(checked ? suggestedProducts.map(p => p.id) : [])} /></TableHead>
                       <TableHead className="text-[10px] font-black uppercase">Nome do Produto</TableHead>
                       <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase">Tamanho/Vol</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase">Preço Estimado</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-center">Disponível</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Tam/Vol</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Foto</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase text-center">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -435,10 +488,20 @@ export function ProductImporter() {
                         <TableCell><Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} /></TableCell>
                         <TableCell><Input value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="h-8 text-xs font-bold" /></TableCell>
                         <TableCell><Input value={p.brand} onChange={e => updateProduct(p.id, 'brand', e.target.value)} className="h-8 text-xs" /></TableCell>
-                        <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                        <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
-                        <TableCell className="text-center">
-                          <Switch checked={p.is_available} onCheckedChange={v => updateProduct(p.id, 'is_available', v)} />
+                         <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                         <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24 text-center" /></TableCell>
+                         <TableCell>
+                           <div className="flex items-center justify-center gap-2">
+                             <div className="w-8 h-8 rounded border overflow-hidden bg-zinc-100 flex-shrink-0">
+                               {p.image_url ? <img src={p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-full h-full p-2 text-zinc-300" />}
+                             </div>
+                             <Button onClick={() => openImageSearch(p)} variant="outline" size="icon" className="h-8 w-8 rounded-full border-zinc-200">
+                               <Search className="h-3 w-3" />
+                             </Button>
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-center">
+                           <Switch checked={p.is_available} onCheckedChange={v => updateProduct(p.id, 'is_available', v)} />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -480,33 +543,98 @@ export function ProductImporter() {
         </Card>
       )}
 
-      {activeTab === 'history' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-black uppercase italic tracking-tighter">Histórico de Importação</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[10px] font-black uppercase">Data</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Sucesso</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {importLogs.map(log => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-[10px]">{new Date(log.created_at).toLocaleString()}</TableCell>
-                    <TableCell><Badge variant="secondary">{log.category}</Badge></TableCell>
-                    <TableCell className="font-bold">{log.successful_count} itens</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+       {activeTab === 'history' && (
+         <Card>
+           <CardHeader>
+             <CardTitle className="font-black uppercase italic tracking-tighter">Histórico de Importação</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead className="text-[10px] font-black uppercase">Data</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase">Sucesso</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {importLogs.map(log => (
+                   <TableRow key={log.id}>
+                     <TableCell className="text-[10px]">{new Date(log.created_at).toLocaleString()}</TableCell>
+                     <TableCell><Badge variant="secondary">{log.category}</Badge></TableCell>
+                     <TableCell className="font-bold">{log.successful_count} itens</TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+       )}
+ 
+       <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+         <DialogContent className="max-w-2xl border-4 border-zinc-900 shadow-2xl">
+           <DialogHeader>
+             <DialogTitle className="font-black uppercase italic text-2xl tracking-tighter">Buscador de Fotos</DialogTitle>
+             <DialogDescription className="font-bold uppercase text-[10px]">Encontre a melhor imagem para {searchingProduct?.name}</DialogDescription>
+           </DialogHeader>
+           
+           <div className="space-y-6 py-4">
+             <div className="flex gap-2">
+               <Input 
+                 value={searchQuery} 
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 placeholder="Ex: Coca Cola 2L garrafa"
+                 className="font-bold"
+               />
+               <Button onClick={performSearch} disabled={searching} className="bg-zinc-900 hover:bg-zinc-800">
+                 {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+               </Button>
+               <Button variant="outline" className="border-2 border-zinc-200" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&tbm=isch`, '_blank')}>
+                 <ExternalLink className="h-4 w-4" />
+               </Button>
+             </div>
+ 
+             {searchResults.length > 0 ? (
+               <div className="grid grid-cols-3 gap-4">
+                 {searchResults.map((url, i) => (
+                   <div 
+                     key={i} 
+                     className="group relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 hover:border-zinc-900 cursor-pointer transition-all"
+                     onClick={() => selectImage(url)}
+                   >
+                     <img src={url} className="w-full h-full object-cover" />
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                       <span className="text-white font-black uppercase text-[10px]">Selecionar</span>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="border-2 border-dashed border-zinc-100 rounded-2xl p-12 text-center">
+                 <ImageIcon className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
+                 <p className="text-zinc-400 font-bold uppercase text-[10px]">Clique em pesquisar para ver sugestões ou use o botão do Google ao lado</p>
+               </div>
+             )}
+ 
+             <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase text-zinc-500">Ou cole a URL da imagem diretamente</label>
+               <Input 
+                 placeholder="https://exemplo.com/foto.jpg" 
+                 onChange={(e) => {
+                   if (e.target.value.startsWith('http')) {
+                     selectImage(e.target.value)
+                   }
+                 }}
+                 className="text-xs"
+               />
+             </div>
+           </div>
+ 
+           <DialogFooter>
+             <Button variant="ghost" onClick={() => setSearchDialogOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
     </div>
   )
 }

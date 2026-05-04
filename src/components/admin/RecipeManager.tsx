@@ -71,11 +71,14 @@ export function RecipeManager() {
         ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
       }
 
-       const { data: { user } } = await supabase.auth.getUser()
-       const { error: insertError } = await supabase.from('recipes').insert({
-         ...newRecipe,
-         author_id: user?.id
-       })
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        const recipeToInsert = {
+          ...newRecipe,
+          author_id: session?.user?.id
+        }
+ 
+        const { error: insertError } = await supabase.from('recipes').insert(recipeToInsert)
        
        if (insertError) {
          console.error('Recipe creation error:', insertError);
