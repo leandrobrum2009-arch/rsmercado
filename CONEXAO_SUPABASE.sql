@@ -55,17 +55,23 @@ ALTER TABLE public.import_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read categories" ON public.categories FOR SELECT USING (true);
 CREATE POLICY "Allow public read products" ON public.products FOR SELECT USING (true);
 
--- Helper para verificar se é admin
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  SET search_path = public;
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND is_admin = true
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ -- Helper para verificar se é admin (Versão Protegida)
+ CREATE OR REPLACE FUNCTION public.is_admin()
+ RETURNS BOOLEAN AS $$
+ DECLARE
+   _is_admin BOOLEAN;
+ BEGIN
+   -- Define search_path de forma segura para evitar ataques de sequestro de schema
+   SET LOCAL search_path = public, pg_catalog;
+   
+   -- Verifica no perfil do usuário
+   SELECT is_admin INTO _is_admin
+   FROM public.profiles
+   WHERE id = auth.uid();
+   
+   RETURN COALESCE(_is_admin, FALSE);
+ END;
+ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Permite que admins gerenciem tudo
 CREATE POLICY "Admins manage everything on categories" ON public.categories FOR ALL USING (public.is_admin());
@@ -77,24 +83,36 @@ CREATE POLICY "Admins manage everything on import_logs" ON public.import_logs FO
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- 4. FUNÇÃO DE PROMOÇÃO PARA ADMIN (Use a chave: ADMIN_RS_2024)
-CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key TEXT)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  SET search_path = public;
-  -- NOTE: Replace 'ADMIN_RS_2024' with a unique strong key and do not share it.
-  IF secret_key != 'ADMIN_RS_2024' THEN
-    RETURN jsonb_build_object('success', false, 'message', 'Chave inválida');
-  END IF;
-
-  UPDATE public.profiles SET is_admin = true WHERE id = auth.uid();
-  
-  RETURN jsonb_build_object('success', true, 'message', 'Sucesso');
-END;
-$$;
+ -- 4. FUNÇÃO DE PROMOÇÃO PARA ADMIN (RESTRITA)
+ -- Para segurança, altere a chave 'ADMIN_RS_2024' para algo único no seu Supabase.
+ CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key TEXT)
+ RETURNS JSONB
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ AS $$
+ BEGIN
+   SET LOCAL search_path = public, pg_catalog;
+   
+   -- Validação básica de entrada
+   IF secret_key IS NULL OR length(secret_key) < 8 THEN
+      RETURN jsonb_build_object('success', false, 'message', 'Chave de segurança inválida ou muito curta');
+   END IF;
+ 
+   IF secret_key != 'ADMIN_RS_2024' THEN
+     RETURN jsonb_build_object('success', false, 'message', 'Chave incorreta');
+   END IF;
+ 
+   UPDATE public.profiles SET is_admin = true WHERE id = auth.uid();
+   
+   -- Se o perfil não existir (trigger falhou), tenta criar
+   IF NOT FOUND THEN
+      INSERT INTO public.profiles (id, is_admin) VALUES (auth.uid(), true)
+      ON CONFLICT (id) DO UPDATE SET is_admin = true;
+   END IF;
+   
+   RETURN jsonb_build_object('success', true, 'message', 'Privilégios de administrador concedidos com sucesso');
+ END;
+ $$;
 
 -- 5. TRIGGER PARA CRIAR PERFIL AUTOMATICAMENTE NO CADASTRO
 CREATE OR REPLACE FUNCTION public.handle_new_user()
