@@ -131,7 +131,9 @@ export function ProductImporter() {
           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim(),
           price: parseFloat(p.price),
           category_id: catData?.id,
-          stock: 100
+          stock: 100,
+          is_approved: true, // Auto-publish on import as requested
+          is_available: true
         };
         
         // Try to insert with optional columns, but fallback if they don't exist
