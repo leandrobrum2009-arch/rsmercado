@@ -41,9 +41,9 @@ export function ProductManagement() {
 
       toast.success('Produtos iniciais carregados com sucesso!')
       fetchData()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Seed error:', err)
-      toast.error('Erro ao semear dados: ' + err.message)
+      toast.error('Erro ao carregar dados iniciais. Verifique as permissões do banco.')
     } finally {
       setIsLoading(false)
     }
@@ -83,11 +83,12 @@ export function ProductManagement() {
           .select('id, name, price, image_url, stock')
           .order('created_at', { ascending: false })
           
-        if (retryError) {
-          toast.error('Erro ao carregar produtos do banco')
-        } else {
-          setProducts(retryData || [])
-        }
+      if (retryError) {
+        console.error('Retry error:', retryError);
+        toast.error('Não foi possível carregar o catálogo.')
+      } else {
+        setProducts(retryData || [])
+      }
       } else {
         setProducts(prodData || [])
       }
@@ -96,9 +97,9 @@ export function ProductManagement() {
       if (catError) console.error('Fetch categories error:', catError)
       
       setCategories(catData || [])
-    } catch (err: any) {
+    } catch (err) {
       console.error('Fetch error:', err)
-      toast.error('Erro inesperado: ' + err.message)
+      toast.error('Erro de conexão com o banco de dados.')
     }
     setIsLoading(false)
   }
@@ -154,7 +155,7 @@ export function ProductManagement() {
     
     if (error) {
       console.error('Add product error:', error)
-      toast.error('Erro ao adicionar produto: ' + error.message)
+      toast.error('Falha ao salvar produto. Verifique sua conexão e permissões.')
     } else {
       toast.success('Produto adicionado!')
       setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0' })

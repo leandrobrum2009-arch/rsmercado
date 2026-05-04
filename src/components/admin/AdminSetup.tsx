@@ -61,10 +61,10 @@ export function AdminSetup() {
        } else {
          toast.error(data.message)
        }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Setup error:', error)
-      toast.error(error.message || 'Erro ao processar acesso')
-      alert('ERRO NO BANCO:\n\n' + (error.message || 'Verifique se você rodou o script SQL no painel do Supabase.'))
+      toast.error('Erro ao processar acesso administrativo.')
+      alert('ERRO DE CONFIGURAÇÃO:\n\nNão foi possível ativar o acesso. Certifique-se de que as tabelas do Supabase foram criadas corretamente via SQL.')
     } finally {
       setLoading(false)
     }
