@@ -29,3 +29,22 @@ USING ( public.is_admin() OR (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.c
 -- FIX MISSING COLUMNS IN ORDERS
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+
+-- CREATE STORAGE BUCKETS (If possible via SQL)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('products', 'products', true) 
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('avatars', 'avatars', true) 
+ON CONFLICT (id) DO NOTHING;
+
+-- STORAGE POLICIES
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'avatars'));
+
+DROP POLICY IF EXISTS "Admin Upload" ON storage.objects;
+CREATE POLICY "Admin Upload" ON storage.objects FOR INSERT WITH CHECK (
+    bucket_id IN ('products', 'avatars') AND 
+    (public.is_admin() OR (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com')
+);
