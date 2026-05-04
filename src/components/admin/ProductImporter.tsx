@@ -154,103 +154,67 @@ export function ProductImporter() {
     }, 800)
   }
 
-  const handleImport = async () => {
-    if (selectedIds.length === 0) return toast.error('Selecione ao menos um produto')
-    setImporting(true)
-    
+   const handleImport = async () => {
+     if (selectedIds.length === 0) return toast.error('Selecione ao menos um produto')
+     setImporting(true)
+     
      try {
        console.log('Starting product import...', selectedIds.length, 'items');
        const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
        
-       // Check if user is admin first
+       // Check if user is admin
        const { data: isAdmin, error: adminCheckErr } = await supabase.rpc('is_admin');
        if (adminCheckErr) console.warn('Admin check error:', adminCheckErr);
        
        if (isAdmin === false) {
-         toast.error('Você não tem permissão de administrador no banco de dados. Use o Reparador Admin.');
+         toast.error('Você não tem permissão de administrador. Use o Reparador Admin.');
          setImporting(false);
          return;
        }
  
-       // Get or create category
-       // Input validation for category
-       if (!category || category.trim() === '') {
-         toast.error('Categoria inválida')
-         return
-       }
- 
-        let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle() as { data: { id: string } | null, error: any };
-       
-        if (catFetchErr) {
-          console.error('Error fetching category:', catFetchErr);
-          toast.error('Erro ao buscar categoria: ' + catFetchErr.message);
-        }
-  
-        if (!catData) {
-          console.log('Category not found, creating:', category);
-         const slug = category.toLowerCase()
-           .normalize("NFD")
-           .replace(/[\u0300-\u036f]/g, "")
-           .replace(/[^a-z0-9\s-]/g, "") // Sanitize slug
-           .replace(/\s+/g, '-')
-           .trim()
- 
-         const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
-           name: category, 
-           slug: slug 
-         }).select().single()
-         
-         if (catErr) {
-            console.error('Category creation failed:', catErr)
-            const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
-            catData = retryCat
-          } else {
-             catData = newCat
-             if (catData) console.log('New category created:', catData.id);
-          }
-       }
-
+       const categoryCache: Record<string, string> = {};
        let successCount = 0;
        let errorCount = 0;
-        let lastErrorMessage = '';
-       
-       // Batch processing would be better, but keeping loop for fallback resilience
-       for (const p of toImport) {
-         // Validate price
-         const priceValue = parseFloat(p.price);
-         if (isNaN(priceValue)) continue;
+       let lastErrorMessage = '';
  
-          const productToInsert: any = {
-            name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
-            price: priceValue,
-            category_id: catData ? catData.id : null,
-            image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
-          };
-         
-         const optionalFields = {
+       for (const p of toImport) {
+         const pCategory = p.category || category || 'Mercearia';
+         let catId = categoryCache[pCategory];
+ 
+         if (!catId) {
+           let { data: existingCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+           if (existingCat) {
+             catId = existingCat.id;
+           } else {
+             const slug = pCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-').trim();
+             const { data: newCat, error: catErr } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
+             if (newCat) catId = newCat.id;
+             else {
+               const { data: retryCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+               if (retryCat) catId = retryCat.id;
+             }
+           }
+           if (catId) categoryCache[pCategory] = catId;
+         }
+ 
+         const priceValue = parseFloat(p.price);
+         const productData = {
+           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
+           price: isNaN(priceValue) ? 0 : priceValue,
+           category_id: catId || null,
            brand: (p.brand || '').substring(0, 100),
            stock: 100,
            is_approved: true,
-           is_available: true
+           is_available: true,
+           image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
          };
  
-         let { error } = await supabase.from('products').insert({ ...productToInsert, ...optionalFields });
-         
-         if (error) {
-           if (error.message.includes('column')) {
-             const { error: retryError } = await supabase.from('products').insert(productToInsert);
-             error = retryError;
-           } else if (error.code === '42501') {
-             toast.error('Erro de permissão (RLS). Você é um administrador?');
-             setImporting(false);
-             return; // Stop on RLS error as it won't change
-           }
-         }
+         const { error } = await supabase.from('products').insert(productData);
          
          if (!error) successCount++;
          else {
            console.error('Failed to import product:', p.name, error);
-            lastErrorMessage = error.message;
+           lastErrorMessage = error.message;
            errorCount++;
          }
        }
