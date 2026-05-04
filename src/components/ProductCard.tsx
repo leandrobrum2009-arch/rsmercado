@@ -45,11 +45,8 @@ import { SmartImage } from "./ui/SmartImage";
               </div>
             )}
             {product.categories?.name && (
-              <div className="bg-zinc-900/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1.5 w-fit uppercase tracking-tighter shadow-lg border border-white/10">
-                {(() => {
-                  const Icon = categoryIcons[product.categories.name] || ShoppingBag;
-                  return <Icon size={10} className="text-primary" />;
-                })()}
+              <div className="bg-white/90 backdrop-blur-sm text-zinc-900 text-[8px] font-black px-2 py-1 rounded-full flex items-center gap-1.5 w-fit uppercase tracking-tight shadow-sm border border-zinc-200">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 {product.categories.name}
               </div>
             )}
