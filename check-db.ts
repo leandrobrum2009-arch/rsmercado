@@ -10,18 +10,18 @@
  
  const supabase = createClient(supabaseUrl, supabaseKey)
  
- async function check() {
-   console.log('Checking categories...')
-   const { data: cats, error: catError } = await supabase.from('categories').select('*')
-   console.log('Categories count:', cats?.length, catError || '')
- 
-   console.log('Checking products...')
-   const { data: prods, error: prodError } = await supabase.from('products').select('*').limit(5)
-   console.log('Products:', prods, prodError || '')
-   
-   const { data: countData } = await supabase.from('products').select('count', { count: 'exact', head: true })
-   console.log('Total products count:', countData)
- }
+  async function getColumns() {
+    console.log('Getting columns of products table...')
+    const { data, error } = await supabase.rpc('get_table_columns', { table_name: 'products' })
+    if (error) {
+      console.log('RPC get_table_columns failed, trying alternative...')
+      // Try a regular query to information_schema (might fail due to permissions)
+      const { data: cols, error: colError } = await supabase.from('products').select('*').limit(0)
+      console.log('Columns via select limit 0:', data, colError)
+    } else {
+      console.log('Columns:', data)
+    }
+  }
  
   async function testInsert() {
     console.log('Testing insert...')
@@ -35,7 +35,7 @@
   }
 
   async function run() {
-    await check()
+    await getColumns()
     await testInsert()
   }
 
