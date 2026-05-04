@@ -133,7 +133,7 @@ export function ProductImporter() {
          return
        }
  
-       let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
+        let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle() as { data: { id: string } | null, error: any };
        
         if (catFetchErr) {
           console.error('Error fetching category:', catFetchErr);
@@ -209,13 +209,17 @@ export function ProductImporter() {
          }
        }
 
-       await supabase.from('import_logs').insert({
-        category: category,
-        total_attempted: toImport.length,
-        successful_count: successCount,
-        duplicate_count: toImport.length - successCount,
-        details: { products: toImport.map(p => p.name) }
-       }).catch(e => console.warn('Failed to save import log:', e));
+       try {
+         await supabase.from('import_logs').insert({
+           category: category,
+           total_attempted: toImport.length,
+           successful_count: successCount,
+           duplicate_count: toImport.length - successCount,
+           details: { products: toImport.map(p => p.name) }
+         });
+       } catch (e) {
+         console.warn('Failed to save import log:', e);
+       }
  
        if (successCount > 0) {
          toast.success(`${successCount} produtos importados com sucesso!`);
