@@ -68,7 +68,7 @@ function ProfilePage() {
        }
      } catch (err: any) {
        console.error('Profile load error:', err);
-       setError('Erro ao carregar perfil: ' + (err.message || 'Verifique sua conexão.'));
+        setError('Não foi possível carregar seu perfil. Por favor, verifique sua conexão ou tente novamente mais tarde.');
      } finally {
        clearTimeout(timeoutId);
        setLoading(false);

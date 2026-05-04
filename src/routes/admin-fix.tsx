@@ -97,7 +97,7 @@ function AdminFix() {
        }
        setStatus('SUCESSO! 40 receitas foram cadastradas.')
      } catch (err: any) {
-       setStatus('ERRO: ' + err.message)
+        setStatus('Não foi possível realizar a operação. Verifique a chave ou tente novamente mais tarde.')
      } finally {
        setSeeding(false)
      }
