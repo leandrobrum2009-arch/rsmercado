@@ -67,7 +67,6 @@ export const CategoryBar = () => {
   }, []);
 
   return (
-    return (
       <div className="py-6 bg-white overflow-hidden">
         {/* Promotional Small Banner inside categories */}
         <div className="px-4 mb-6">
