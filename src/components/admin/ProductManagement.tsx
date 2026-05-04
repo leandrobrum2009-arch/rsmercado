@@ -25,25 +25,34 @@ export function ProductManagement() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const { data: prodData, error: prodError } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
-      if (prodError) {
-        console.error('Fetch products error:', prodError)
-        toast.error('Erro ao carregar produtos: ' + prodError.message)
-      }
-      
-      const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
-      if (catError) console.error('Fetch categories error:', catError)
-      
-      setProducts(prodData || [])
-      setCategories(catData || [])
-    } catch (err) {
-      console.error('Fetch error:', err)
-    }
-    setIsLoading(false)
-  }
+   const fetchData = async () => {
+     setIsLoading(true)
+     try {
+       // Using a broader query to debug visibility
+       console.log('Fetching products for admin...');
+       const { data: prodData, error: prodError, status, statusText } = await supabase
+         .from('products')
+         .select('*, categories(name)')
+         .order('created_at', { ascending: false })
+       
+       if (prodError) {
+         console.error('Fetch products error:', prodError, 'Status:', status, statusText)
+         toast.error('Erro ao carregar produtos: ' + prodError.message)
+       } else {
+         console.log('Products fetched:', prodData?.length || 0);
+       }
+       
+       const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
+       if (catError) console.error('Fetch categories error:', catError)
+       
+       setProducts(prodData || [])
+       setCategories(catData || [])
+     } catch (err: any) {
+       console.error('Fetch error:', err)
+       toast.error('Erro inesperado: ' + err.message)
+     }
+     setIsLoading(false)
+   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
