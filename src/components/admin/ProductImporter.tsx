@@ -193,9 +193,9 @@ export function ProductImporter() {
            price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
            category: category,
            is_available: true,
-           image_url: template.image_url
-         }
-      })
+            image_url: template.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(template.name + " " + (template.brand || "") + " fundo branco")}&w=300&h=300&c=7`
+          }
+       })
       setSuggestedProducts(suggestions)
       setSelectedIds(suggestions.map(s => s.id))
       setLoading(false)
@@ -255,8 +255,8 @@ export function ProductImporter() {
            stock: 100,
            is_approved: true,
            is_available: true,
-           image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
-         };
+            image_url: p.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(p.name + " " + (p.brand || "") + " fundo branco")}&w=300&h=300&c=7`
+          };
  
          const { error } = await supabase.from('products').insert(productData);
          
