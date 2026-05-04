@@ -66,13 +66,20 @@ export function ProductImporter() {
   const [importing, setImporting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [importLogs, setImportLogs] = useState<any[]>([])
-  const [reviewProducts, setReviewProducts] = useState<any[]>([])
-
-  const categories = [
-    "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
-  ]
-
-  useEffect(() => {
+   const [reviewProducts, setReviewProducts] = useState<any[]>([])
+   const [availableCategories, setAvailableCategories] = useState<any[]>([])
+ 
+   const categories = [
+     "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
+   ]
+ 
+   useEffect(() => {
+     fetchCategories()
+   const fetchCategories = async () => {
+     const { data } = await supabase.from('categories').select('*').order('name')
+     if (data) setAvailableCategories(data)
+   }
+ 
     if (activeTab === 'history') fetchImportLogs()
     if (activeTab === 'review') fetchReviewProducts()
   }, [activeTab])
@@ -364,14 +371,18 @@ export function ProductImporter() {
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Categoria</label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="w-[200px] h-12 border-2 border-zinc-200">
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                   <Select value={category} onValueChange={setCategory}>
+                     <SelectTrigger className="w-[200px] h-12 border-2 border-zinc-200">
+                       <SelectValue placeholder="Selecione..." />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {availableCategories.length > 0 ? (
+                         availableCategories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)
+                       ) : (
+                         categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                       )}
+                     </SelectContent>
+                   </Select>
                 </div>
 
                 <div className="space-y-2">
