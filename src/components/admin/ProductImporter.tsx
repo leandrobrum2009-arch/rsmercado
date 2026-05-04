@@ -111,7 +111,8 @@ export function ProductImporter() {
    }
  
     const categories = [
-      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Laticínios", "Frios", "Pet Shop"
+      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Laticínios", "Frios", "Pet Shop", 
+      "Congelados", "Enlatados", "Doces e Biscoitos", "Massas e Grãos", "Café e Matinais", "Temperos", "Utilidades Domésticas", "Beleza"
     ]
  
    const fetchCategories = async () => {
@@ -135,10 +136,20 @@ export function ProductImporter() {
     setReviewProducts(data || [])
   }
 
-  const generateSuggestions = () => {
+  const generateSuggestions = async () => {
     if (!category) return toast.error('Selecione uma categoria')
     setLoading(true)
     
+    // Get existing products to avoid duplicates
+    const { data: existingProducts } = await supabase
+      .from('products')
+      .select('name, brand')
+      .is('deleted_at', null);
+
+    const existingSet = new Set(
+      (existingProducts || []).map(p => `${p.name.toLowerCase()}|${(p.brand || '').toLowerCase()}`)
+    );
+
     // Realistic Brazilian supermarket product simulation
     const datasets: Record<string, any[]> = {
       "Bebidas": [
@@ -181,26 +192,42 @@ export function ProductImporter() {
 
     const baseData = datasets[category] || datasets["Mercearia"]
     
-    setTimeout(() => {
-      const suggestions = Array.from({ length: batchSize }).map((_, i) => {
-        const template = baseData[i % baseData.length]
+    // Filter out existing products and try to generate unique ones
+    let suggestions: any[] = []
+    let attempts = 0
+    const maxItems = Math.min(batchSize, 50)
+    
+    while (suggestions.length < maxItems && attempts < maxItems * 2) {
+      const template = baseData[attempts % baseData.length]
+      const key = `${template.name.toLowerCase()}|${(template.brand || '').toLowerCase()}`
+      
+      if (!existingSet.has(key)) {
         const id = Math.random().toString(36).substr(2, 9)
-         return {
-           id,
-           name: template.name,
-           brand: template.brand,
-           size: template.size,
-           price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
-           category: category,
-           is_available: true,
-            image_url: template.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(template.name + " " + (template.brand || "") + " fundo branco")}&w=300&h=300&c=7`
-          }
-       })
-      setSuggestedProducts(suggestions)
-      setSelectedIds(suggestions.map(s => s.id))
+        suggestions.push({
+          id,
+          name: template.name,
+          brand: template.brand,
+          size: template.size,
+          price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
+          category: category,
+          is_available: true,
+          image_url: template.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(template.name + " " + (template.brand || "") + " fundo branco")}&w=300&h=300&c=7`
+        })
+        existingSet.add(key) // Don't suggest the same item twice in the same batch
+      }
+      attempts++
+    }
+
+    if (suggestions.length === 0) {
+      toast.error('Todos os produtos sugeridos já estão cadastrados!')
       setLoading(false)
-      toast.success(`${suggestions.length} sugestões geradas para ${category}`)
-    }, 800)
+      return
+    }
+
+    setSuggestedProducts(suggestions)
+    setSelectedIds(suggestions.map(s => s.id))
+    setLoading(false)
+    toast.success(`${suggestions.length} sugestões geradas para ${category}`)
   }
 
    const handleImport = async () => {
