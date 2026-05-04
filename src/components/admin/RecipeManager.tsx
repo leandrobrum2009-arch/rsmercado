@@ -179,7 +179,7 @@ export function RecipeManager() {
           <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
           </Button>
-          <Button className="bg-zinc-900 font-black uppercase text-[10px] h-10 px-6">
+          <Button onClick={() => setIsAiModalOpen(true)} className="bg-zinc-900 font-black uppercase text-[10px] h-10 px-6">
             <Plus className="mr-2 h-4 w-4" /> Nova Manual
           </Button>
         </div>

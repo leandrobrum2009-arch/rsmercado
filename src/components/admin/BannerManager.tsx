@@ -65,16 +65,16 @@ export function BannerManager() {
 
       const { data: catData } = await supabase.from('categories').select('*')
       
-      // If we have banners, try to manually map categories if the join failed in a separate call or just keep as is
-      if (bannersData && catData) {
-        const mappedBanners = bannersData.map(banner => ({
-          ...banner,
-          categories: catData.find(c => c.id === banner.category_id)
-        }))
-        setBanners(mappedBanners)
-      } else {
-        setBanners(bannersData || [])
-      }
+      // Safely map banners with categories
+      const safeBanners = bannersData || [];
+      const safeCategories = catData || [];
+      
+      const mappedBanners = safeBanners.map(banner => ({
+        ...banner,
+        categories: safeCategories.find(c => c.id === banner.category_id)
+      }));
+      
+      setBanners(mappedBanners);
       
       setCategories(catData || [])
     } catch (err: any) {
