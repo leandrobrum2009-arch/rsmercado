@@ -539,33 +539,98 @@ export function ProductImporter() {
         </Card>
       )}
 
-      {activeTab === 'history' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-black uppercase italic tracking-tighter">Histórico de Importação</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[10px] font-black uppercase">Data</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Sucesso</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {importLogs.map(log => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-[10px]">{new Date(log.created_at).toLocaleString()}</TableCell>
-                    <TableCell><Badge variant="secondary">{log.category}</Badge></TableCell>
-                    <TableCell className="font-bold">{log.successful_count} itens</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+       {activeTab === 'history' && (
+         <Card>
+           <CardHeader>
+             <CardTitle className="font-black uppercase italic tracking-tighter">Histórico de Importação</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead className="text-[10px] font-black uppercase">Data</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase">Sucesso</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {importLogs.map(log => (
+                   <TableRow key={log.id}>
+                     <TableCell className="text-[10px]">{new Date(log.created_at).toLocaleString()}</TableCell>
+                     <TableCell><Badge variant="secondary">{log.category}</Badge></TableCell>
+                     <TableCell className="font-bold">{log.successful_count} itens</TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+       )}
+ 
+       <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+         <DialogContent className="max-w-2xl border-4 border-zinc-900 shadow-2xl">
+           <DialogHeader>
+             <DialogTitle className="font-black uppercase italic text-2xl tracking-tighter">Buscador de Fotos</DialogTitle>
+             <DialogDescription className="font-bold uppercase text-[10px]">Encontre a melhor imagem para {searchingProduct?.name}</DialogDescription>
+           </DialogHeader>
+           
+           <div className="space-y-6 py-4">
+             <div className="flex gap-2">
+               <Input 
+                 value={searchQuery} 
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 placeholder="Ex: Coca Cola 2L garrafa"
+                 className="font-bold"
+               />
+               <Button onClick={performSearch} disabled={searching} className="bg-zinc-900 hover:bg-zinc-800">
+                 {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+               </Button>
+               <Button variant="outline" className="border-2 border-zinc-200" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}&tbm=isch`, '_blank')}>
+                 <ExternalLink className="h-4 w-4" />
+               </Button>
+             </div>
+ 
+             {searchResults.length > 0 ? (
+               <div className="grid grid-cols-3 gap-4">
+                 {searchResults.map((url, i) => (
+                   <div 
+                     key={i} 
+                     className="group relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 hover:border-zinc-900 cursor-pointer transition-all"
+                     onClick={() => selectImage(url)}
+                   >
+                     <img src={url} className="w-full h-full object-cover" />
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                       <span className="text-white font-black uppercase text-[10px]">Selecionar</span>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="border-2 border-dashed border-zinc-100 rounded-2xl p-12 text-center">
+                 <ImageIcon className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
+                 <p className="text-zinc-400 font-bold uppercase text-[10px]">Clique em pesquisar para ver sugestões ou use o botão do Google ao lado</p>
+               </div>
+             )}
+ 
+             <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase text-zinc-500">Ou cole a URL da imagem diretamente</label>
+               <Input 
+                 placeholder="https://exemplo.com/foto.jpg" 
+                 onChange={(e) => {
+                   if (e.target.value.startsWith('http')) {
+                     selectImage(e.target.value)
+                   }
+                 }}
+                 className="text-xs"
+               />
+             </div>
+           </div>
+ 
+           <DialogFooter>
+             <Button variant="ghost" onClick={() => setSearchDialogOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
     </div>
   )
 }
