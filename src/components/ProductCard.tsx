@@ -1,18 +1,22 @@
-   import { Plus, Minus, ShoppingCart, Tag } from "lucide-react";
+  import { Plus, Minus, ShoppingCart, Tag, Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag } from "lucide-react";
+  const categoryIcons: Record<string, any> = {
+    "Hortifruti": Apple,
+    "Padaria": Croissant,
+    "Açougue": Beef,
+    "Carnes": Beef,
+    "Bebidas": Wine,
+    "Laticínios": Milk,
+    "Limpeza": SprayCan,
+    "Pet Shop": Dog,
+    "Higiene": Brush,
+  };
+
  import { useCart } from "../contexts/CartContext";
  import { toast } from "@/lib/toast";
 import { SmartImage } from "./ui/SmartImage";
  
  interface ProductProps {
-   product: {
-     id: string;
-     name: string;
-     price: number;
-     old_price?: number;
-     image_url: string;
-     points_value: number;
-     category_id?: string;
-   };
+    product: any;
  }
  
  export const ProductCard = ({ product }: ProductProps) => {
@@ -40,9 +44,13 @@ import { SmartImage } from "./ui/SmartImage";
                 +{product.points_value} PTS
               </div>
             )}
-            {product.category_id && (
-              <div className="bg-zinc-900/80 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 w-fit uppercase tracking-tighter shadow-sm">
-                <Tag size={8} /> Item
+            {product.categories?.name && (
+              <div className="bg-zinc-900/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded-lg flex items-center gap-1.5 w-fit uppercase tracking-tighter shadow-lg border border-white/10">
+                {(() => {
+                  const Icon = categoryIcons[product.categories.name] || ShoppingBag;
+                  return <Icon size={10} className="text-primary" />;
+                })()}
+                {product.categories.name}
               </div>
             )}
           </div>

@@ -133,7 +133,7 @@ export function ProductImporter() {
           price: parseFloat(p.price),
           category_id: catData?.id,
           is_available: p.is_available,
-          is_approved: false, // Wait for photo step
+          is_approved: true, // Default to true so user sees products immediately
           stock: 100
         })
         if (!error) successCount++
