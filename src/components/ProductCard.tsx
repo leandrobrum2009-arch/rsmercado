@@ -86,13 +86,13 @@ import { SmartImage } from "./ui/SmartImage";
                  </button>
                </div>
              ) : (
-               <button 
-                 onClick={handleAdd}
-                 className="w-full bg-green-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium hover:bg-green-700 transition-colors"
-               >
-                 <ShoppingCart size={16} />
-                 Adicionar
-               </button>
+                <button 
+                  onClick={handleAdd}
+                  className="w-full bg-zinc-900 text-white py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-md"
+                >
+                  <Plus size={14} className="text-green-400" />
+                  Adicionar
+                </button>
              )}
            </div>
          </div>
