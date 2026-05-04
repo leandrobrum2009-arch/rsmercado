@@ -6,7 +6,45 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database } from 'lucide-react'
+  const seedInitialData = async () => {
+    if (!confirm('Deseja carregar produtos iniciais no banco de dados?')) return
+    setIsLoading(true)
+    try {
+      // Ensure categories exist
+      const categoriesToCreate = [
+        { name: 'Hortifruti', slug: 'hortifruti' },
+        { name: 'Padaria', slug: 'padaria' },
+        { name: 'Carnes', slug: 'acougue' },
+        { name: 'Bebidas', slug: 'bebidas' },
+        { name: 'Limpeza', slug: 'limpeza' }
+      ]
+
+      const { data: catData, error: catError } = await supabase.from('categories').upsert(categoriesToCreate, { onConflict: 'slug' }).select()
+      if (catError) throw catError
+
+      const hortiId = catData.find(c => c.slug === 'hortifruti')?.id
+      const padariaId = catData.find(c => c.slug === 'padaria')?.id
+
+      const productsToSeed = [
+        { name: 'Banana Nanica 1kg', price: 5.99, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300' },
+        { name: 'Pão Francês Unidade', price: 0.95, category_id: padariaId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300' },
+        { name: 'Maçã Gala 1kg', price: 12.90, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300' }
+      ]
+
+      const { error: prodError } = await supabase.from('products').insert(productsToSeed)
+      if (prodError) throw prodError
+
+      toast.success('Produtos iniciais carregados com sucesso!')
+      fetchData()
+    } catch (err: any) {
+      console.error('Seed error:', err)
+      toast.error('Erro ao semear dados: ' + err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Switch } from '@/components/ui/switch'
@@ -167,13 +205,22 @@ export function ProductManagement() {
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
         <div className="flex gap-2 items-center">
-          <Button 
-            variant="outline" 
-            onClick={approveAll} 
-            className="border-green-600 text-green-600 hover:bg-green-50 font-black uppercase text-[10px]"
-          >
-            <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={seedInitialData} 
+              className="border-zinc-300 text-zinc-600 hover:bg-zinc-50 font-black uppercase text-[10px]"
+            >
+              <Database className="mr-2 h-4 w-4" /> Semear Dados
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={approveAll} 
+              className="border-green-600 text-green-600 hover:bg-green-50 font-black uppercase text-[10px]"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
+            </Button>
+          </div>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
