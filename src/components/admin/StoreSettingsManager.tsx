@@ -162,24 +162,46 @@
                          id="logo-upload"
                          disabled={uploading}
                        />
-                       <label 
-                         htmlFor="logo-upload" 
-                         className="flex flex-col items-center justify-center gap-2 p-8 border-4 border-dashed border-zinc-100 rounded-3xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 group"
-                       >
-                         {uploading ? (
-                           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                         ) : settings.logo_url ? (
-                           <img src={settings.logo_url} className="h-20 object-contain mb-2" alt="Logo" />
-                         ) : (
-                           <div className="bg-white p-4 rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-                             <Upload className="h-8 w-8 text-zinc-400 group-hover:text-primary transition-colors" />
-                           </div>
-                         )}
-                         <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-primary">
-                           {uploading ? 'Enviando...' : settings.logo_url ? 'Alterar Logomarca' : 'Fazer Upload da Logo'}
-                         </span>
-                         <p className="text-[10px] font-bold text-zinc-400">PNG, JPG ou SVG (Máx 2MB)</p>
-                       </label>
+                        <div className="flex flex-col md:flex-row gap-4 items-start">
+                          <label 
+                            htmlFor="logo-upload" 
+                            className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
+                          >
+                            {uploading ? (
+                              <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+                            ) : settings.logo_url ? (
+                              <div className="flex flex-col items-center">
+                                <img src={settings.logo_url} className="h-16 object-contain mb-2" alt="Logo" />
+                                <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
+                                  <Upload className="h-3 w-3" /> Alterar Arquivo
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="bg-zinc-100 p-4 rounded-2xl shadow-inner group-hover:bg-green-100 transition-colors">
+                                  <Upload className="h-8 w-8 text-zinc-400 group-hover:text-green-600 transition-colors" />
+                                </div>
+                                <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-green-600">
+                                  Clique para Upload
+                                </span>
+                              </div>
+                            )}
+                            <p className="text-[10px] font-bold text-zinc-400 mt-1">PNG ou JPG (Máx 2MB)</p>
+                          </label>
+
+                          <div className="flex-1 w-full space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Ou Link Direto</label>
+                            <Input 
+                              value={settings.logo_url}
+                              onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                              placeholder="https://exemplo.com/logo.png"
+                              className="rounded-xl border-zinc-200 focus:ring-primary h-12 bg-white"
+                            />
+                            <p className="text-[9px] text-zinc-400 font-medium italic leading-tight">
+                              Se preferir, cole o link direto da sua logo hospedada em outro local.
+                            </p>
+                          </div>
+                        </div>
                      </div>
                      
                      <div className="flex flex-col gap-2">
