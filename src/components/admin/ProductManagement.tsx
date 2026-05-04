@@ -25,34 +25,46 @@ export function ProductManagement() {
     fetchData()
   }, [])
 
-   const fetchData = async () => {
-     setIsLoading(true)
-     try {
-       // Using a broader query to debug visibility
-       console.log('Fetching products for admin...');
-       const { data: prodData, error: prodError, status, statusText } = await supabase
-         .from('products')
-         .select('*, categories(name)')
-         .order('created_at', { ascending: false })
-       
-       if (prodError) {
-         console.error('Fetch products error:', prodError, 'Status:', status, statusText)
-         toast.error('Erro ao carregar produtos: ' + prodError.message)
-       } else {
-         console.log('Products fetched:', prodData?.length || 0);
-       }
-       
-       const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
-       if (catError) console.error('Fetch categories error:', catError)
-       
-       setProducts(prodData || [])
-       setCategories(catData || [])
-     } catch (err: any) {
-       console.error('Fetch error:', err)
-       toast.error('Erro inesperado: ' + err.message)
-     }
-     setIsLoading(false)
-   }
+  const fetchData = async () => {
+    setIsLoading(true)
+    try {
+      // Using a broader query to debug visibility
+      console.log('Fetching products for admin...');
+      
+      // Determine columns based on error or previous knowledge
+      // We know brand, is_approved, is_available might be missing
+      const { data: prodData, error: prodError } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false })
+      
+      if (prodError) {
+        console.error('Fetch products error:', prodError);
+        // Try without categories(name) if it failed there, or other columns
+        const { data: retryData, error: retryError } = await supabase
+          .from('products')
+          .select('id, name, price, image_url, stock')
+          .order('created_at', { ascending: false })
+          
+        if (retryError) {
+          toast.error('Erro ao carregar produtos do banco')
+        } else {
+          setProducts(retryData || [])
+        }
+      } else {
+        setProducts(prodData || [])
+      }
+      
+      const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
+      if (catError) console.error('Fetch categories error:', catError)
+      
+      setCategories(catData || [])
+    } catch (err: any) {
+      console.error('Fetch error:', err)
+      toast.error('Erro inesperado: ' + err.message)
+    }
+    setIsLoading(false)
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -89,7 +101,7 @@ export function ProductManagement() {
     }
     
     setIsSubmitting(true)
-    const { error } = await supabase.from('products').insert([{
+    const productToInsert: any = {
       name: newProduct.name,
       description: newProduct.description,
       price: Number(newProduct.price),
@@ -97,13 +109,16 @@ export function ProductManagement() {
       category_id: newProduct.category_id,
       image_url: newProduct.image_url,
       stock: parseInt(newProduct.stock) || 0,
-      is_available: newProduct.is_available,
       points_value: parseInt(newProduct.points_value) || 0
-    }])
+    };
+
+    const { error } = await supabase.from('products').insert([productToInsert])
     setIsSubmitting(false)
     
-    if (error) toast.error('Erro ao adicionar produto')
-    else {
+    if (error) {
+      console.error('Add product error:', error)
+      toast.error('Erro ao adicionar produto: ' + error.message)
+    } else {
       toast.success('Produto adicionado!')
       setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0' })
       fetchData()
