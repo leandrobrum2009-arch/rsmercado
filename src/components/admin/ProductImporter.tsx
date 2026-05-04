@@ -110,9 +110,9 @@ export function ProductImporter() {
      }
    }
  
-   const categories = [
-     "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
-   ]
+    const categories = [
+      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Laticínios", "Frios", "Pet Shop"
+    ]
  
    const fetchCategories = async () => {
      const { data } = await supabase.from('categories').select('*').order('name')
