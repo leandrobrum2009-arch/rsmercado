@@ -158,10 +158,10 @@ export function ProductImporter() {
             console.error('Category creation failed:', catErr)
             const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
             catData = retryCat
-         } else {
-            catData = newCat
-             console.log('New category created:', catData.id);
-         }
+          } else {
+             catData = newCat
+             if (catData) console.log('New category created:', catData.id);
+          }
        }
 
        let successCount = 0;
