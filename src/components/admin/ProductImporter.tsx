@@ -6,13 +6,59 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from '@/lib/toast'
-import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle } from 'lucide-react'
+ import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle, FileUp, Download, Trash2 } from 'lucide-react'
+ import Papa from 'papaparse'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 
 export function ProductImporter() {
-  const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history'>('importer')
+   const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history' | 'csv'>('importer')
+   const [csvFile, setCsvFile] = useState<File | null>(null)
+   const [csvData, setCsvData] = useState<any[]>([])
+   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0]
+     if (!file) return
+     setCsvFile(file)
+     
+     Papa.parse(file, {
+       header: true,
+       skipEmptyLines: true,
+       complete: (results) => {
+         const parsedData = results.data.map((row: any, index: number) => ({
+           id: `csv-${index}-${Math.random().toString(36).substr(2, 5)}`,
+           name: row.nome || row.name || row.Produto || '',
+           brand: row.marca || row.brand || row.Marca || '',
+           size: row.tamanho || row.size || row.Tamanho || row.peso || row.vol || '',
+           price: row.preco || row.price || row.Preço || '0.00',
+           category: row.categoria || row.category || row.Categoria || category || 'Mercearia',
+           is_available: true
+         }))
+         setCsvData(parsedData)
+         setSuggestedProducts(parsedData)
+         setSelectedIds(parsedData.map(p => p.id))
+         toast.success(`${parsedData.length} produtos carregados do CSV`)
+       },
+       error: (error) => {
+         toast.error(`Erro ao processar CSV: ${error.message}`)
+       }
+     })
+   }
+ 
+   const downloadTemplate = () => {
+     const headers = ['nome', 'marca', 'tamanho', 'preco', 'categoria']
+     const csvContent = headers.join(',') + '\nExemplo Arroz,Tio João,5kg,29.90,Mercearia\nExemplo Feijão,Camil,1kg,8.50,Mercearia'
+     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+     const link = document.createElement('a')
+     const url = URL.createObjectURL(blob)
+     link.setAttribute('href', url)
+     link.setAttribute('download', 'template_importacao_produtos.csv')
+     link.style.visibility = 'hidden'
+     document.body.appendChild(link)
+     link.click()
+     document.body.removeChild(link)
+   }
+ 
   const [category, setCategory] = useState('')
   const [batchSize, setBatchSize] = useState(25)
   const [suggestedProducts, setSuggestedProducts] = useState<any[]>([])
@@ -108,103 +154,67 @@ export function ProductImporter() {
     }, 800)
   }
 
-  const handleImport = async () => {
-    if (selectedIds.length === 0) return toast.error('Selecione ao menos um produto')
-    setImporting(true)
-    
+   const handleImport = async () => {
+     if (selectedIds.length === 0) return toast.error('Selecione ao menos um produto')
+     setImporting(true)
+     
      try {
        console.log('Starting product import...', selectedIds.length, 'items');
        const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
        
-       // Check if user is admin first
+       // Check if user is admin
        const { data: isAdmin, error: adminCheckErr } = await supabase.rpc('is_admin');
        if (adminCheckErr) console.warn('Admin check error:', adminCheckErr);
        
        if (isAdmin === false) {
-         toast.error('Você não tem permissão de administrador no banco de dados. Use o Reparador Admin.');
+         toast.error('Você não tem permissão de administrador. Use o Reparador Admin.');
          setImporting(false);
          return;
        }
  
-       // Get or create category
-       // Input validation for category
-       if (!category || category.trim() === '') {
-         toast.error('Categoria inválida')
-         return
-       }
- 
-        let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle() as { data: { id: string } | null, error: any };
-       
-        if (catFetchErr) {
-          console.error('Error fetching category:', catFetchErr);
-          toast.error('Erro ao buscar categoria: ' + catFetchErr.message);
-        }
-  
-        if (!catData) {
-          console.log('Category not found, creating:', category);
-         const slug = category.toLowerCase()
-           .normalize("NFD")
-           .replace(/[\u0300-\u036f]/g, "")
-           .replace(/[^a-z0-9\s-]/g, "") // Sanitize slug
-           .replace(/\s+/g, '-')
-           .trim()
- 
-         const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
-           name: category, 
-           slug: slug 
-         }).select().single()
-         
-         if (catErr) {
-            console.error('Category creation failed:', catErr)
-            const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
-            catData = retryCat
-          } else {
-             catData = newCat
-             if (catData) console.log('New category created:', catData.id);
-          }
-       }
-
+       const categoryCache: Record<string, string> = {};
        let successCount = 0;
        let errorCount = 0;
-        let lastErrorMessage = '';
-       
-       // Batch processing would be better, but keeping loop for fallback resilience
-       for (const p of toImport) {
-         // Validate price
-         const priceValue = parseFloat(p.price);
-         if (isNaN(priceValue)) continue;
+       let lastErrorMessage = '';
  
-          const productToInsert: any = {
-            name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
-            price: priceValue,
-            category_id: catData ? catData.id : null,
-            image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
-          };
-         
-         const optionalFields = {
+       for (const p of toImport) {
+         const pCategory = p.category || category || 'Mercearia';
+         let catId = categoryCache[pCategory];
+ 
+         if (!catId) {
+           let { data: existingCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+           if (existingCat) {
+             catId = existingCat.id;
+           } else {
+             const slug = pCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-').trim();
+             const { data: newCat, error: catErr } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
+             if (newCat) catId = newCat.id;
+             else {
+               const { data: retryCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+               if (retryCat) catId = retryCat.id;
+             }
+           }
+           if (catId) categoryCache[pCategory] = catId;
+         }
+ 
+         const priceValue = parseFloat(p.price);
+         const productData = {
+           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
+           price: isNaN(priceValue) ? 0 : priceValue,
+           category_id: catId || null,
            brand: (p.brand || '').substring(0, 100),
            stock: 100,
            is_approved: true,
-           is_available: true
+           is_available: true,
+           image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
          };
  
-         let { error } = await supabase.from('products').insert({ ...productToInsert, ...optionalFields });
-         
-         if (error) {
-           if (error.message.includes('column')) {
-             const { error: retryError } = await supabase.from('products').insert(productToInsert);
-             error = retryError;
-           } else if (error.code === '42501') {
-             toast.error('Erro de permissão (RLS). Você é um administrador?');
-             setImporting(false);
-             return; // Stop on RLS error as it won't change
-           }
-         }
+         const { error } = await supabase.from('products').insert(productData);
          
          if (!error) successCount++;
          else {
            console.error('Failed to import product:', p.name, error);
-            lastErrorMessage = error.message;
+           lastErrorMessage = error.message;
            errorCount++;
          }
        }
@@ -249,13 +259,101 @@ export function ProductImporter() {
 
   return (
     <div className="space-y-6">
-      <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
-        <button onClick={() => setActiveTab('importer')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'importer' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Sugestões</button>
-        <button onClick={() => setActiveTab('review')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'review' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Aprovação</button>
-        <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Histórico</button>
-      </div>
-
-      {activeTab === 'importer' && (
+       <div className="flex bg-zinc-100 p-1 rounded-xl w-fit mb-6">
+         <button onClick={() => setActiveTab('importer')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'importer' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Sugestões</button>
+         <button onClick={() => setActiveTab('review')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'review' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Aprovação</button>
+         <button onClick={() => setActiveTab('csv')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'csv' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Importar CSV/Lote</button>
+         <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Histórico</button>
+       </div>
+ 
+       {activeTab === 'csv' && (
+         <div className="space-y-6">
+           <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
+             <CardHeader className="bg-zinc-900 text-white">
+               <div className="flex justify-between items-center">
+                 <div>
+                   <CardTitle className="font-black italic uppercase italic tracking-tighter">Importação em Lote (CSV)</CardTitle>
+                   <CardDescription className="text-zinc-400 font-bold uppercase text-[10px]">Carregue uma planilha com seus produtos</CardDescription>
+                 </div>
+                 <Button onClick={downloadTemplate} variant="outline" className="text-white border-zinc-700 hover:bg-zinc-800 font-black uppercase text-[10px]">
+                   <Download className="mr-2 h-4 w-4" /> Template CSV
+                 </Button>
+               </div>
+             </CardHeader>
+             <CardContent className="p-12">
+               <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-2xl p-12 hover:border-zinc-900 transition-colors cursor-pointer group relative">
+                 <Input 
+                   type="file" 
+                   accept=".csv" 
+                   onChange={handleCsvUpload} 
+                   className="absolute inset-0 opacity-0 cursor-pointer" 
+                 />
+                 <div className="bg-zinc-100 p-6 rounded-full group-hover:bg-zinc-900 group-hover:text-white transition-all">
+                   <FileUp className="h-12 w-12" />
+                 </div>
+                 <div className="mt-6 text-center">
+                   <h3 className="font-black uppercase italic text-xl">Clique para selecionar ou arraste o arquivo</h3>
+                   <p className="text-zinc-500 font-bold uppercase text-[10px] mt-2">Suporta arquivos .csv (Colunas: nome, marca, tamanho, preco, categoria)</p>
+                 </div>
+                 {csvFile && (
+                   <div className="mt-6 flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200">
+                     <CheckCircle2 className="h-4 w-4" />
+                     <span className="text-xs font-black uppercase">{csvFile.name}</span>
+                   </div>
+                 )}
+               </div>
+             </CardContent>
+           </Card>
+ 
+           {csvData.length > 0 && (
+             <Card className="border-2 border-zinc-100 shadow-xl">
+               <CardHeader className="flex flex-row items-center justify-between">
+                 <div>
+                   <CardTitle className="font-black uppercase tracking-tighter">Produtos Detectados no Arquivo</CardTitle>
+                   <CardDescription className="text-[10px] font-bold uppercase">Revise os dados antes de salvar no sistema</CardDescription>
+                 </div>
+                 <div className="flex gap-2">
+                   <Button onClick={() => { setCsvData([]); setSuggestedProducts([]); setCsvFile(null); }} variant="outline" className="border-2 border-zinc-200 font-black uppercase text-[10px] h-12">
+                     <Trash2 className="mr-2 h-4 w-4" /> Limpar
+                   </Button>
+                   <Button onClick={handleImport} disabled={importing} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8 h-12">
+                     {importing ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2 h-4 w-4" />}
+                     Importar {selectedIds.length} Itens do CSV
+                   </Button>
+                 </div>
+               </CardHeader>
+               <CardContent className="p-0">
+                 <Table>
+                   <TableHeader className="bg-zinc-50">
+                     <TableRow>
+                       <TableHead className="w-12"><Checkbox checked={selectedIds.length === csvData.length} onCheckedChange={(checked) => setSelectedIds(checked ? csvData.map(p => p.id) : [])} /></TableHead>
+                       <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase">Tam/Peso</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase">Preço</TableHead>
+                       <TableHead className="text-[10px] font-black uppercase">Categoria</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {csvData.map(p => (
+                       <TableRow key={p.id}>
+                         <TableCell><Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggleSelect(p.id)} /></TableCell>
+                         <TableCell><Input value={p.name} onChange={e => updateProduct(p.id, 'name', e.target.value)} className="h-8 text-xs font-bold" /></TableCell>
+                         <TableCell><Input value={p.brand} onChange={e => updateProduct(p.id, 'brand', e.target.value)} className="h-8 text-xs" /></TableCell>
+                         <TableCell><Input value={p.size} onChange={e => updateProduct(p.id, 'size', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
+                         <TableCell><Input type="number" value={p.price} onChange={e => updateProduct(p.id, 'price', e.target.value)} className="h-8 text-xs w-24" /></TableCell>
+                         <TableCell><Input value={p.category} onChange={e => updateProduct(p.id, 'category', e.target.value)} className="h-8 text-xs w-32" /></TableCell>
+                       </TableRow>
+                     ))}
+                   </TableBody>
+                 </Table>
+               </CardContent>
+             </Card>
+           )}
+         </div>
+       )}
+ 
+       {activeTab === 'importer' && (
         <div className="space-y-6">
           <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
             <CardHeader className="bg-zinc-900 text-white">
