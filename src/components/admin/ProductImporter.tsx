@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from '@/lib/toast'
- import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle, FileUp, Download, Trash2 } from 'lucide-react'
+  import { Loader2, Zap, Save, RefreshCw, CheckCircle2, History, AlertCircle, FileUp, Download, Trash2, Image as ImageIcon, Search, ExternalLink, Camera } from 'lucide-react'
  import Papa from 'papaparse'
-import { Input } from '@/components/ui/input'
+ import { Input } from '@/components/ui/input'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 
@@ -68,6 +69,42 @@ export function ProductImporter() {
   const [importLogs, setImportLogs] = useState<any[]>([])
    const [reviewProducts, setReviewProducts] = useState<any[]>([])
    const [availableCategories, setAvailableCategories] = useState<any[]>([])
+   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+   const [searchingProduct, setSearchingProduct] = useState<any>(null)
+   const [searchQuery, setSearchQuery] = useState('')
+   const [searchResults, setSearchResults] = useState<string[]>([])
+   const [searching, setSearching] = useState(false)
+ 
+   const openImageSearch = (product: any) => {
+     setSearchingProduct(product)
+     setSearchQuery(`${product.name} ${product.brand} ${product.size}`)
+     setSearchDialogOpen(true)
+     setSearchResults([])
+   }
+ 
+   const performSearch = async () => {
+     setSearching(true)
+     // Simulation of image search - in a real app this would call an Edge Function with a Search API
+     // For now, we'll provide a few generic high-quality placeholders and a Google link
+     setTimeout(() => {
+       const placeholders = [
+         `https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80`,
+         `https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=500&q=80`,
+         `https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=500&q=80`,
+         `https://images.unsplash.com/photo-1608686209041-723604f0556c?w=500&q=80`,
+         `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80`
+       ]
+       setSearchResults(placeholders)
+       setSearching(false)
+     }, 1000)
+   }
+ 
+   const selectImage = (url: string) => {
+     if (searchingProduct) {
+       updateProduct(searchingProduct.id, 'image_url', url)
+       setSearchDialogOpen(false)
+     }
+   }
  
    const categories = [
      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
