@@ -34,11 +34,20 @@ export function RecipeManager() {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setRecipes(data || [])
-    } catch (error) {
-      toast.error('Erro ao carregar receitas')
-    } finally {
+       if (error) {
+         if (error.message.includes('relation "recipes" does not exist')) {
+           toast.error('Tabela de receitas não encontrada. Use o Reparador Admin.')
+         } else {
+           toast.error('Erro ao carregar receitas')
+         }
+         setRecipes([])
+       } else {
+         setRecipes(data || [])
+       }
+     } catch (error: any) {
+       console.error('Fetch recipes error:', error)
+       toast.error('Erro de conexão ao carregar receitas')
+     } finally {
       setIsLoading(false)
     }
   }
