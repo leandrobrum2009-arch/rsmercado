@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Switch } from '@/components/ui/switch'
@@ -129,13 +129,36 @@ export function ProductManagement() {
     }
   }
 
+  const approveAll = async () => {
+    if (!confirm('Deseja publicar todos os produtos importados?')) return
+    setIsLoading(true)
+    const { error } = await supabase
+      .from('products')
+      .update({ is_approved: true })
+      .eq('is_approved', false)
+    
+    if (error) toast.error('Erro ao aprovar produtos')
+    else {
+      toast.success('Todos os produtos foram publicados!')
+      fetchData()
+    }
+    setIsLoading(false)
+  }
+
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Button 
+            variant="outline" 
+            onClick={approveAll} 
+            className="border-green-600 text-green-600 hover:bg-green-50 font-black uppercase text-[10px]"
+          >
+            <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
