@@ -7,6 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database } from 'lucide-react'
+import { toast } from '@/lib/toast'
+import { SmartImage } from '@/components/ui/SmartImage'
+import { Switch } from '@/components/ui/switch'
 export function ProductManagement() {
   const seedInitialData = async () => {
     if (!confirm('Deseja carregar produtos iniciais no banco de dados?')) return
