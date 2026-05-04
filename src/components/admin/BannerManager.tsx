@@ -84,21 +84,29 @@ export function BannerManager() {
     setIsLoading(false)
   }
 
-  const handleAddBanner = async () => {
-    if (!newBanner.image_url) return toast.error('URL da imagem é obrigatória')
-    
-    setIsAdding(true)
-    const { error } = await supabase.from('banners').insert([newBanner])
-    setIsAdding(false)
-    
-    if (error) {
-      toast.error('Erro ao adicionar banner')
-    } else {
-      toast.success('Banner adicionado!')
-      setNewBanner({ image_url: '', category_id: '', link_url: '', is_active: true })
-      fetchData()
-    }
-  }
+   const handleAddBanner = async () => {
+     if (!newBanner.image_url) return toast.error('URL da imagem é obrigatória')
+     
+     setIsAdding(true)
+     
+     // Ensure category_id is either a valid UUID or null
+     const bannerToInsert = {
+       ...newBanner,
+       category_id: newBanner.category_id && newBanner.category_id !== '' ? newBanner.category_id : null
+     }
+ 
+     const { error } = await supabase.from('banners').insert([bannerToInsert])
+     setIsAdding(false)
+     
+     if (error) {
+       console.error('Error adding banner:', error)
+       toast.error('Erro ao adicionar banner: ' + error.message)
+     } else {
+       toast.success('Banner adicionado!')
+       setNewBanner({ image_url: '', category_id: '', link_url: '', is_active: true })
+       fetchData()
+     }
+   }
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('banners').delete().eq('id', id)
