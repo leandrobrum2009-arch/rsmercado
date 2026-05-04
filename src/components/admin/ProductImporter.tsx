@@ -414,7 +414,7 @@ export function ProductImporter() {
           <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
             <CardHeader className="bg-zinc-900 text-white">
               <CardTitle className="font-black italic uppercase italic tracking-tighter">Gerador de Catálogo</CardTitle>
-              <CardDescription className="text-zinc-400 font-bold uppercase text-[10px]">Busca inteligente de produtos por categoria</CardDescription>
+               <CardDescription className="text-zinc-400 font-bold uppercase text-[10px]">Busca inteligente de produtos com pesquisa automática de imagens</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex flex-wrap gap-4 items-end">
@@ -449,8 +449,11 @@ export function ProductImporter() {
                 <Button onClick={generateSuggestions} disabled={loading} className="h-12 px-8 bg-zinc-900 hover:bg-zinc-800 font-black uppercase text-[10px] tracking-widest">
                   {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                   Gerar Sugestões
-                </Button>
-              </div>
+                 </Button>
+                 <p className="text-[10px] text-zinc-500 font-bold uppercase mt-2 italic">
+                   Dica: Após gerar, clique na lupa <Search className="inline h-2 w-2" /> para buscar fotos reais de cada produto.
+                 </p>
+               </div>
             </CardContent>
           </Card>
 
