@@ -5,16 +5,27 @@
  const supabase = createClient(supabaseUrl, supabaseKey)
  
  async function test() {
-   console.log('--- Testing Product Import ---')
+   console.log('--- Database Discovery ---')
    
-   // 1. Check current products
-   const { data: products, error: prodErr } = await supabase.from('products').select('*').limit(5)
-   if (prodErr) {
-     console.error('Error fetching products:', prodErr)
-   } else {
-     console.log('Current products count (limited to 5):', products?.length)
-     console.log('Products:', JSON.stringify(products, null, 2))
+   // List all tables we can see
+   const { data: tables, error: tableErr } = await supabase.rpc('get_tables') // This might not exist
+   if (tableErr) {
+     console.log('Could not use get_tables RPC, trying manual checks...')
    }
+ 
+   const tablesToCheck = ['products', 'categories', 'profiles', 'recipes', 'banners', 'orders', 'import_logs', 'user_roles']
+   for (const table of tablesToCheck) {
+     const { data, count, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
+     if (error) {
+       console.log(`Table ${table}: Error or not accessible (${error.message})`)
+     } else {
+       console.log(`Table ${table}: ${count} rows`)
+     }
+   }
+ 
+   console.log('\n--- Checking products content ---')
+   const { data: products } = await supabase.from('products').select('*').limit(3)
+   console.log('Products Sample:', JSON.stringify(products, null, 2))
  
    // 2. Check categories
    const { data: categories, error: catErr } = await supabase.from('categories').select('*').limit(5)
