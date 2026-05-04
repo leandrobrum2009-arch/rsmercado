@@ -1,29 +1,72 @@
- import { Link } from "@tanstack/react-router";
-  import { Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag, Sparkles } from "lucide-react";
- 
- const iconMap: Record<string, any> = {
-   "Hortifruti": Apple,
-   "Padaria": Croissant,
-   "Carnes": Beef,
-   "Bebidas": Wine,
-   "Laticínios": Milk,
-   "Limpeza": SprayCan,
-   "Pet Shop": Dog,
-   "Higiene": Brush,
- };
- 
- const categories = [
-   { name: "Hortifruti", slug: "hortifruti" },
-   { name: "Padaria", slug: "padaria" },
-   { name: "Carnes", slug: "acougue" },
-   { name: "Bebidas", slug: "bebidas" },
-   { name: "Laticínios", slug: "laticinios" },
-   { name: "Limpeza", slug: "limpeza" },
-   { name: "Pet Shop", slug: "pet-shop" },
-   { name: "Higiene", slug: "higiene" },
- ];
- 
-  export const CategoryBar = () => {
+import { Link } from "@tanstack/react-router";
+import { 
+  Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
+  ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
+  GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+const iconMap: Record<string, any> = {
+  "Hortifruti": Apple,
+  "Frutas": Apple,
+  "Legumes": Carrot,
+  "Verduras": Carrot,
+  "Padaria": Croissant,
+  "Pães": Croissant,
+  "Carnes": Beef,
+  "Açougue": Beef,
+  "Bebidas": Wine,
+  "Cervejas": Wine,
+  "Vinhos": Wine,
+  "Laticínios": Milk,
+  "Leites": Milk,
+  "Limpeza": SprayCan,
+  "Higiene": Brush,
+  "Pet Shop": Dog,
+  "Pets": Dog,
+  "Doces": Cookie,
+  "Mercearia": Coffee,
+  "Peixaria": Fish,
+  "Frios": IceCream,
+  "Congelados": IceCream,
+  "Bazar": Utensils,
+  "Infantil": Baby,
+  "Perfumaria": Bath,
+  "Floricultura": Flower2
+};
+
+const fallbackCategories = [
+  { name: "Hortifruti", slug: "hortifruti" },
+  { name: "Padaria", slug: "padaria" },
+  { name: "Carnes", slug: "acougue" },
+  { name: "Bebidas", slug: "bebidas" },
+  { name: "Laticínios", slug: "laticinios" },
+  { name: "Limpeza", slug: "limpeza" },
+  { name: "Pet Shop", slug: "pet-shop" },
+  { name: "Higiene", slug: "higiene" },
+];
+
+export const CategoryBar = () => {
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (data && data.length > 0) {
+        setCategories(data);
+      } else {
+        setCategories(fallbackCategories);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  return (
     return (
       <div className="py-6 bg-white overflow-hidden">
         {/* Promotional Small Banner inside categories */}
