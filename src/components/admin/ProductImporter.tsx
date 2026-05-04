@@ -137,25 +137,28 @@ export function ProductImporter() {
       for (const p of toImport) {
         const productToInsert: any = {
           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim(),
-          brand: p.brand || '',
           price: parseFloat(p.price),
           category_id: catData?.id,
-          stock: 100,
-          is_approved: true,
-          is_available: true,
-          image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80` // Default placeholder for imports
+          image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
         };
         
-        // Try to insert with optional columns, but fallback if they don't exist
-        const { error } = await supabase.from('products').insert(productToInsert);
+        // Add optional columns only if they might exist
+        // This makes the importer more resilient to incomplete schemas
+        const optionalFields = {
+          brand: p.brand || '',
+          stock: 100,
+          is_approved: true,
+          is_available: true
+        };
+
+        // Try with all fields first
+        let { error } = await supabase.from('products').insert({ ...productToInsert, ...optionalFields });
         
-        if (error) {
-          console.error('Initial insert failed, trying minimal:', error);
-          // If it fails because of missing columns, we already trimmed it. 
-          // Let's check if it's another error (like RLS or required fields)
-          if (error.message.includes('column')) {
-             // This shouldn't happen now since we removed the missing columns
-          }
+        if (error && error.message.includes('column')) {
+          console.warn('Fallback to minimal insert due to missing columns');
+          // Try again without the optional fields that often cause issues
+          const { error: retryError } = await supabase.from('products').insert(productToInsert);
+          error = retryError;
         }
         
         if (!error) successCount++;

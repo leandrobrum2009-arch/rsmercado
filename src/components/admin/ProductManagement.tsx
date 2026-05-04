@@ -150,7 +150,15 @@ export function ProductManagement() {
       points_value: parseInt(newProduct.points_value) || 0
     };
 
-    const { error } = await supabase.from('products').insert([productToInsert])
+    let { error } = await supabase.from('products').insert([productToInsert])
+    
+    if (error && error.message.includes('column')) {
+       console.warn('Minimal insert fallback');
+       // Try to remove potentially missing columns
+       const { name, price, category_id, image_url, description } = productToInsert;
+       const { error: retryError } = await supabase.from('products').insert([{ name, price, category_id, image_url, description }]);
+       error = retryError;
+    }
     setIsSubmitting(false)
     
     if (error) {
