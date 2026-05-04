@@ -43,8 +43,7 @@
         if (data && data.length > 0) {
           setProducts(data);
         } else {
-          // If no products in DB, show mock products as fallback
-          setProducts(mockProducts);
+          setProducts([]);
         }
       } catch (err) {
         console.error('Error fetching products:', err);

@@ -54,20 +54,17 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
       }
 
       setLoading(true)
-       const { error } = await supabase
-         .from('profiles')
-         .update({
-           full_name: formData.full_name,
-           birth_date: formData.birth_date,
-           gender: formData.gender,
-           household_status: formData.household_status,
-           avatar_url: formData.avatar_url,
-           whatsapp: formData.whatsapp,
-           // Also update aliases for backward compatibility with other components
-           birthday: formData.birth_date,
-           family_status: formData.household_status
-         })
-         .eq('id', profile.id);
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: formData.full_name,
+            birth_date: formData.birth_date,
+            gender: formData.gender,
+            household_status: formData.household_status,
+            avatar_url: formData.avatar_url,
+            whatsapp: formData.whatsapp
+          })
+          .eq('id', profile.id);
  
        if (error) {
          toast.error('Erro ao atualizar perfil: ' + error.message);

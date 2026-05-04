@@ -95,17 +95,18 @@ export const CategoryBar = () => {
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
                   const IconComponent = iconMap[cat.name] || iconMap[cat.icon_name || ""] || ShoppingBag;
-                 const colors: Record<string, string> = {
-                   "Hortifruti": "bg-green-100 text-green-600 border-green-200",
-                   "Padaria": "bg-amber-100 text-amber-600 border-amber-200",
-                   "Carnes": "bg-red-100 text-red-600 border-red-200",
-                   "Bebidas": "bg-blue-100 text-blue-600 border-blue-200",
-                   "Laticínios": "bg-zinc-100 text-zinc-600 border-zinc-200",
-                   "Limpeza": "bg-cyan-100 text-cyan-600 border-cyan-200",
-                   "Pet Shop": "bg-orange-100 text-orange-600 border-orange-200",
-                   "Higiene": "bg-pink-100 text-pink-600 border-pink-200",
-                 };
-                 const colorClass = colors[cat.name] || "bg-zinc-100 text-zinc-600 border-zinc-200";
+                  const colors: Record<string, { bg: string, text: string, border: string, shadow: string }> = {
+                    "Hortifruti": { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-100", shadow: "shadow-emerald-100" },
+                    "Padaria": { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-100", shadow: "shadow-orange-100" },
+                    "Carnes": { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-100", shadow: "shadow-rose-100" },
+                    "Bebidas": { bg: "bg-indigo-50", text: "text-indigo-600", border: "border-indigo-100", shadow: "shadow-indigo-100" },
+                    "Laticínios": { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-100", shadow: "shadow-blue-100" },
+                    "Limpeza": { bg: "bg-sky-50", text: "text-sky-600", border: "border-sky-100", shadow: "shadow-sky-100" },
+                    "Pet Shop": { bg: "bg-amber-50", text: "text-amber-600", border: "border-amber-100", shadow: "shadow-amber-100" },
+                    "Higiene": { bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-100", shadow: "shadow-purple-100" },
+                    "Mercearia": { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200", shadow: "shadow-amber-100" },
+                  };
+                  const colorData = colors[cat.name] || { bg: "bg-zinc-50", text: "text-zinc-600", border: "border-zinc-100", shadow: "shadow-zinc-100" };
                  
                  return (
                    <button
@@ -113,7 +114,7 @@ export const CategoryBar = () => {
                      onClick={() => window.location.href = `/search?q=${cat.name}`}
                      className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20"
                    >
-                      <div className={`w-16 h-16 rounded-[24px] ${colorClass} border-2 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm relative overflow-hidden`}>
+                      <div className={`w-16 h-16 rounded-[22px] ${colorData.bg} ${colorData.text} ${colorData.border} border-2 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm ${colorData.shadow} relative overflow-hidden`}>
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         {cat.icon_url ? (
                           <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10" alt={cat.name} />

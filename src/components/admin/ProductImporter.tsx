@@ -118,22 +118,32 @@ export function ProductImporter() {
       // Get or create category
       let { data: catData } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
       if (!catData) {
-        const { data: newCat } = await supabase.from('categories').insert({ 
+        const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
           name: category, 
           slug: category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
         }).select().single()
-        catData = newCat
+        
+        if (catErr) {
+           console.error('Category creation failed:', catErr)
+           // Try to find it again, maybe it was created by another process or slug exists
+           const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
+           catData = retryCat
+        } else {
+           catData = newCat
+        }
       }
 
       let successCount = 0
       for (const p of toImport) {
         const productToInsert: any = {
           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim(),
+          brand: p.brand || '',
           price: parseFloat(p.price),
           category_id: catData?.id,
           stock: 100,
-          is_approved: true, // Auto-publish on import as requested
-          is_available: true
+          is_approved: true,
+          is_available: true,
+          image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80` // Default placeholder for imports
         };
         
         // Try to insert with optional columns, but fallback if they don't exist
