@@ -20,25 +20,26 @@ export const Route = createFileRoute("/")({
     const [points, setPoints] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-      const fetchPoints = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setLoading(true);
-          const { data } = await supabase
-            .from('profiles')
-            .select('loyalty_points')
-            .eq('id', session.user.id)
-            .maybeSingle();
-          
-          if (data) {
-            setPoints(data.loyalty_points || 0);
-          }
-          setLoading(false);
-        }
-      };
-      fetchPoints();
-    }, []);
+     useEffect(() => {
+       const fetchPoints = async () => {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (session) {
+           setLoading(true);
+           // Try both common column names to ensure compatibility
+           const { data } = await supabase
+             .from('profiles')
+             .select('*')
+             .eq('id', session.user.id)
+             .maybeSingle();
+           
+           if (data) {
+             setPoints(data.loyalty_points || data.points_balance || 0);
+           }
+           setLoading(false);
+         }
+       };
+       fetchPoints();
+     }, []);
 
    return (
      <div className="bg-gray-50 pb-10">
@@ -80,11 +81,13 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-         <BannerCarousel />
+          <div className="px-4 pt-4">
+            <BannerCarousel />
+          </div>
+  
+          <CategoryBar />
  
-         <StoriesCarousel />
- 
-         <CategoryBar />
+          <StoriesCarousel />
 
         {/* Main Recipe Section (replacing news/flyers focus) */}
         <RecipeFeed />

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Image as ImageIcon } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react'
 import { toast } from '@/lib/toast'
 
 export function BannerManager() {
@@ -13,7 +13,37 @@ export function BannerManager() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
-  const [newBanner, setNewBanner] = useState({ image_url: '', category_id: '', link_url: '', is_active: true })
+   const [newBanner, setNewBanner] = useState({ image_url: '', category_id: '', link_url: '', is_active: true })
+   const [uploading, setUploading] = useState(false)
+   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0]
+     if (!file) return
+ 
+     setUploading(true)
+     try {
+       const fileExt = file.name.split('.').pop()
+       const fileName = `banner-${Math.random().toString(36).substring(2)}.${fileExt}`
+       const filePath = `${fileName}`
+ 
+       const { data, error } = await supabase.storage
+         .from('products') // Using existing bucket for simplicity, or we could use 'banners' if it exists
+         .upload(filePath, file)
+ 
+       if (error) throw error
+ 
+       const { data: { publicUrl } } = supabase.storage
+         .from('products')
+         .getPublicUrl(filePath)
+ 
+       setNewBanner({ ...newBanner, image_url: publicUrl })
+       toast.success('Banner carregado com sucesso!')
+     } catch (error: any) {
+       toast.error('Erro no upload: ' + error.message)
+     } finally {
+       setUploading(false)
+     }
+   }
+ 
 
   useEffect(() => {
     fetchData()
@@ -85,14 +115,36 @@ export function BannerManager() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-               <label className="text-xs font-black uppercase text-zinc-500">URL da Imagem</label>
-              <Input 
-                placeholder="https://exemplo.com/banner.jpg" 
-                value={newBanner.image_url}
-                onChange={(e) => setNewBanner({...newBanner, image_url: e.target.value})}
-              />
-            </div>
+             <div className="space-y-2 col-span-1 md:col-span-3">
+                <label className="text-xs font-black uppercase text-zinc-500">Imagem do Banner</label>
+                <div className="flex gap-4 items-center">
+                  {newBanner.image_url && (
+                    <img src={newBanner.image_url} className="w-32 h-16 object-cover rounded-lg border-2 border-zinc-200" alt="Preview" />
+                  )}
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden" 
+                        id="banner-upload"
+                        disabled={uploading}
+                      />
+                      <label 
+                        htmlFor="banner-upload" 
+                        className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-zinc-300 rounded-xl cursor-pointer hover:border-zinc-900 transition-colors bg-zinc-50"
+                      >
+                        {uploading ? <Loader2 className="animate-spin" /> : <Upload className="text-zinc-400" />}
+                        <span className="text-xs font-bold uppercase text-zinc-600">
+                          {uploading ? 'Enviando...' : 'Clique para fazer upload ou arraste a imagem'}
+                        </span>
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mt-2">Tamanho recomendado: 1200x400px</p>
+                  </div>
+                </div>
+             </div>
             <div className="space-y-2">
                <label className="text-xs font-black uppercase text-zinc-500">Categoria (Opcional)</label>
               <Select onValueChange={(val) => setNewBanner({...newBanner, category_id: val})}>

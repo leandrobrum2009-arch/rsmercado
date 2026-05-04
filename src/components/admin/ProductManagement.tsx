@@ -25,25 +25,34 @@ export function ProductManagement() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const { data: prodData, error: prodError } = await supabase.from('products').select('*, categories(name)').order('created_at', { ascending: false })
-      if (prodError) {
-        console.error('Fetch products error:', prodError)
-        toast.error('Erro ao carregar produtos: ' + prodError.message)
-      }
-      
-      const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
-      if (catError) console.error('Fetch categories error:', catError)
-      
-      setProducts(prodData || [])
-      setCategories(catData || [])
-    } catch (err) {
-      console.error('Fetch error:', err)
-    }
-    setIsLoading(false)
-  }
+   const fetchData = async () => {
+     setIsLoading(true)
+     try {
+       // Using a broader query to debug visibility
+       console.log('Fetching products for admin...');
+       const { data: prodData, error: prodError, status, statusText } = await supabase
+         .from('products')
+         .select('*, categories(name)')
+         .order('created_at', { ascending: false })
+       
+       if (prodError) {
+         console.error('Fetch products error:', prodError, 'Status:', status, statusText)
+         toast.error('Erro ao carregar produtos: ' + prodError.message)
+       } else {
+         console.log('Products fetched:', prodData?.length || 0);
+       }
+       
+       const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
+       if (catError) console.error('Fetch categories error:', catError)
+       
+       setProducts(prodData || [])
+       setCategories(catData || [])
+     } catch (err: any) {
+       console.error('Fetch error:', err)
+       toast.error('Erro inesperado: ' + err.message)
+     }
+     setIsLoading(false)
+   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -185,8 +194,8 @@ export function ProductManagement() {
                 <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-zinc-400">
                     <ShoppingBag className="h-12 w-12 opacity-20" />
-                    <p className="font-bold uppercase text-xs">Nenhum produto cadastrado ainda</p>
-                    <p className="text-[10px]">Clique em "Novo Produto" para começar a vender.</p>
+                     <p className="font-bold uppercase text-xs">Nenhum produto visível aqui</p>
+                     <p className="text-[10px]">Verifique a aba de <strong>Aprovação</strong> no Importador para liberar novos itens.</p>
                   </div>
                 </TableCell>
               </TableRow>

@@ -1,4 +1,4 @@
- import { Plus, Minus, ShoppingCart } from "lucide-react";
+   import { Plus, Minus, ShoppingCart, Tag } from "lucide-react";
  import { useCart } from "../contexts/CartContext";
  import { toast } from "@/lib/toast";
 import { SmartImage } from "./ui/SmartImage";
@@ -34,11 +34,18 @@ import { SmartImage } from "./ui/SmartImage";
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
-         {product.points_value > 0 && (
-           <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-             +{product.points_value} pts
-           </div>
-         )}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {product.points_value > 0 && (
+              <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                +{product.points_value} PTS
+              </div>
+            )}
+            {product.category_id && (
+              <div className="bg-zinc-900/80 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 w-fit uppercase tracking-tighter shadow-sm">
+                <Tag size={8} /> Item
+              </div>
+            )}
+          </div>
        </div>
        
        <div className="p-3 flex-1 flex flex-col">

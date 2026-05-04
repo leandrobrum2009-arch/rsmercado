@@ -84,7 +84,10 @@ function CartPage() {
           total_amount: total,
           payment_method: paymentMethod,
           status: 'pending',
-          points_earned: Math.floor(total * pointsRatio)
+           points_earned: Math.floor(total * pointsRatio),
+           // Adding these just in case they are expected by the schema now or in the future
+           customer_name: profile.full_name,
+           customer_phone: profile.whatsapp
         })
         .select()
         .single();
@@ -112,9 +115,9 @@ function CartPage() {
         status: 'Recebido'
       });
       
-      await sendWhatsAppMessage(profile.whatsapp, message);
-
-      toast.success("Pedido enviado com sucesso!");
+       const waResult = await sendWhatsAppMessage(profile.whatsapp, message);
+ 
+       toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsRatio)} pontos.`);
       clearCart();
       navigate({ to: "/profile" });
     } catch (error: any) {
