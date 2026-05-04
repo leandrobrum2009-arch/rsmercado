@@ -33,9 +33,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
  
     const handleSave = async () => {
       if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
-      if (!formData.birth_date) return toast.error('Data de nascimento é obrigatória para promoções!')
-      if (!formData.gender) return toast.error('Por favor, selecione seu sexo!')
-      if (!formData.whatsapp) return toast.error('WhatsApp é necessário para notificações!')
+       // Make some fields optional but encourage filling them
+       if (!formData.whatsapp) return toast.error('WhatsApp é obrigatório para realizar pedidos!')
 
       // Validar idade
       const birthDate = new Date(formData.birth_date)
