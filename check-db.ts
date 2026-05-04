@@ -1,12 +1,3 @@
-   console.log('Testing insert...')
-   const { error: insertError } = await supabase.from('products').insert({
-     name: 'Test Product',
-     price: 10.0,
-     is_available: true,
-     is_approved: true,
-     stock: 100
-   })
-   console.log('Insert error:', insertError)
  import { createClient } from '@supabase/supabase-js'
  
  const supabaseUrl = 'https://woelvkuxkkhvausaoudk.supabase.co'
@@ -32,4 +23,21 @@
    console.log('Total products count:', countData)
  }
  
- check()
+  async function testInsert() {
+    console.log('Testing insert...')
+    const { error: insertError } = await supabase.from('products').insert({
+      name: 'Test Product',
+      price: 10.0,
+      is_available: true,
+      is_approved: true,
+      stock: 100
+    })
+    console.log('Insert error:', insertError)
+  }
+
+  async function run() {
+    await check()
+    await testInsert()
+  }
+
+  run()
