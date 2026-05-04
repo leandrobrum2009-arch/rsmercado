@@ -29,7 +29,6 @@
       name: 'Test Product',
       price: 10.0,
       is_available: true,
-      is_approved: true,
       stock: 100
     })
     console.log('Insert error:', insertError)
