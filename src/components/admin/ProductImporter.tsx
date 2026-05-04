@@ -243,10 +243,26 @@ export function ProductImporter() {
         { name: "Wafer Morango", brand: "Bauducco", size: "140g", price: "4.50" },
         { name: "Bombom Sonho de Valsa", brand: "Lacta", size: "unidade", price: "1.50" },
         { name: "Bala de Goma", brand: "Fini", size: "90g", price: "6.90" }
-      ]
-        { name: "Shampoo Reconstrução", brand: "Dove", size: "400ml", price: "19.90" },
-        { name: "Sabonete Barra", brand: "Rexona", size: "84g", price: "2.50" },
-        { name: "Desodorante Aerosol", brand: "Rexona", size: "150ml", price: "14.90" }
+      ],
+      "Massas e Grãos": [
+        { name: "Arroz Integral", brand: "Tio João", size: "1kg", price: "7.90" },
+        { name: "Feijão Preto", brand: "Camil", size: "1kg", price: "9.50" },
+        { name: "Grão de Bico", brand: "Yoki", size: "500g", price: "11.90" },
+        { name: "Lentilha", brand: "Yoki", size: "500g", price: "10.50" },
+        { name: "Quinoa em Grãos", brand: "Mãe Terra", size: "200g", price: "18.90" }
+      ],
+      "Café e Matinais": [
+        { name: "Café Solúvel Tradicional", brand: "Nescafé", size: "100g", price: "16.90" },
+        { name: "Cereal Matinal de Milho", brand: "Kellogg's", size: "240g", price: "12.50" },
+        { name: "Achocolatado em Pó", brand: "Nescau", size: "400g", price: "9.90" },
+        { name: "Aveia em Flocos", brand: "Quaker", size: "165g", price: "6.50" },
+        { name: "Geleia de Morango", brand: "Queensberry", size: "320g", price: "24.90" }
+      ],
+      "Utilidades Domésticas": [
+        { name: "Pilha Alcalina AA", brand: "Duracell", size: "4 unidades", price: "28.90" },
+        { name: "Lâmpada LED 9W", brand: "Philips", size: "unidade", price: "12.50" },
+        { name: "Papel Alumínio", brand: "Wyda", size: "45cm x 4m", price: "8.90" },
+        { name: "Filtro de Café 103", brand: "Melitta", size: "30 unidades", price: "5.50" }
       ]
     }
 
