@@ -53,9 +53,9 @@ export function ProductManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newProduct, setNewProduct] = useState({
-    name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0'
-  })
+   const [newProduct, setNewProduct] = useState({
+     name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: ''
+   })
   const [uploading, setUploading] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -147,16 +147,17 @@ export function ProductManagement() {
     }
     
     setIsSubmitting(true)
-    const productToInsert: any = {
-      name: newProduct.name,
-      description: newProduct.description,
-      price: Number(newProduct.price),
-      old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
-      category_id: newProduct.category_id,
-      image_url: newProduct.image_url,
-      stock: parseInt(newProduct.stock) || 0,
-      points_value: parseInt(newProduct.points_value) || 0
-    };
+     const productToInsert: any = {
+       name: newProduct.name,
+       description: newProduct.description,
+       price: Number(newProduct.price),
+       old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
+       category_id: newProduct.category_id,
+       image_url: newProduct.image_url,
+       stock: parseInt(newProduct.stock) || 0,
+       points_value: parseInt(newProduct.points_value) || 0,
+       brand: newProduct.brand
+     };
 
     let { error } = await supabase.from('products').insert([productToInsert])
     
@@ -173,9 +174,9 @@ export function ProductManagement() {
       console.error('Add product error:', error)
       toast.error('Falha ao salvar produto. Verifique sua conexão e permissões.')
     } else {
-      toast.success('Produto adicionado!')
-      setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0' })
-      fetchData()
+       toast.success('Produto adicionado!')
+       setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '' })
+       fetchData()
     }
   }
 
@@ -255,10 +256,14 @@ export function ProductManagement() {
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle className="font-black uppercase">Cadastrar Produto</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="space-y-2 col-span-2">
-                  <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
-                  <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-                </div>
+                 <div className="space-y-2 col-span-2 md:col-span-1">
+                   <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
+                   <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                 </div>
+                 <div className="space-y-2 col-span-2 md:col-span-1">
+                   <Label className="text-[10px] uppercase font-bold">Marca</Label>
+                   <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
+                 </div>
                 <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
                   <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
@@ -292,10 +297,11 @@ export function ProductManagement() {
       <div className="border-2 border-zinc-100 rounded-xl bg-white overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-zinc-50">
-            <TableRow>
-              <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
-              <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
-              <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
+               <TableRow>
+                 <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
               <TableHead className="text-[10px] font-black uppercase text-center">Venda Online</TableHead>
               <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
             </TableRow>
@@ -303,7 +309,7 @@ export function ProductManagement() {
           <TableBody>
             {products.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12">
+                 <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-zinc-400">
                     <ShoppingBag className="h-12 w-12 opacity-20" />
                       <p className="font-bold uppercase text-xs">Nenhum produto cadastrado no catálogo</p>
@@ -317,7 +323,13 @@ export function ProductManagement() {
                 <TableCell>
                   <SmartImage src={p.image_url} tableName="products" itemId={p.id} className="w-10 h-10 object-cover rounded shadow-sm" />
                 </TableCell>
-                <TableCell className="font-bold text-xs uppercase">{p.name}</TableCell>
+                 <TableCell className="font-bold text-xs uppercase">
+                   <div className="flex flex-col">
+                     <span>{p.name}</span>
+                     {p.brand && <span className="text-[9px] text-zinc-400 font-normal">{p.brand}</span>}
+                   </div>
+                 </TableCell>
+                 <TableCell className="text-xs uppercase font-medium">{p.brand || '-'}</TableCell>
                 <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
                 <TableCell className="text-center">
                   <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p.id, p.is_available)} />

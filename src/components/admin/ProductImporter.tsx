@@ -66,16 +66,23 @@ export function ProductImporter() {
   const [importing, setImporting] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [importLogs, setImportLogs] = useState<any[]>([])
-  const [reviewProducts, setReviewProducts] = useState<any[]>([])
-
-  const categories = [
-    "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
-  ]
-
-  useEffect(() => {
-    if (activeTab === 'history') fetchImportLogs()
-    if (activeTab === 'review') fetchReviewProducts()
-  }, [activeTab])
+   const [reviewProducts, setReviewProducts] = useState<any[]>([])
+   const [availableCategories, setAvailableCategories] = useState<any[]>([])
+ 
+   const categories = [
+     "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
+   ]
+ 
+   const fetchCategories = async () => {
+     const { data } = await supabase.from('categories').select('*').order('name')
+     if (data) setAvailableCategories(data)
+   }
+ 
+   useEffect(() => {
+     fetchCategories()
+     if (activeTab === 'history') fetchImportLogs()
+     if (activeTab === 'review') fetchReviewProducts()
+   }, [activeTab])
 
   const fetchImportLogs = async () => {
     const { data } = await supabase.from('import_logs').select('*').order('created_at', { ascending: false }).limit(20)
@@ -199,7 +206,7 @@ export function ProductImporter() {
  
          const priceValue = parseFloat(p.price);
          const productData = {
-           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
+           name: p.name.trim().substring(0, 255),
            price: isNaN(priceValue) ? 0 : priceValue,
            category_id: catId || null,
            brand: (p.brand || '').substring(0, 100),
@@ -364,14 +371,18 @@ export function ProductImporter() {
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Categoria</label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="w-[200px] h-12 border-2 border-zinc-200">
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                   <Select value={category} onValueChange={setCategory}>
+                     <SelectTrigger className="w-[200px] h-12 border-2 border-zinc-200">
+                       <SelectValue placeholder="Selecione..." />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {availableCategories.length > 0 ? (
+                         availableCategories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)
+                       ) : (
+                         categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                       )}
+                     </SelectContent>
+                   </Select>
                 </div>
 
                 <div className="space-y-2">

@@ -54,10 +54,14 @@ export function BannerManager() {
     try {
       // Try a simpler query first to avoid join errors if relations are not set
       const { data: bannersData, error: bError } = await supabase.from('banners').select('*')
-      if (bError) {
-        console.error('Error fetching banners:', bError)
-        toast.error('Erro ao carregar banners do banco de dados')
-      }
+       if (bError) {
+         console.error('Error fetching banners:', bError)
+         if (bError.message.includes('relation "banners" does not exist')) {
+           toast.error('Tabela de banners não encontrada. Por favor, execute o Reparador Admin.')
+         } else {
+           toast.error('Erro ao carregar banners do banco de dados')
+         }
+       }
 
       const { data: catData } = await supabase.from('categories').select('*')
       
