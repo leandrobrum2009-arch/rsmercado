@@ -206,7 +206,7 @@ export function ProductImporter() {
  
          const priceValue = parseFloat(p.price);
          const productData = {
-           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
+           name: p.name.trim().substring(0, 255),
            price: isNaN(priceValue) ? 0 : priceValue,
            category_id: catId || null,
            brand: (p.brand || '').substring(0, 100),
