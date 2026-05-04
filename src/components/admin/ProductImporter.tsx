@@ -174,12 +174,12 @@ export function ProductImporter() {
          const priceValue = parseFloat(p.price);
          if (isNaN(priceValue)) continue;
  
-         const productToInsert: any = {
-           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255), // Basic length limit
-           price: priceValue,
-           category_id: catData?.id || null,
-           image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
-         };
+          const productToInsert: any = {
+            name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255),
+            price: priceValue,
+            category_id: catData ? catData.id : null,
+            image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
+          };
          
          const optionalFields = {
            brand: (p.brand || '').substring(0, 100),
