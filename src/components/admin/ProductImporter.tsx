@@ -73,16 +73,16 @@ export function ProductImporter() {
      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Frios", "Pet Shop"
    ]
  
-   useEffect(() => {
-     fetchCategories()
    const fetchCategories = async () => {
      const { data } = await supabase.from('categories').select('*').order('name')
      if (data) setAvailableCategories(data)
    }
  
-    if (activeTab === 'history') fetchImportLogs()
-    if (activeTab === 'review') fetchReviewProducts()
-  }, [activeTab])
+   useEffect(() => {
+     fetchCategories()
+     if (activeTab === 'history') fetchImportLogs()
+     if (activeTab === 'review') fetchReviewProducts()
+   }, [activeTab])
 
   const fetchImportLogs = async () => {
     const { data } = await supabase.from('import_logs').select('*').order('created_at', { ascending: false }).limit(20)
