@@ -129,11 +129,13 @@ export function ProductImporter() {
       for (const p of toImport) {
         const productToInsert: any = {
           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim(),
+          brand: p.brand || '',
           price: parseFloat(p.price),
           category_id: catData?.id,
           stock: 100,
-          is_approved: true, // Auto-publish on import as requested
-          is_available: true
+          is_approved: true,
+          is_available: true,
+          image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80` // Default placeholder for imports
         };
         
         // Try to insert with optional columns, but fallback if they don't exist
