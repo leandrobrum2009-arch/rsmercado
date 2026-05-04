@@ -112,10 +112,21 @@ export function ProductImporter() {
     if (selectedIds.length === 0) return toast.error('Selecione ao menos um produto')
     setImporting(true)
     
-    try {
-      const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
-      
-      // Get or create category
+     try {
+       console.log('Starting product import...', selectedIds.length, 'items');
+       const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
+       
+       // Check if user is admin first
+       const { data: isAdmin, error: adminCheckErr } = await supabase.rpc('is_admin');
+       if (adminCheckErr) console.warn('Admin check error:', adminCheckErr);
+       
+       if (isAdmin === false) {
+         toast.error('Você não tem permissão de administrador no banco de dados. Use o Reparador Admin.');
+         setImporting(false);
+         return;
+       }
+ 
+       // Get or create category
        // Input validation for category
        if (!category || category.trim() === '') {
          toast.error('Categoria inválida')
@@ -124,11 +135,13 @@ export function ProductImporter() {
  
        let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
        
-       if (catFetchErr) {
-         console.error('Error fetching category:', catFetchErr)
-       }
- 
-       if (!catData) {
+        if (catFetchErr) {
+          console.error('Error fetching category:', catFetchErr);
+          toast.error('Erro ao buscar categoria: ' + catFetchErr.message);
+        }
+  
+        if (!catData) {
+          console.log('Category not found, creating:', category);
          const slug = category.toLowerCase()
            .normalize("NFD")
            .replace(/[\u0300-\u036f]/g, "")
@@ -147,11 +160,13 @@ export function ProductImporter() {
             catData = retryCat
          } else {
             catData = newCat
+             console.log('New category created:', catData.id);
          }
        }
 
        let successCount = 0;
        let errorCount = 0;
+        let lastErrorMessage = '';
        
        // Batch processing would be better, but keeping loop for fallback resilience
        for (const p of toImport) {
@@ -189,22 +204,31 @@ export function ProductImporter() {
          if (!error) successCount++;
          else {
            console.error('Failed to import product:', p.name, error);
+            lastErrorMessage = error.message;
            errorCount++;
          }
        }
 
-      await supabase.from('import_logs').insert({
+       await supabase.from('import_logs').insert({
         category: category,
         total_attempted: toImport.length,
         successful_count: successCount,
         duplicate_count: toImport.length - successCount,
         details: { products: toImport.map(p => p.name) }
-      })
-
-      toast.success(`${successCount} produtos importados com sucesso!`)
+       }).catch(e => console.warn('Failed to save import log:', e));
+ 
+       if (successCount > 0) {
+         toast.success(`${successCount} produtos importados com sucesso!`);
+       }
+       
+       if (errorCount > 0) {
+         toast.error(`${errorCount} produtos falharam. Último erro: ${lastErrorMessage}`);
+       }
+       
       setSuggestedProducts([])
       setSelectedIds([])
-    } catch (error: any) {
+     } catch (error: any) {
+       console.error('Critical import error:', error);
       toast.error('Erro na importação: ' + error.message)
     } finally {
       setImporting(false)
