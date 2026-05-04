@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Loader2, Plus, Trash2, Edit } from 'lucide-react'
+import { Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
@@ -14,7 +14,8 @@ export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: '' })
+   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: '', banner_url: '' })
+   const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
 
   useEffect(() => {
     fetchCategories()
@@ -27,6 +28,35 @@ export function CategoryManagement() {
     setIsLoading(false)
   }
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'icon' | 'banner') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(type)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `categories/${type}/${fileName}`
+
+      const { data, error } = await supabase.storage
+        .from('categories')
+        .upload(filePath, file)
+
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('categories')
+        .getPublicUrl(filePath)
+
+      setNewCategory({ ...newCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
+      toast.success(`${type === 'icon' ? 'Ícone' : 'Banner'} carregado!`)
+    } catch (error: any) {
+      toast.error('Erro no upload: ' + error.message)
+    } finally {
+      setUploading(null)
+    }
+  }
+
   const handleAddCategory = async () => {
     if (!newCategory.name || !newCategory.slug) return toast.error('Nome e Slug são obrigatórios')
     
@@ -37,7 +67,7 @@ export function CategoryManagement() {
     if (error) toast.error('Erro ao adicionar categoria')
     else {
        toast.success('Categoria adicionada!')
-       setNewCategory({ name: '', slug: '', icon_url: '', icon_name: '' })
+        setNewCategory({ name: '', slug: '', icon_url: '', icon_name: '', banner_url: '' })
        fetchCategories()
     }
   }
@@ -81,13 +111,41 @@ export function CategoryManagement() {
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
-                     <Label>URL do Ícone</Label>
-                     <Input value={newCategory.icon_url} onChange={(e) => setNewCategory({...newCategory, icon_url: e.target.value})} />
+                     <Label className="text-[10px] uppercase font-bold">Ícone da Categoria</Label>
+                     <div className="flex gap-2">
+                        <Input 
+                          placeholder="URL ou Upload ->" 
+                          value={newCategory.icon_url} 
+                          onChange={(e) => setNewCategory({...newCategory, icon_url: e.target.value})} 
+                        />
+                        <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                          {uploading === 'icon' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                          <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'icon')} accept="image/*" />
+                        </label>
+                     </div>
                    </div>
                    <div className="space-y-2">
-                     <Label>Nome do Ícone (Lucide)</Label>
+                     <Label className="text-[10px] uppercase font-bold">Nome do Ícone (Lucide)</Label>
                      <Input placeholder="Apple, Milk, Beef..." value={newCategory.icon_name} onChange={(e) => setNewCategory({...newCategory, icon_name: e.target.value})} />
                    </div>
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label className="text-[10px] uppercase font-bold">Banner da Categoria (Opcional)</Label>
+                   <div className="flex gap-2">
+                      <Input 
+                        placeholder="URL do banner ou Upload ->" 
+                        value={newCategory.banner_url} 
+                        onChange={(e) => setNewCategory({...newCategory, banner_url: e.target.value})} 
+                      />
+                      <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                        {uploading === 'banner' ? <Loader2 className="animate-spin w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                        <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'banner')} accept="image/*" />
+                      </label>
+                   </div>
+                   {newCategory.banner_url && (
+                     <img src={newCategory.banner_url} className="w-full h-20 object-cover rounded-lg border mt-2" alt="Preview Banner" />
+                   )}
                  </div>
                 <Button onClick={handleAddCategory} disabled={isSubmitting} className="w-full">
                   {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Categoria'}
