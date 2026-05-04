@@ -14,7 +14,7 @@ export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '' })
+   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: '' })
 
   useEffect(() => {
     fetchCategories()
@@ -79,10 +79,16 @@ export function CategoryManagement() {
                   <Label>Slug (URL)</Label>
                   <Input value={newCategory.slug} onChange={(e) => setNewCategory({...newCategory, slug: e.target.value})} />
                 </div>
-                <div className="space-y-2">
-                  <Label>URL do Ícone</Label>
-                  <Input value={newCategory.icon_url} onChange={(e) => setNewCategory({...newCategory, icon_url: e.target.value})} />
-                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label>URL do Ícone</Label>
+                     <Input value={newCategory.icon_url} onChange={(e) => setNewCategory({...newCategory, icon_url: e.target.value})} />
+                   </div>
+                   <div className="space-y-2">
+                     <Label>Nome do Ícone (Lucide)</Label>
+                     <Input placeholder="Apple, Milk, Beef..." value={newCategory.icon_name} onChange={(e) => setNewCategory({...newCategory, icon_name: e.target.value})} />
+                   </div>
+                 </div>
                 <Button onClick={handleAddCategory} disabled={isSubmitting} className="w-full">
                   {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Categoria'}
                 </Button>
@@ -102,15 +108,20 @@ export function CategoryManagement() {
             </TableHeader>
             <TableBody>
               {categories.map((cat) => (
-                <TableRow key={cat.id}>
-                  <TableCell>
-                    <SmartImage 
-                      src={cat.icon_url} 
-                      tableName="categories" 
-                      itemId={cat.id} 
-                      className="w-8 h-8 object-contain" 
-                    />
-                  </TableCell>
+                 <TableRow key={cat.id} className="hover:bg-zinc-50 transition-colors">
+                   <TableCell>
+                     <div className="flex items-center gap-2">
+                       <SmartImage 
+                         src={cat.icon_url} 
+                         tableName="categories" 
+                         itemId={cat.id} 
+                         className="w-8 h-8 object-contain rounded bg-zinc-100" 
+                       />
+                       {cat.icon_name && (
+                         <span className="text-[10px] bg-zinc-900 text-white px-1.5 py-0.5 rounded font-black uppercase">{cat.icon_name}</span>
+                       )}
+                     </div>
+                   </TableCell>
                   <TableCell className="font-bold">{cat.name}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{cat.slug}</TableCell>
                   <TableCell className="text-right">
