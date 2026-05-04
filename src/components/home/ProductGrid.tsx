@@ -16,34 +16,46 @@
    const [products, setProducts] = useState<any[]>([]);
    const [loading, setLoading] = useState(true);
  
-   useEffect(() => {
-     const fetchProducts = async () => {
-       try {
-          const { data, error } = await supabase
-             .from('products')
-             .select('*, categories(name)')
-             .eq('is_available', true)
-             .eq('is_approved', true)
-             .order('created_at', { ascending: false });
- 
-         if (error) throw error;
- 
-         if (data && data.length > 0) {
-           setProducts(data);
-         } else {
-           // If no products in DB, show mock products as fallback
-           setProducts(mockProducts);
-         }
-       } catch (err) {
-         console.error('Error fetching products:', err);
-         setProducts(mockProducts);
-       } finally {
-         setLoading(false);
-       }
-     };
- 
-     fetchProducts();
-   }, []);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Try to fetch with all filters
+        let { data, error } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .eq('is_available', true)
+          .eq('is_approved', true)
+          .order('created_at', { ascending: false });
+
+        // If it fails because of missing columns, try a simpler query
+        if (error && error.message.includes('column')) {
+          console.warn('Advanced filtering failed due to missing columns, falling back to simple query');
+          const result = await supabase
+            .from('products')
+            .select('*, categories(name)')
+            .order('created_at', { ascending: false });
+          data = result.data;
+          error = result.error;
+        }
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setProducts(data);
+        } else {
+          // If no products in DB, show mock products as fallback
+          setProducts(mockProducts);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setProducts(mockProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
  
    if (loading) {
      return (

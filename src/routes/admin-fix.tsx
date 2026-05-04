@@ -11,8 +11,7 @@ export const Route = createFileRoute('/admin-fix')({
 })
 
 function AdminFix() {
-    // Removed hardcoded master key for security
-    const [key, setKey] = useState('ADMIN_RS_2024') 
+    const [key, setKey] = useState('') 
    const [email, setEmail] = useState('')
    const [loading, setLoading] = useState(false)
    const [status, setStatus] = useState('')
