@@ -58,9 +58,16 @@ export function ProductManagement() {
   })
   const [uploading, setUploading] = useState(false)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+ 
+   useEffect(() => {
+     const checkAdmin = async () => {
+       const { data, error } = await supabase.rpc('is_admin')
+       if (!error) setIsAdmin(data)
+       fetchData()
+     }
+     checkAdmin()
+   }, [])
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -68,30 +75,31 @@ export function ProductManagement() {
       // Using a broader query to debug visibility
       console.log('Fetching products for admin...');
       
-      // Determine columns based on error or previous knowledge
-      // We know brand, is_approved, is_available might be missing
-      const { data: prodData, error: prodError } = await supabase
-        .from('products')
-        .select('*, categories(name)')
-        .order('created_at', { ascending: false })
-      
-      if (prodError) {
-        console.error('Fetch products error:', prodError);
-        // Try without categories(name) if it failed there, or other columns
-        const { data: retryData, error: retryError } = await supabase
-          .from('products')
-          .select('id, name, price, image_url, stock')
-          .order('created_at', { ascending: false })
-          
-      if (retryError) {
-        console.error('Retry error:', retryError);
-        toast.error('Não foi possível carregar o catálogo.')
-      } else {
-        setProducts(retryData || [])
-      }
-      } else {
-        setProducts(prodData || [])
-      }
+       const { data: prodData, error: prodError } = await supabase
+         .from('products')
+         .select('*, categories(name)')
+         .order('created_at', { ascending: false })
+       
+       if (prodError) {
+         console.error('Fetch products error:', prodError);
+         if (prodError.code === '42501') {
+           // RLS Error - likely not an admin or policy missing
+           console.warn('RLS error fetching products. User might not be admin.');
+         }
+         
+         const { data: retryData, error: retryError } = await supabase
+           .from('products')
+           .select('id, name, price, image_url, stock')
+           .order('created_at', { ascending: false })
+           
+         if (!retryError) {
+           setProducts(retryData || [])
+         } else {
+           toast.error('Erro de permissão ao acessar o catálogo.')
+         }
+       } else {
+         setProducts(prodData || [])
+       }
       
       const { data: catData, error: catError } = await supabase.from('categories').select('*').order('name')
       if (catError) console.error('Fetch categories error:', catError)
@@ -208,9 +216,20 @@ export function ProductManagement() {
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center gap-4 flex-wrap">
+   return (
+     <div className="space-y-4">
+       {isAdmin === false && (
+         <div className="bg-amber-50 border-2 border-amber-200 p-4 rounded-2xl flex items-center gap-4 mb-4">
+           <AlertTriangle className="text-amber-600 h-6 w-6" />
+           <div className="flex-1">
+             <p className="text-sm font-black uppercase text-amber-900">Acesso Restrito Detectado</p>
+             <p className="text-[10px] text-amber-700 font-bold">Seu usuário não tem permissão de administrador no banco de dados. O gerenciamento de produtos pode falhar.</p>
+           </div>
+           <Button size="sm" variant="outline" className="border-amber-600 text-amber-600 font-bold text-[10px]" onClick={() => window.location.href = '/admin-fix'}>CORRIGIR AGORA</Button>
+         </div>
+       )}
+ 
+       <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
         <div className="flex gap-2 items-center">
           <div className="flex gap-2">
