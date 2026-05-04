@@ -86,17 +86,17 @@ export function ProductImporter() {
       if (!searchQuery.trim()) return;
       setSearching(true);
       try {
-         const query = encodeURIComponent(searchQuery + " produto supermercado fundo branco");
-         const placeholders = [
-           `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
-           `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
-           `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
-           `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
-           `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem real")}&w=600&h=600&c=7`,
-           `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " pack")}&w=600&h=600&c=7`
+         const query = encodeURIComponent(searchQuery + " fundo branco oficial");
+         const results = [
+           `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+           `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+           `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+           `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+           `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem")}&w=600&h=600&c=7&rs=1`,
+           `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " produto")}&w=600&h=600&c=7&rs=1`
          ];
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setSearchResults(placeholders);
+        await new Promise(resolve => setTimeout(resolve, 600));
+        setSearchResults(results);
       } catch (error) {
         toast.error('Erro ao buscar imagens');
       } finally {
@@ -339,7 +339,23 @@ export function ProductImporter() {
        let errorCount = 0;
        let lastErrorMessage = '';
  
+       // Check for duplicates again right before inserting to be absolutely sure
+       const { data: currentProducts } = await supabase.from('products').select('name, brand, size').is('deleted_at', null);
+       const currentSet = new Set((currentProducts || []).map(cp => 
+         `${cp.name.toLowerCase().trim()}|${(cp.brand || '').toLowerCase().trim()}|${(cp.size || '').toLowerCase().trim()}`
+       ));
+
        for (const p of toImport) {
+         const pName = p.name.trim();
+         const pBrand = (p.brand || '').trim();
+         const pSize = (p.size || '').trim();
+         const pKey = `${pName.toLowerCase()}|${pBrand.toLowerCase()}|${pSize.toLowerCase()}`;
+
+         if (currentSet.has(pKey)) {
+           console.log('Skipping existing product:', pName);
+           continue;
+         }
+
          const pCategory = p.category || category || 'Mercearia';
          let catId = categoryCache[pCategory];
  
@@ -349,7 +365,7 @@ export function ProductImporter() {
              catId = existingCat.id;
            } else {
              const slug = pCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-').trim();
-             const { data: newCat, error: catErr } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
+             const { data: newCat } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
              if (newCat) catId = newCat.id;
              else {
                const { data: retryCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
