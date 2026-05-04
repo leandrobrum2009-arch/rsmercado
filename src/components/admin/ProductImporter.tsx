@@ -138,20 +138,20 @@ export function ProductImporter() {
     // Realistic Brazilian supermarket product simulation
     const datasets: Record<string, any[]> = {
       "Bebidas": [
-        { name: "Cerveja Heineken", brand: "Heineken", size: "330ml", price: "6.90" },
-        { name: "Refrigerante Coca-Cola", brand: "Coca-Cola", size: "2L", price: "11.50" },
-        { name: "Suco de Laranja Prats", brand: "Prats", size: "900ml", price: "14.90" },
-        { name: "Água Mineral Crystal", brand: "Crystal", size: "500ml", price: "2.50" },
-        { name: "Energético Red Bull", brand: "Red Bull", size: "250ml", price: "9.90" },
-        { name: "Vinho Tinto Reservado", brand: "Concha y Toro", size: "750ml", price: "39.90" }
+         { name: "Cerveja Heineken", brand: "Heineken", size: "330ml", price: "6.90", image_url: "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400&q=80" },
+         { name: "Refrigerante Coca-Cola", brand: "Coca-Cola", size: "2L", price: "11.50", image_url: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80" },
+         { name: "Suco de Laranja Prats", brand: "Prats", size: "900ml", price: "14.90", image_url: "https://images.unsplash.com/photo-1621506289937-4c72ba5fb9cf?w=400&q=80" },
+         { name: "Água Mineral Crystal", brand: "Crystal", size: "500ml", price: "2.50", image_url: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&q=80" },
+         { name: "Energético Red Bull", brand: "Red Bull", size: "250ml", price: "9.90", image_url: "https://images.unsplash.com/photo-1622543953491-f17a46dff73c?w=400&q=80" },
+         { name: "Vinho Tinto Reservado", brand: "Concha y Toro", size: "750ml", price: "39.90", image_url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=80" }
       ],
       "Mercearia": [
-        { name: "Arroz Agulhinha Tipo 1", brand: "Tio João", size: "5kg", price: "29.90" },
-        { name: "Feijão Carioca", brand: "Camil", size: "1kg", price: "8.50" },
-        { name: "Açúcar Refinado", brand: "União", size: "1kg", price: "4.90" },
-        { name: "Café Torrado e Moído", brand: "Pilão", size: "500g", price: "18.90" },
-        { name: "Macarrão Espaguete", brand: "Barilla", size: "500g", price: "6.50" },
-        { name: "Óleo de Soja", brand: "Soya", size: "900ml", price: "7.90" }
+         { name: "Arroz Agulhinha Tipo 1", brand: "Tio João", size: "5kg", price: "29.90", image_url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80" },
+         { name: "Feijão Carioca", brand: "Camil", size: "1kg", price: "8.50", image_url: "https://images.unsplash.com/photo-1551462147-37885acc3c41?w=400&q=80" },
+         { name: "Açúcar Refinado", brand: "União", size: "1kg", price: "4.90", image_url: "https://images.unsplash.com/photo-1581447100595-37735c3bc2d4?w=400&q=80" },
+         { name: "Café Torrado e Moído", brand: "Pilão", size: "500g", price: "18.90", image_url: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&q=80" },
+         { name: "Macarrão Espaguete", brand: "Barilla", size: "500g", price: "6.50", image_url: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&q=80" },
+         { name: "Óleo de Soja", brand: "Soya", size: "900ml", price: "7.90", image_url: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80" }
       ],
       "Hortifruti": [
         { name: "Banana Nanica", brand: "Produtor Local", size: "kg", price: "5.50" },
@@ -181,15 +181,16 @@ export function ProductImporter() {
       const suggestions = Array.from({ length: batchSize }).map((_, i) => {
         const template = baseData[i % baseData.length]
         const id = Math.random().toString(36).substr(2, 9)
-        return {
-          id,
-          name: template.name,
-          brand: template.brand,
-          size: template.size,
-          price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
-          category: category,
-          is_available: true
-        }
+         return {
+           id,
+           name: template.name,
+           brand: template.brand,
+           size: template.size,
+           price: (parseFloat(template.price) * (0.9 + Math.random() * 0.2)).toFixed(2),
+           category: category,
+           is_available: true,
+           image_url: template.image_url
+         }
       })
       setSuggestedProducts(suggestions)
       setSelectedIds(suggestions.map(s => s.id))
