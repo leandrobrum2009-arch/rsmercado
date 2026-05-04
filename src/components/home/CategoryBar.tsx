@@ -1,30 +1,72 @@
- import { Link } from "@tanstack/react-router";
-  import { Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag, Sparkles } from "lucide-react";
- 
- const iconMap: Record<string, any> = {
-   "Hortifruti": Apple,
-   "Padaria": Croissant,
-   "Carnes": Beef,
-   "Bebidas": Wine,
-   "Laticínios": Milk,
-   "Limpeza": SprayCan,
-   "Pet Shop": Dog,
-   "Higiene": Brush,
- };
- 
- const categories = [
-   { name: "Hortifruti", slug: "hortifruti" },
-   { name: "Padaria", slug: "padaria" },
-   { name: "Carnes", slug: "acougue" },
-   { name: "Bebidas", slug: "bebidas" },
-   { name: "Laticínios", slug: "laticinios" },
-   { name: "Limpeza", slug: "limpeza" },
-   { name: "Pet Shop", slug: "pet-shop" },
-   { name: "Higiene", slug: "higiene" },
- ];
- 
-  export const CategoryBar = () => {
-    return (
+import { Link } from "@tanstack/react-router";
+import { 
+  Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
+  ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
+  GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+const iconMap: Record<string, any> = {
+  "Hortifruti": Apple,
+  "Frutas": Apple,
+  "Legumes": Carrot,
+  "Verduras": Carrot,
+  "Padaria": Croissant,
+  "Pães": Croissant,
+  "Carnes": Beef,
+  "Açougue": Beef,
+  "Bebidas": Wine,
+  "Cervejas": Wine,
+  "Vinhos": Wine,
+  "Laticínios": Milk,
+  "Leites": Milk,
+  "Limpeza": SprayCan,
+  "Higiene": Brush,
+  "Pet Shop": Dog,
+  "Pets": Dog,
+  "Doces": Cookie,
+  "Mercearia": Coffee,
+  "Peixaria": Fish,
+  "Frios": IceCream,
+  "Congelados": IceCream,
+  "Bazar": Utensils,
+  "Infantil": Baby,
+  "Perfumaria": Bath,
+  "Floricultura": Flower2
+};
+
+const fallbackCategories = [
+  { name: "Hortifruti", slug: "hortifruti" },
+  { name: "Padaria", slug: "padaria" },
+  { name: "Carnes", slug: "acougue" },
+  { name: "Bebidas", slug: "bebidas" },
+  { name: "Laticínios", slug: "laticinios" },
+  { name: "Limpeza", slug: "limpeza" },
+  { name: "Pet Shop", slug: "pet-shop" },
+  { name: "Higiene", slug: "higiene" },
+];
+
+export const CategoryBar = () => {
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (data && data.length > 0) {
+        setCategories(data);
+      } else {
+        setCategories(fallbackCategories);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  return (
       <div className="py-6 bg-white overflow-hidden">
         {/* Promotional Small Banner inside categories */}
         <div className="px-4 mb-6">
@@ -52,7 +94,7 @@
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
-                 const IconComponent = iconMap[cat.name] || ShoppingBag;
+                  const IconComponent = iconMap[cat.name] || iconMap[cat.icon_name || ""] || ShoppingBag;
                  const colors: Record<string, string> = {
                    "Hortifruti": "bg-green-100 text-green-600 border-green-200",
                    "Padaria": "bg-amber-100 text-amber-600 border-amber-200",
@@ -71,10 +113,14 @@
                      onClick={() => window.location.href = `/search?q=${cat.name}`}
                      className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20"
                    >
-                     <div className={`w-16 h-16 rounded-[24px] ${colorClass} border-2 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm relative overflow-hidden`}>
-                       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                       <IconComponent size={28} strokeWidth={2.5} className="transition-colors relative z-10" />
-                     </div>
+                      <div className={`w-16 h-16 rounded-[24px] ${colorClass} border-2 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {cat.icon_url ? (
+                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10" alt={cat.name} />
+                        ) : (
+                          <IconComponent size={28} strokeWidth={2.5} className="transition-colors relative z-10" />
+                        )}
+                      </div>
                      <span className="text-[10px] font-black uppercase tracking-tight text-zinc-500 group-hover:text-zinc-900 text-center transition-colors">
                        {cat.name}
                      </span>
