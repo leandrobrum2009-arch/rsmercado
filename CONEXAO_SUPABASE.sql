@@ -59,6 +59,7 @@ CREATE POLICY "Allow public read products" ON public.products FOR SELECT USING (
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
+  SET search_path = public;
   RETURN EXISTS (
     SELECT 1 FROM public.profiles
     WHERE id = auth.uid() AND is_admin = true
@@ -83,13 +84,15 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
+  SET search_path = public;
+  -- NOTE: Replace 'ADMIN_RS_2024' with a unique strong key and do not share it.
   IF secret_key != 'ADMIN_RS_2024' THEN
-    RETURN jsonb_build_object('success', false, 'message', 'Chave secreta inválida');
+    RETURN jsonb_build_object('success', false, 'message', 'Chave inválida');
   END IF;
 
   UPDATE public.profiles SET is_admin = true WHERE id = auth.uid();
   
-  RETURN jsonb_build_object('success', true, 'message', 'Usuário promovido a administrador com sucesso');
+  RETURN jsonb_build_object('success', true, 'message', 'Sucesso');
 END;
 $$;
 
