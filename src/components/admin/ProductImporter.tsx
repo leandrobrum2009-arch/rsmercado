@@ -259,11 +259,13 @@ export function ProductImporter() {
 
   return (
     <div className="space-y-6">
-      <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
-        <button onClick={() => setActiveTab('importer')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'importer' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Sugestões</button>
-        <button onClick={() => setActiveTab('review')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'review' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Aprovação</button>
+       <div className="flex bg-zinc-100 p-1 rounded-xl w-fit mb-6">
+         <button onClick={() => setActiveTab('importer')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'importer' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Sugestões</button>
+         <button onClick={() => setActiveTab('review')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'review' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Aprovação</button>
          <button onClick={() => setActiveTab('csv')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'csv' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Importar CSV/Lote</button>
          <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all ${activeTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>Histórico</button>
+       </div>
+ 
        {activeTab === 'csv' && (
          <div className="space-y-6">
            <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
@@ -351,9 +353,7 @@ export function ProductImporter() {
          </div>
        )}
  
-      </div>
-
-      {activeTab === 'importer' && (
+       {activeTab === 'importer' && (
         <div className="space-y-6">
           <Card className="border-2 border-zinc-900 shadow-xl overflow-hidden">
             <CardHeader className="bg-zinc-900 text-white">
