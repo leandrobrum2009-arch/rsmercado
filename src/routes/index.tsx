@@ -1,6 +1,7 @@
  import { createFileRoute } from "@tanstack/react-router";
   import { BannerCarousel } from "@/components/home/BannerCarousel";
- import { CategoryBar } from "@/components/home/CategoryBar";
+  import { CategoryBanners } from "@/components/home/CategoryBanners";
+  import { CategoryBar } from "@/components/home/CategoryBar";
  import { ProductGrid } from "@/components/home/ProductGrid";
  import { StoriesCarousel } from "@/components/home/StoriesCarousel";
  import { RecipeFeed } from "@/components/home/RecipeFeed";
@@ -84,6 +85,8 @@ export const Route = createFileRoute("/")({
           <div className="px-4 pt-4">
             <BannerCarousel />
           </div>
+
+          <CategoryBanners />
   
           <CategoryBar />
  
