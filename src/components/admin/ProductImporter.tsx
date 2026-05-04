@@ -118,11 +118,19 @@ export function ProductImporter() {
       // Get or create category
       let { data: catData } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
       if (!catData) {
-        const { data: newCat } = await supabase.from('categories').insert({ 
+        const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
           name: category, 
           slug: category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
         }).select().single()
-        catData = newCat
+        
+        if (catErr) {
+           console.error('Category creation failed:', catErr)
+           // Try to find it again, maybe it was created by another process or slug exists
+           const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
+           catData = retryCat
+        } else {
+           catData = newCat
+        }
       }
 
       let successCount = 0
