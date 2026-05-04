@@ -116,53 +116,82 @@ export function ProductImporter() {
       const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
       
       // Get or create category
-      let { data: catData } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
-      if (!catData) {
-        const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
-          name: category, 
-          slug: category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-') 
-        }).select().single()
-        
-        if (catErr) {
-           console.error('Category creation failed:', catErr)
-           // Try to find it again, maybe it was created by another process or slug exists
-           const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
-           catData = retryCat
-        } else {
-           catData = newCat
-        }
-      }
+       // Input validation for category
+       if (!category || category.trim() === '') {
+         toast.error('Categoria inválida')
+         return
+       }
+ 
+       let { data: catData, error: catFetchErr } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
+       
+       if (catFetchErr) {
+         console.error('Error fetching category:', catFetchErr)
+       }
+ 
+       if (!catData) {
+         const slug = category.toLowerCase()
+           .normalize("NFD")
+           .replace(/[\u0300-\u036f]/g, "")
+           .replace(/[^a-z0-9\s-]/g, "") // Sanitize slug
+           .replace(/\s+/g, '-')
+           .trim()
+ 
+         const { data: newCat, error: catErr } = await supabase.from('categories').insert({ 
+           name: category, 
+           slug: slug 
+         }).select().single()
+         
+         if (catErr) {
+            console.error('Category creation failed:', catErr)
+            const { data: retryCat } = await supabase.from('categories').select('id').eq('name', category).maybeSingle()
+            catData = retryCat
+         } else {
+            catData = newCat
+         }
+       }
 
-      let successCount = 0
-      for (const p of toImport) {
-        const productToInsert: any = {
-          name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim(),
-          price: parseFloat(p.price),
-          category_id: catData?.id,
-          image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
-        };
-        
-        // Add optional columns only if they might exist
-        // This makes the importer more resilient to incomplete schemas
-        const optionalFields = {
-          brand: p.brand || '',
-          stock: 100,
-          is_approved: true,
-          is_available: true
-        };
-
-        // Try with all fields first
-        let { error } = await supabase.from('products').insert({ ...productToInsert, ...optionalFields });
-        
-        if (error && error.message.includes('column')) {
-          console.warn('Fallback to minimal insert due to missing columns');
-          // Try again without the optional fields that often cause issues
-          const { error: retryError } = await supabase.from('products').insert(productToInsert);
-          error = retryError;
-        }
-        
-        if (!error) successCount++;
-      }
+       let successCount = 0;
+       let errorCount = 0;
+       
+       // Batch processing would be better, but keeping loop for fallback resilience
+       for (const p of toImport) {
+         // Validate price
+         const priceValue = parseFloat(p.price);
+         if (isNaN(priceValue)) continue;
+ 
+         const productToInsert: any = {
+           name: `${p.name} ${p.brand || ''} ${p.size || ''}`.trim().substring(0, 255), // Basic length limit
+           price: priceValue,
+           category_id: catData?.id || null,
+           image_url: `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=300&q=80`
+         };
+         
+         const optionalFields = {
+           brand: (p.brand || '').substring(0, 100),
+           stock: 100,
+           is_approved: true,
+           is_available: true
+         };
+ 
+         let { error } = await supabase.from('products').insert({ ...productToInsert, ...optionalFields });
+         
+         if (error) {
+           if (error.message.includes('column')) {
+             const { error: retryError } = await supabase.from('products').insert(productToInsert);
+             error = retryError;
+           } else if (error.code === '42501') {
+             toast.error('Erro de permissão (RLS). Você é um administrador?');
+             setImporting(false);
+             return; // Stop on RLS error as it won't change
+           }
+         }
+         
+         if (!error) successCount++;
+         else {
+           console.error('Failed to import product:', p.name, error);
+           errorCount++;
+         }
+       }
 
       await supabase.from('import_logs').insert({
         category: category,
