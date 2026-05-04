@@ -82,22 +82,26 @@ export function ProductImporter() {
      setSearchResults([])
    }
  
-   const performSearch = async () => {
-     setSearching(true)
-     // Simulation of image search - in a real app this would call an Edge Function with a Search API
-     // For now, we'll provide a few generic high-quality placeholders and a Google link
-     setTimeout(() => {
-       const placeholders = [
-         `https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&q=80`,
-         `https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=500&q=80`,
-         `https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?w=500&q=80`,
-         `https://images.unsplash.com/photo-1608686209041-723604f0556c?w=500&q=80`,
-         `https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80`
-       ]
-       setSearchResults(placeholders)
-       setSearching(false)
-     }, 1000)
-   }
+    const performSearch = async () => {
+      if (!searchQuery.trim()) return;
+      setSearching(true);
+      try {
+        const query = encodeURIComponent(searchQuery + " fundo branco");
+        const placeholders = [
+          `https://tse1.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
+          `https://tse2.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
+          `https://tse3.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
+          `https://tse4.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
+          `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem")}&w=400&h=400&c=7`
+        ];
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setSearchResults(placeholders);
+      } catch (error) {
+        toast.error('Erro ao buscar imagens');
+      } finally {
+        setSearching(false);
+      }
+    };
  
    const selectImage = (url: string) => {
      if (searchingProduct) {
