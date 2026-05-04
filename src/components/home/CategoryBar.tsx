@@ -94,7 +94,7 @@ export const CategoryBar = () => {
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
-                 const IconComponent = iconMap[cat.name] || ShoppingBag;
+                  const IconComponent = iconMap[cat.name] || iconMap[cat.icon_name || ""] || ShoppingBag;
                  const colors: Record<string, string> = {
                    "Hortifruti": "bg-green-100 text-green-600 border-green-200",
                    "Padaria": "bg-amber-100 text-amber-600 border-amber-200",
@@ -113,10 +113,14 @@ export const CategoryBar = () => {
                      onClick={() => window.location.href = `/search?q=${cat.name}`}
                      className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20"
                    >
-                     <div className={`w-16 h-16 rounded-[24px] ${colorClass} border-2 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm relative overflow-hidden`}>
-                       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                       <IconComponent size={28} strokeWidth={2.5} className="transition-colors relative z-10" />
-                     </div>
+                      <div className={`w-16 h-16 rounded-[24px] ${colorClass} border-2 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {cat.icon_url ? (
+                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10" alt={cat.name} />
+                        ) : (
+                          <IconComponent size={28} strokeWidth={2.5} className="transition-colors relative z-10" />
+                        )}
+                      </div>
                      <span className="text-[10px] font-black uppercase tracking-tight text-zinc-500 group-hover:text-zinc-900 text-center transition-colors">
                        {cat.name}
                      </span>
