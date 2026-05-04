@@ -86,14 +86,15 @@ export function ProductImporter() {
       if (!searchQuery.trim()) return;
       setSearching(true);
       try {
-        const query = encodeURIComponent(searchQuery + " fundo branco");
-        const placeholders = [
-          `https://tse1.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
-          `https://tse2.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
-          `https://tse3.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
-          `https://tse4.mm.bing.net/th?q=${query}&w=400&h=400&c=7`,
-          `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem")}&w=400&h=400&c=7`
-        ];
+         const query = encodeURIComponent(searchQuery + " produto supermercado fundo branco");
+         const placeholders = [
+           `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
+           `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
+           `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
+           `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7`,
+           `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem real")}&w=600&h=600&c=7`,
+           `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " pack")}&w=600&h=600&c=7`
+         ];
         await new Promise(resolve => setTimeout(resolve, 800));
         setSearchResults(placeholders);
       } catch (error) {
@@ -154,6 +155,11 @@ export function ProductImporter() {
     const datasets: Record<string, any[]> = {
       "Bebidas": [
          { name: "Cerveja Heineken", brand: "Heineken", size: "330ml", price: "6.90", image_url: "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400&q=80" },
+         { name: "Cerveja Skol", brand: "Skol", size: "350ml", price: "3.50" },
+         { name: "Cerveja Brahma", brand: "Brahma", size: "350ml", price: "3.40" },
+         { name: "Refrigerante Guaraná Antarctica", brand: "Antarctica", size: "2L", price: "8.90" },
+         { name: "Água de Coco Obrigado", brand: "Obrigado", size: "1L", price: "12.50" },
+         { name: "Suco de Uva Aurora", brand: "Aurora", size: "1.5L", price: "18.90" },
          { name: "Refrigerante Coca-Cola", brand: "Coca-Cola", size: "2L", price: "11.50", image_url: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&q=80" },
          { name: "Suco de Laranja Prats", brand: "Prats", size: "900ml", price: "14.90", image_url: "https://images.unsplash.com/photo-1621506289937-4c72ba5fb9cf?w=400&q=80" },
          { name: "Água Mineral Crystal", brand: "Crystal", size: "500ml", price: "2.50", image_url: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&q=80" },
@@ -176,7 +182,11 @@ export function ProductImporter() {
         { name: "Alface Crespa", brand: "Hidropônico", size: "Un", price: "3.50" }
       ],
       "Limpeza": [
-        { name: "Sabão em Pó", brand: "OMO", size: "1.6kg", price: "24.90" },
+        { name: "Sabão em Pó Lavagem Perfeita", brand: "OMO", size: "1.6kg", price: "24.90" },
+        { name: "Limpador Multiuso", brand: "Veja", size: "500ml", price: "5.50" },
+        { name: "Desinfetante", brand: "Lysoform", size: "1L", price: "14.90" },
+        { name: "Água Sanitária", brand: "Qboa", size: "2L", price: "6.90" },
+        { name: "Esponja de Aço", brand: "Bombril", size: "pacote", price: "3.20" },
         { name: "Detergente Líquido", brand: "Ypê", size: "500ml", price: "2.40" },
         { name: "Amaciante de Roupas", brand: "Downy", size: "500ml", price: "15.90" },
         { name: "Desinfetante Pinho Sol", brand: "Pinho Sol", size: "500ml", price: "8.90" },
@@ -184,6 +194,56 @@ export function ProductImporter() {
       ],
       "Higiene": [
         { name: "Creme Dental Total 12", brand: "Colgate", size: "90g", price: "7.90" },
+        { name: "Sabonete Líquido", brand: "Lux", size: "250ml", price: "8.90" },
+        { name: "Papel Higiênico Folha Dupla", brand: "Neve", size: "12 rolos", price: "24.90" },
+        { name: "Fio Dental", brand: "Oral-B", size: "50m", price: "11.50" },
+        { name: "Enxaguante Bucal", brand: "Listerine", size: "500ml", price: "22.90" },
+      ],
+      "Pet Shop": [
+        { name: "Ração para Cães Adultos", brand: "Pedigree", size: "10kg", price: "129.90" },
+        { name: "Ração Úmida para Gatos", brand: "Whiskas", size: "85g", price: "3.50" },
+        { name: "Areia Sanitária para Gatos", brand: "Pipicat", size: "4kg", price: "15.90" },
+        { name: "Petisco para Cães", brand: "Doguito", size: "65g", price: "6.50" }
+      ],
+      "Padaria": [
+        { name: "Pão de Forma Tradicional", brand: "Wickbold", size: "500g", price: "9.50" },
+        { name: "Biscoito de Polvilho", brand: "Produtor Local", size: "200g", price: "7.90" },
+        { name: "Pão Francês", brand: "Produção Própria", size: "unidade", price: "0.50" },
+        { name: "Bolo de Cenoura", brand: "Produção Própria", size: "unidade", price: "15.00" }
+      ],
+      "Açougue": [
+        { name: "Patinho Bovino Moído", brand: "Friboi", size: "500g", price: "22.50" },
+        { name: "Coxa e Sobrecoxa de Frango", brand: "Seara", size: "1kg", price: "14.90" },
+        { name: "Linguiça Toscana", brand: "Sadia", size: "1kg", price: "24.90" },
+        { name: "Filé de Peito de Frango", brand: "Seara", size: "1kg", price: "19.90" }
+      ],
+      "Laticínios": [
+        { name: "Leite Integral UHT", brand: "Piracanjuba", size: "1L", price: "5.50" },
+        { name: "Iogurte Natural", brand: "Danone", size: "170g", price: "3.20" },
+        { name: "Manteiga com Sal", brand: "Aviação", size: "200g", price: "14.50" },
+        { name: "Requeijão Cremoso", brand: "Itambé", size: "200g", price: "9.90" },
+        { name: "Queijo Mussarela Fatiado", brand: "President", size: "150g", price: "12.90" }
+      ],
+      "Frios": [
+        { name: "Presunto Cozido fatiado", brand: "Seara", size: "200g", price: "9.90" },
+        { name: "Peito de Peru Fatiado", brand: "Sadia", size: "200g", price: "14.90" },
+        { name: "Salame Italiano", brand: "Sadia", size: "100g", price: "12.50" },
+        { name: "Mortadela Defumada", brand: "Seara", size: "200g", price: "6.90" }
+      ],
+      "Congelados": [
+        { name: "Pizza de Calabresa", brand: "Sadia", size: "460g", price: "16.90" },
+        { name: "Lasanha à Bolonhesa", brand: "Seara", size: "600g", price: "15.50" },
+        { name: "Batata Pré-Frita Congelada", brand: "McCain", size: "400g", price: "12.90" },
+        { name: "Nuggets de Frango", brand: "Sadia", size: "300g", price: "11.50" },
+        { name: "Sorvete de Chocolate", brand: "Kibon", size: "1.5L", price: "29.90" }
+      ],
+      "Doces e Biscoitos": [
+        { name: "Biscoito Recheado Chocolate", brand: "Passatempo", size: "130g", price: "3.20" },
+        { name: "Chocolate em Barra Ao Leite", brand: "Nestlé", size: "90g", price: "5.50" },
+        { name: "Wafer Morango", brand: "Bauducco", size: "140g", price: "4.50" },
+        { name: "Bombom Sonho de Valsa", brand: "Lacta", size: "unidade", price: "1.50" },
+        { name: "Bala de Goma", brand: "Fini", size: "90g", price: "6.90" }
+      ]
         { name: "Shampoo Reconstrução", brand: "Dove", size: "400ml", price: "19.90" },
         { name: "Sabonete Barra", brand: "Rexona", size: "84g", price: "2.50" },
         { name: "Desodorante Aerosol", brand: "Rexona", size: "150ml", price: "14.90" }
