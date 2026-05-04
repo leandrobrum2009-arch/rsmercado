@@ -25,3 +25,7 @@ CREATE POLICY "Admins can manage products"
 ON public.products FOR ALL 
 TO authenticated
 USING ( public.is_admin() OR (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com' );
+
+-- FIX MISSING COLUMNS IN ORDERS
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
