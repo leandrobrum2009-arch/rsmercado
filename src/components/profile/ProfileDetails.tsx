@@ -34,7 +34,18 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
     const handleSave = async () => {
       if (!formData.full_name) return toast.error('Nome completo é obrigatório!')
        // Make some fields optional but encourage filling them
-       if (!formData.whatsapp) return toast.error('WhatsApp é obrigatório para realizar pedidos!')
+        if (!formData.whatsapp) return toast.error('WhatsApp é obrigatório para realizar pedidos!')
+        
+        // Phone validation (Brazilian format: 10 or 11 digits)
+        if (formData.whatsapp.length < 10 || formData.whatsapp.length > 11) {
+          return toast.error('Número de WhatsApp inválido! Use DDD + número (10 ou 11 dígitos).')
+        }
+
+        // Name validation (no special characters, reasonable length)
+        const nameRegex = /^[a-zA-ZÀ-ÿ\s]{3,100}$/;
+        if (!nameRegex.test(formData.full_name)) {
+          return toast.error('Nome inválido! Use apenas letras e entre 3 a 100 caracteres.')
+        }
 
       // Validar idade
       const birthDate = new Date(formData.birth_date)
