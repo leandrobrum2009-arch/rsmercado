@@ -152,35 +152,46 @@
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={settings.logo_url}
-                        onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                        placeholder="https://exemplo.com/logo.png"
-                        className="rounded-xl border-zinc-200 focus:ring-primary flex-1"
-                      />
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                          id="logo-upload"
-                          disabled={uploading}
-                        />
-                        <Button 
-                          asChild 
-                          variant="outline" 
-                          className="rounded-xl border-zinc-200"
-                          disabled={uploading}
-                        >
-                          <label htmlFor="logo-upload" className="cursor-pointer flex items-center gap-2">
-                            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                            <span className="hidden md:inline">Upload</span>
-                          </label>
-                        </Button>
-                      </div>
-                    </div>
+                   <div className="space-y-4">
+                     <div className="relative group">
+                       <input
+                         type="file"
+                         accept="image/*"
+                         onChange={handleFileUpload}
+                         className="hidden"
+                         id="logo-upload"
+                         disabled={uploading}
+                       />
+                       <label 
+                         htmlFor="logo-upload" 
+                         className="flex flex-col items-center justify-center gap-2 p-8 border-4 border-dashed border-zinc-100 rounded-3xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 group"
+                       >
+                         {uploading ? (
+                           <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                         ) : settings.logo_url ? (
+                           <img src={settings.logo_url} className="h-20 object-contain mb-2" alt="Logo" />
+                         ) : (
+                           <div className="bg-white p-4 rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+                             <Upload className="h-8 w-8 text-zinc-400 group-hover:text-primary transition-colors" />
+                           </div>
+                         )}
+                         <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-primary">
+                           {uploading ? 'Enviando...' : settings.logo_url ? 'Alterar Logomarca' : 'Fazer Upload da Logo'}
+                         </span>
+                         <p className="text-[10px] font-bold text-zinc-400">PNG, JPG ou SVG (Máx 2MB)</p>
+                       </label>
+                     </div>
+                     
+                     <div className="flex flex-col gap-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-400">Ou use uma URL externa</label>
+                       <Input 
+                         value={settings.logo_url}
+                         onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                         placeholder="https://exemplo.com/logo.png"
+                         className="rounded-xl border-zinc-200 focus:ring-primary h-12"
+                       />
+                     </div>
+                   </div>
                   </div>
                  {settings.logo_url && (
                    <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
