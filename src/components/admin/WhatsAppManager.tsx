@@ -37,15 +37,15 @@ export function WhatsAppManager() {
   const suggestedTemplates = [
     { 
       name: '🚀 Ofertas da Semana', 
-      content: '📢 *O NOVO ENCARTE CHEGOU!* 📢\n\nConfira as melhores ofertas que preparamos para você esta semana.\n\n🛒 Acesse agora: ' + window.location.origin + '\n\n*RS Supermercado - Qualidade e Preço Baixo!*' 
+      content: '📢 *O NOVO ENCARTE CHEGOU!* 📢\n\nOlá {{nome}}! Confira as melhores ofertas que preparamos para você esta semana.\n\n🛒 Acesse agora: ' + window.location.origin + '\n\n*RS Supermercado - Qualidade e Preço Baixo!*' 
     },
     { 
       name: '🥩 Promoção Açougue', 
-      content: '🥩 *DIA DE CHURRASCO!* 🥩\n\nAs melhores carnes com os melhores preços estão aqui. Venha conferir nossa seleção especial de hoje.\n\n📍 ' + window.location.origin + '\n\n*Aproveite enquanto durarem os estoques!*' 
+      content: '🥩 *DIA DE CHURRASCO!* 🥩\n\nOlá {{nome}}, as melhores carnes com os melhores preços estão aqui. Venha conferir nossa seleção especial de hoje.\n\n📍 ' + window.location.origin + '\n\n*Aproveite enquanto durarem os estoques!*' 
     },
     { 
       name: '🎁 Cupom de Desconto', 
-      content: '🎁 *UM PRESENTE PRA VOCÊ!* 🎁\n\nUse o cupom *VOLTEI5* e ganhe 5% de desconto na sua próxima compra pelo site.\n\n👉 Compre aqui: ' + window.location.origin + '\n\n*Válido por tempo limitado!*' 
+      content: '🎁 *UM PRESENTE PRA VOCÊ!* 🎁\n\nOi {{nome}}! Use o cupom *VOLTEI5* e ganhe 5% de desconto na sua próxima compra pelo site.\n\n👉 Compre aqui: ' + window.location.origin + '\n\n*Válido por tempo limitado!*' 
     },
     { 
       name: '🕒 Horário Especial', 
@@ -152,7 +152,7 @@ export function WhatsAppManager() {
      setIsBlasting(true)
      try {
         let customers: any[] = []
-        const baseQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null).eq('accept_marketing', true)
+         const baseQuery = supabase.from('profiles').select('id, whatsapp, full_name').not('whatsapp', 'is', null).eq('accept_marketing', true)
 
         if (targetSegment === 'all') {
           const { data } = await baseQuery
@@ -203,8 +203,9 @@ export function WhatsAppManager() {
        if (campaignError) throw campaignError
  
        let count = 0
-       for (const customer of customers) {
-         const result = await sendWhatsAppMessage(customer.whatsapp, blastMessage)
+        for (const customer of customers) {
+          const personalizedMessage = blastMessage.replace(/{{nome}}/g, customer.full_name?.split(' ')[0] || 'Cliente')
+          const result = await sendWhatsAppMessage(customer.whatsapp, personalizedMessage)
          if (result.success) count++
          await new Promise(resolve => setTimeout(resolve, 800))
        }
@@ -351,12 +352,21 @@ export function WhatsAppManager() {
  
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
-               <textarea 
-                 className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
-                 placeholder="Ex: 🚀 Super Oferta de hoje: Arroz Tio João 5kg por apenas R$ 24,90! Venha conferir no site: https://sualoja.com"
-                 value={blastMessage}
-                 onChange={(e) => setBlastMessage(e.target.value)}
-               />
+                <div className="relative">
+                  <textarea 
+                    className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
+                    placeholder="Ex: Olá {{nome}}! 🚀 Super Oferta de hoje..."
+                    value={blastMessage}
+                    onChange={(e) => setBlastMessage(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setBlastMessage(prev => prev + ' {{nome}} ')}
+                    className="absolute bottom-4 right-4 bg-zinc-100 hover:bg-zinc-200 text-[9px] font-black uppercase px-2 py-1 rounded-lg border border-zinc-200 transition-colors"
+                  >
+                    {'{'} Nome {'}'}
+                  </button>
+                </div>
              </div>
  
              <div className="space-y-2">
