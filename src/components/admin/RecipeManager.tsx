@@ -75,9 +75,23 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       const products = aiInput.split(',').map(p => p.trim())
       const mainProduct = products[0] || 'Ingrediente'
+      const title = `Chef IA: ${mainProduct} Criativo`
+      
+      // Verificar se já existe uma receita com este título
+      const { data: existing } = await supabase
+        .from('recipes')
+        .select('id')
+        .ilike('title', title)
+        .maybeSingle()
+
+      if (existing) {
+        toast.error('Já existe uma receita com este título!');
+        setIsAiGenerating(false);
+        return;
+      }
       
       const newRecipe = {
-        title: `Chef IA: ${mainProduct} Criativo`,
+        title,
         description: `Uma criação exclusiva da nossa inteligência artificial utilizando ${aiInput}.`,
         instructions: `1. Prepare sua bancada com: ${aiInput}.\n2. Combine os sabores conforme sua intuição.\n3. Cozinhe com atenção aos detalhes.\n4. Finalize com um toque especial de temperos frescos.`,
         category: 'Inovação IA',
