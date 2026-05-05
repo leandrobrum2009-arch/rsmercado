@@ -16,6 +16,7 @@ export const Route = createFileRoute('/recipes')({
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
+        .not('image_url', 'is', null)
         .order('created_at', { ascending: false })
       
       if (error) {
@@ -29,7 +30,10 @@ export const Route = createFileRoute('/recipes')({
         return { recipes: [] };
       }
       
-      return { recipes: data || [] }
+      // Filter empty strings too
+      const filteredRecipes = (data || []).filter(r => r.image_url && r.image_url.trim() !== '');
+      
+      return { recipes: filteredRecipes }
     } catch (err) {
       console.error('Unexpected error in recipes loader:', err)
       return { recipes: [] }
@@ -39,7 +43,13 @@ export const Route = createFileRoute('/recipes')({
 })
 
 function RecipesPage() {
-  const { recipes } = Route.useLoaderData()
+  const { recipes: allRecipes } = Route.useLoaderData()
+  const [selectedCategory, setSelectedCategory] = useState('Todas')
+  const categories = ['Todas', ...Array.from(new Set(allRecipes.map((r: any) => r.category)))]
+  const filteredRecipes = selectedCategory === 'Todas' 
+    ? allRecipes 
+    : allRecipes.filter((r: any) => r.category === selectedCategory)
+
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
   const [savedRecipes, setSavedRecipes] = useState<string[]>([])
   const [user, setUser] = useState<any>(null)
@@ -88,7 +98,7 @@ function RecipesPage() {
         instructions: `1. Preparação: Reúna todos os itens: ${aiInput}.\n2. Processamento: Comece preparando a base do prato com cuidado.\n3. Cocção: Mantenha o fogo controlado para preservar os nutrientes.\n4. Finalização: Sirva imediatamente com um toque de azeite e ervas frescas.`,
         category: 'Reportagem IA',
         difficulty: 'Média',
-        image_url: `https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop`,
+        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
         ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
       }
 
@@ -167,8 +177,27 @@ function RecipesPage() {
       </div>
 
       <div className="container mx-auto px-4">
+        <style>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
+        <div className="flex overflow-x-auto pb-6 gap-2 no-scrollbar mb-4">
+          {categories.map((cat) => (
+            <Button
+              key={cat as string}
+              variant={selectedCategory === cat ? "default" : "outline"}
+              onClick={() => setSelectedCategory(cat as string)}
+              className={`rounded-full px-6 font-black uppercase text-[10px] whitespace-nowrap ${
+                selectedCategory === cat ? 'bg-zinc-900' : 'bg-white'
+              }`}
+            >
+              {cat as string}
+            </Button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {recipes.map((recipe) => (
+          {filteredRecipes.map((recipe: any) => (
             <Card key={recipe.id} className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white group cursor-pointer" onClick={() => setSelectedRecipe(recipe)}>
               <div className="aspect-[16/10] relative overflow-hidden">
                 <img src={recipe.image_url} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -213,7 +242,7 @@ function RecipesPage() {
           ))}
         </div>
 
-        {recipes.length === 0 && (
+        {filteredRecipes.length === 0 && (
           <div className="text-center py-40">
             <ChefHat className="w-16 h-16 mx-auto text-zinc-200 mb-4" />
             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-400">Nenhuma postagem no momento</h2>
