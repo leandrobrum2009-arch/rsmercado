@@ -149,30 +149,8 @@
           { key: 'store_description', value: settings.store_description },
           { key: 'points_ratio', value: settings.points_ratio },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
-           { key: 'admin_whatsapp', value: settings.admin_whatsapp }
-         ];
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase text-zinc-500">WhatsApp do Gestor (Receber Avisos)</label>
-                      <Input 
-                        value={settings.admin_whatsapp}
-                        onChange={(e) => setSettings({ ...settings, admin_whatsapp: e.target.value })}
-                        placeholder="Ex: 5511999999999"
-                        className="rounded-xl border-zinc-200"
-                      />
-                      <p className="text-[9px] text-zinc-400 font-bold uppercase">Número que receberá alertas de novos pedidos.</p>
-                    </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase text-zinc-500">Qtd de Posts Instagram</label>
-                  <Input 
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={settings.instagram_post_count}
-                    onChange={(e) => setSettings({ ...settings, instagram_post_count: e.target.value })}
-                    className="rounded-xl border-zinc-200 focus:ring-primary w-24"
-                  />
-                </div>
- 
+          { key: 'admin_whatsapp', value: settings.admin_whatsapp }
+        ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
        if (error) {
