@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "type-check": "tsc --noEmit",
+    "check-imports": "node scripts/check-imports.js",
     "validate": "npm run type-check && npm run lint && npm run build:dev",
     "preview": "vite preview",
     "lint": "eslint .",
