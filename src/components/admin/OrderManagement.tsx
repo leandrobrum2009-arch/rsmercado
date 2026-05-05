@@ -15,16 +15,17 @@ export function OrderManagement() {
   useEffect(() => {
     fetchOrders()
     
-    // Subscribe to new orders
-    const subscription = supabase
-      .channel('orders-channel')
+    // Subscribe to new orders with a unique channel name
+    const channelName = `orders-channel-${Math.random().toString(36).substr(2, 9)}`
+    const channel = supabase
+      .channel(channelName)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
         fetchOrders()
       })
       .subscribe()
 
     return () => {
-      subscription.unsubscribe()
+      supabase.removeChannel(channel)
     }
   }, [])
 
