@@ -66,15 +66,15 @@ export function LoyaltyManager() {
        setNewNeighborhood({ name: '', fee: '', active: true })
        fetchData()
      }
+     setLoading(false)
+   }
+ 
    const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
      const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
      if (error) toast.error('Erro ao atualizar status')
      else fetchData()
    }
  
-    setLoading(false)
-  }
-
   const deleteNeighborhood = async (id: string) => {
     const { error } = await supabase.from('delivery_neighborhoods').delete().eq('id', id)
     if (error) toast.error('Erro ao remover')
