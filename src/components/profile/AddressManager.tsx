@@ -233,7 +233,7 @@ export function AddressManager({ userId }: { userId: string }) {
                     {addr.street}, {addr.number} - {addr.neighborhood}
                   </p>
                   <p className="text-[10px] text-zinc-400 font-medium">
-                    {addr.city}, {addr.state} {addr.zip_code ?  : ''}
+                    {addr.city}, {addr.state} {addr.zip_code ? ` - CEP: ${addr.zip_code}` : ''}
                   </p>
                   {(addr.reference_point || addr.observations) && (
                     <div className="mt-2 bg-zinc-50 p-2 rounded-lg border border-zinc-100">
@@ -250,9 +250,11 @@ export function AddressManager({ userId }: { userId: string }) {
                     </div>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(addr.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50">
-                  <Trash2 size={16} />
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(addr.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50">
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
               </div>
             ))
           )}
