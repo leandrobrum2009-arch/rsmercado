@@ -561,13 +561,17 @@ NOTIFY pgrst, 'reload schema';
                        value={generatedSql}
                        className="w-full h-48 p-3 bg-zinc-900 text-green-400 font-mono text-[10px] rounded-lg border-2 border-zinc-700"
                      />
-                     <Button 
-                       size="sm" 
-                       className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600"
-                       onClick={copyToClipboard}
-                     >
-                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                     </Button>
+                      <Button 
+                        size="sm" 
+                        className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border-2 border-zinc-600 px-3 font-black text-[10px]"
+                        onClick={copyToClipboard}
+                      >
+                        {copied ? (
+                          <><Check className="h-3 w-3 mr-1" /> COPIADO</>
+                        ) : (
+                          <><Copy className="h-3 w-3 mr-1" /> COPIAR CÓDIGO</>
+                        )}
+                      </Button>
                    </div>
                    <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg">
                      <div className="flex items-start gap-3">
