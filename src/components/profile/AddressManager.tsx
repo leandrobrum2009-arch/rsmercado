@@ -12,6 +12,7 @@ export function AddressManager({ userId }: { userId: string }) {
   const [saving, setSaving] = useState(false)
   const [addresses, setAddresses] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [neighborhoodList, setNeighborhoodList] = useState<any[]>([])
   const [formData, setFormData] = useState({
     recipient_name: '',
     contact_phone: '',
@@ -28,7 +29,13 @@ export function AddressManager({ userId }: { userId: string }) {
 
   useEffect(() => {
     fetchAddresses()
+    fetchNeighborhoods()
   }, [userId])
+
+  const fetchNeighborhoods = async () => {
+    const { data } = await supabase.from('delivery_neighborhoods').select('name').eq('active', true).order('name')
+    if (data) setNeighborhoodList(data)
+  }
 
   const fetchAddresses = async () => {
     try {
@@ -172,11 +179,16 @@ export function AddressManager({ userId }: { userId: string }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-zinc-500">Bairro *</Label>
-                <Input 
+                <select 
+                  className="w-full h-10 px-3 rounded-lg border border-zinc-200 bg-white text-sm"
                   value={formData.neighborhood}
                   onChange={e => setFormData({...formData, neighborhood: e.target.value})}
-                  placeholder="Ex: Arrozal, Centro"
-                />
+                >
+                  <option value="">Selecione um bairro</option>
+                  {neighborhoodList.map(n => (
+                    <option key={n.name} value={n.name}>{n.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-zinc-500">CEP (Opcional - Área Rural)</Label>

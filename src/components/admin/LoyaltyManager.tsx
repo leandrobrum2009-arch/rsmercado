@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon } from 'lucide-react'
+ import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X } from 'lucide-react'
  import { Badge } from '@/components/ui/badge'
  import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
@@ -16,9 +16,10 @@ export function LoyaltyManager() {
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
    const [challenges, setChallenges] = useState<any[]>([])
-   const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
-   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
- 
+  const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
+  const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
+  const [editingFee, setEditingFee] = useState<{ id: string, fee: string } | null>(null)
+
    const importNeighborhoods = async () => {
      setLoading(true)
      const list = [
@@ -99,12 +100,22 @@ export function LoyaltyManager() {
      setLoading(false)
    }
  
-   const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
-     const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
-     if (error) toast.error('Erro ao atualizar status')
-     else fetchData()
-   }
- 
+    const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
+      const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
+      if (error) toast.error('Erro ao atualizar status')
+      else fetchData()
+    }
+
+    const updateNeighborhoodFee = async (id: string, fee: string) => {
+      const { error } = await supabase.from('delivery_neighborhoods').update({ fee: parseFloat(fee) || 0 }).eq('id', id)
+      if (error) toast.error('Erro ao atualizar taxa')
+      else {
+        toast.success('Taxa atualizada!')
+        setEditingFee(null)
+        fetchData()
+      }
+    }
+
   const deleteNeighborhood = async (id: string) => {
     const { error } = await supabase.from('delivery_neighborhoods').delete().eq('id', id)
     if (error) toast.error('Erro ao remover')
@@ -335,30 +346,58 @@ export function LoyaltyManager() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {neighborhoods.map(n => (
-                   <div key={n.id} className={`p-4 bg-white border ${n.active ? 'border-zinc-100' : 'border-red-100 bg-red-50/30'} rounded-2xl flex items-center justify-between shadow-sm`}>
-                     <div className="flex-1">
-                       <p className={`font-black uppercase text-xs ${n.active ? 'text-zinc-900' : 'text-zinc-400'}`}>{n.name}</p>
-                       <p className="font-bold text-[10px] text-green-600">R$ {parseFloat(n.fee).toFixed(2)}</p>
-                       <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${n.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                         {n.active ? 'Ativo' : 'Pausado'}
-                       </span>
-                     </div>
-                     <div className="flex gap-2">
-                       <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         onClick={() => toggleNeighborhoodStatus(n.id, n.active)} 
-                         className={n.active ? "text-zinc-400 hover:text-red-500" : "text-zinc-400 hover:text-green-500"}
-                       >
-                         <Save size={16} />
-                       </Button>
-                       <Button variant="ghost" size="icon" onClick={() => deleteNeighborhood(n.id)} className="text-zinc-300 hover:text-red-500">
-                         <Trash2 size={16} />
-                       </Button>
-                     </div>
-                   </div>
-                 ))}
+                  {neighborhoods.map(n => (
+                    <div key={n.id} className={`p-4 bg-white border ${n.active ? 'border-zinc-100' : 'border-red-100 bg-red-50/30'} rounded-2xl flex items-center justify-between shadow-sm group`}>
+                      <div className="flex-1">
+                        <p className={`font-black uppercase text-xs ${n.active ? 'text-zinc-900' : 'text-zinc-400'}`}>{n.name}</p>
+                        {editingFee?.id === n.id ? (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black text-zinc-400">R$</span>
+                            <Input 
+                              type="number" 
+                              className="h-7 w-20 text-[10px] font-bold" 
+                              value={editingFee?.fee || ''} 
+                              onChange={e => setEditingFee(prev => prev ? {...prev, fee: e.target.value} : null)}
+                              autoFocus
+                            />
+                            <Button size="icon" className="h-7 w-7 bg-green-600" onClick={() => editingFee && updateNeighborhoodFee(n.id, editingFee.fee)}>
+                              <Save size={12} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingFee(null)}>
+                              <X size={12} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-[10px] text-green-600">R$ {parseFloat(n.fee).toFixed(2)}</p>
+                            <button 
+                              onClick={() => setEditingFee({ id: n.id, fee: n.fee.toString() })}
+                              className="opacity-0 group-hover:opacity-100 text-[8px] font-black uppercase text-zinc-400 hover:text-primary transition-opacity"
+                            >
+                              Editar Taxa
+                            </button>
+                          </div>
+                        )}
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md mt-1 inline-block ${n.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {n.active ? 'Ativo' : 'Pausado'}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => toggleNeighborhoodStatus(n.id, n.active)} 
+                          title={n.active ? "Pausar" : "Ativar"}
+                          className={n.active ? "text-zinc-400 hover:text-amber-500" : "text-zinc-400 hover:text-green-500"}
+                        >
+                          {n.active ? <MapIcon size={16} /> : <Plus size={16} />}
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteNeighborhood(n.id)} className="text-zinc-300 hover:text-red-500">
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </CardContent>
           </Card>
