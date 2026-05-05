@@ -21,6 +21,7 @@ function CartPage() {
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,9 +34,16 @@ function CartPage() {
           .eq('active', true)
           .maybeSingle();
         
-        setDeliveryFee(data?.fee || 0);
+        if (data) {
+          setDeliveryFee(data.fee);
+          setIsValidDeliveryArea(true);
+        } else {
+          setDeliveryFee(0);
+          setIsValidDeliveryArea(false);
+        }
       } else {
         setDeliveryFee(0);
+        setIsValidDeliveryArea(null);
       }
     };
     fetchDeliveryFee();
@@ -123,6 +131,11 @@ function CartPage() {
     if (!selectedAddress) {
       toast.error("Por favor, adicione um endereço de entrega.");
       navigate({ to: "/profile" });
+      return;
+    }
+
+    if (isValidDeliveryArea === false) {
+      toast.error("Desculpe, não realizamos entregas no bairro " + selectedAddress.neighborhood);
       return;
     }
 
@@ -277,6 +290,14 @@ function CartPage() {
                       <span className="font-bold uppercase opacity-60">Ref:</span> {selectedAddress?.reference_point}
                     </div>
                   )}
+                  
+                  {isValidDeliveryArea === false && (
+                    <div className="mt-2 text-[10px] text-red-600 bg-red-50 p-2 rounded-lg border border-red-100 flex items-center gap-2">
+                      <AlertCircle size={14} />
+                      <span className="font-bold uppercase">Área não atendida:</span> 
+                      Não entregamos em {selectedAddress.neighborhood}
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -337,7 +358,9 @@ function CartPage() {
               Entrega 
               <span className="text-[10px] font-bold text-zinc-400">({selectedAddress?.neighborhood || 'Escolha o endereço'})</span>
             </span>
-            {deliveryFee > 0 ? (
+            {isValidDeliveryArea === false ? (
+              <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>
+            ) : deliveryFee > 0 ? (
               <span className="text-zinc-900 font-bold">{formatCurrency(deliveryFee)}</span>
             ) : (
               <span className="text-green-600 font-bold uppercase text-xs tracking-tighter">Grátis</span>
