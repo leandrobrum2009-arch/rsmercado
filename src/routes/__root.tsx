@@ -1,5 +1,8 @@
-  import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-  import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink } from "lucide-react";
+   import { registerServiceWorker } from "../lib/webpush";
+     registerServiceWorker();
+   import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
+   import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell } from "lucide-react";
+   import { NotificationCenter } from "../components/NotificationCenter";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
   import { supabase } from "@/lib/supabase";
@@ -210,7 +213,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 <span className="text-2xl font-bold text-primary">{storeSettings.site_name}</span>
               )}
             </Link>
-           <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
+              <NotificationCenter />
              {navItems.map((item) => (
                <Link
                  key={item.path}
@@ -245,7 +249,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 <span className="text-xl font-bold text-primary">{storeSettings.site_name}</span>
               )}
             </Link>
-           <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              <NotificationCenter />
              <Link to="/search" className="p-2 text-gray-600">
                <Search size={20} />
              </Link>
