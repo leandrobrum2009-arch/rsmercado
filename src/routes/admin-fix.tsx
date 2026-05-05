@@ -1,11 +1,4 @@
--- 4. Colunas da Tabela Profiles
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_points INTEGER DEFAULT 0;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
-
--- 5. Buckets de Armazenamento
-import { createFileRoute } from '@tanstack/react-router'
+ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -57,11 +50,17 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. Buckets de Armazenamento
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('products', 'products', true), ('banners', 'banners', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
-`;
+ -- 4. Colunas da Tabela Profiles
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_points INTEGER DEFAULT 0;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+ 
+ -- 5. Buckets de Armazenamento
+ INSERT INTO storage.buckets (id, name, public) 
+ VALUES ('products', 'products', true), ('banners', 'banners', true)
+ ON CONFLICT (id) DO UPDATE SET public = true;
+ `;
       
       console.log('REPAIR SQL:', sql);
       alert('INSTRUÇÕES DE REPARO:\\n\\n1. O código SQL foi impresso no Console (F12).\\n2. Copie o SQL.\\n3. Vá ao painel do Supabase > SQL Editor.\\n4. Cole e clique em RUN.');
