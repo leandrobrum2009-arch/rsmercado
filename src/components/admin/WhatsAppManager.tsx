@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-  import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users } from 'lucide-react'
+   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -26,6 +26,36 @@ export function WhatsAppManager() {
    const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
    const [campaigns, setCampaigns] = useState<any[]>([])
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
+   const [templates, setTemplates] = useState<any[]>([])
+   const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
+   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+   const fetchTemplates = async () => {
+     const { data } = await supabase.from('whatsapp_templates').select('*').order('name')
+     setTemplates(data || [])
+   }
+ 
+   const handleSaveTemplate = async () => {
+     if (!newTemplate.name || !newTemplate.content) return toast.error('Preencha nome e conteúdo do modelo')
+     setIsSavingTemplate(true)
+     const { error } = await supabase.from('whatsapp_templates').insert(newTemplate)
+     if (error) toast.error('Erro ao salvar modelo')
+     else {
+       toast.success('Modelo salvo!')
+       setNewTemplate({ name: '', content: '' })
+       fetchTemplates()
+     }
+     setIsSavingTemplate(false)
+   }
+ 
+   const deleteTemplate = async (id: string) => {
+     const { error } = await supabase.from('whatsapp_templates').delete().eq('id', id)
+     if (error) toast.error('Erro ao excluir modelo')
+     else {
+       toast.success('Modelo excluído')
+       fetchTemplates()
+     }
+   }
+ 
  
    const fetchCampaigns = async () => {
      setLoadingCampaigns(true)
@@ -145,6 +175,7 @@ export function WhatsAppManager() {
      fetchConfig()
      fetchCampaigns()
      fetchCoupons()
+     fetchTemplates()
    }, [])
 
   const fetchConfig = async () => {
@@ -191,7 +222,25 @@ export function WhatsAppManager() {
                <Send size={16} /> Mala Direta (Envio em Massa)
              </CardTitle>
            </CardHeader>
-           <CardContent className="p-6 space-y-4 flex-1">
+            <CardContent className="p-6 space-y-6 flex-1">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                  <FileText size={12} /> Usar Modelo Salvo
+                </Label>
+                <select 
+                  className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                  onChange={(e) => {
+                    const template = templates.find(t => t.id === e.target.value)
+                    if (template) setBlastMessage(template.content)
+                  }}
+                >
+                  <option value="">Selecione um modelo...</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+ 
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
                  <Filter size={12} /> Segmentar por Cupom
@@ -297,8 +346,76 @@ export function WhatsAppManager() {
              )}
            </CardContent>
          </Card>
+        </div>
+ 
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
+           <CardHeader className="bg-zinc-100 border-b">
+             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-zinc-800">
+               <FileText size={16} /> Criar Novo Modelo
+             </CardTitle>
+           </CardHeader>
+           <CardContent className="p-6 space-y-4">
+             <div className="space-y-2">
+               <Label className="text-[10px] font-black uppercase text-zinc-500">Nome do Modelo</Label>
+               <Input 
+                 placeholder="Ex: Oferta de Fim de Semana" 
+                 value={newTemplate.name}
+                 onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
+               />
+             </div>
+             <div className="space-y-2">
+               <Label className="text-[10px] font-black uppercase text-zinc-500">Conteúdo da Mensagem</Label>
+               <textarea 
+                 className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
+                 placeholder="Sua mensagem aqui..."
+                 value={newTemplate.content}
+                 onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
+               />
+             </div>
+             <Button 
+               onClick={handleSaveTemplate} 
+               disabled={isSavingTemplate} 
+               className="w-full bg-zinc-900 text-white font-black uppercase italic h-12 rounded-2xl"
+             >
+               {isSavingTemplate ? <Loader2 className="animate-spin mr-2" /> : <Plus className="mr-2 h-4 w-4" />}
+               Salvar Modelo de Mensagem
+             </Button>
+           </CardContent>
+         </Card>
+ 
+         <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
+           <CardHeader className="bg-zinc-100 border-b">
+             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-zinc-800">
+               <FileText size={16} /> Meus Modelos
+             </CardTitle>
+           </CardHeader>
+           <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
+             {templates.length === 0 ? (
+               <div className="p-12 text-center text-zinc-400">
+                 <FileText className="mx-auto mb-2 opacity-20" size={48} />
+                 <p className="text-xs font-bold uppercase">Nenhum modelo salvo</p>
+               </div>
+             ) : (
+               <div className="divide-y">
+                 {templates.map(t => (
+                   <div key={t.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                     <div className="flex justify-between items-start mb-1">
+                       <p className="font-black uppercase text-xs tracking-tight">{t.name}</p>
+                       <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-300 hover:text-red-500" onClick={() => deleteTemplate(t.id)}>
+                         <Trash2 size={14} />
+                       </Button>
+                     </div>
+                     <p className="text-xs text-zinc-500 font-medium line-clamp-2 italic">"{t.content}"</p>
+                   </div>
+                 ))}
+               </div>
+             )}
+           </CardContent>
+         </Card>
        </div>
-      <Card>
+ 
+       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
