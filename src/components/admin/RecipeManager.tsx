@@ -160,14 +160,13 @@ export function RecipeManager() {
     }
   }
 
-   const checkImageExists = (url: string): Promise<boolean> => {
+   const validateImage = (url: string): Promise<boolean> => {
      return new Promise((resolve) => {
        const img = new Image();
        img.onload = () => resolve(true);
        img.onerror = () => resolve(false);
        img.src = url;
-       // Timeout after 3 seconds
-       setTimeout(() => resolve(false), 3000);
+       setTimeout(() => resolve(false), 3000); // 3s timeout
      });
    };
 
@@ -342,42 +341,21 @@ export function RecipeManager() {
           {name: 'Manteiga', quantity: '2 colheres'}
         ]
       },
-       {
-         title: 'Tacos de Peixe Estilo Baja',
-         description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte.',
-         instructions: '1. Peixe: Empane e frite.\n2. Repolho: Misture com limão.\n3. Molho: Iogurte e limão.\n4. Tortilhas: Aqueça.\n5. Montagem: Tudo na tortilha.',
-         category: 'Mexicana',
-         difficulty: 'Média',
-         keywords: 'fish,taco,mexican',
-         ingredients: [{name: 'Peixe', quantity: '500g'}]
-       },
-       {
-         title: 'Salmão Grelhado com Ervas',
-         description: 'Filé de salmão suculento com crosta de ervas finas e limão siciliano.',
-         instructions: '1. Tempere o salmão.\n2. Grelhe por 4 minutos cada lado.\n3. Adicione ervas e limão.\n4. Sirva com aspargos.',
-         category: 'Saudável',
-         difficulty: 'Fácil',
-         keywords: 'salmon,fish,grilled',
-         ingredients: [{name: 'Salmão', quantity: '200g'}]
-       },
-       {
-         title: 'Nhoque de Batata Caseiro',
-         description: 'Massa leve feita em casa com batatas selecionadas e molho de tomate fresco.',
-         instructions: '1. Cozinhe as batatas.\n2. Amasse e misture com farinha e ovo.\n3. Modele os nhoques.\n4. Cozinhe em água fervente.\n5. Sirva com molho.',
-         category: 'Italiana',
-         difficulty: 'Média',
-         keywords: 'gnocchi,pasta,italian',
-         ingredients: [{name: 'Batata', quantity: '1kg'}]
-       },
-       {
-         title: 'Hambúrguer Artesanal',
-         description: 'Blend especial de carnes com queijo derretido e pão brioche tostado.',
-         instructions: '1. Molde os hambúrgueres.\n2. Grelhe no ponto desejado.\n3. Derreta o queijo.\n4. Monte no pão com molho especial.',
-         category: 'Lanche',
-         difficulty: 'Fácil',
-         keywords: 'burger,meat,fastfood',
-         ingredients: [{name: 'Carne Moída', quantity: '200g'}]
-       }
+       { title: 'Filé Mignon ao Molho Madeira', category: 'Carnes', keywords: 'steak,meat' },
+       { title: 'Risoto de Limão Siciliano', category: 'Italiana', keywords: 'risotto,lemon' },
+       { title: 'Picanha Recheada', category: 'Churrasco', keywords: 'picanha,meat' },
+       { title: 'Frango com Quiabo', category: 'Mineira', keywords: 'chicken,okra' },
+       { title: 'Vatapá Baiano', category: 'Baiana', keywords: 'shrimp,creamy' },
+       { title: 'Brigadeiro Gourmet', category: 'Doce', keywords: 'chocolate' },
+       { title: 'Tapioca de Queijo', category: 'Café', keywords: 'tapioca,cheese' },
+       { title: 'Acarajé Completo', category: 'Baiana', keywords: 'beans,shrimp' },
+       { title: 'Pão de Queijo Mineiro', category: 'Café', keywords: 'cheese,bread' },
+       { title: 'Baião de Dois', category: 'Nordestina', keywords: 'rice,beans' },
+       { title: 'Coxinha de Frango', category: 'Salgado', keywords: 'chicken,snack' },
+       { title: 'Quindim Tradicional', category: 'Doce', keywords: 'egg,coconut' },
+       { title: 'Tacacá Paraense', category: 'Amazônica', keywords: 'shrimp,tucupi' },
+       { title: 'Arroz com Pequi', category: 'Regional', keywords: 'pequi,rice' },
+       { title: 'Feijão Tropeiro', category: 'Mineira', keywords: 'beans,flour' }
      ];
  
      try {
@@ -394,28 +372,36 @@ export function RecipeManager() {
        ];
 
        for(let i = 0; i < 40; i++) {
-         const template = detailedTemplates[i % detailedTemplates.length];
-         const nTitle = normalize(template.title);
+         const base = detailedTemplates[i % detailedTemplates.length];
+         const variant = i >= detailedTemplates.length ? ` ${Math.floor(i / detailedTemplates.length) + 1}` : '';
+         const title = base.title + variant;
+         const nTitle = normalize(title);
          
          if (!existingSet.has(nTitle)) {
-           // Try different sources until one works
-           let validImageUrl = '';
-           const keywords = template.keywords || normalize(template.title);
+           const keywords = (base as any).keywords || normalize(base.title);
+           const sources = [
+             `https://loremflickr.com/800/400/food,recipe,${keywords}?random=${i}`,
+             `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop&sig=${i}`,
+             `https://picsum.photos/seed/${keywords}${i}/800/400`
+           ];
            
-           for (const source of imageSources) {
-             const testUrl = source(keywords + i);
-             const exists = await checkImageExists(testUrl);
-             if (exists) {
-               validImageUrl = testUrl;
+           let chosenUrl = '';
+           for (const url of sources) {
+             if (await validateImage(url)) {
+               chosenUrl = url;
                break;
              }
            }
-
-           if (validImageUrl) {
+ 
+           if (chosenUrl) {
              finalRecipes.push({ 
-               ...template, 
-               image_url: validImageUrl,
-               keywords: undefined // Remove helper property
+               title,
+               description: (base as any).description || `Uma deliciosa receita de ${title.toLowerCase()}.`,
+               instructions: (base as any).instructions || `1. Preparar ingredientes.\n2. Cozinhar bem.\n3. Servir quente.`,
+               category: base.category,
+               difficulty: (base as any).difficulty || 'Média',
+               image_url: chosenUrl,
+               ingredients: (base as any).ingredients || [{name: 'Ingrediente Base', quantity: '1 unidade'}]
              });
              existingSet.add(nTitle);
              addedCount++;
