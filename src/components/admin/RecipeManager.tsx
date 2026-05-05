@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles, AlertCircle } from 'lucide-react'
+  import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles, AlertCircle, ChefHat } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export function RecipeManager() {
   const [recipes, setRecipes] = useState<any[]>([])
@@ -15,7 +17,17 @@ export function RecipeManager() {
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
   const [aiInput, setAiInput] = useState('')
-  const [isAiGenerating, setIsAiGenerating] = useState(false)
+   const [isAiGenerating, setIsAiGenerating] = useState(false)
+   const [isManualModalOpen, setIsManualModalOpen] = useState(false)
+   const [manualRecipe, setManualRecipe] = useState({
+     title: '',
+     description: '',
+     instructions: '',
+     category: 'Brasileira',
+     difficulty: 'Média',
+     image_url: '',
+     ingredients: [{ name: '', quantity: '' }]
+   })
 
    useEffect(() => {
      const check = async () => {
@@ -467,6 +479,38 @@ export function RecipeManager() {
       fetchRecipes()
     } catch (error: any) {
       toast.error('Erro ao apagar: ' + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateManualRecipe = async () => {
+    if (!manualRecipe.title || !manualRecipe.image_url) {
+      return toast.error('Título e URL da imagem são obrigatórios')
+    }
+    setIsLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const { error } = await supabase.from('recipes').insert([{
+        ...manualRecipe,
+        author_id: session?.user?.id,
+        ingredients: manualRecipe.ingredients.filter(i => i.name)
+      }])
+      if (error) throw error
+      toast.success('Receita cadastrada com sucesso!')
+      setIsManualModalOpen(false)
+      setManualRecipe({
+        title: '',
+        description: '',
+        instructions: '',
+        category: 'Brasileira',
+        difficulty: 'Média',
+        image_url: '',
+        ingredients: [{ name: '', quantity: '' }]
+      })
+      fetchRecipes()
+    } catch (error) {
+      toast.error('Erro ao cadastrar receita')
     } finally {
       setIsLoading(false)
     }
