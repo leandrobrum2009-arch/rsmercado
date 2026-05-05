@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Recria receitas se necessário ou garante que a tabela existe
 CREATE TABLE IF NOT EXISTS public.recipes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -81,6 +82,14 @@ CREATE TABLE IF NOT EXISTS public.recipes (
     author_id UUID REFERENCES auth.users(id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Garante que a coluna ingredients é jsonb
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'recipes' AND column_name = 'ingredients' AND data_type = 'text') THEN
+        ALTER TABLE public.recipes ALTER COLUMN ingredients TYPE JSONB USING ingredients::jsonb;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.user_roles (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, role));
 CREATE TABLE IF NOT EXISTS public.profiles (id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, full_name TEXT, avatar_url TEXT, whatsapp TEXT, updated_at TIMESTAMPTZ DEFAULT NOW(), is_admin BOOLEAN DEFAULT FALSE);
