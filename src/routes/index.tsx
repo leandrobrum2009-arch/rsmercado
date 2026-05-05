@@ -59,29 +59,6 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-       <div className="container mx-auto -mt-6">
-         <div className="bg-white mx-4 rounded-2xl shadow-sm p-4 flex items-center justify-between border">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold">
-               P
-             </div>
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Seus Pontos</p>
-                <p className="text-lg font-bold text-gray-800">
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin inline" />
-                  ) : (
-                    `${points !== null ? points.toLocaleString('pt-BR') : '0'} pts`
-                  )}
-                </p>
-              </div>
-           </div>
-           <button className="bg-green-50 text-green-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-100 transition-colors">
-             RESGATAR
-           </button>
-         </div>
-       </div>
- 
           <div className="px-4 pt-4">
             <BannerCarousel />
           </div>
