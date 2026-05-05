@@ -410,7 +410,13 @@ export function RecipeManager() {
        }
 
       if (finalRecipes.length > 0) {
-        const { error } = await supabase.from('recipes').insert(finalRecipes)
+        const { data: { session } } = await supabase.auth.getSession()
+        const recipesWithAuthor = finalRecipes.map(r => ({
+          ...r,
+          author_id: session?.user?.id
+        }))
+        
+        const { error } = await supabase.from('recipes').insert(recipesWithAuthor)
         if (error) throw error
         toast.success(`${addedCount} novas receitas brasileiras cadastradas!`);
       } else {
