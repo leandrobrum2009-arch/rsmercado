@@ -1,3 +1,4 @@
+ import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
 import { 
   ShoppingBag, 
@@ -88,7 +89,13 @@ export const Route = createFileRoute('/admin')({
 
 function RouteComponent() {
   const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
-  const [activeTab, setActiveTab] = useState('products')
+   const [activeTab, setActiveTab] = useState('dashboard')
+      {
+        title: 'Visão Geral',
+        items: [
+          { id: 'dashboard', label: 'Início / Dashboard', icon: LayoutTemplate },
+        ]
+      },
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
   const [lastError, setLastError] = useState<string | null>(null)
@@ -199,9 +206,12 @@ function RouteComponent() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-6xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsContent value="settings" className="mt-0 focus-visible:ring-0">
-                <StoreSettingsManager />
-              </TabsContent>
+               <TabsContent value="dashboard" className="mt-0 focus-visible:ring-0">
+                 <AdminDashboard />
+               </TabsContent>
+               <TabsContent value="settings" className="mt-0 focus-visible:ring-0">
+                 <StoreSettingsManager />
+               </TabsContent>
               <TabsContent value="products" className="mt-0 focus-visible:ring-0">
                 <ProductManagement />
               </TabsContent>
