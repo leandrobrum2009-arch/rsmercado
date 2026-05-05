@@ -224,11 +224,8 @@ function RouteComponent() {
                <TabsContent value="loyalty" className="mt-0 focus-visible:ring-0">
                  <LoyaltyManager />
                </TabsContent>
-              <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
-                <WhatsAppManager />
-              </TabsContent>
-               <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
-                 <WebhookManager />
+               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
+                 <WhatsAppManager />
                </TabsContent>
             </Tabs>
           </div>
