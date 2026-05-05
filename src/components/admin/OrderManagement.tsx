@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks } from 'lucide-react'
 import { toast } from '@/lib/toast'
-import { formatCurrency, sendWhatsAppMessage } from '@/lib/whatsapp'
+  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig } from '@/lib/whatsapp'
 
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
@@ -82,21 +82,22 @@ import { formatCurrency, sendWhatsAppMessage } from '@/lib/whatsapp'
     toast.success('Status atualizado!')
     fetchOrders()
 
-    // Notify via WhatsApp
-    if (customerPhone) {
-       const statusLabels: Record<string, string> = {
-         pending: 'Pendente',
-         approved: 'Pedido Aprovado ✅',
-         collecting: 'Em Coleta 🛒',
-         collected: 'Pedido Coletado 📦',
-         waiting_courier: 'Aguardando Entregador 🛵',
-         out_for_delivery: 'Saiu para Entrega 🚚',
-         delivered: 'Entregue 🏁',
-         cancelled: 'Cancelado ❌'
-       }
-      
-      const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\nAgradecemos a preferência! 🛒`
-      await sendWhatsAppMessage(customerPhone, message)
+    // Notify via WhatsApp if enabled
+    const config = await getWhatsAppConfig();
+    if (customerPhone && config?.notify_order_status !== false) {
+      const statusLabels: Record<string, string> = {
+        pending: 'Pendente',
+        approved: 'Pedido Aprovado ✅',
+        collecting: 'Em Coleta 🛒',
+        collected: 'Pedido Coletado 📦',
+        waiting_courier: 'Aguardando Entregador 🛵',
+        out_for_delivery: 'Saiu para Entrega 🚚',
+        delivered: 'Entregue 🏁',
+        cancelled: 'Cancelado ❌'
+      }
+     
+     const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\nAgradecemos a preferência! 🛒`
+     await sendWhatsAppMessage(customerPhone, message)
     }
   }
 

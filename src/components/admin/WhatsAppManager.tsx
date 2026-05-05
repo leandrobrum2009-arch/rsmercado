@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus } from 'lucide-react'
+   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -476,13 +476,63 @@ export function WhatsAppManager() {
               />
             </div>
           </div>
-          <Button onClick={handleSave} disabled={isSaving} className="w-full">
+          <div className="pt-4 border-t space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+              <ShieldAlert size={16} className="text-amber-500" /> Segurança e Automatização
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div>
+                  <p className="text-xs font-black uppercase">Bloquear Reenvio Automático</p>
+                  <p className="text-[10px] text-zinc-500 font-bold">Evita enviar a mesma mensagem 2x (24h)</p>
+                </div>
+                <Switch 
+                  checked={config.prevent_duplicates} 
+                  onCheckedChange={(val) => setConfig({...config, prevent_duplicates: val})} 
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div>
+                  <p className="text-xs font-black uppercase">Avisar Status do Pedido</p>
+                  <p className="text-[10px] text-zinc-500 font-bold">Envia Whats ao mudar status do pedido</p>
+                </div>
+                <Switch 
+                  checked={config.notify_order_status !== false} 
+                  onCheckedChange={(val) => setConfig({...config, notify_order_status: val})} 
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div>
+                  <p className="text-xs font-black uppercase">Avisar Admin (Novo Pedido)</p>
+                  <p className="text-[10px] text-zinc-500 font-bold">Notifica o admin sobre novas vendas</p>
+                </div>
+                <Switch 
+                  checked={config.notify_new_order_admin !== false} 
+                  onCheckedChange={(val) => setConfig({...config, notify_new_order_admin: val})} 
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-black uppercase text-zinc-400">Janela de Bloqueio (Horas)</Label>
+                <Input 
+                  type="number"
+                  value={config.duplicate_cooldown_hours || 24}
+                  onChange={(e) => setConfig({...config, duplicate_cooldown_hours: parseInt(e.target.value)})}
+                  className="h-10 rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+
+          <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-zinc-900 text-white font-black uppercase italic rounded-2xl shadow-xl shadow-zinc-200 mt-4">
             {isSaving ? <Loader2 className="animate-spin mr-2" /> : <ShieldCheck className="mr-2" />}
-            Salvar Configurações
+            Salvar Configurações de WhatsApp
           </Button>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Teste de Envio</CardTitle>
