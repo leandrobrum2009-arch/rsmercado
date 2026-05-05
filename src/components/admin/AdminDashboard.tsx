@@ -199,7 +199,13 @@
           .order('stock', { ascending: true })
           .limit(3)
         
-        setLowStockProducts(lowStock || [])
+         setLowStockProducts(lowStock || [])
+ 
+         if (lowStock && lowStock.length > 0) {
+           toast.warning(`Atenção: ${lowStock.length} produtos estão com estoque baixo!`, {
+             description: 'Verifique os detalhes no painel de insights.'
+           })
+         }
   
       } catch (err) {
        console.error('Error fetching dashboard data:', err)
