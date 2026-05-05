@@ -551,8 +551,16 @@ export function RecipeManager() {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Descrição Curta</Label>
+              <Input value={manualRecipe.description} onChange={(e) => setManualRecipe({...manualRecipe, description: e.target.value})} className="rounded-xl border-2" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Modo de Preparo</Label>
+              <Textarea value={manualRecipe.instructions} onChange={(e) => setManualRecipe({...manualRecipe, instructions: e.target.value})} className="rounded-xl border-2 min-h-[100px]" />
+            </div>
+            <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase">URL da Imagem</Label>
-              <Input value={manualRecipe.image_url} onChange={(e) => setManualRecipe({...manualRecipe, image_url: e.target.value})} className="rounded-xl border-2" />
+              <Input value={manualRecipe.image_url} placeholder="https://exemplo.com/foto.jpg" onChange={(e) => setManualRecipe({...manualRecipe, image_url: e.target.value})} className="rounded-xl border-2" />
             </div>
           </div>
           <DialogFooter>
