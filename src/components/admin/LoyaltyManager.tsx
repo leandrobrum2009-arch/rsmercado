@@ -53,8 +53,9 @@ export function LoyaltyManager() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: settingsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
-      if (settingsData) {
+      // Fetch Settings
+      const { data: settingsData, error: sErr } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+      if (!sErr && settingsData) {
         const val = settingsData.value;
         if (typeof val === 'object' && val !== null) {
           setSettings(val);
@@ -63,14 +64,21 @@ export function LoyaltyManager() {
         }
       }
 
-      const { data: nData } = await supabase.from('delivery_neighborhoods').select('*').order('name')
-      setNeighborhoods(nData || [])
+      // Fetch Neighborhoods
+      const { data: nData, error: nErr } = await supabase.from('delivery_neighborhoods').select('*').order('name');
+      if (!nErr) setNeighborhoods(nData || []);
+      else console.error('Error fetching neighborhoods:', nErr);
 
-      const { data: rData } = await supabase.from('loyalty_rewards').select('*').order('points_cost')
-      setRewards(rData || [])
+      // Fetch Rewards
+      const { data: rData, error: rErr } = await supabase.from('loyalty_rewards').select('*').order('points_cost');
+      if (!rErr) setRewards(rData || []);
+      else console.error('Error fetching rewards:', rErr);
 
-      const { data: cData } = await supabase.from('weekly_challenges').select('*').order('start_date', { ascending: false })
-      setChallenges(cData || [])
+      // Fetch Challenges
+      const { data: cData, error: cErr } = await supabase.from('weekly_challenges').select('*').order('start_date', { ascending: false });
+      if (!cErr) setChallenges(cData || []);
+      else console.error('Error fetching challenges:', cErr);
+
     } catch (error) {
       console.error('Error fetching loyalty data:', error)
     } finally {
@@ -80,43 +88,70 @@ export function LoyaltyManager() {
 
   const saveSettings = async () => {
     setLoading(true)
-    const { error } = await supabase.from('store_settings').upsert({
-      key: 'points_multiplier',
-      value: settings
-    })
-    if (error) toast.error('Erro ao salvar configurações')
-    else toast.success('Configurações salvas!')
-    setLoading(false)
+    try {
+      const { error } = await supabase.from('store_settings').upsert({
+        key: 'points_multiplier',
+        value: settings
+      })
+      if (error) {
+        console.error('Error saving settings:', error)
+        toast.error('Erro ao salvar configurações: ' + error.message)
+      } else {
+        toast.success('Configurações salvas!')
+      }
+    } catch (err: any) {
+      console.error('Catch saving settings:', err)
+      toast.error('Erro ao salvar: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const addNeighborhood = async () => {
-    if (!newNeighborhood.name) return
+    if (!newNeighborhood.name) {
+      toast.error('Informe o nome do bairro');
+      return;
+    }
     setLoading(true)
-     const { error } = await supabase.from('delivery_neighborhoods').insert({
-       name: newNeighborhood.name,
-       fee: parseFloat(newNeighborhood.fee) || 0,
-       active: newNeighborhood.active
-     })
- 
-     if (error) toast.error('Erro ao adicionar bairro: ' + error.message)
-     else {
-       toast.success('Bairro adicionado!')
-       setNewNeighborhood({ name: '', fee: '', active: true })
-       fetchData()
-     }
-     setLoading(false)
-   }
+    try {
+      const { error } = await supabase.from('delivery_neighborhoods').insert({
+        name: newNeighborhood.name,
+        fee: parseFloat(newNeighborhood.fee) || 0,
+        active: newNeighborhood.active
+      })
+
+      if (error) {
+        console.error('Error adding neighborhood:', error);
+        toast.error('Erro ao adicionar bairro: ' + error.message);
+      } else {
+        toast.success('Bairro adicionado!');
+        setNewNeighborhood({ name: '', fee: '', active: true });
+        fetchData();
+      }
+    } catch (err: any) {
+      console.error('Catch adding neighborhood:', err);
+      toast.error('Erro ao processar: ' + err.message);
+    } finally {
+      setLoading(false)
+    }
+  }
  
     const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
       const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
-      if (error) toast.error('Erro ao atualizar status')
-      else fetchData()
+      if (error) {
+        console.error('Error toggling neighborhood status:', error)
+        toast.error('Erro ao atualizar status: ' + error.message)
+      } else {
+        fetchData()
+      }
     }
 
     const updateNeighborhoodFee = async (id: string, fee: string) => {
       const { error } = await supabase.from('delivery_neighborhoods').update({ fee: parseFloat(fee) || 0 }).eq('id', id)
-      if (error) toast.error('Erro ao atualizar taxa')
-      else {
+      if (error) {
+        console.error('Error updating neighborhood fee:', error)
+        toast.error('Erro ao atualizar taxa: ' + error.message)
+      } else {
         toast.success('Taxa atualizada!')
         setEditingFee(null)
         fetchData()
@@ -172,22 +207,35 @@ export function LoyaltyManager() {
                      <option value="product">Produto Grátis</option>
                    </select>
                  </div>
-                 <Button onClick={async () => {
-                   if (!newReward.title || !newReward.points_cost) return;
-                   setLoading(true);
-                   const { error } = await supabase.from('loyalty_rewards').insert({
-                     title: newReward.title,
-                     points_cost: parseInt(newReward.points_cost),
-                     reward_type: newReward.reward_type,
-                     active: true
-                   });
-                   if (!error) {
-                     toast.success('Recompensa adicionada!');
-                     setNewReward({ title: '', description: '', points_cost: '', reward_type: 'product' });
-                     fetchData();
-                   } else toast.error('Erro ao adicionar');
-                   setLoading(false);
-                 }} className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Adicionar</Button>
+                  <Button onClick={async () => {
+                    if (!newReward.title || !newReward.points_cost) {
+                      toast.error('Informe o título e o custo em pontos');
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.from('loyalty_rewards').insert({
+                        title: newReward.title,
+                        points_cost: parseInt(newReward.points_cost),
+                        reward_type: newReward.reward_type,
+                        active: true
+                      });
+                      if (!error) {
+                        toast.success('Recompensa adicionada!');
+                        setNewReward({ title: '', description: '', points_cost: '', reward_type: 'product' });
+                        fetchData();
+                      } else {
+                        console.error('Error adding reward:', error);
+                        toast.error('Erro ao adicionar: ' + error.message);
+                      }
+                    } catch (err: any) {
+                      toast.error('Erro: ' + err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }} disabled={loading} className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">
+                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Adicionar'}
+                  </Button>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                  {rewards.map(r => (
@@ -231,23 +279,38 @@ export function LoyaltyManager() {
                    <Label className="text-[10px] uppercase font-bold">Descrição do Objetivo</Label>
                    <Input placeholder="Ex: Faça um pedido acima de R$ 150,00" value={newChallenge.description} onChange={e => setNewChallenge({...newChallenge, description: e.target.value})} />
                  </div>
-                 <Button onClick={async () => {
-                   if (!newChallenge.title || !newChallenge.points_reward) return;
-                   setLoading(true);
-                   const { error } = await supabase.from('weekly_challenges').insert({
-                     ...newChallenge,
-                     points_reward: parseInt(newChallenge.points_reward),
-                     start_date: new Date().toISOString(),
-                     end_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
-                     active: true
-                   });
-                   if (!error) {
-                     toast.success('Desafio criado!');
-                     setNewChallenge({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' });
-                     fetchData();
-                   } else toast.error('Erro ao criar desafio');
-                   setLoading(false);
-                 }} className="col-span-2 bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Publicar Desafio</Button>
+                  <Button onClick={async () => {
+                    if (!newChallenge.title || !newChallenge.points_reward) {
+                      toast.error('Informe o título e o prêmio do desafio');
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.from('weekly_challenges').insert({
+                        title: newChallenge.title,
+                        description: newChallenge.description,
+                        points_reward: parseInt(newChallenge.points_reward),
+                        requirement_type: newChallenge.requirement_type || 'total_amount',
+                        start_date: new Date().toISOString(),
+                        end_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
+                        active: true
+                      });
+                      if (!error) {
+                        toast.success('Desafio criado!');
+                        setNewChallenge({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' });
+                        fetchData();
+                      } else {
+                        console.error('Error creating challenge:', error);
+                        toast.error('Erro ao criar desafio: ' + error.message);
+                      }
+                    } catch (err: any) {
+                      toast.error('Erro: ' + err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }} disabled={loading} className="col-span-2 bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">
+                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Publicar Desafio'}
+                  </Button>
                </div>
                <div className="space-y-4">
                  {challenges.map(c => (
