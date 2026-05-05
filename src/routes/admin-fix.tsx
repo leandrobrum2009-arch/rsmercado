@@ -196,9 +196,12 @@ END $$;
  DROP POLICY IF EXISTS "Authenticated upload" ON storage.objects;
  CREATE POLICY "Authenticated upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners'));
  
- DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
- CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
-       `;
+  DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
+  CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
+ 
+  -- Recarregar cache do PostgREST
+  NOTIFY pgrst, 'reload schema';
+  `;
        setGeneratedSql(sql);
        setShowSql(true);
        setStatus('SQL gerado com sucesso! Veja abaixo.');
