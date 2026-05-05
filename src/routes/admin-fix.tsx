@@ -539,9 +539,23 @@ NOTIFY pgrst, 'reload schema';
                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                      </Button>
                    </div>
-                   <div className="p-3 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-start gap-3">
-                     <div className="bg-white text-blue-600 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px]">!</div>
-                     <p>IMPORTANTE: Copie todo o código acima e cole no SQL EDITOR do seu painel Supabase, depois clique em RUN.</p>
+                   <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg">
+                     <div className="flex items-start gap-3">
+                       <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">1</div>
+                       <p>COPIE todo o código acima (clique no botão de copiar).</p>
+                     </div>
+                     <div className="flex items-start gap-3">
+                       <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">2</div>
+                       <p>Vá ao painel Supabase > SQL EDITOR e clique em "+ New Query".</p>
+                     </div>
+                     <div className="flex items-start gap-3">
+                       <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">3</div>
+                       <p>Cole o código e clique em <b>RUN</b> (no canto inferior direito).</p>
+                     </div>
+                     <div className="flex items-start gap-3 mt-2 pt-2 border-t border-blue-400">
+                       <div className="bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">!</div>
+                       <p className="uppercase tracking-tighter">Após o "Success", RECARREGUE ESTE SITE para ativar as mudanças.</p>
+                     </div>
                    </div>
                  </div>
                )}
