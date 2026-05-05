@@ -87,7 +87,7 @@
    const [demographics, setDemographics] = useState<any[]>([])
      const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
      const [loading, setLoading] = useState(true)
-     const [timeRange, setTimeRange] = useState('month')
+      const [timeRange, setTimeRange] = useState('month')
        // 5. Get low stock products
        const { data: lowStock } = await supabase
          .from('products')
@@ -97,6 +97,7 @@
          .limit(3)
        
        setLowStockProducts(lowStock || [])
+ 
  
    useEffect(() => {
      fetchDashboardData()
