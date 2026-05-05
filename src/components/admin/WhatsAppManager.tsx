@@ -352,12 +352,21 @@ export function WhatsAppManager() {
  
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
-               <textarea 
-                 className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
-                 placeholder="Ex: 🚀 Super Oferta de hoje: Arroz Tio João 5kg por apenas R$ 24,90! Venha conferir no site: https://sualoja.com"
-                 value={blastMessage}
-                 onChange={(e) => setBlastMessage(e.target.value)}
-               />
+                <div className="relative">
+                  <textarea 
+                    className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
+                    placeholder="Ex: Olá {{nome}}! 🚀 Super Oferta de hoje..."
+                    value={blastMessage}
+                    onChange={(e) => setBlastMessage(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setBlastMessage(prev => prev + ' {{nome}} ')}
+                    className="absolute bottom-4 right-4 bg-zinc-100 hover:bg-zinc-200 text-[9px] font-black uppercase px-2 py-1 rounded-lg border border-zinc-200 transition-colors"
+                  >
+                    {'{'} Nome {'}'}
+                  </button>
+                </div>
              </div>
  
              <div className="space-y-2">
