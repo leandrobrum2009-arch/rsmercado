@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function LoyaltyManager() {
   const [loading, setLoading] = useState(false)
-  const [settings, setSettings] = useState<any>({ points_per_real: 1 })
+   const [settings, setSettings] = useState<any>({ points_per_real: 0.5 })
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
@@ -268,12 +268,16 @@ export function LoyaltyManager() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-zinc-500">Pontos por cada R$ 1,00 gasto</label>
-                  <Input 
-                    type="number" 
-                    value={settings.points_per_real} 
-                    onChange={e => setSettings({...settings, points_per_real: parseInt(e.target.value)})}
-                    className="h-12 border-zinc-200"
-                  />
+                   <Input 
+                     type="number" 
+                     step="0.1"
+                     value={settings.points_per_real} 
+                     onChange={e => setSettings({...settings, points_per_real: parseFloat(e.target.value)})}
+                     className="h-12 border-zinc-200 font-bold"
+                   />
+                   <p className="text-[10px] text-zinc-500 font-bold italic mt-1">
+                     Dica: Para R$ 5,00 = 2,5 pontos, use 0.5.
+                   </p>
                 </div>
               </div>
               <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
