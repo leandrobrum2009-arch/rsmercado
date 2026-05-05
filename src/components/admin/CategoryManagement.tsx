@@ -6,7 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
- import { Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat } from 'lucide-react'
+ import { 
+   Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, 
+   Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2
+ } from 'lucide-react'
+    const getIconComponent = (name: string) => {
+      const icons: Record<string, any> = {
+        Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, Carrot, Pizza, Wine, Egg, 
+        GlassWater, ChefHat, ShoppingBag, Trash2, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2
+      };
+      return icons[name] || ShoppingBag;
+    };
+
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
@@ -16,28 +27,31 @@ export function CategoryManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
    const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag', banner_url: '' })
-   const elegantIcons = [
-     { name: 'Apple', label: 'Maçã' },
-     { name: 'Beef', label: 'Carne' },
-     { name: 'Milk', label: 'Leite' },
-     { name: 'Beer', label: 'Bebida' },
-     { name: 'Fish', label: 'Peixe' },
-     { name: 'IceCream', label: 'Sorvete' },
-     { name: 'Coffee', label: 'Café' },
-     { name: 'Carrot', label: 'Cenoura' },
-     { name: 'Pizza', label: 'Pizza' },
-     { name: 'Wine', label: 'Vinho' },
-     { name: 'Egg', label: 'Ovos' },
-     { name: 'GlassWater', label: 'Água' },
-     { name: 'ChefHat', label: 'Culinária' },
-     { name: 'ShoppingBag', label: 'Geral' },
-     { name: 'Trash2', label: 'Limpeza' },
-     { name: 'Sparkles', label: 'Higiene' },
-     { name: 'Baby', label: 'Infantil' },
-     { name: 'Dog', label: 'Pet' },
-     { name: 'Grape', label: 'Frutas' },
-     { name: 'Wheat', label: 'Cereais' }
-   ];
+    const elegantIcons = [
+      { name: 'Apple', label: 'Hortifruti', color: 'emerald' },
+      { name: 'Beef', label: 'Carnes', color: 'rose' },
+      { name: 'Milk', label: 'Laticínios', color: 'blue' },
+      { name: 'Beer', label: 'Bebidas', color: 'indigo' },
+      { name: 'Fish', label: 'Peixaria', color: 'cyan' },
+      { name: 'IceCream', label: 'Congelados', color: 'sky' },
+      { name: 'Coffee', label: 'Mercearia', color: 'amber' },
+      { name: 'Carrot', label: 'Legumes', color: 'orange' },
+      { name: 'Pizza', label: 'Padaria', color: 'orange' },
+      { name: 'Wine', label: 'Vinhos', color: 'purple' },
+      { name: 'Egg', label: 'Ovos', color: 'amber' },
+      { name: 'GlassWater', label: 'Água', color: 'blue' },
+      { name: 'ChefHat', label: 'Pratos Prontos', color: 'red' },
+      { name: 'ShoppingBag', label: 'Variedades', color: 'zinc' },
+      { name: 'Trash2', label: 'Limpeza', color: 'zinc' },
+      { name: 'Sparkles', label: 'Higiene', color: 'purple' },
+      { name: 'Baby', label: 'Infantil', color: 'pink' },
+      { name: 'Dog', label: 'Pet Shop', color: 'amber' },
+      { name: 'Grape', label: 'Frutas', color: 'purple' },
+      { name: 'Wheat', label: 'Cereais', color: 'yellow' },
+      { name: 'Cookie', label: 'Biscoitos', color: 'amber' },
+      { name: 'Bath', label: 'Perfumaria', color: 'blue' },
+      { name: 'Flower2', label: 'Floricultura', color: 'emerald' }
+    ];
  
    const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
 
@@ -160,21 +174,26 @@ export function CategoryManagement() {
                         </label>
                      </div>
                    </div>
-                   <div className="space-y-2">
-                     <Label className="text-[10px] uppercase font-bold">Ícone Elegante (Lucide)</Label>
-                     <Select 
-                       value={newCategory.icon_name} 
-                       onValueChange={(val) => setNewCategory({...newCategory, icon_name: val})}
-                     >
-                       <SelectTrigger className="h-10">
-                         <SelectValue placeholder="Escolha um ícone" />
-                       </SelectTrigger>
-                       <SelectContent>
-                         {elegantIcons.map(icon => (
-                           <SelectItem key={icon.name} value={icon.name}>{icon.label} ({icon.name})</SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
+                   <div className="space-y-2 col-span-2">
+                     <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Escolha o Ícone Moderno</Label>
+                     <div className="grid grid-cols-4 md:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-2 bg-zinc-50 rounded-2xl border border-zinc-100">
+                        {elegantIcons.map((icon) => {
+                          const Icon = getIconComponent(icon.name);
+                          const isSelected = newCategory.icon_name === icon.name;
+                          
+                          return (
+                            <button
+                              key={icon.name}
+                              type="button"
+                              onClick={() => setNewCategory({...newCategory, icon_name: icon.name})}
+                              className={`p-3 rounded-xl flex flex-col items-center gap-1 transition-all border-2 ${isSelected ? 'bg-zinc-900 border-zinc-900 text-white scale-105 shadow-lg shadow-black/20' : 'bg-white border-transparent hover:border-zinc-200 text-zinc-400'}`}
+                            >
+                              <Icon size={20} />
+                              <span className="text-[8px] font-black uppercase truncate w-full text-center">{icon.label}</span>
+                            </button>
+                          );
+                        })}
+                     </div>
                    </div>
                  </div>
 

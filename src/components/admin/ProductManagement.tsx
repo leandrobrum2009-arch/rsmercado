@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-   import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag } from 'lucide-react'
+    import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
@@ -434,9 +434,19 @@ import { SmartImage } from '@/components/ui/SmartImage'
               onClick={seedInitialData} 
               className="border-zinc-300 text-zinc-600 hover:bg-zinc-50 font-black uppercase text-[10px]"
             >
-              <Database className="mr-2 h-4 w-4" /> Semear Dados
-            </Button>
-            <Button 
+               <Database className="mr-2 h-4 w-4" /> Semear Dados
+             </Button>
+             <Button 
+               variant="outline" 
+               onClick={() => {
+                 // Using a manual state update if possible, or just informing the user
+                 toast.info('Utilize a aba "Organizador" no menu lateral para mover produtos entre categorias em massa.')
+               }}
+               className="border-zinc-300 text-zinc-600 hover:bg-zinc-50 font-black uppercase text-[10px]"
+             >
+               <LayoutGrid className="mr-2 h-4 w-4" /> Organizar em Massa
+             </Button>
+             <Button 
               variant="outline" 
               onClick={approveAll} 
               className="border-green-600 text-green-600 hover:bg-green-50 font-black uppercase text-[10px]"
