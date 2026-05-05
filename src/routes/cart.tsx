@@ -145,6 +145,7 @@ function CartPage() {
       const orderPayload: any = {
         user_id: profile.id,
         total_amount: total + deliveryFee,
+        delivery_fee: deliveryFee,
         payment_method: paymentMethod,
         status: 'pending',
         points_earned: Math.floor(total * pointsMultiplier),
