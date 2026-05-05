@@ -26,7 +26,16 @@ function AdminFix() {
    const [userRole, setUserRole] = useState<string | null>(null)
  
       const generateRepairSql = () => {
-        const sql = `-- REPARO COMPLETO E DEFINITIVO DO BANCO DE DATOS
+        const sql = `-- REPARO COMPLETO E DEFINITIVO DO BANCO DE DATOS (v1.0.4)
+-- 0. Limpeza Geral de Funções (Garante que não haverá erro de tipo de retorno)
+DROP FUNCTION IF EXISTS public.promote_to_admin(text) CASCADE;
+DROP FUNCTION IF EXISTS public.promote_to_admin() CASCADE;
+DROP FUNCTION IF EXISTS public.confirm_user_email(text, text) CASCADE;
+DROP FUNCTION IF EXISTS public.audit_rls_status() CASCADE;
+DROP FUNCTION IF EXISTS public.exec_sql(text) CASCADE;
+DROP FUNCTION IF EXISTS public.has_role(uuid, text) CASCADE;
+DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
+
 -- 1. Criação de Tabelas
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -136,14 +145,7 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
 END $$;
 
- -- 3. Limpeza de Funções Antigas e Criação de Novas
- DROP FUNCTION IF EXISTS public.promote_to_admin(text);
- DROP FUNCTION IF EXISTS public.confirm_user_email(text, text);
- DROP FUNCTION IF EXISTS public.audit_rls_status();
- DROP FUNCTION IF EXISTS public.exec_sql(text);
- DROP FUNCTION IF EXISTS public.has_role(uuid, text);
- DROP FUNCTION IF EXISTS public.is_admin();
- 
+ -- 3. Funções de Auditoria e Promoção
 CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -504,7 +506,7 @@ NOTIFY pgrst, 'reload schema';
        
        <Card className="w-full max-w-md border-4 border-zinc-900 shadow-2xl overflow-hidden">
          <div className="bg-zinc-900 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
-           Painel de Diagnóstico e Reparo
+            Painel de Diagnóstico e Reparo (v1.0.4)
          </div>
          <CardHeader>
            <CardTitle className="flex items-center gap-2">
