@@ -29,7 +29,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
-import { CategoryManagement } from '@/components/admin/CategoryManagement'
+ import { CategoryManagement } from '@/components/admin/CategoryManagement'
+ import { ProductOrganizer } from '@/components/admin/ProductOrganizer'
 import { OrderManagement } from '@/components/admin/OrderManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { RecipeManager } from '@/components/admin/RecipeManager'
@@ -161,8 +162,12 @@ export const Route = createFileRoute('/admin')({
           { id: 'customers', label: 'Clientes', icon: Users },
            { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
            { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
-            { id: 'categories', label: 'Categorias', icon: Tag },
-            { id: 'importer', label: 'Importação', icon: Upload },
+             { id: 'categories', label: 'Categorias', icon: Tag },
+             { id: 'organizer', label: 'Organizador', icon: LayoutTemplate },
+             { id: 'importer', label: 'Importação', icon: Upload },
+                   <TabsContent value="organizer" className="mt-0 focus-visible:ring-0">
+                     <ProductOrganizer />
+                   </TabsContent>
        ]
      },
        {
