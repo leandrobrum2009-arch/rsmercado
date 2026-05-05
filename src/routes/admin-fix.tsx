@@ -1,3 +1,7 @@
+ -- 9. REPARAR CATEGORIAS
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;
+ 
  import { createFileRoute } from '@tanstack/react-router'
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
