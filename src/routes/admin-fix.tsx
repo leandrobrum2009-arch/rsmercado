@@ -1,35 +1,3 @@
- -- 10. NOTIFICAÇÕES E ALERTAS
- CREATE TABLE IF NOT EXISTS public.notifications (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-     title TEXT NOT NULL,
-     content TEXT NOT NULL,
-     type TEXT DEFAULT 'info',
-     is_read BOOLEAN DEFAULT FALSE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
- CREATE POLICY IF NOT EXISTS "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
- 
- CREATE TABLE IF NOT EXISTS public.store_alerts (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     message TEXT NOT NULL,
-     type TEXT DEFAULT 'info',
-     is_active BOOLEAN DEFAULT TRUE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
- CREATE POLICY IF NOT EXISTS "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
- 
- CREATE TABLE IF NOT EXISTS public.site_visits (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     visitor_id TEXT,
-     page_path TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
- CREATE POLICY IF NOT EXISTS "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
- 
  import { createFileRoute } from '@tanstack/react-router'
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
