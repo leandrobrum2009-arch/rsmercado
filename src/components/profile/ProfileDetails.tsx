@@ -15,7 +15,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
     gender: '',
     household_status: '',
     avatar_url: '',
-    whatsapp: ''
+    whatsapp: '',
+    accept_marketing: true
   })
 
   useEffect(() => {
@@ -26,7 +27,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
         gender: profile.gender || '',
         household_status: profile.household_status || '',
         avatar_url: profile.avatar_url || '',
-        whatsapp: profile.whatsapp || ''
+        whatsapp: profile.whatsapp || '',
+        accept_marketing: profile.accept_marketing !== false
       })
     }
   }, [profile])
@@ -73,7 +75,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
             gender: formData.gender,
             household_status: formData.household_status,
             avatar_url: formData.avatar_url,
-            whatsapp: formData.whatsapp
+            whatsapp: formData.whatsapp,
+            accept_marketing: formData.accept_marketing
           })
           .eq('id', profile.id);
  
