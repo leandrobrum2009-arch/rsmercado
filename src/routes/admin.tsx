@@ -19,9 +19,9 @@ import {
        Bell,
        AlertCircle,
        Truck,
-       Percent
+        Percent
+     } from 'lucide-react'
  import { OfferManager } from '@/components/admin/OfferManager'
-    } from 'lucide-react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
