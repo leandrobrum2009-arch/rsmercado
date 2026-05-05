@@ -98,7 +98,7 @@ import { toast } from '@/lib/toast'
         cancelled: 'Cancelado ❌'
       }
      
-     const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\nAgradecemos a preferência! 🛒`
+     const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\n📍 *Acompanhe aqui em tempo real:* ${window.location.origin}/track/${orderId}\n\nAgradecemos a preferência! 🛒`
      await sendWhatsAppMessage(customerPhone, message)
     }
   }
@@ -303,10 +303,10 @@ import { toast } from '@/lib/toast'
                                </Button>
                                <Button 
                                  className="flex-1 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
-                                 onClick={() => {
-                                   const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${Number(order.total_amount).toFixed(2)}*\n\nLogo ele sairá para entrega! 🛒`
-                                   sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
-                                 }}
+                                  onClick={() => {
+                                    const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${Number(order.total_amount).toFixed(2)}*\n\n📍 *Link de Rastreio:* ${window.location.origin}/track/${order.id}\n\nLogo ele sairá para entrega! 🛒`
+                                    sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
+                                  }}
                                >
                                  <Phone size={16} className="mr-2" /> Chamar no Whats
                                </Button>
