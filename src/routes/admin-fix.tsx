@@ -27,7 +27,29 @@ function AdminFix() {
  
      const generateRepairSql = () => {
        const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
--- 1. Criação de Tabelas e Colunas
+ -- 1. Criação e Atualização de Tabelas
+ -- Adicionar colunas faltantes se as tabelas já existirem
+ DO $$ 
+ BEGIN 
+     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'size') THEN
+             ALTER TABLE public.products ADD COLUMN size TEXT;
+         END IF;
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
+             ALTER TABLE public.products ADD COLUMN brand TEXT;
+         END IF;
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN
+             ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0;
+         END IF;
+     END IF;
+ 
+     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'categories') THEN
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'banner_url') THEN
+             ALTER TABLE public.categories ADD COLUMN banner_url TEXT;
+         END IF;
+     END IF;
+ END $$;
+ 
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
