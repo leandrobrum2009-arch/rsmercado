@@ -379,23 +379,31 @@ function CartPage() {
         </div>
 
         {/* Action Button */}
-        <button 
-          onClick={handleCheckout}
-          disabled={isProcessing}
-          className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              Processando...
-            </>
-          ) : (
-            <>
-              Finalizar Pedido
-              <ArrowRight size={20} />
-            </>
+        <div className="space-y-3">
+          {isValidDeliveryArea === false && (
+            <p className="text-[10px] font-black uppercase text-red-600 text-center bg-red-50 py-2 rounded-xl border border-red-100">
+              ⚠️ Selecione um endereço em nossa área de cobertura para continuar
+            </p>
           )}
-        </button>
+          
+          <button 
+            onClick={handleCheckout}
+            disabled={isProcessing || isValidDeliveryArea !== true || !selectedAddress}
+            className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Processando...
+              </>
+            ) : (
+              <>
+                {isValidDeliveryArea === false ? 'Área não atendida' : !selectedAddress ? 'Selecione o endereço' : 'Finalizar Pedido'}
+                <ArrowRight size={20} />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

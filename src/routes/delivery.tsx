@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { MapPin, Search, Truck, CheckCircle2, AlertCircle, ArrowLeft, Info } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/whatsapp'
 
 export const Route = createFileRoute('/delivery')({
@@ -24,7 +25,6 @@ function DeliveryPage() {
     const { data } = await supabase
       .from('delivery_neighborhoods')
       .select('*')
-      .eq('active', true)
       .order('name')
     setNeighborhoods(data || [])
     setLoading(false)
@@ -101,24 +101,45 @@ function DeliveryPage() {
               {filtered.map(n => (
                 <div key={n.id} className="bg-white p-5 rounded-[28px] border border-zinc-100 shadow-sm flex items-center justify-between group hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/5 transition-all">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-green-50 group-hover:text-green-600 transition-colors">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                      n.active 
+                        ? "bg-zinc-50 text-zinc-400 group-hover:bg-green-50 group-hover:text-green-600" 
+                        : "bg-red-50 text-red-300"
+                    }`}>
                       <MapPin size={24} />
                     </div>
                     <div>
-                      <p className="font-black uppercase text-sm text-zinc-800">{n.name}</p>
+                      <p className={`font-black uppercase text-sm ${n.active ? "text-zinc-800" : "text-zinc-400"}`}>
+                        {n.name}
+                      </p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <CheckCircle2 size={12} className="text-green-500" />
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase">Entrega Disponível</span>
+                        {n.active ? (
+                          <>
+                            <CheckCircle2 size={12} className="text-green-500" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">Entrega Disponível</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle size={12} className="text-red-400" />
+                            <span className="text-[10px] font-bold text-red-400 uppercase">Indisponível no momento</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase mb-0.5 tracking-tighter">Taxa</p>
-                    {n.fee > 0 ? (
-                      <p className="text-lg font-black text-green-700">{formatCurrency(n.fee)}</p>
+                    {n.active ? (
+                      <>
+                        <p className="text-[10px] font-black text-zinc-400 uppercase mb-0.5 tracking-tighter">Taxa</p>
+                        {n.fee > 0 ? (
+                          <p className="text-lg font-black text-green-700">{formatCurrency(n.fee)}</p>
+                        ) : (
+                          <p className="text-lg font-black text-green-600 uppercase italic">Grátis</p>
+                        )}
+                      </>
                     ) : (
-                      <p className="text-lg font-black text-green-600 uppercase italic">Grátis</p>
+                      <Badge variant="outline" className="text-red-400 border-red-100 font-black uppercase text-[8px]">Indisponível</Badge>
                     )}
                   </div>
                 </div>
