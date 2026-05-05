@@ -1,4 +1,3 @@
-   const [isColumnMissing, setIsColumnMissing] = useState(false)
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -14,6 +13,7 @@
    const [loading, setLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
    const [editingAdmin, setEditingAdmin] = useState<any>(null)
+  const [isColumnMissing, setIsColumnMissing] = useState(false)
  
    const availablePermissions = [
      { id: 'dashboard', label: 'Dashboard', group: 'Geral' },
@@ -54,16 +54,7 @@
          }
          throw error
        }
-       setAdmins(data || [])
-             {isColumnMissing && (
-               <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6">
-                 <p className="text-red-800 text-xs font-black uppercase">Erro: Estrutura de Banco de Dados Ausente</p>
-                 <p className="text-red-600 text-[10px] font-bold mt-1">
-                   A coluna 'permissions' não foi encontrada na tabela 'user_roles'. 
-                   Por favor, execute o script SQL de migração no painel do Supabase.
-                 </p>
-               </div>
-             )}
+        setAdmins(data || [])
      } catch (err: any) {
        console.error('Error fetching admins:', err)
        toast.error('Erro ao carregar administradores')
@@ -118,6 +109,15 @@
        </div>
  
        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {isColumnMissing && (
+            <div className="lg:col-span-12 bg-red-50 border border-red-200 p-4 rounded-xl mb-6">
+              <p className="text-red-800 text-xs font-black uppercase">Erro: Estrutura de Banco de Dados Ausente</p>
+              <p className="text-red-600 text-[10px] font-bold mt-1">
+                A coluna 'permissions' não foi encontrada na tabela 'user_roles'. 
+                Por favor, execute o script SQL de migração no painel do Supabase.
+              </p>
+            </div>
+          )}
          <Card className="lg:col-span-5 border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
            <CardHeader className="bg-zinc-900 text-white">
              <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">

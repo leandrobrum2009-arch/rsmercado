@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
     role TEXT NOT NULL DEFAULT 'user',
+    permissions TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
@@ -178,8 +179,30 @@ BEGIN
  
   DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
   CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());
+  
+  DROP POLICY IF EXISTS "Public can view categories" ON public.categories;
+  CREATE POLICY "Public can view categories" ON public.categories FOR SELECT USING (true);
+  
+  DROP POLICY IF EXISTS "Public can view products" ON public.products;
+  CREATE POLICY "Public can view products" ON public.products FOR SELECT USING (true);
+  
+  -- POLÍTICAS PARA USER_ROLES
+  DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
+  CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
+  
+  DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+  CREATE POLICY "Admins manage roles" ON public.user_roles FOR ALL USING (public.is_admin());
 
  -- 10. NOTIFICAÇÕES E ALERTAS
+  -- FUNÇÃO PARA NOTIFICAR TODOS
+  CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
+  RETURNS VOID AS $$
+  BEGIN
+    INSERT INTO public.notifications (user_id, title, message, type)
+    SELECT id, title, message, type FROM auth.users;
+  END;
+  $$ LANGUAGE plpgsql SECURITY DEFINER;
+
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
