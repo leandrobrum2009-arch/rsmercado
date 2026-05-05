@@ -4,9 +4,10 @@
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Badge } from '@/components/ui/badge'
- import { Loader2, Zap, Trash2, Plus, Percent, Clock, Tag, Search, ShoppingBag, ArrowRight } from 'lucide-react'
+import { Loader2, Zap, Trash2, Plus, Percent, Clock, Tag, Search, ShoppingBag, ArrowRight, Send } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
  
  export function OfferManager() {
    const [products, setProducts] = useState<any[]>([])
@@ -17,10 +18,47 @@
    const [discountPercent, setDiscountPercent] = useState('10')
    const [offerType, setOfferType] = useState('OFERTA')
  
+    const [isNotifying, setIsNotifying] = useState<string | null>(null)
+
    useEffect(() => {
      fetchData()
    }, [])
  
+    const notifyWhatsApp = async (product: any) => {
+      setIsNotifying(product.id)
+      try {
+        const message = formatWhatsAppMessage('promotion', {
+          id: product.id,
+          title: product.name,
+          description: `De R$ ${product.old_price?.toFixed(2) || product.price.toFixed(2)} por apenas *R$ ${product.price.toFixed(2)}*!`
+        })
+
+        // Get all customers with whatsapp
+        const { data: customers } = await supabase.from('profiles').select('whatsapp').not('whatsapp', 'is', null)
+        
+        if (!customers || customers.length === 0) {
+          toast.error('Nenhum cliente com WhatsApp encontrado')
+          return
+        }
+
+        if (!confirm(`Deseja enviar esta promoção para ${customers.length} clientes?`)) return
+
+        let count = 0
+        for (const customer of customers) {
+          const result = await sendWhatsAppMessage(customer.whatsapp, message)
+          if (result.success) count++
+          // Simple delay to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, 800))
+        }
+
+        toast.success(`${count} notificações enviadas!`)
+      } catch (e: any) {
+        toast.error('Erro ao notificar: ' + e.message)
+      } finally {
+        setIsNotifying(null)
+      }
+    }
+
    const fetchData = async () => {
      setLoading(true)
      try {
@@ -241,14 +279,27 @@
                            </div>
                          </div>
                        </div>
-                       <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         onClick={() => removeOffer(p)}
-                         className="text-zinc-200 hover:text-red-500 hover:bg-red-50 transition-colors"
-                       >
-                         <Trash2 size={18} />
-                       </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            disabled={isNotifying === p.id}
+                            onClick={() => notifyWhatsApp(p)}
+                            className="text-green-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                            title="Notificar no WhatsApp"
+                          >
+                            {isNotifying === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send size={18} />}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeOffer(p)}
+                            className="text-zinc-200 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title="Remover Oferta"
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </div>
                      </div>
                    )
                  })}
