@@ -43,6 +43,7 @@
    
    await supabase.from('whatsapp_logs').insert({
      phone: cleanPhone,
+    message_text: message,
      message_hash: hash,
      campaign_id: campaignId || null
    });

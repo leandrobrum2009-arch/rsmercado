@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap } from 'lucide-react'
+    import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -26,6 +26,9 @@ export function WhatsAppManager() {
    const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
    const [campaigns, setCampaigns] = useState<any[]>([])
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
+  const [logs, setLogs] = useState<any[]>([])
+  const [loadingLogs, setLoadingLogs] = useState(false)
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'campaigns' | 'logs'>('campaigns')
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
    const [isSavingTemplate, setIsSavingTemplate] = useState(false)
@@ -191,9 +194,26 @@ export function WhatsAppManager() {
      }
    }
 
+    const fetchLogs = async () => {
+      setLoadingLogs(true)
+      try {
+        const { data } = await supabase
+          .from('whatsapp_logs')
+          .select('*')
+          .order('sent_at', { ascending: false })
+          .limit(50)
+        setLogs(data || [])
+      } catch (e) {
+        console.error('Error fetching logs:', e)
+      } finally {
+        setLoadingLogs(false)
+      }
+    }
+
    useEffect(() => {
      fetchConfig()
      fetchCampaigns()
+      fetchLogs()
      fetchCoupons()
      fetchTemplates()
    }, [])
@@ -319,53 +339,87 @@ export function WhatsAppManager() {
            </CardContent>
          </Card>
  
-         <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
-           <CardHeader className="bg-zinc-100 border-b">
-             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-zinc-800">
-               <Clock size={16} /> Campanhas e Agendamentos
-             </CardTitle>
-           </CardHeader>
-           <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
-             {loadingCampaigns ? (
-               <div className="flex justify-center p-8"><Loader2 className="animate-spin text-zinc-300" /></div>
-             ) : campaigns.length === 0 ? (
-               <div className="p-12 text-center text-zinc-400">
-                 <Send className="mx-auto mb-2 opacity-20" size={48} />
-                 <p className="text-xs font-bold uppercase">Nenhuma campanha enviada</p>
-               </div>
-             ) : (
-               <div className="divide-y">
-                 {campaigns.map(c => (
-                   <div key={c.id} className="p-4 hover:bg-zinc-50 transition-colors">
-                     <div className="flex justify-between items-start mb-2">
-                       <div className="flex items-center gap-2">
-                         {c.status === 'sent' && <CheckCircle size={14} className="text-green-600" />}
-                         {c.status === 'scheduled' && <Calendar size={14} className="text-blue-600" />}
-                         {c.status === 'processing' && <Loader2 size={14} className="text-amber-500 animate-spin" />}
-                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                           c.status === 'sent' ? 'bg-green-100 text-green-700' : 
-                           c.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 
-                           'bg-amber-100 text-amber-700'
-                         }`}>
-                           {c.status === 'sent' ? 'Enviado' : c.status === 'scheduled' ? 'Agendado' : 'Processando'}
-                         </span>
-                       </div>
-                       <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-300 hover:text-red-500" onClick={() => deleteCampaign(c.id)}>
-                         <Trash2 size={14} />
-                       </Button>
-                     </div>
-                     <p className="text-xs text-zinc-700 font-medium line-clamp-2 mb-2 italic">"{c.message}"</p>
-                     <div className="flex justify-between items-center text-[9px] font-bold text-zinc-400 uppercase">
-                       <span>{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                       {c.status === 'sent' && <span>{c.sent_count}/{c.total_recipients} envios</span>}
-                       {c.status === 'scheduled' && <span className="text-blue-600 flex items-center gap-1"><Clock size={10} /> {new Date(c.scheduled_for).toLocaleDateString()} {new Date(c.scheduled_for).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>}
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             )}
-           </CardContent>
-         </Card>
+        <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
+          <CardHeader className="bg-zinc-100 border-b p-0">
+            <div className="flex border-b">
+              <button
+                onClick={() => setActiveHistoryTab('campaigns')}
+                className={`flex-1 py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeHistoryTab === 'campaigns' ? 'bg-white text-zinc-900 border-b-2 border-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+              >
+                <Clock size={14} /> Campanhas
+              </button>
+              <button
+                onClick={() => setActiveHistoryTab('logs')}
+                className={`flex-1 py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeHistoryTab === 'logs' ? 'bg-white text-zinc-900 border-b-2 border-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+              >
+                <ListChecks size={14} /> Histórico (Logs)
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
+            {activeHistoryTab === 'campaigns' ? (
+              loadingCampaigns ? (
+                <div className="flex justify-center p-8"><Loader2 className="animate-spin text-zinc-300" /></div>
+              ) : campaigns.length === 0 ? (
+                <div className="p-12 text-center text-zinc-400">
+                  <Send className="mx-auto mb-2 opacity-20" size={48} />
+                  <p className="text-xs font-bold uppercase">Nenhuma campanha enviada</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {campaigns.map(c => (
+                    <div key={c.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          {c.status === 'sent' && <CheckCircle size={14} className="text-green-600" />}
+                          {c.status === 'scheduled' && <Calendar size={14} className="text-blue-600" />}
+                          {c.status === 'processing' && <Loader2 size={14} className="text-amber-500 animate-spin" />}
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            c.status === 'sent' ? 'bg-green-100 text-green-700' : 
+                            c.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {c.status === 'sent' ? 'Enviado' : c.status === 'scheduled' ? 'Agendado' : 'Processando'}
+                          </span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-300 hover:text-red-500" onClick={() => deleteCampaign(c.id)}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-zinc-700 font-medium line-clamp-2 mb-2 italic">"{c.message}"</p>
+                      <div className="flex justify-between items-center text-[9px] font-bold text-zinc-400 uppercase">
+                        <span>{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        {c.status === 'sent' && <span>{c.sent_count}/{c.total_recipients} envios</span>}
+                        {c.status === 'scheduled' && <span className="text-blue-600 flex items-center gap-1"><Clock size={10} /> {new Date(c.scheduled_for).toLocaleDateString()} {new Date(c.scheduled_for).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              loadingLogs ? (
+                <div className="flex justify-center p-8"><Loader2 className="animate-spin text-zinc-300" /></div>
+              ) : logs.length === 0 ? (
+                <div className="p-12 text-center text-zinc-400">
+                  <ListChecks className="mx-auto mb-2 opacity-20" size={48} />
+                  <p className="text-xs font-bold uppercase">Nenhum log individual</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {logs.map(log => (
+                    <div key={log.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] font-black text-zinc-900">{log.phone}</span>
+                        <span className="text-[9px] font-bold text-zinc-400">{new Date(log.sent_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 italic line-clamp-1">"{log.message_text}"</p>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </CardContent>
+        </Card>
         </div>
  
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -117,7 +117,8 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_templates (
 CREATE TABLE IF NOT EXISTS public.whatsapp_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     phone TEXT NOT NULL,
-    message_hash TEXT NOT NULL,
+    message_text TEXT,
+    message_hash TEXT,
     campaign_id UUID,
     sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
