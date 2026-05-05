@@ -8,41 +8,39 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
    import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag } from 'lucide-react'
-   const productBadges = [
-     { id: 'OFERTA', label: 'Oferta', color: 'bg-red-600', animation: '' },
-     { id: 'NOVO', label: 'Novo', color: 'bg-green-600', animation: '' },
-     { id: 'RELAMPAGO', label: 'Piscando', color: 'bg-amber-500', animation: 'animate-pulse' },
-     { id: 'EXCLUSIVO', label: 'Exclusivo', color: 'bg-purple-600', animation: '' },
-     { id: 'DESTAQUE', label: 'Destaque', color: 'bg-blue-600', animation: 'animate-bounce' }
-   ];
- 
-   const updateProductTags = async (productId: string, currentTags: string[], tagId: string) => {
-     const isBadge = productBadges.some(b => b.id === tagId);
-     let newTags = [...(currentTags || [])];
-     
-     // Remove other badges if this is a badge
-     if (isBadge) {
-       newTags = newTags.filter(t => !productBadges.some(b => b.id === t));
-     }
- 
-     if (newTags.includes(tagId)) {
-       newTags = newTags.filter(t => t !== tagId);
-     } else {
-       newTags.push(tagId);
-     }
- 
-     const { error } = await supabase.from('products').update({ tags: newTags }).eq('id', productId);
-     if (error) toast.error('Erro ao atualizar etiquetas');
-     else {
-       setProducts(products.map(p => p.id === productId ? { ...p, tags: newTags } : p));
-       toast.success('Etiquetas atualizadas');
-     }
-   };
- 
-import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Switch } from '@/components/ui/switch'
-export function ProductManagement() {
+ export function ProductManagement() {
+    const productBadges = [
+      { id: 'OFERTA', label: 'Oferta', color: 'bg-red-600', animation: '' },
+      { id: 'NOVO', label: 'Novo', color: 'bg-green-600', animation: '' },
+      { id: 'RELAMPAGO', label: 'Piscando', color: 'bg-amber-500', animation: 'animate-pulse' },
+      { id: 'EXCLUSIVO', label: 'Exclusivo', color: 'bg-purple-600', animation: '' },
+      { id: 'DESTAQUE', label: 'Destaque', color: 'bg-blue-600', animation: 'animate-bounce' }
+    ];
+ 
+    const updateProductTags = async (productId: string, currentTags: string[], tagId: string) => {
+      const isBadge = productBadges.some(b => b.id === tagId);
+      let newTags = [...(currentTags || [])];
+      
+      // Remove other badges if this is a badge
+      if (isBadge) {
+        newTags = newTags.filter(t => !productBadges.some(b => b.id === t));
+      }
+  
+      if (newTags.includes(tagId)) {
+        newTags = newTags.filter(t => t !== tagId);
+      } else {
+        newTags.push(tagId);
+      }
+  
+      const { error } = await supabase.from('products').update({ tags: newTags }).eq('id', productId);
+      if (error) toast.error('Erro ao atualizar etiquetas');
+      else {
+        setProducts(products.map(p => p.id === productId ? { ...p, tags: newTags } : p));
+        toast.success('Etiquetas atualizadas');
+      }
+    };
   const seedInitialData = async () => {
     if (!confirm('Deseja carregar produtos iniciais no banco de dados?')) return
     setIsLoading(true)
