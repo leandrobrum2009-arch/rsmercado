@@ -305,9 +305,15 @@ export const Route = createFileRoute('/admin')({
                   <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
                     <HomeLayoutManager />
                   </TabsContent>
-                  <TabsContent value="offers" className="mt-0 focus-visible:ring-0">
-                    <OfferManager />
-                  </TabsContent>
+                   <TabsContent value="offers" className="mt-0 focus-visible:ring-0">
+                     <OfferManager />
+                   </TabsContent>
+                   <TabsContent value="organizer" className="mt-0 focus-visible:ring-0">
+                     <ProductOrganizer />
+                   </TabsContent>
+                   <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
+                     <AdminRoleManager />
+                   </TabsContent>
             </Tabs>
           </div>
         </main>
