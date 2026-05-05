@@ -82,7 +82,33 @@ CREATE TABLE IF NOT EXISTS public.recipes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Correção de User Roles e Recursão
+ -- 2. Funções Administrativas e RPCs
+ CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+ BEGIN
+   -- Altere 'CHAVE_MESTRE' para uma chave sua se desejar
+   IF secret_key = 'CHAVE_MESTRE' THEN
+     INSERT INTO public.user_roles (user_id, role)
+     VALUES (auth.uid(), 'admin')
+     ON CONFLICT (user_id, role) DO NOTHING;
+     RETURN true;
+   END IF;
+   RETURN false;
+ END;
+ $$;
+ 
+ CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm text, secret_key text)
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+ BEGIN
+   IF secret_key = 'CHAVE_MESTRE' THEN
+     UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = email_to_confirm;
+     RETURN true;
+   END IF;
+   RETURN false;
+ END;
+ $$;
+ 
+ -- 3. Correção de User Roles e Recursão
 CREATE TABLE IF NOT EXISTS public.user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -102,7 +128,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com';
 $$;
 
--- 3. Habilitar RLS e Políticas
+ -- 4. Habilitar RLS e Políticas
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
@@ -136,7 +162,7 @@ DO $$ BEGIN
     CREATE POLICY "Admins manage store_settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
 END $$;
 
--- 4. Buckets de Armazenamento
+ -- 5. Buckets de Armazenamento
  INSERT INTO storage.buckets (id, name, public) 
  VALUES ('products', 'products', true), ('banners', 'banners', true)
  ON CONFLICT (id) DO UPDATE SET public = true;
