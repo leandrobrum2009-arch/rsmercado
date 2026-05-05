@@ -217,7 +217,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
         ALTER TABLE public.products ADD COLUMN brand TEXT;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'tags') THEN ALTER TABLE public.products ADD COLUMN tags TEXT[] DEFAULT '{}'; END IF;
+     
+     -- Ordens
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'tracking_status') THEN ALTER TABLE public.orders ADD COLUMN tracking_status TEXT DEFAULT 'pending'; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'delivery_neighborhood_id') THEN ALTER TABLE public.orders ADD COLUMN delivery_neighborhood_id UUID REFERENCES public.delivery_neighborhoods(id); END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'whatsapp_notified_at') THEN ALTER TABLE public.orders ADD COLUMN whatsapp_notified_at TIMESTAMPTZ; END IF;
     
     -- Garantir coluna de pontos em perfis
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'loyalty_points') THEN 
