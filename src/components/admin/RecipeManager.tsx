@@ -332,6 +332,22 @@ export function RecipeManager() {
     }
   }
 
+  const handleDeleteAllRecipes = async () => {
+    if (!window.confirm('TEM CERTEZA? Isso apagará TODAS as receitas permanentemente!')) return
+    setIsLoading(true)
+    try {
+      // More robust way to delete all if possible, or just delete all records
+      const { error } = await supabase.from('recipes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      if (error) throw error
+      toast.success('Todas as receitas foram apagadas!')
+      fetchRecipes()
+    } catch (error: any) {
+      toast.error('Erro ao apagar: ' + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleCleanDuplicates = async () => {
     setIsLoading(true)
     try {
@@ -364,7 +380,6 @@ export function RecipeManager() {
       setIsLoading(false)
     }
   }
-
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta receita?')) return
     try {
