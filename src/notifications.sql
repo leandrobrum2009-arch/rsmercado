@@ -1,3 +1,22 @@
+ -- Global store alerts table
+ CREATE TABLE IF NOT EXISTS public.store_alerts (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     message TEXT NOT NULL,
+     type TEXT DEFAULT 'info', -- 'info', 'warning', 'success', 'danger'
+     is_active BOOLEAN DEFAULT TRUE,
+     expires_at TIMESTAMP WITH TIME ZONE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ 
+ -- Enable RLS
+ ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
+ 
+ -- Policies
+ CREATE POLICY "Everyone can see active alerts" ON public.store_alerts
+     FOR SELECT USING (is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW()));
+ 
+ CREATE POLICY "Admins can manage alerts" ON public.store_alerts
+     FOR ALL USING (public.is_admin());
  -- Table for storing Web Push subscriptions
  CREATE TABLE IF NOT EXISTS public.push_subscriptions (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
