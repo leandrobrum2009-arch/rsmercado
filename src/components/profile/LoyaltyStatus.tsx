@@ -1,6 +1,6 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins } from 'lucide-react'
+  import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowRight } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Badge } from '@/components/ui/badge'
@@ -50,9 +50,9 @@
      fetchLoyaltyData()
    }, [userId])
  
-   const handleClaimReward = async (reward: any) => {
-     toast.info(`Funcionalidade de troca de pontos por ${reward.title} será implementada em breve!`)
-   }
+    const handleClaimReward = async (reward: any) => {
+      window.location.href = '/loyalty'
+    }
  
    if (loading) return null
  
@@ -60,15 +60,18 @@
      <div className="space-y-6">
        {/* Weekly Challenges */}
        <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
-         <CardHeader className="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white">
-           <div className="flex items-center gap-2">
-             <Target className="text-amber-400" size={20} />
-             <div>
-               <CardTitle className="text-sm font-black uppercase tracking-widest">Missões da Semana</CardTitle>
-               <CardDescription className="text-zinc-400 text-[10px] font-bold">Cumpra os objetivos e ganhe pontos extras!</CardDescription>
-             </div>
-           </div>
-         </CardHeader>
+          <CardHeader className="bg-gradient-to-r from-zinc-900 to-zinc-800 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="text-amber-400" size={20} />
+              <div>
+                <CardTitle className="text-sm font-black uppercase tracking-widest">Missões da Semana</CardTitle>
+                <CardDescription className="text-zinc-400 text-[10px] font-bold">Cumpra os objetivos e ganhe pontos extras!</CardDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" className="text-white hover:text-amber-400 font-bold uppercase text-[9px]" onClick={() => window.location.href = '/loyalty'}>
+              Ver Tudo <ArrowRight size={12} className="ml-1" />
+            </Button>
+          </CardHeader>
          <CardContent className="p-6 space-y-4">
            {challenges.length === 0 ? (
              <p className="text-center text-zinc-400 text-xs py-4">Nenhuma missão disponível no momento.</p>

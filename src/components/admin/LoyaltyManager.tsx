@@ -11,7 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function LoyaltyManager() {
   const [loading, setLoading] = useState(false)
-   const [settings, setSettings] = useState<any>({ points_per_real: 0.5 })
+    const [settings, setSettings] = useState<any>({ 
+      points_per_real: 1,
+      signup_bonus: 100,
+      min_points_redemption: 500,
+      tiers: [
+        { name: 'Bronze', min_points: 0, color: '#cd7f32' },
+        { name: 'Ouro', min_points: 500, color: '#ffd700' },
+        { name: 'Platinum', min_points: 1000, color: '#e5e4e2' }
+      ]
+    })
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
@@ -345,18 +354,60 @@ export function LoyaltyManager() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-zinc-500">Pontos por cada R$ 1,00 gasto</label>
-                   <Input 
-                     type="number" 
-                     step="0.1"
-                     value={settings.points_per_real} 
-                     onChange={e => setSettings({...settings, points_per_real: parseFloat(e.target.value)})}
-                     className="h-12 border-zinc-200 font-bold"
-                   />
-                   <p className="text-[10px] text-zinc-500 font-bold italic mt-1">
-                     Dica: Para R$ 5,00 = 2,5 pontos, use 0.5.
-                   </p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Pontos por cada R$ 1,00 gasto</label>
+                    <Input 
+                      type="number" 
+                      step="0.1"
+                      value={settings.points_per_real} 
+                      onChange={e => setSettings({...settings, points_per_real: parseFloat(e.target.value)})}
+                      className="h-10 border-zinc-200 font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Bônus de Cadastro (Pontos)</label>
+                    <Input 
+                      type="number" 
+                      value={settings.signup_bonus} 
+                      onChange={e => setSettings({...settings, signup_bonus: parseInt(e.target.value)})}
+                      className="h-10 border-zinc-200 font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Mínimo para Resgate</label>
+                    <Input 
+                      type="number" 
+                      value={settings.min_points_redemption} 
+                      onChange={e => setSettings({...settings, min_points_redemption: parseInt(e.target.value)})}
+                      className="h-10 border-zinc-200 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-zinc-500">Níveis de Fidelidade</label>
+                  <div className="space-y-2">
+                    {settings.tiers?.map((tier: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: tier.color }} />
+                        <div className="flex-1">
+                          <p className="text-[10px] font-black uppercase">{tier.name}</p>
+                          <p className="text-[8px] font-bold text-zinc-400">Min. {tier.min_points} PTS</p>
+                        </div>
+                        <Input 
+                          type="number" 
+                          className="w-20 h-8 text-[10px] font-bold" 
+                          value={tier.min_points}
+                          onChange={e => {
+                            const newTiers = [...settings.tiers];
+                            newTiers[i].min_points = parseInt(e.target.value);
+                            setSettings({...settings, tiers: newTiers});
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
               <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
