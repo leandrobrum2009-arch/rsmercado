@@ -85,7 +85,7 @@ export const formatWhatsAppMessage = (type: 'promotion' | 'order', data: any) =>
   }
   
   if (type === 'order') {
-    return `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #${data.id.substring(0, 8)} foi recebido com sucesso!\n\n💰 Total: R$ ${data.total_amount.toFixed(2)}\n🚚 Status: ${data.status}\n\nAcompanhe pelo app: ${window.location.origin}/perfil`;
+    return `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #${data.id.substring(0, 8)} foi recebido com sucesso!\n\n💰 Total: R$ ${data.total_amount.toFixed(2)}\n🚚 Status: ${data.status}\n\n📍 *Rastreie seu pedido aqui:* ${window.location.origin}/track/${data.id}`;
   }
 
   return '';
