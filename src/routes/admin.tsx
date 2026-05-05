@@ -132,11 +132,8 @@ function RouteComponent() {
           { id: 'customers', label: 'Clientes', icon: Users },
            { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
            { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
-           { id: 'categories', label: 'Categorias', icon: Tag },
-                <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
-                  <HomeLayoutManager />
-                </TabsContent>
-         { id: 'importer', label: 'Importação', icon: Upload },
+            { id: 'categories', label: 'Categorias', icon: Tag },
+            { id: 'importer', label: 'Importação', icon: Upload },
        ]
      },
        {
@@ -256,9 +253,12 @@ function RouteComponent() {
                 <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
                   <NotificationManager />
                 </TabsContent>
-                <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
-                  <AlertManager />
-                </TabsContent>
+                 <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
+                   <AlertManager />
+                 </TabsContent>
+                 <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
+                   <HomeLayoutManager />
+                 </TabsContent>
             </Tabs>
           </div>
         </main>
