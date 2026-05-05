@@ -1,7 +1,7 @@
  import { useState, useEffect } from 'react'
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { supabase } from '@/lib/supabase'
- import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap } from 'lucide-react'
+ import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap, ShoppingBag } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Badge } from '@/components/ui/badge'
