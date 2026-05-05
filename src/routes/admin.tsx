@@ -27,9 +27,7 @@ import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
-  import { WebhookManager } from '@/components/admin/WebhookManager'
-  import { SQLEditor } from '@/components/admin/SQLEditor'
-  import { LoyaltyManager } from '@/components/admin/LoyaltyManager'
+   import { LoyaltyManager } from '@/components/admin/LoyaltyManager'
 import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -226,11 +224,8 @@ function RouteComponent() {
                <TabsContent value="loyalty" className="mt-0 focus-visible:ring-0">
                  <LoyaltyManager />
                </TabsContent>
-              <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
-                <WhatsAppManager />
-              </TabsContent>
-               <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
-                 <WebhookManager />
+               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
+                 <WhatsAppManager />
                </TabsContent>
             </Tabs>
           </div>
