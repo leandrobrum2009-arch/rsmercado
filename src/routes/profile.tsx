@@ -1,3 +1,4 @@
+    import { LoyaltyStatus } from '@/components/profile/LoyaltyStatus'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -162,23 +163,10 @@ function ProfilePage() {
             <AddressManager userId={session.user.id} />
           </div>
           
-          <div className="space-y-6">
-            <AdminSetup />
-            
-            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-zinc-900 text-white">
-              <CardHeader>
-                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                  <ShoppingBag size={16} className="text-primary" /> Meus Pedidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-[10px] text-zinc-400 font-bold uppercase">Histórico completo de compras e entregas.</p>
-                <Button variant="outline" className="w-full border-zinc-700 text-white hover:bg-zinc-800 font-black uppercase text-[10px] rounded-xl h-12">
-                  Ver Histórico Completo
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+           <div className="space-y-6">
+             <LoyaltyStatus userId={session.user.id} />
+             <AdminSetup />
+           </div>
         </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
