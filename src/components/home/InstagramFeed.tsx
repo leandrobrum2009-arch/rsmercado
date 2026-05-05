@@ -28,7 +28,13 @@
  
    const reels = allReels.slice(0, postCount)
  
-   const handleFollow = () => {
+   const handleFollow = async () => {
+     const { data: { user } } = await supabase.auth.getUser();
+     await supabase.from('site_visits').insert({
+       user_id: user?.id || null,
+       path: 'action:instagram_follow',
+       user_agent: navigator.userAgent
+     });
      window.open(settings.instagram_url, '_blank')
    }
  
@@ -115,8 +121,16 @@
                  </DialogClose>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                <Button 
-                  onClick={() => window.open(selectedReel.url, '_blank')}
+                 <Button 
+                   onClick={async () => {
+                     const { data: { user } } = await supabase.auth.getUser();
+                     await supabase.from('site_visits').insert({
+                       user_id: user?.id || null,
+                       path: `action:instagram_reel_click:${selectedReel.id}`,
+                       user_agent: navigator.userAgent
+                     });
+                     window.open(selectedReel.url, '_blank');
+                   }}
                   className="w-full bg-white text-black hover:bg-zinc-200 font-black uppercase text-xs rounded-xl h-12"
                 >
                   Abrir no Instagram
