@@ -199,29 +199,19 @@ function RouteComponent() {
          },
        {
        title: 'Configurações e Integrações',
-       items: [
-           { id: 'settings', label: 'Dados da Loja', icon: Settings },
-           { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
-           { id: 'webhooks', label: 'Webhooks', icon: Webhook }
-          ],
-          adminOnly: true
+        items: [
+            { id: 'settings', label: 'Dados da Loja', icon: Settings },
+            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+            { id: 'webhooks', label: 'Webhooks', icon: Webhook }
+          ]
         },
         {
           title: 'Controle de Acesso',
           items: [
             { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock }
-          ],
-          adminOnly: true
+          ]
         }
-     ];
-                   const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
-                   if (!isAllowed) return null
-                   
-                <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
-                  <AdminRoleManager />
-                </TabsContent>
-     }
-   ];
+    ];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
@@ -248,9 +238,12 @@ function RouteComponent() {
              <div key={group.title} className="space-y-2">
                <h3 className="px-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{group.title}</h3>
                <div className="space-y-1">
-                 {group.items.map((item) => (
-                   <button
-                     key={item.id}
+                  {group.items.map((item) => {
+                    const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
+                    if (!isAllowed) return null
+                    return (
+                    <button
+                      key={item.id}
                      onClick={() => {
                        setActiveTab(item.id)
                        setSidebarOpen(false)
@@ -264,8 +257,9 @@ function RouteComponent() {
                    >
                      <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
                      {item.label}
-                   </button>
-                 ))}
+                    </button>
+                    )
+                  })}
                </div>
              </div>
            ))}
