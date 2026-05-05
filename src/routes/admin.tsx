@@ -55,31 +55,29 @@ export const Route = createFileRoute('/admin')({
         })
       }
 
-      try {
-        // Secure check using user_roles table
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .maybeSingle()
-
-        if (roleError) {
-          console.error('Role check error:', roleError)
+      let isAdmin = session.user.email === 'leandrobrum2009@gmail.com';
+      
+      if (!isAdmin) {
+        try {
+          const { data: rpcAdmin } = await supabase.rpc('is_admin');
+          if (rpcAdmin) {
+            isAdmin = true;
+          } else {
+            // Fallback to manual check if RPC fails
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            isAdmin = roleData?.role === 'admin';
+          }
+        } catch (e) {
+          console.error('Error checking admin status:', e);
         }
-
-         const isAdmin = roleData?.role === 'admin' || session.user.email === 'leandrobrum2009@gmail.com';
-        console.log('Secure Admin check for user:', session.user.id, 'Result:', isAdmin);
-
-        if (!isAdmin) {
-          console.log('Admin check: User is not admin, but allowing access for dashboard diagnostics');
-          // Instead of redirecting, we'll let the component show the repair button
-        }
-        return true;
-      } catch (e) {
-        if (e instanceof Error && e.message.includes('redirect')) throw e;
-        console.error('Error checking admin status:', e)
-        throw redirect({ to: '/profile' })
       }
+
+      console.log('Secure Admin check result:', isAdmin);
+      return true; // We allow access so they can see the repair button if not admin
     };
 
     await checkAdmin();
