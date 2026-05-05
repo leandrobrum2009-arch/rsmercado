@@ -319,9 +319,9 @@ $$;
 CREATE POLICY "Public Read Products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Public Read Categories" ON public.categories FOR SELECT USING (true);
 CREATE POLICY "Public Read Banners" ON public.banners FOR SELECT USING (true);
-CREATE POLICY "Public Read Settings" ON public.store_settings FOR SELECT USING (true);
+CREATE POLICY "Public store settings are viewable by everyone" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config', 'master_key', 'admin_key', 'stripe_secret', 'smtp_password', 'supabase_service_role'));
 CREATE POLICY "Public Read Recipes" ON public.recipes FOR SELECT USING (true);
-CREATE POLICY "Public Read Profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can view their own profile and admins can view all" ON public.profiles FOR SELECT USING (auth.uid() = id OR public.is_admin());
 CREATE POLICY "Self Read Roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY "Self Read Orders" ON public.orders FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY "Self Read Order Items" ON public.order_items FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
@@ -342,6 +342,19 @@ CREATE POLICY "Users update own profile" ON public.profiles FOR UPDATE TO authen
 CREATE POLICY "Users insert own orders" ON public.orders FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Users insert own order items" ON public.order_items FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
 CREATE POLICY "Users manage own recipes" ON public.user_recipes FOR ALL TO authenticated USING (user_id = auth.uid());
+
+-- Novas Políticas para Fidelidade e Entregas
+CREATE POLICY "Everyone can view neighborhoods" ON public.delivery_neighborhoods FOR SELECT USING (true);
+CREATE POLICY "Admins manage neighborhoods" ON public.delivery_neighborhoods FOR ALL TO authenticated USING (public.is_admin());
+
+CREATE POLICY "Everyone can view rewards" ON public.loyalty_rewards FOR SELECT USING (active = true);
+CREATE POLICY "Admins manage loyalty rewards" ON public.loyalty_rewards FOR ALL TO authenticated USING (public.is_admin());
+
+CREATE POLICY "Everyone can view challenges" ON public.weekly_challenges FOR SELECT USING (active = true);
+CREATE POLICY "Admins manage challenges" ON public.weekly_challenges FOR ALL TO authenticated USING (public.is_admin());
+
+CREATE POLICY "Users manage own progress" ON public.user_challenge_progress FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "Admins view all progress" ON public.user_challenge_progress FOR SELECT TO authenticated USING (public.is_admin());
 
 -- 7. Buckets de Storage
 -- 7. Buckets de Storage (Criação Resiliente)

@@ -75,9 +75,23 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       const products = aiInput.split(',').map(p => p.trim())
       const mainProduct = products[0] || 'Ingrediente'
+      const title = `Chef IA: ${mainProduct} Criativo`
+      
+      // Verificar se já existe uma receita com este título
+      const { data: existing } = await supabase
+        .from('recipes')
+        .select('id')
+        .ilike('title', title)
+        .maybeSingle()
+
+      if (existing) {
+        toast.error('Já existe uma receita com este título!');
+        setIsAiGenerating(false);
+        return;
+      }
       
       const newRecipe = {
-        title: `Chef IA: ${mainProduct} Criativo`,
+        title,
         description: `Uma criação exclusiva da nossa inteligência artificial utilizando ${aiInput}.`,
         instructions: `1. Prepare sua bancada com: ${aiInput}.\n2. Combine os sabores conforme sua intuição.\n3. Cozinhe com atenção aos detalhes.\n4. Finalize com um toque especial de temperos frescos.`,
         category: 'Inovação IA',
@@ -181,22 +195,44 @@ export function RecipeManager() {
       }
     ];
 
-    const finalRecipes = [];
-    for(let i = 0; i < 40; i++) {
-      const template = detailedTemplates[i % detailedTemplates.length];
-      finalRecipes.push({
-        ...template,
-        title: `${template.title} #${Math.floor(i/detailedTemplates.length) + 1}`,
-        image_url: `${template.image_url.split('?')[0]}?w=800&h=400&fit=crop&sig=${i}`
-      });
-    }
-
     try {
-      const { error } = await supabase.from('recipes').insert(finalRecipes)
-      if (error) throw error
-      toast.success('40 receitas brasileiras cadastradas com sucesso!')
+      // Buscar títulos existentes para evitar duplicatas
+      const { data: existingRecipes } = await supabase
+        .from('recipes')
+        .select('title');
+      
+      const existingTitles = new Set((existingRecipes || []).map(r => r.title.toLowerCase().trim()));
+
+      const finalRecipes = [];
+      let addedCount = 0;
+
+      for(let i = 0; i < 40; i++) {
+        const template = detailedTemplates[i % detailedTemplates.length];
+        const baseTitle = template.title;
+        
+        // Só adiciona se o título (sem o sufixo anterior) não existir
+        if (!existingTitles.has(baseTitle.toLowerCase().trim())) {
+          finalRecipes.push({
+            ...template,
+            title: baseTitle,
+            image_url: `${template.image_url.split('?')[0]}?w=800&h=400&fit=crop&sig=${i}`
+          });
+          existingTitles.add(baseTitle.toLowerCase().trim());
+          addedCount++;
+        }
+      }
+
+      if (finalRecipes.length > 0) {
+        const { error } = await supabase.from('recipes').insert(finalRecipes)
+        if (error) throw error
+        toast.success(`${addedCount} novas receitas brasileiras cadastradas!`);
+      } else {
+        toast.info('Todas as receitas já existem no banco de dados.');
+      }
+      
       fetchRecipes()
     } catch (error) {
+      console.error('Import error:', error);
       toast.error('Erro na importação em massa')
     } finally {
       setIsLoading(false)
