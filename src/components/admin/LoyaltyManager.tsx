@@ -3,7 +3,18 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload } from 'lucide-react'
+import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon } from 'lucide-react'
+import { toast } from '@/lib/toast'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+export function LoyaltyManager() {
+  const [loading, setLoading] = useState(false)
+  const [settings, setSettings] = useState<any>({ points_per_real: 1 })
+  const [neighborhoods, setNeighborhoods] = useState<any[]>([])
+   const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
+  const [rewards, setRewards] = useState<any[]>([])
+   const [challenges, setChallenges] = useState<any[]>([])
+ 
    const importNeighborhoods = async () => {
      setLoading(true)
      const list = [
@@ -31,17 +42,6 @@ import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Uploa
      }
      setLoading(false)
    }
- 
-import { toast } from '@/lib/toast'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-export function LoyaltyManager() {
-  const [loading, setLoading] = useState(false)
-  const [settings, setSettings] = useState<any>({ points_per_real: 1 })
-  const [neighborhoods, setNeighborhoods] = useState<any[]>([])
-   const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
-  const [rewards, setRewards] = useState<any[]>([])
-  const [challenges, setChallenges] = useState<any[]>([])
 
   useEffect(() => {
     fetchData()
@@ -112,7 +112,7 @@ export function LoyaltyManager() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-8">
-        <div className="bg-zinc-900 p-3 rounded-2xl text-white shadow-lg">
+        <div className="bg-zinc-900 p-3 rounded-lg text-white shadow-lg">
           <Trophy size={24} />
         </div>
         <div>
@@ -125,8 +125,6 @@ export function LoyaltyManager() {
         <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6">
           <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px]">Configurações</TabsTrigger>
           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px]">Bairros & Taxas</TabsTrigger>
-          <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px]">Recompensas</TabsTrigger>
-          <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px]">Desafios</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings">
@@ -210,7 +208,7 @@ export function LoyaltyManager() {
                      <div className="flex-1">
                        <p className={`font-black uppercase text-xs ${n.active ? 'text-zinc-900' : 'text-zinc-400'}`}>{n.name}</p>
                        <p className="font-bold text-[10px] text-green-600">R$ {parseFloat(n.fee).toFixed(2)}</p>
-                       <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${n.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                       <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${n.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                          {n.active ? 'Ativo' : 'Pausado'}
                        </span>
                      </div>
@@ -234,19 +232,6 @@ export function LoyaltyManager() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="rewards">
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-zinc-100">
-             <Gift className="w-12 h-12 mx-auto text-zinc-200 mb-4" />
-             <p className="text-zinc-400 font-bold uppercase text-[10px]">Gestão de prêmios por pontos em breve</p>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="challenges">
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-zinc-100">
-             <Target className="w-12 h-12 mx-auto text-zinc-200 mb-4" />
-             <p className="text-zinc-400 font-bold uppercase text-[10px]">Gestão de desafios semanais em breve</p>
-          </div>
-        </TabsContent>
       </Tabs>
     </div>
   )

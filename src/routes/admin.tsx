@@ -134,9 +134,7 @@ function RouteComponent() {
      {
        title: 'Configurações e Integrações',
        items: [
-         { id: 'settings', label: 'Dados da Loja', icon: Settings },
-          { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare },
-          { id: 'webhooks', label: 'Webhooks', icon: Webhook }
+          { id: 'settings', label: 'Dados da Loja', icon: Settings }
         ]
      }
    ];
@@ -225,12 +223,6 @@ function RouteComponent() {
                </TabsContent>
                <TabsContent value="loyalty" className="mt-0 focus-visible:ring-0">
                  <LoyaltyManager />
-               </TabsContent>
-               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
-                 <WhatsAppManager />
-               </TabsContent>
-               <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
-                 <WebhookManager />
                </TabsContent>
             </Tabs>
           </div>
