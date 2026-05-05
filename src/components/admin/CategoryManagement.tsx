@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
  import { 
     Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, 
     Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2,
-    Snowflake, Candy, Box, CupSoap, Soup, Sandwich, Popcorn, CandyOff, Salad, Cherry, Strawberry, Banana, Citrus
+    Snowflake, Candy, Box, Soup, Sandwich, Popcorn, Salad, Cherry
   } from 'lucide-react'
 
   const getIconComponent = (name: string) => {
@@ -54,15 +54,11 @@ export function CategoryManagement() {
       { name: 'Flower2', label: 'Flores' },
       { name: 'Candy', label: 'Doces' },
       { name: 'Box', label: 'Estoque' },
-      { name: 'CupSoap', label: 'Lavanderia' },
       { name: 'Soup', label: 'Caldos' },
       { name: 'Sandwich', label: 'Lanches' },
       { name: 'Popcorn', label: 'Cinema' },
       { name: 'Salad', label: 'Saudável' },
-      { name: 'Cherry', label: 'Cerejas' },
-      { name: 'Strawberry', label: 'Morango' },
-      { name: 'Banana', label: 'Banana' },
-      { name: 'Citrus', label: 'Cítricos' }
+      { name: 'Cherry', label: 'Cerejas' }
     ];
  
    const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
