@@ -38,14 +38,26 @@ export function CategoryManagement() {
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
       const filePath = `categories/${type}/${fileName}`
 
-      const { data, error } = await supabase.storage
-        .from('categories')
-        .upload(filePath, file)
+      // Try categories bucket, fallback to products
+      let bucketName = 'categories';
+      let uploadError = null;
+      
+      const { data: uploadData, error: firstError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file);
+      
+      if (firstError) {
+        bucketName = 'products';
+        const { data: retryData, error: retryError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file);
+        uploadError = retryError;
+      }
 
-      if (error) throw error
+      if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('categories')
+        .from(bucketName)
         .getPublicUrl(filePath)
 
       setNewCategory({ ...newCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
