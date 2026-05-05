@@ -13,8 +13,9 @@ import {
   ShieldCheck, 
    Menu,
    X,
-   Users
- } from 'lucide-react'
+    Users,
+    Bell
+  } from 'lucide-react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
