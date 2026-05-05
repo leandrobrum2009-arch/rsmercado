@@ -22,100 +22,126 @@ function AdminFix() {
    const [userRole, setUserRole] = useState<string | null>(null)
  
     const handleRepairDB = async () => {
-      setStatus('Preparando instruções de reparo...')
-      const sql = `
--- COLE ESTE CÓDIGO NO SQL EDITOR DO SUPABASE
+      setStatus('Copiando instruções de reparo...');
+      const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
+-- 1. Criação de Tabelas e Colunas
+CREATE TABLE IF NOT EXISTS public.categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    icon_url TEXT,
+    banner_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 1. Colunas da Tabela Products
- -- 1. Tabela Products e Colunas
- CREATE TABLE IF NOT EXISTS public.products (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     name TEXT NOT NULL,
-     description TEXT,
-     price DECIMAL(10,2) NOT NULL,
-     old_price DECIMAL(10,2),
-     category_id UUID,
-     image_url TEXT,
-     created_at TIMESTAMPTZ DEFAULT NOW()
- );
- 
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS size TEXT;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT TRUE;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0;
- ALTER TABLE public.products ADD COLUMN IF NOT EXISTS points_value INTEGER DEFAULT 0;
+CREATE TABLE IF NOT EXISTS public.products (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    old_price DECIMAL(10,2),
+    category_id UUID REFERENCES public.categories(id),
+    image_url TEXT,
+    size TEXT,
+    brand TEXT,
+    stock INTEGER DEFAULT 0,
+    is_approved BOOLEAN DEFAULT TRUE,
+    is_available BOOLEAN DEFAULT TRUE,
+    points_value INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 2. Tabela Banners
- CREATE TABLE IF NOT EXISTS public.categories (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     name TEXT NOT NULL,
-     slug TEXT UNIQUE NOT NULL,
-     icon_url TEXT,
-     created_at TIMESTAMPTZ DEFAULT NOW()
- );
- 
- CREATE TABLE IF NOT EXISTS public.banners (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     image_url TEXT NOT NULL,
-     link_url TEXT,
-     category_id UUID REFERENCES public.categories(id),
-     is_active BOOLEAN DEFAULT TRUE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- 
- -- 2.5 Receitas e outras tabelas
- CREATE TABLE IF NOT EXISTS public.recipes (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     title TEXT NOT NULL,
-     description TEXT,
-     instructions TEXT,
-     category TEXT,
-     difficulty TEXT,
-     image_url TEXT,
-     ingredients JSONB DEFAULT '[]'::jsonb,
-     author_id UUID REFERENCES auth.users(id),
-     created_at TIMESTAMPTZ DEFAULT NOW()
- );
+CREATE TABLE IF NOT EXISTS public.banners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    image_url TEXT NOT NULL,
+    link_url TEXT,
+    category_id UUID REFERENCES public.categories(id),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 3. Tabela Store Settings
 CREATE TABLE IF NOT EXISTS public.store_settings (
     key TEXT PRIMARY KEY,
     value JSONB,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
- -- 4. Colunas da Tabela Profiles
- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_points INTEGER DEFAULT 0;
- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
- 
-  -- 6. Habilitar RLS e Políticas Básicas
-  ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
- 
-  -- Políticas de Leitura Pública
-  CREATE POLICY "Public read products" ON public.products FOR SELECT USING (true);
-  CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
-  CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
-  CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
-  CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
- 
-  -- 7. Buckets de Armazenamento
-  INSERT INTO storage.buckets (id, name, public) 
-  VALUES ('products', 'products', true), ('banners', 'banners', true)
-  ON CONFLICT (id) DO UPDATE SET public = true;
- `;
+CREATE TABLE IF NOT EXISTS public.recipes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    instructions TEXT,
+    category TEXT,
+    difficulty TEXT,
+    image_url TEXT,
+    ingredients JSONB DEFAULT '[]'::jsonb,
+    author_id UUID REFERENCES auth.users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Correção de User Roles e Recursão
+CREATE TABLE IF NOT EXISTS public.user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, role)
+);
+
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role);
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') 
+  OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com';
+$$;
+
+-- 3. Habilitar RLS e Políticas
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "Public read products" ON public.products;
+    DROP POLICY IF EXISTS "Public read categories" ON public.categories;
+    DROP POLICY IF EXISTS "Public read banners" ON public.banners;
+    DROP POLICY IF EXISTS "Public read store_settings" ON public.store_settings;
+    DROP POLICY IF EXISTS "Public read recipes" ON public.recipes;
+    DROP POLICY IF EXISTS "Users can read own roles" ON public.user_roles;
+    
+    CREATE POLICY "Public read products" ON public.products FOR SELECT USING (true);
+    CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
+    CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
+    CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
+    CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
+    CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+    
+    -- Admin policies
+    DROP POLICY IF EXISTS "Admins manage everything" ON public.products;
+    CREATE POLICY "Admins manage everything" ON public.products FOR ALL TO authenticated USING (public.is_admin());
+    
+    DROP POLICY IF EXISTS "Admins manage banners" ON public.banners;
+    CREATE POLICY "Admins manage banners" ON public.banners FOR ALL TO authenticated USING (public.is_admin());
+    
+    DROP POLICY IF EXISTS "Admins manage store_settings" ON public.store_settings;
+    CREATE POLICY "Admins manage store_settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
+END $$;
+
+-- 4. Buckets de Armazenamento
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('products', 'products', true), ('banners', 'banners', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+`;
       
-      console.log('REPAIR SQL:', sql);
-      alert('INSTRUÇÕES DE REPARO:\\n\\n1. O código SQL foi impresso no Console (F12).\\n2. Copie o SQL.\\n3. Vá ao painel do Supabase > SQL Editor.\\n4. Cole e clique em RUN.');
-      setStatus('SQL impresso no Console (F12). Copie e cole no Supabase.');
+      navigator.clipboard.writeText(sql);
+      alert('SQL DE REPARO COPIADO!\\n\\n1. Vá ao painel do Supabase > SQL Editor.\\n2. Cole (Ctrl+V) e clique em RUN.');
+      setStatus('SQL copiado para a área de transferência. Cole no Supabase.');
     }
 
    useEffect(() => {
