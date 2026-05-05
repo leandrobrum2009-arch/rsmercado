@@ -111,10 +111,11 @@ export function ProductImporter() {
      }
    }
  
-    const categories = [
-      "Bebidas", "Mercearia", "Hortifruti", "Limpeza", "Higiene", "Padaria", "Açougue", "Laticínios", "Frios", "Pet Shop", 
-      "Congelados", "Enlatados", "Doces e Biscoitos", "Massas e Grãos", "Café e Matinais", "Temperos", "Utilidades Domésticas", "Beleza"
-    ]
+     const categories = [
+       "Açougue", "Bazar", "Bebidas", "Beleza", "Café e Matinais", "Carnes", "Congelados", "Doces e Biscoitos", 
+       "Enlatados", "Frios", "Higiene", "Hortifruti", "Infantil", "Laticínios", "Limpeza", "Massas e Grãos", 
+       "Mercearia", "Padaria", "Peixaria", "Perfumaria", "Pet Shop", "Temperos", "Utilidades Domésticas"
+     ]
  
    const fetchCategories = async () => {
      const { data } = await supabase.from('categories').select('*').order('name')
