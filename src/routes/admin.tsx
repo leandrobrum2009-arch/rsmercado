@@ -201,7 +201,11 @@ function RouteComponent() {
             onClick={async () => {
               const { data } = await supabase.auth.getSession()
               const { data: rpcData, error: rpcError } = await supabase.rpc('is_admin')
-              const { data: roles, error: rolesError } = await supabase.from('user_roles').select('*').eq('user_id', data.session?.user.id)
+              const { data: roles, error: rolesError } = await supabase.from('user_roles').select('*').eq('user_id', data.session?.user.id || '00000000-0000-0000-0000-000000000000')
+              
+              // Check if functions exist
+              const { error: fnError } = await supabase.rpc('is_admin')
+              const fnMissing = fnError?.message?.includes('Could not find the function')
               
               alert(`DIAGNÓSTICO DETALHADO:
 User Email: ${data.session?.user.email}
