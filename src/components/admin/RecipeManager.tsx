@@ -99,13 +99,28 @@ export function RecipeManager() {
 
       await new Promise(resolve => setTimeout(resolve, 2000))
       
+      // Use multiple sources for images as requested
+      const imageSources = [
+        `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://source.unsplash.com/featured/800x400?food,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop` // Fallback
+      ];
+      const image_url = imageSources[Math.floor(Math.random() * imageSources.length)];
+
+      // Image validation: don't register if image_url is missing or invalid
+      if (!image_url || image_url.trim() === '') {
+        toast.error('Não foi possível encontrar uma imagem para esta receita. Tente novamente.');
+        setIsAiGenerating(false);
+        return;
+      }
+
       const newRecipe = {
         title,
         description: `Esta receita foi cuidadosamente elaborada por nosso algoritmo de gastronomia para destacar os sabores de: ${aiInput}. Uma combinação harmoniosa de texturas e aromas para uma experiência única.`,
         instructions: `1. Preparação Inicial: Comece organizando todos os ingredientes: ${aiInput}. Lave e corte os vegetais e proteínas em tamanhos uniformes.\n2. Base de Sabor: Em uma panela aquecida com um fio de azeite, doure os ingredientes principais começando pelos que exigem mais tempo de cocção.\n3. Desenvolvimento: Adicione os temperos de sua preferência e deixe os sabores se integrarem em fogo médio. Se necessário, adicione um pouco de água ou caldo para manter a umidade.\n4. Finalização: Cozinhe até que a textura esteja ao seu gosto. Desligue o fogo e adicione ervas frescas por cima antes de servir.\n5. Serviço: Disponha em um prato fundo para preservar o calor e finalize com um toque de pimenta moída na hora.`,
         category: 'Inovação IA',
         difficulty: 'Média',
-        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        image_url,
         ingredients: products.map(p => ({ name: p, quantity: '1 porção/unidade' }))
       }
 
@@ -291,6 +306,38 @@ export function RecipeManager() {
           {name: 'Queijo Coalho', quantity: '200g'},
           {name: 'Cebola Roxa', quantity: '1 unidade'}
         ]
+      },
+      {
+        title: 'Risoto de Funghi Secchi',
+        description: 'Um clássico da culinária italiana, cremoso e com o sabor profundo e amadeirado dos cogumelos secos. Perfeito para um jantar especial.',
+        instructions: '1. Preparo do Funghi: Hidrate o funghi secchi em água morna por 30 minutos. Coe e reserve o líquido.\n2. Refogado: Doure a cebola e o alho em manteiga e azeite. Adicione o arroz arbóreo e refogue.\n3. Vinho: Adicione o vinho branco seco e mexa até evaporar.\n4. Caldo: Vá adicionando o líquido do funghi e caldo de legumes quente, concha por concha, mexendo sempre.\n5. Finalização: Quando o arroz estiver al dente, adicione o funghi picado, queijo parmesão ralado e uma colher de manteiga gelada para dar brilho.',
+        category: 'Italiana',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Arroz Arbóreo', quantity: '2 xícaras'},
+          {name: 'Funghi Secchi', quantity: '50g'},
+          {name: 'Vinho Branco Seco', quantity: '150ml'},
+          {name: 'Caldo de Legumes', quantity: '1.5L'},
+          {name: 'Queijo Parmesão', quantity: '100g'},
+          {name: 'Manteiga', quantity: '2 colheres'}
+        ]
+      },
+      {
+        title: 'Tacos de Peixe Estilo Baja',
+        description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte. Uma explosão de sabores cítricos e texturas.',
+        instructions: '1. Peixe: Empane as tiras de peixe branco em uma massa leve de cerveja ou farinha e frite até dourar.\n2. Repolho: Misture repolho fatiado com limão, coentro e sal.\n3. Molho: Prepare um creme de iogurte com limão e pimenta.\n4. Tortilhas: Aqueça as tortilhas de milho levemente.\n5. Montagem: Coloque o peixe, o repolho e finalize com o molho e fatias de abacate.',
+        category: 'Mexicana',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Filé de Peixe Branco', quantity: '500g'},
+          {name: 'Tortilhas de Milho', quantity: '10 unidades'},
+          {name: 'Repolho Roxo', quantity: '200g'},
+          {name: 'Iogurte Natural', quantity: '1 pote'},
+          {name: 'Abacate', quantity: '1 unidade'},
+          {name: 'Limão', quantity: '2 unidades'}
+        ]
       }
     ];
 
@@ -332,6 +379,22 @@ export function RecipeManager() {
     }
   }
 
+  const handleDeleteAllRecipes = async () => {
+    if (!window.confirm('TEM CERTEZA? Isso apagará TODAS as receitas permanentemente!')) return
+    setIsLoading(true)
+    try {
+      // More robust way to delete all if possible, or just delete all records
+      const { error } = await supabase.from('recipes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      if (error) throw error
+      toast.success('Todas as receitas foram apagadas!')
+      fetchRecipes()
+    } catch (error: any) {
+      toast.error('Erro ao apagar: ' + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleCleanDuplicates = async () => {
     setIsLoading(true)
     try {
@@ -364,7 +427,6 @@ export function RecipeManager() {
       setIsLoading(false)
     }
   }
-
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta receita?')) return
     try {

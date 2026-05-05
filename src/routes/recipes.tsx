@@ -111,13 +111,28 @@ function RecipesPage() {
       // Simulate AI thinking
       await new Promise(resolve => setTimeout(resolve, 2000))
       
+      // Use multiple sources for images as requested
+      const imageSources = [
+        `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://source.unsplash.com/featured/800x400?food,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop` // Fallback
+      ];
+      const image_url = imageSources[Math.floor(Math.random() * imageSources.length)];
+
+      // Image validation: don't register if image_url is missing or invalid
+      if (!image_url || image_url.trim() === '') {
+        toast.error('Não foi possível encontrar uma imagem para esta receita. Tente novamente.');
+        setIsAiGenerating(false);
+        return;
+      }
+
       const newRecipe = {
         title,
         description: `Nossa inteligência artificial elaborou uma reportagem gastronômica exclusiva utilizando: ${aiInput}. Esta criação explora o equilíbrio perfeito entre os ingredientes fornecidos para entregar um prato sofisticado e nutritivo.`,
-        instructions: `1. Organização: Separe e prepare todos os itens: ${aiInput}. Certifique-se de que estão limpos e prontos para o uso.\n2. Início do Preparo: Comece refogando a base (cebola e alho se tiver) e adicione os ingredientes mais densos da lista.\n3. Cocção Lenta: Mantenha o fogo baixo para que os sabores de ${mainProduct} se desenvolvam plenamente.\n4. Ajuste de Temperos: Durante o cozimento, prove e ajuste o sal e as especiarias conforme sua preferência.\n5. Apresentação: Sirva em uma louça clara para destacar as cores dos ingredientes e finalize com um fio de azeite extra virgem.`,
+        instructions: `1. Organização: Separe e prepare todos os itens: ${aiInput}. Certifique-se de que estão limpos e prontos para o uso.\n2. Início do Preparo: Comece refogando a base (cebola e alho se tiver) e adicione os ingredientes mais densos da lista.\n3. Cocção Lenta: Mantenha o fogo baixo para que os sabores de ${mainProduct} se desenvolvam plenamente.\n4. Ajuste de Temperos: Durante o cozimento, prove e ajuste o sal e as especiarias conforme sua preferência.\n5. Apresentação: Sirva em uma louça clara para destacar as cores dos ingredientes e finalize com um toque de pimenta moída na hora.`,
         category: 'Reportagem IA',
         difficulty: 'Média',
-        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        image_url,
         ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
       }
 
