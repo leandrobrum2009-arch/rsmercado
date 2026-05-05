@@ -57,29 +57,35 @@ export function BannerManager() {
       const { data: { session } } = await supabase.auth.getSession();
       const isSuperAdmin = session?.user?.email === 'leandrobrum2009@gmail.com';
 
+       // Use a more robust select that handles missing tables or columns gracefully
        const { data: bannersData, error: bError } = await supabase
          .from('banners')
          .select('*')
-         .order('created_at', { ascending: false });
+         .order('created_at', { ascending: false })
+         .catch(() => ({ data: [], error: { message: 'relation "banners" does not exist' } }));
 
-        if (bError) {
-          console.error('Error fetching banners:', bError);
-           if (bError.message.includes('relation "banners" does not exist') || bError.message.includes('schema cache')) {
-             toast.error(
-               <div className="flex flex-col gap-2">
-                 <p>A tabela de banners não foi encontrada no banco de dados.</p>
-                 <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
-                   Reparar Banco de Dados
-                 </Button>
-               </div>,
-               { duration: 10000 }
-             );
-           } else {
-             toast.error('Erro ao carregar banners: ' + bError.message);
-           }
-          setIsLoading(false);
-          return;
-        }
+       if (bError) {
+         console.error('Error fetching banners:', bError);
+         const isMissingTable = bError.message?.includes('relation "banners" does not exist') || 
+                               bError.message?.includes('schema cache') || 
+                               bError.message?.includes('404');
+
+         if (isMissingTable) {
+           toast.error(
+             <div className="flex flex-col gap-2">
+               <p>A tabela de banners não foi encontrada no banco de dados.</p>
+               <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
+                 Reparar Banco de Dados
+               </Button>
+             </div>,
+             { duration: 10000 }
+           );
+         } else {
+           toast.error('Erro ao carregar banners: ' + bError.message);
+         }
+         setIsLoading(false);
+         return;
+       }
 
       const { data: catData } = await supabase.from('categories').select('*')
       
