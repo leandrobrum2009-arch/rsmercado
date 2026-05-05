@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
    import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
-import { Switch } from '@/components/ui/switch'
+ import { Switch } from '@/components/ui/switch'
+ import { toast } from '@/lib/toast'
  export function ProductManagement() {
     const productBadges = [
       { id: 'OFERTA', label: 'Oferta', color: 'bg-red-600', animation: '' },
