@@ -3,7 +3,8 @@
  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
  import { Badge } from '@/components/ui/badge'
- import { ShieldCheck, ShieldAlert, Loader2, Lock, Unlock, Eye, EyeOff } from 'lucide-react'
+  import { ShieldCheck, ShieldAlert, Loader2, Lock, Unlock, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+  import { Button } from '@/components/ui/button'
  import { toast } from '@/lib/toast'
  
  export function RLSAuditor() {
@@ -14,19 +15,26 @@
      fetchAudit()
    }, [])
  
-   const fetchAudit = async () => {
-     setIsLoading(true)
-     try {
-       const { data, error } = await supabase.rpc('audit_rls_status')
-       if (error) throw error
-       setAuditData(data || [])
-     } catch (error: any) {
-       console.error('Audit error:', error)
-       toast.error('Erro ao auditar RLS: ' + error.message)
-     } finally {
-       setIsLoading(false)
-     }
-   }
+    const [error, setError] = useState<string | null>(null)
+ 
+    const fetchAudit = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const { data, error } = await supabase.rpc('audit_rls_status')
+        if (error) throw error
+        setAuditData(data || [])
+      } catch (err: any) {
+        console.error('Audit error:', err)
+        const msg = err.message || 'Erro desconhecido'
+        setError(msg)
+        if (!msg.includes('audit_rls_status')) {
+           toast.error('Erro ao auditar RLS: ' + msg)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
  
    const getSecurityScore = () => {
      if (auditData.length === 0) return 0
@@ -34,7 +42,29 @@
      return Math.round((enabled / auditData.length) * 100)
    }
  
-   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
+    if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-10 w-10 text-zinc-300" /></div>
+ 
+    if (error && error.includes('audit_rls_status')) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-6 bg-white rounded-3xl border-4 border-dashed border-zinc-100 shadow-sm">
+          <div className="bg-amber-100 p-6 rounded-full text-amber-600">
+            <AlertTriangle size={48} />
+          </div>
+          <div className="max-w-md space-y-2">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter">Função de Auditoria Ausente</h2>
+            <p className="text-zinc-500 font-bold text-xs uppercase leading-relaxed">
+              O banco de dados precisa ser atualizado para habilitar o monitoramento de segurança em tempo real.
+            </p>
+          </div>
+          <Button 
+            onClick={() => window.location.href = '/admin-fix'} 
+            className="bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest px-10 h-14 rounded-2xl shadow-xl shadow-red-100 transition-all active:scale-95"
+          >
+            REPARAR AGORA
+          </Button>
+        </div>
+      )
+    }
  
    const score = getSecurityScore()
  
