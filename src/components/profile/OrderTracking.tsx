@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin } from 'lucide-react'
+import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ExternalLink } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 export function OrderTracking({ userId }: { userId: string }) {
   const [orders, setOrders] = useState<any[]>([])
@@ -55,7 +56,7 @@ export function OrderTracking({ userId }: { userId: string }) {
           {orders.map(order => {
             const info = getStatusInfo(order.status)
             return (
-              <Card key={order.id} className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
+              <Card key={order.id} className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white group hover:shadow-xl transition-all">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-xl bg-zinc-50 ${info.color}`}>
@@ -66,9 +67,18 @@ export function OrderTracking({ userId }: { userId: string }) {
                       <p className="font-black uppercase text-xs text-zinc-900">{info.label}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-black text-xs text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</p>
-                    <p className="text-[9px] font-bold text-zinc-300 uppercase">{new Date(order.created_at).toLocaleDateString()}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-black text-xs text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</p>
+                      <p className="text-[9px] font-bold text-zinc-300 uppercase">{new Date(order.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <Link 
+                      to="/track/$orderId" 
+                      params={{ orderId: order.id }}
+                      className="p-2 bg-zinc-100 rounded-xl text-zinc-400 group-hover:bg-primary group-hover:text-white transition-all shadow-inner"
+                    >
+                      <ExternalLink size={14} />
+                    </Link>
                   </div>
                 </CardContent>
                 {order.status !== 'delivered' && order.status !== 'cancelled' && (
