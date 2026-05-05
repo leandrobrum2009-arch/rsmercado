@@ -282,7 +282,7 @@ export function RecipeManager() {
       const { data: { session } } = await supabase.auth.getSession();
       const author_id = session?.user?.id;
       
-      const finalRecipes = [];
+      const finalRecipes: any[] = [];
       // Repeat templates to reach 40 recipes with variation in titles
       for(let i = 0; i < 4; i++) {
         templates.forEach(t => {
