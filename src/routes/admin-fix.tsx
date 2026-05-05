@@ -136,7 +136,14 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
 END $$;
 
--- 3. Funções de Auditoria e Promoção
+ -- 3. Limpeza de Funções Antigas e Criação de Novas
+ DROP FUNCTION IF EXISTS public.promote_to_admin(text);
+ DROP FUNCTION IF EXISTS public.confirm_user_email(text, text);
+ DROP FUNCTION IF EXISTS public.audit_rls_status();
+ DROP FUNCTION IF EXISTS public.exec_sql(text);
+ DROP FUNCTION IF EXISTS public.has_role(uuid, text);
+ DROP FUNCTION IF EXISTS public.is_admin();
+ 
 CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
