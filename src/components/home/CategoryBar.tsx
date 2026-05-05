@@ -1,29 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { 
-  Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
-  ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
-  GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2
-} from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { Sparkles, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 const getIconConfig = (cat: any) => {
   const [name, style] = (cat.icon_name || "").split(":");
   
-  const icons: Record<string, any> = {
-    Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
-    ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
-    GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2,
-    "Hortifruti": Apple, "Frutas": Apple, "Legumes": Carrot, "Verduras": Carrot,
-    "Padaria": Croissant, "Pães": Croissant, "Carnes": Beef, "Açougue": Beef,
-    "Bebidas": Wine, "Cervejas": Wine, "Vinhos": Wine, "Laticínios": Milk,
-    "Leites": Milk, "Limpeza": SprayCan, "Higiene": Brush, "Pet Shop": Dog,
-    "Pets": Dog, "Doces": Cookie, "Mercearia": Coffee, "Peixaria": Fish,
-    "Frios": IceCream, "Congelados": IceCream, "Bazar": Utensils,
-    "Infantil": Baby, "Perfumaria": Bath, "Floricultura": Flower2
-  };
-  
-  const IconComponent = icons[name] || icons[cat.name] || ShoppingBag;
+  // @ts-ignore
+  const IconComponent = LucideIcons[name] || LucideIcons[cat.name] || ShoppingBag;
   
   let strokeWidth = 1.5;
   if (style === "bold") strokeWidth = 2.5;
