@@ -19,8 +19,14 @@ export const Route = createFileRoute('/recipes')({
         .order('created_at', { ascending: false })
       
       if (error) {
-        console.error('Error fetching recipes:', error)
-        return { recipes: [] }
+        console.error('Error fetching recipes:', error);
+        const isMissingTable = error.message?.includes('relation "recipes" does not exist') || 
+                             error.message?.includes('schema cache') || 
+                             error.message?.includes('404');
+        if (isMissingTable) {
+           toast.error('A estrutura de receitas ainda não foi criada no banco de dados. Use o Reparador Admin.');
+        }
+        return { recipes: [] };
       }
       
       return { recipes: data || [] }
