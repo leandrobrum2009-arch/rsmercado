@@ -188,7 +188,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     is_admin BOOLEAN DEFAULT FALSE,
     loyalty_points INTEGER DEFAULT 0
 );
-CREATE TABLE IF NOT EXISTS public.orders (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id), total_amount DECIMAL(10,2) NOT NULL, payment_method TEXT, status TEXT DEFAULT 'pending', points_earned INTEGER DEFAULT 0, customer_name TEXT, customer_phone TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+ CREATE TABLE IF NOT EXISTS public.orders (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+     user_id UUID REFERENCES auth.users(id), 
+     total_amount DECIMAL(10,2) NOT NULL, 
+     payment_method TEXT, 
+     status TEXT DEFAULT 'pending', 
+     tracking_status TEXT DEFAULT 'pending',
+     delivery_neighborhood_id UUID REFERENCES public.delivery_neighborhoods(id),
+     points_earned INTEGER DEFAULT 0, 
+     customer_name TEXT, 
+     customer_phone TEXT, 
+     whatsapp_notified_at TIMESTAMPTZ,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
 CREATE TABLE IF NOT EXISTS public.order_items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE, product_id UUID REFERENCES public.products(id), quantity INTEGER NOT NULL, unit_price DECIMAL(10,2) NOT NULL);
 CREATE TABLE IF NOT EXISTS public.user_recipes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, recipe_id UUID REFERENCES public.recipes(id) ON DELETE CASCADE, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, recipe_id));
 
