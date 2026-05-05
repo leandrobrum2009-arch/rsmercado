@@ -26,6 +26,9 @@ export function WhatsAppManager() {
    const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
    const [campaigns, setCampaigns] = useState<any[]>([])
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
+  const [logs, setLogs] = useState<any[]>([])
+  const [loadingLogs, setLoadingLogs] = useState(false)
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'campaigns' | 'logs'>('campaigns')
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
    const [isSavingTemplate, setIsSavingTemplate] = useState(false)
@@ -191,9 +194,26 @@ export function WhatsAppManager() {
      }
    }
 
+    const fetchLogs = async () => {
+      setLoadingLogs(true)
+      try {
+        const { data } = await supabase
+          .from('whatsapp_logs')
+          .select('*')
+          .order('sent_at', { ascending: false })
+          .limit(50)
+        setLogs(data || [])
+      } catch (e) {
+        console.error('Error fetching logs:', e)
+      } finally {
+        setLoadingLogs(false)
+      }
+    }
+
    useEffect(() => {
      fetchConfig()
      fetchCampaigns()
+      fetchLogs()
      fetchCoupons()
      fetchTemplates()
    }, [])
