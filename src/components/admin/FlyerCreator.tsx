@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
  
      let message = `🔥 *OFERTAS DO DIA - ${storeSettings.site_name || 'RS SUPERMERCADO'}* 🔥\n\n`
      
-     selectedProducts.forEach(p => {
+     selectedProducts.forEach((p: any) => {
        message += `📍 *${p.name}*\n`
        message += `💰 Por apenas: *R$ ${p.price.toFixed(2)}*\n`
        message += `➖➖\n`
@@ -33,7 +33,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
      toast.success('WhatsApp aberto para compartilhamento!')
    }
  
-
 type FlyerProduct = {
   id: string
   name: string
