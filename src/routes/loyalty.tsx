@@ -113,9 +113,9 @@
                  <Star size={12} className="mr-1 fill-white" />
                  Nível {profile?.points_balance > 1000 ? 'Platinum' : profile?.points_balance > 500 ? 'Ouro' : 'Bronze'}
                </Badge>
-               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                 {profile?.points_balance > 1000 ? 'Vantagens Máximas Ativadas' : \`Faltam \${profile?.points_balance > 500 ? 1000 - profile?.points_balance : 500 - profile?.points_balance} para o próximo nível\`}
-               </p>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                  {profile?.points_balance > 1000 ? 'Vantagens Máximas Ativadas' : `Faltam ${profile?.points_balance > 500 ? 1000 - profile.points_balance : 500 - profile.points_balance} para o próximo nível`}
+                </p>
              </div>
            </div>
            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10 flex-shrink-0">
