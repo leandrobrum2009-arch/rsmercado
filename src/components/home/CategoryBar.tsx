@@ -99,9 +99,7 @@ export const CategoryBar = () => {
           </div>
         </div>
 
-        <div className="px-4 mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-black uppercase italic tracking-tighter text-zinc-400">Navegue rápido</h2>
-        </div>
+
         
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
