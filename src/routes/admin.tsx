@@ -1,45 +1,27 @@
  import { AlertManager } from '@/components/admin/AlertManager'
  import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
-import { 
-  ShoppingBag, 
-  Tag, 
-  ClipboardList, 
-  Upload, 
-  ChefHat, 
-  LayoutTemplate, 
-  Image as ImageIcon, 
+ import { 
+   ShoppingBag, 
+   Tag, 
+   ClipboardList, 
+   Upload, 
+   ChefHat, 
+   LayoutTemplate, 
+   Image as ImageIcon, 
    MessageSquare,
    Webhook,
-  Settings, 
-  ShieldCheck, 
+   Settings, 
+   ShieldCheck, 
    Menu,
    X,
-     Users,
-       Bell,
-       AlertCircle,
-       Truck,
-       Percent,
-        Lock,
-        Percent,
-        ShoppingBag,
-        Tag,
-        ClipboardList,
-        Upload,
-        ChefHat,
-        LayoutTemplate,
-        Image as ImageIcon,
-        MessageSquare,
-        Webhook,
-        Settings,
-        ShieldCheck,
-        Menu,
-        X,
-        Users,
-        Bell,
-        AlertCircle,
-        Truck
-     } from 'lucide-react'
+   Users,
+   Bell,
+   AlertCircle,
+   Truck,
+   Percent,
+   Lock
+ } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect } from '@tanstack/react-router'
@@ -114,52 +96,49 @@ export const Route = createFileRoute('/admin')({
   component: RouteComponent,
 })
 
-function RouteComponent() {
+ function RouteComponent() {
    const [userPermissions, setUserPermissions] = useState<string[]>([])
+   const [session, setSession] = useState<any>(null)
+   const [activeTab, setActiveTab] = useState('dashboard')
+   const [sidebarOpen, setSidebarOpen] = useState(false)
+   const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+   const [lastError, setLastError] = useState<string | null>(null)
+ 
+   useEffect(() => {
+     const fetchPermissionsAndAdmin = async () => {
        try {
-         const { data: { session } } = await supabase.auth.getSession()
-         if (session) {
+         const { data: { session: currentSession } } = await supabase.auth.getSession()
+         setSession(currentSession)
+         
+         if (currentSession) {
            const { data: roleData } = await supabase
              .from('user_roles')
              .select('permissions')
-             .eq('user_id', session.user.id)
+             .eq('user_id', currentSession.user.id)
              .maybeSingle()
            
            if (roleData?.permissions) {
              setUserPermissions(roleData.permissions)
-           } else if (session.user.email === 'leandrobrum2009@gmail.com') {
-             // Super admin fallback
+           } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
              setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "whatsapp", "webhooks", "admin_roles"])
            }
          }
-       } catch (err) {
-         console.error('Error fetching user permissions:', err)
-       }
  
-   const [activeTab, setActiveTab] = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  
-  const [lastError, setLastError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const { data, error } = await supabase.rpc('is_admin')
-        if (error) {
-          console.error('Diagnostic RPC error:', error)
-          setLastError(error.message)
-          setIsAdminDiagnostic(false)
-        } else {
-          setIsAdminDiagnostic(data)
-          setLastError(null)
-        }
-      } catch (err: any) {
-        setLastError(err.message)
-        setIsAdminDiagnostic(false)
-      }
-    }
-    check()
-  }, [])
+         const { data, error } = await supabase.rpc('is_admin')
+         if (error) {
+           setLastError(error.message)
+           setIsAdminDiagnostic(false)
+         } else {
+           setIsAdminDiagnostic(data)
+         }
+       } catch (err: any) {
+         console.error('Error in Admin init:', err)
+         setLastError(err.message)
+         setIsAdminDiagnostic(false)
+       }
+     }
+     fetchPermissionsAndAdmin()
+   }, [])
 
      const menuGroups = [
        {
