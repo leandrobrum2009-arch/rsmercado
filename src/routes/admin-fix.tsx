@@ -29,13 +29,14 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
 -- 3. FUNÇÃO IS_ADMIN (RESTAURAÇÃO)
-CREATE OR REPLACE FUNCTION public.is_admin() 
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
-         EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ CREATE OR REPLACE FUNCTION public.is_admin() 
+ RETURNS BOOLEAN AS $$
+ BEGIN
+   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
+          EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') OR
+          EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true);
+ END;
+ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. TABELA DE ENDEREÇOS (CORREÇÃO DO ERRO ATUAL)
 CREATE TABLE IF NOT EXISTS public.user_addresses (
@@ -162,10 +163,21 @@ BEGIN
      END IF;
  
      -- WhatsApp
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
-         CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
-     END IF;
-END $$;`
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
+          CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
+      END IF;
+ END $$;
+ 
+ -- 9. REPARAR CATEGORIAS E PRODUTOS
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;
+ 
+ -- ATUALIZAR POLÍTICAS
+ DROP POLICY IF EXISTS "Admins can do everything on categories" ON public.categories;
+ CREATE POLICY "Admins can do everything on categories" ON public.categories FOR ALL USING (public.is_admin());
+ 
+ DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
+ CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
