@@ -216,10 +216,14 @@ export function CategoryManagement() {
                                 onClick={() => setNewCategory({...newCategory, icon_name: `${icon.name}:${selectedStyle}`})}
                                 className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border-2 w-full aspect-square ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-lg shadow-primary/20' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary'}`}
                               >
-                                <Icon 
-                                  size={24} 
-                                  strokeWidth={selectedStyle === 'bold' ? 2.5 : selectedStyle === 'classic' ? 2.0 : selectedStyle === 'thin' ? 1.0 : 1.5} 
-                                />
+                                {Icon ? (
+                                  <Icon 
+                                    size={24} 
+                                    strokeWidth={selectedStyle === 'bold' ? 2.5 : selectedStyle === 'classic' ? 2.0 : selectedStyle === 'thin' ? 1.0 : 1.5} 
+                                  />
+                                ) : (
+                                  <ShoppingBag size={24} strokeWidth={1.5} />
+                                )}
                                 <span className={`text-[8px] font-bold uppercase truncate w-full text-center ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{icon.label}</span>
                               </button>
                             </div>
