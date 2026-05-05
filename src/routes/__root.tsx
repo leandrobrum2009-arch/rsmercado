@@ -1,7 +1,7 @@
    import { StoreAlertBanner } from "../components/StoreAlertBanner";
    import { registerServiceWorker } from "../lib/webpush";
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-   import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell } from "lucide-react";
+    import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell, Trophy } from "lucide-react";
    import { NotificationCenter } from "../components/NotificationCenter";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
@@ -166,8 +166,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
      { name: "Início", path: "/", icon: Home },
      { name: "Buscar", path: "/search", icon: Search },
      { name: "Carrinho", path: "/cart", icon: ShoppingCart, badge: cartCount },
-     { name: "Receitas", path: "/recipes", icon: ChefHat },
-     { name: "Perfil", path: "/profile", icon: User },
+      { name: "Receitas", path: "/recipes", icon: ChefHat },
+      { name: "Fidelidade", path: "/loyalty", icon: Trophy },
+      { name: "Perfil", path: "/profile", icon: User },
    ];
  
    if (isAdmin) {
