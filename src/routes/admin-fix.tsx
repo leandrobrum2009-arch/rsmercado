@@ -178,7 +178,7 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
  DECLARE
    result jsonb;
  BEGIN
-   IF auth.jwt() ->> 'email' <> 'leandrobrum2009@gmail.com' THEN
+   IF COALESCE(auth.jwt() ->> 'email', '') <> 'leandrobrum2009@gmail.com' THEN
      RAISE EXCEPTION 'Acesso negado: Apenas o administrador master pode usar o Editor SQL.';
    END IF;
    BEGIN
@@ -199,8 +199,8 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') 
-  OR auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com';
+   SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
+   OR COALESCE(auth.jwt() ->> 'email', '') = 'leandrobrum2009@gmail.com';
 $$;
 
 -- 5. Habilitar RLS e Limpar Políticas
