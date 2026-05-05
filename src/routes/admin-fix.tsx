@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key } from 'lucide-react'
+ import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key, Copy, Check } from 'lucide-react'
+ import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -17,14 +18,38 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
    const [seeding, setSeeding] = useState(false)
-   const [testing, setTesting] = useState(false)
+    const [testing, setTesting] = useState(false)
+    const [showSql, setShowSql] = useState(false)
+    const [generatedSql, setGeneratedSql] = useState('')
+    const [copied, setCopied] = useState(false)
    const [currentUser, setCurrentUser] = useState<any>(null)
    const [userRole, setUserRole] = useState<string | null>(null)
  
-    const handleRepairDB = async () => {
-      setStatus('Copiando instruções de reparo...');
-      const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
--- 1. Criação de Tabelas e Colunas
+     const generateRepairSql = () => {
+       const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
+ -- 1. Criação e Atualização de Tabelas
+ -- Adicionar colunas faltantes se as tabelas já existirem
+ DO $$ 
+ BEGIN 
+     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'size') THEN
+             ALTER TABLE public.products ADD COLUMN size TEXT;
+         END IF;
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
+             ALTER TABLE public.products ADD COLUMN brand TEXT;
+         END IF;
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN
+             ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0;
+         END IF;
+     END IF;
+ 
+     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'categories') THEN
+         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'banner_url') THEN
+             ALTER TABLE public.categories ADD COLUMN banner_url TEXT;
+         END IF;
+     END IF;
+ END $$;
+ 
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -79,7 +104,51 @@ CREATE TABLE IF NOT EXISTS public.recipes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Correção de User Roles e Recursão
+ -- 2. Funções Administrativas e RPCs
+ CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+ BEGIN
+   -- Altere 'CHAVE_MESTRE' para uma chave sua se desejar
+   IF secret_key = 'CHAVE_MESTRE' THEN
+     INSERT INTO public.user_roles (user_id, role)
+     VALUES (auth.uid(), 'admin')
+     ON CONFLICT (user_id, role) DO NOTHING;
+     RETURN true;
+   END IF;
+   RETURN false;
+ END;
+ $$;
+ 
+ CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm text, secret_key text)
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+ BEGIN
+   IF secret_key = 'CHAVE_MESTRE' THEN
+     UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = email_to_confirm;
+     RETURN true;
+   END IF;
+   RETURN false;
+ END;
+ $$;
+ 
+ CREATE OR REPLACE FUNCTION public.audit_rls_status()
+ RETURNS TABLE (
+     table_name text,
+     rls_enabled boolean,
+     policy_count bigint
+ ) LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+     SELECT 
+         t.relname::text as table_name,
+         t.relrowsecurity as rls_enabled,
+         (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid) as policy_count
+     FROM pg_class t
+     JOIN pg_namespace n ON n.oid = t.relnamespace
+     WHERE n.nspname = 'public' 
+     AND t.relkind = 'r'
+     AND t.relname NOT IN ('pg_stat_statements', 'spatial_ref_sys')
+     ORDER BY t.relname;
+ $$;
+ 
+ -- 3. Correção de User Roles e Recursão
 CREATE TABLE IF NOT EXISTS public.user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -99,7 +168,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com';
 $$;
 
--- 3. Habilitar RLS e Políticas
+ -- 4. Habilitar RLS e Políticas
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
@@ -133,7 +202,7 @@ DO $$ BEGIN
     CREATE POLICY "Admins manage store_settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
 END $$;
 
--- 4. Buckets de Armazenamento
+ -- 5. Buckets de Armazenamento
  INSERT INTO storage.buckets (id, name, public) 
  VALUES ('products', 'products', true), ('banners', 'banners', true)
  ON CONFLICT (id) DO UPDATE SET public = true;
@@ -145,14 +214,23 @@ END $$;
  DROP POLICY IF EXISTS "Authenticated upload" ON storage.objects;
  CREATE POLICY "Authenticated upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners'));
  
- DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
- CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
- `;
-      
-      navigator.clipboard.writeText(sql);
-      alert('SQL DE REPARO COPIADO!\\n\\n1. Vá ao painel do Supabase > SQL Editor.\\n2. Cole (Ctrl+V) e clique em RUN.');
-      setStatus('SQL copiado para a área de transferência. Cole no Supabase.');
-    }
+  DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
+  CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
+ 
+  -- Recarregar cache do PostgREST
+  NOTIFY pgrst, 'reload schema';
+  `;
+       setGeneratedSql(sql);
+       setShowSql(true);
+       setStatus('SQL gerado com sucesso! Veja abaixo.');
+     }
+ 
+     const copyToClipboard = () => {
+       navigator.clipboard.writeText(generatedSql);
+       setCopied(true);
+       toast.success('SQL copiado para a área de transferência!');
+       setTimeout(() => setCopied(false), 2000);
+     }
 
    useEffect(() => {
      const fetchUser = async () => {
@@ -424,12 +502,35 @@ END $$;
               <p className="text-[10px] text-blue-800 font-bold leading-tight uppercase">
                 Se as colunas ou tabelas estiverem faltando (Ex: erro de 'size'), clique abaixo.
               </p>
-              <Button 
-                onClick={handleRepairDB}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest"
-              >
-                GERAR SQL DE REPARO
-              </Button>
+               <Button 
+                 onClick={generateRepairSql}
+                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest"
+               >
+                 GERAR SQL DE REPARO
+               </Button>
+ 
+               {showSql && (
+                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                   <div className="relative">
+                     <textarea 
+                       readOnly 
+                       value={generatedSql}
+                       className="w-full h-48 p-3 bg-zinc-900 text-green-400 font-mono text-[10px] rounded-lg border-2 border-zinc-700"
+                     />
+                     <Button 
+                       size="sm" 
+                       className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600"
+                       onClick={copyToClipboard}
+                     >
+                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                     </Button>
+                   </div>
+                   <div className="p-3 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-start gap-3">
+                     <div className="bg-white text-blue-600 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px]">!</div>
+                     <p>IMPORTANTE: Copie todo o código acima e cole no SQL EDITOR do seu painel Supabase, depois clique em RUN.</p>
+                   </div>
+                 </div>
+               )}
             </div>
           </div>
 
