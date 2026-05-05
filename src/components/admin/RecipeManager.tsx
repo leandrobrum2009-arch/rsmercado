@@ -457,15 +457,24 @@ export function RecipeManager() {
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Controle total das receitas e IA</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
-            <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
-          </Button>
-          <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
-            <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
-          </Button>
-          <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
-            <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-          </Button>
+           {isAdmin && (
+             <>
+               <Button variant="outline" onClick={handleDeleteAllRecipes} disabled={isLoading} className="border-2 border-red-100 text-red-600 font-black uppercase text-[10px] h-10 px-6 hover:bg-red-50">
+                 <Trash2 className="mr-2 h-4 w-4" /> Deletar Tudo
+               </Button>
+               <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
+                 <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
+               </Button>
+               <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
+                 <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
+               </Button>
+             </>
+           )}
+           {isAdmin && (
+             <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
+               <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+             </Button>
+           )}
         </div>
       </div>
 
