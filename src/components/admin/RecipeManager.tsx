@@ -593,9 +593,12 @@ export function RecipeManager() {
               <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
                 <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
               </Button>
-              <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
-                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-              </Button>
+           <Button onClick={() => setIsManualModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-emerald-100 transition-all active:scale-95">
+             <Plus className="mr-2 h-4 w-4" /> Nova Receita
+           </Button>
+           <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
+             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+           </Button>
             </>
           )}
         </div>
@@ -668,6 +671,50 @@ export function RecipeManager() {
             >
               {isAiGenerating ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
               Gerar Gastronomia
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl border-4 border-emerald-100">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-2">
+              <ChefHat className="text-emerald-600" size={24} />
+            </div>
+            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Nova Receita</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400">
+              Cadastre manualmente uma receita no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Título</Label>
+              <Input value={manualRecipe.title} onChange={(e) => setManualRecipe({...manualRecipe, title: e.target.value})} className="rounded-xl border-2" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Categoria</Label>
+              <Select value={manualRecipe.category} onValueChange={(v) => setManualRecipe({...manualRecipe, category: v})}>
+                <SelectTrigger className="rounded-xl border-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Brasileira">Brasileira</SelectItem>
+                  <SelectItem value="Italiana">Italiana</SelectItem>
+                  <SelectItem value="Sobremesa">Sobremesa</SelectItem>
+                  <SelectItem value="Lanche">Lanche</SelectItem>
+                  <SelectItem value="Saudável">Saudável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">URL da Imagem</Label>
+              <Input value={manualRecipe.image_url} onChange={(e) => setManualRecipe({...manualRecipe, image_url: e.target.value})} className="rounded-xl border-2" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCreateManualRecipe} disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-[10px] w-full">
+              {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Salvar Receita'}
             </Button>
           </DialogFooter>
         </DialogContent>
