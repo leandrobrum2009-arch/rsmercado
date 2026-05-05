@@ -60,27 +60,24 @@
          return;
        }
 
-        if (data) {
-          const newSettings = { ...settings }
-          data.forEach(item => {
-            if (item.key === 'site_name') newSettings.site_name = item.value
-            if (item.key === 'logo_url') newSettings.logo_url = item.value
-            if (item.key === 'color_palette') newSettings.colors = item.value
-            if (item.key === 'address') newSettings.address = item.value
-            if (item.key === 'whatsapp') newSettings.whatsapp = item.value
-            if (item.key === 'opening_hours') newSettings.opening_hours = item.value
-            if (item.key === 'instagram_url') newSettings.instagram_url = item.value
-            if (item.key === 'facebook_url') newSettings.facebook_url = item.value
-            if (item.key === 'store_description') newSettings.store_description = item.value
-            if (item.key === 'points_ratio') newSettings.points_ratio = item.value
-          })
-          setSettings(newSettings)
-        }
-      } catch (err) {
-        console.error('Fetch settings catch:', err);
-      }
-      setIsLoading(false)
-    }
+       if (data) {
+         const newSettings = { ...settings };
+         data.forEach((item: any) => {
+           if (item.key === 'site_name') newSettings.site_name = item.value;
+           if (item.key === 'logo_url') newSettings.logo_url = item.value;
+           if (item.key === 'color_palette') newSettings.colors = item.value;
+           if (item.key === 'address') newSettings.address = item.value;
+           if (item.key === 'whatsapp') newSettings.whatsapp = item.value;
+           if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
+           if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
+           if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
+           if (item.key === 'store_description') newSettings.store_description = item.value;
+           if (item.key === 'points_ratio') newSettings.points_ratio = item.value;
+         });
+         setSettings(newSettings);
+       }
+       setIsLoading(false);
+     };
  
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
