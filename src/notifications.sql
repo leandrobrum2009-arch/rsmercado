@@ -62,6 +62,33 @@
  CREATE POLICY "Admins can manage push subscriptions" ON public.push_subscriptions
      FOR ALL USING (public.is_admin());
  
+ -- Function to decrease stock on order completion
+ CREATE OR REPLACE FUNCTION update_stock_on_order()
+ RETURNS TRIGGER AS $$
+ DECLARE
+     item RECORD;
+ BEGIN
+     -- Only decrease stock when order is approved or delivered for the first time
+     IF (NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status = 'pending')) THEN
+         FOR item IN SELECT product_id, quantity FROM public.order_items WHERE order_id = NEW.id LOOP
+             UPDATE public.products 
+             SET stock = GREATEST(0, stock - item.quantity)
+             WHERE id = item.product_id;
+         END LOOP;
+     END IF;
+     RETURN NEW;
+ END;
+ $$ LANGUAGE plpgsql SECURITY DEFINER;
+ 
+ DROP TRIGGER IF EXISTS trigger_update_stock_on_order ON public.orders;
+ CREATE TRIGGER trigger_update_stock_on_order
+     AFTER UPDATE ON public.orders
+     FOR EACH ROW
+     EXECUTE FUNCTION update_stock_on_order();
+ 
+ -- Set initial stock for all products to 15 if not already set
+ UPDATE public.products SET stock = 15 WHERE stock IS NULL OR stock = 0;
+ 
  -- Trigger for Order Status changes
  CREATE OR REPLACE FUNCTION notify_order_status_change()
  RETURNS TRIGGER AS $$

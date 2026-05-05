@@ -1,4 +1,5 @@
- import React, { createContext, useContext, useState, useEffect } from 'react';
+  import React, { createContext, useContext, useState, useEffect } from 'react';
+  import { toast } from '@/lib/toast'
  
  interface CartItem {
    id: string;
@@ -35,15 +36,24 @@
      localStorage.setItem('cart', JSON.stringify(items));
    }, [items]);
  
-   const addToCart = (product: any) => {
-     setItems(prev => {
-       const existing = prev.find(i => i.id === product.id);
-       if (existing) {
-         return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
-       }
-       return [...prev, { ...product, quantity: 1 }];
-     });
-   };
+    const addToCart = (product: any) => {
+      if (product.stock !== undefined && product.stock <= 0) {
+        toast.error('Produto sem estoque no momento!')
+        return
+      }
+
+      setItems(prev => {
+        const existing = prev.find(i => i.id === product.id);
+        if (existing) {
+          if (product.stock !== undefined && existing.quantity >= product.stock) {
+            toast.error(`Desculpe, só temos ${product.stock} unidades em estoque.`)
+            return prev
+          }
+          return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+        }
+        return [...prev, { ...product, quantity: 1 }];
+      });
+    };
  
    const removeFromCart = (productId: string) => {
      setItems(prev => prev.filter(i => i.id !== productId));
