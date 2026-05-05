@@ -29,13 +29,14 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
 -- 3. FUNÇÃO IS_ADMIN (RESTAURAÇÃO)
-CREATE OR REPLACE FUNCTION public.is_admin() 
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
-         EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ CREATE OR REPLACE FUNCTION public.is_admin() 
+ RETURNS BOOLEAN AS $$
+ BEGIN
+   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
+          EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') OR
+          EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true);
+ END;
+ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. TABELA DE ENDEREÇOS (CORREÇÃO DO ERRO ATUAL)
 CREATE TABLE IF NOT EXISTS public.user_addresses (
