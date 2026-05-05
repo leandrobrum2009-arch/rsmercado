@@ -27,7 +27,7 @@
  
        const csvContent = [
          ['ID do Pedido', 'Data', 'Cliente', 'Total', 'Status', 'Metodo de Pagamento'].join(','),
-         ...(orders || []).map(o => [
+         ...(orders || []).map((o: any) => [
            o.id.substring(0, 8),
            new Date(o.created_at).toLocaleDateString('pt-BR'),
            o.profiles?.full_name || 'Desconhecido',
