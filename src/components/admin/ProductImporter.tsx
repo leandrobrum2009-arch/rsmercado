@@ -586,11 +586,10 @@ export function ProductImporter() {
                        <SelectValue placeholder="Selecione..." />
                      </SelectTrigger>
                      <SelectContent>
-                       {availableCategories.length > 0 ? (
-                         availableCategories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)
-                       ) : (
-                         categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
-                       )}
+                        {/* Merge DB categories with default categories to ensure user sees all options */}
+                        {Array.from(new Set([...categories, ...availableCategories.map(c => c.name)])).sort().map(catName => (
+                          <SelectItem key={catName} value={catName}>{catName}</SelectItem>
+                        ))}
                      </SelectContent>
                    </Select>
                 </div>
