@@ -18,7 +18,8 @@
      facebook_url: '',
       store_description: '',
       points_ratio: '1',
-      instagram_post_count: '6'
+      instagram_post_count: '6',
+      admin_whatsapp: ''
     })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
@@ -74,8 +75,9 @@
            if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
             if (item.key === 'store_description') newSettings.store_description = item.value;
             if (item.key === 'points_ratio') newSettings.points_ratio = item.value;
-            if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
-          });
+             if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
+             if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
+           });
          setSettings(newSettings);
        }
        setIsLoading(false);
@@ -146,8 +148,19 @@
          { key: 'facebook_url', value: settings.facebook_url },
           { key: 'store_description', value: settings.store_description },
           { key: 'points_ratio', value: settings.points_ratio },
-          { key: 'instagram_post_count', value: settings.instagram_post_count }
-        ];
+           { key: 'instagram_post_count', value: settings.instagram_post_count },
+           { key: 'admin_whatsapp', value: settings.admin_whatsapp }
+         ];
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase text-zinc-500">WhatsApp do Gestor (Receber Avisos)</label>
+                      <Input 
+                        value={settings.admin_whatsapp}
+                        onChange={(e) => setSettings({ ...settings, admin_whatsapp: e.target.value })}
+                        placeholder="Ex: 5511999999999"
+                        className="rounded-xl border-zinc-200"
+                      />
+                      <p className="text-[9px] text-zinc-400 font-bold uppercase">Número que receberá alertas de novos pedidos.</p>
+                    </div>
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase text-zinc-500">Qtd de Posts Instagram</label>
                   <Input 
