@@ -13,8 +13,46 @@
    Package, 
    Calendar,
    Filter,
-   Bell
+   Bell,
+   Download
  } from 'lucide-react'
+   const exportReport = async () => {
+     try {
+       const { data: orders, error } = await supabase
+         .from('orders')
+         .select('id, created_at, total_amount, status, payment_method, profiles(full_name)')
+         .order('created_at', { ascending: false });
+ 
+       if (error) throw error;
+ 
+       const csvContent = [
+         ['ID do Pedido', 'Data', 'Cliente', 'Total', 'Status', 'Metodo de Pagamento'].join(','),
+         ...(orders || []).map(o => [
+           o.id.substring(0, 8),
+           new Date(o.created_at).toLocaleDateString('pt-BR'),
+           o.profiles?.full_name || 'Desconhecido',
+           o.total_amount,
+           o.status,
+           o.payment_method
+         ].join(','))
+       ].join('\n');
+ 
+       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+       const url = URL.createObjectURL(blob);
+       const link = document.createElement('a');
+       link.setAttribute('href', url);
+       link.setAttribute('download', `relatorio_vendas_${new Date().toISOString().split('T')[0]}.csv`);
+       link.style.visibility = 'hidden';
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
+       toast.success('Relatório exportado com sucesso!');
+     } catch (err) {
+       console.error('Error exporting report:', err);
+       toast.error('Erro ao exportar relatório');
+     }
+   };
+ 
  import { 
    BarChart, 
    Bar, 
@@ -179,6 +217,9 @@
                <SelectItem value="month">Este Mês</SelectItem>
              </SelectContent>
            </Select>
+           <Button variant="outline" className="h-10 border-zinc-200 bg-white gap-2 font-bold uppercase text-[10px]" onClick={exportReport}>
+             <Download className="h-4 w-4" /> Exportar
+           </Button>
            <Button variant="outline" className="h-10 border-zinc-200 bg-white" onClick={fetchDashboardData}>
              <Filter className="h-4 w-4" />
            </Button>
