@@ -219,7 +219,9 @@ function RouteComponent() {
               </div>
               <div>
                 <p className="font-black uppercase text-xs text-red-900">Acesso Restrito no Banco</p>
-                <p className="text-[10px] text-red-700 font-bold">O banco de dados não te reconheceu como Admin. Algumas funções podem falhar.</p>
+                <p className="text-[10px] text-red-700 font-bold">
+                  {lastError ? `Erro técnico: ${lastError}` : "O banco de dados não te reconheceu como Admin. Algumas funções podem falhar."}
+                </p>
               </div>
               <Button size="sm" className="ml-auto bg-red-600 font-bold text-[10px]" onClick={() => window.location.href = '/admin-fix'}>REPARAR</Button>
             </div>
