@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { MapPin, Search, Truck, CheckCircle2, AlertCircle, ArrowLeft, Info } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/whatsapp'
 
 export const Route = createFileRoute('/delivery')({
