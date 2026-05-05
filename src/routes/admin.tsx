@@ -10,13 +10,10 @@ import {
   Webhook, 
   Settings, 
   ShieldCheck, 
-   Bug, 
    Menu,
    X,
-    Users,
-    Database as DatabaseIcon
+   Users
  } from 'lucide-react'
-import { RLSAuditor } from '@/components/admin/RLSAuditor'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -139,10 +136,7 @@ function RouteComponent() {
        title: 'Configurações e Integrações',
        items: [
          { id: 'settings', label: 'Dados da Loja', icon: Settings },
-         { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare },
-          { id: 'webhooks', label: 'Webhooks / ERP', icon: Webhook },
-          { id: 'sql', label: 'Editor SQL', icon: DatabaseIcon },
-          { id: 'security', label: 'Segurança RLS', icon: ShieldCheck },
+          { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare }
         ]
      }
    ];
@@ -195,68 +189,15 @@ function RouteComponent() {
            ))}
          </nav>
 
-        <div className="p-4 border-t border-zinc-800">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-start text-[10px] text-zinc-500 hover:text-white"
-            onClick={async () => {
-              const { data } = await supabase.auth.getSession()
-              const { data: rpcData, error: rpcError } = await supabase.rpc('is_admin')
-              const { data: roles, error: rolesError } = await supabase.from('user_roles').select('*').eq('user_id', data.session?.user.id || '00000000-0000-0000-0000-000000000000')
-              
-              // Check if functions exist
-              const { error: fnError } = await supabase.rpc('is_admin')
-              const fnMissing = fnError?.message?.includes('Could not find the function')
-              
-              alert(`DIAGNÓSTICO DETALHADO:
-User Email: ${data.session?.user.email}
-User ID: ${data.session?.user.id}
-Admin State: ${isAdminDiagnostic}
-RPC is_admin Result: ${rpcData}
-RPC is_admin Error: ${rpcError?.message || 'Nenhum'}
-Last Error: ${lastError || 'Nenhum'}
-
-TABELA user_roles:
-Roles Encontradas: ${roles ? JSON.stringify(roles) : 'Nenhuma'}
-Erro ao ler roles: ${rolesError?.message || 'Nenhum'}
-
-FUNÇÕES NO BANCO:
-Função is_admin: ${fnMissing ? 'FALTANDO (REPARAR)' : 'OK'}
-Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK'}
-`)
-            }}
-          >
-            <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
-          </Button>
-        </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          {isAdminDiagnostic === false && (
-            <div className="mb-8 p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center gap-4 animate-pulse">
-              <div className="bg-red-500 text-white p-2 rounded-full">
-                <ShieldCheck />
-              </div>
-              <div>
-                <p className="font-black uppercase text-xs text-red-900">Acesso Restrito no Banco</p>
-                <p className="text-[10px] text-red-700 font-bold">
-                  {lastError ? `Erro técnico: ${lastError}` : "O banco de dados não te reconheceu como Admin. Algumas funções podem falhar."}
-                </p>
-              </div>
-              <Button size="sm" className="ml-auto bg-red-600 font-bold text-[10px]" onClick={() => window.location.href = '/admin-fix'}>REPARAR</Button>
-            </div>
-          )}
-
           <div className="max-w-6xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="settings" className="mt-0 focus-visible:ring-0">
                 <StoreSettingsManager />
-              </TabsContent>
-              <TabsContent value="security" className="mt-0 focus-visible:ring-0">
-                <RLSAuditor />
               </TabsContent>
               <TabsContent value="products" className="mt-0 focus-visible:ring-0">
                 <ProductManagement />
@@ -290,9 +231,6 @@ Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK
               </TabsContent>
                <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
                  <WebhookManager />
-               </TabsContent>
-               <TabsContent value="sql" className="mt-0 focus-visible:ring-0">
-                 <SQLEditor />
                </TabsContent>
             </Tabs>
           </div>
