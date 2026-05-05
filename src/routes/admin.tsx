@@ -13,8 +13,9 @@ import {
    Bug, 
    Menu,
    X,
-   Users
-} from 'lucide-react'
+    Users,
+    Database as DatabaseIcon
+ } from 'lucide-react'
 import { RLSAuditor } from '@/components/admin/RLSAuditor'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
@@ -29,7 +30,8 @@ import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
-import { WebhookManager } from '@/components/admin/WebhookManager'
+ import { WebhookManager } from '@/components/admin/WebhookManager'
+ import { SQLEditor } from '@/components/admin/SQLEditor'
 import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -122,9 +124,10 @@ function RouteComponent() {
        items: [
          { id: 'settings', label: 'Dados da Loja', icon: Settings },
          { id: 'whatsapp', label: 'WhatsApp API', icon: MessageSquare },
-         { id: 'webhooks', label: 'Webhooks / ERP', icon: Webhook },
-         { id: 'security', label: 'Segurança RLS', icon: ShieldCheck },
-       ]
+          { id: 'webhooks', label: 'Webhooks / ERP', icon: Webhook },
+          { id: 'sql', label: 'Editor SQL', icon: DatabaseIcon },
+          { id: 'security', label: 'Segurança RLS', icon: ShieldCheck },
+        ]
      }
    ];
 
@@ -243,9 +246,12 @@ function RouteComponent() {
               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
                 <WhatsAppManager />
               </TabsContent>
-              <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
-                <WebhookManager />
-              </TabsContent>
+               <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
+                 <WebhookManager />
+               </TabsContent>
+               <TabsContent value="sql" className="mt-0 focus-visible:ring-0">
+                 <SQLEditor />
+               </TabsContent>
             </Tabs>
           </div>
         </main>
