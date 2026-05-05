@@ -84,22 +84,12 @@
    })
    const [topProducts, setTopProducts] = useState<any[]>([])
    const [peakHours, setPeakHours] = useState<any[]>([])
-   const [demographics, setDemographics] = useState<any[]>([])
-     const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
-     const [loading, setLoading] = useState(true)
-      const [timeRange, setTimeRange] = useState('month')
-       // 5. Get low stock products
-       const { data: lowStock } = await supabase
-         .from('products')
-         .select('name, stock')
-         .lt('stock', 5)
-         .order('stock', { ascending: true })
-         .limit(3)
-       
-       setLowStockProducts(lowStock || [])
- 
- 
-   useEffect(() => {
+    const [demographics, setDemographics] = useState<any[]>([])
+    const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [timeRange, setTimeRange] = useState('month')
+
+    useEffect(() => {
      fetchDashboardData()
    }, [timeRange])
  
