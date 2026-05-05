@@ -521,28 +521,23 @@ export function RecipeManager() {
           <h2 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Portal de Gastronomia</h2>
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Controle total das receitas e IA</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-       {isAdmin === true && (
-         <div className="flex gap-2 flex-wrap">
-           <Button variant="outline" onClick={handleDeleteAllRecipes} disabled={isLoading} className="border-2 border-red-200 text-red-600 font-black uppercase text-[10px] h-10 px-6 hover:bg-red-50 shadow-sm transition-all active:scale-95">
-             <Trash2 className="mr-2 h-4 w-4" /> Deletar Tudo
-           </Button>
-           <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
-             <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
-           </Button>
-           <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
-             <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
-           </Button>
-           <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
-             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-           </Button>
-         </div>
-       )}
-           {isAdmin && (
-             <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
-               <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-             </Button>
-           )}
+        <div className="flex gap-2 flex-wrap items-center">
+          {isAdmin === true && (
+            <>
+              <Button variant="outline" onClick={handleDeleteAllRecipes} disabled={isLoading} className="border-2 border-red-200 text-red-600 font-black uppercase text-[10px] h-10 px-6 hover:bg-red-50 shadow-sm transition-all active:scale-95">
+                <Trash2 className="mr-2 h-4 w-4" /> Deletar Tudo
+              </Button>
+              <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
+                <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
+              </Button>
+              <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
+                <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
+              </Button>
+              <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
+                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
