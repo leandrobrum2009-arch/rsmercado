@@ -33,7 +33,8 @@
    }
  
    return (
-     <section className="py-12 bg-white overflow-hidden">
+     <>
+       <section className="py-12 bg-white overflow-hidden">
        <div className="container mx-auto px-4">
          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
            <div>
@@ -90,9 +91,9 @@
            ))}
          </div>
        </div>
-      </section>
-
-      <Dialog open={!!selectedReel} onOpenChange={(open) => !open && setSelectedReel(null)}>
+       </section>
+ 
+       <Dialog open={!!selectedReel} onOpenChange={(open) => !open && setSelectedReel(null)}>
         <DialogContent className="max-w-[400px] p-0 overflow-hidden bg-black border-zinc-800 rounded-[32px]">
           <DialogHeader className="sr-only">
             <DialogTitle>Instagram Reel</DialogTitle>
@@ -124,6 +125,7 @@
             </div>
           )}
         </DialogContent>
-      </Dialog>
-    )
+       </Dialog>
+     </>
+   )
   }
