@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon } from 'lucide-react'
-import { toast } from '@/lib/toast'
-
+ import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare } from 'lucide-react'
+ import { sendWhatsAppMessage } from '@/lib/whatsapp'
+ import { toast } from '@/lib/toast'
 type FlyerProduct = {
   id: string
   name: string
@@ -69,9 +69,32 @@ export function FlyerCreator() {
     setSelectedProducts(selectedProducts.filter(p => p.id !== id))
   }
 
-  const handlePrint = () => {
-    window.print()
-  }
+   const handlePrint = () => {
+     window.print()
+   }
+ 
+   const handleWhatsAppShare = async () => {
+     if (selectedProducts.length === 0) {
+       toast.error('Adicione produtos ao encarte primeiro')
+       return
+     }
+ 
+     let message = `🔥 *OFERTAS DO DIA - ${storeSettings.site_name || 'RS SUPERMERCADO'}* 🔥\n\n`
+     
+     selectedProducts.forEach((p: any) => {
+       message += `📍 *${p.name}*\n`
+       message += `💰 Por apenas: *R$ ${p.price.toFixed(2)}*\n`
+       message += `➖➖\n`
+     })
+ 
+     message += `\n🛒 *Peça agora pelo site:* ${window.location.origin}\n`
+     message += `📦 *Entregamos na sua casa!*`
+ 
+     const url = `https://wa.me/?text=${encodeURIComponent(message)}`
+     window.open(url, '_blank')
+     
+     toast.success('WhatsApp aberto para compartilhamento!')
+   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -185,16 +208,19 @@ export function FlyerCreator() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-4">
+             <div className="grid grid-cols-2 gap-2 pt-4">
               <Button variant="outline" onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" /> Imprimir
               </Button>
               <Button variant="outline">
                 <Download className="w-4 h-4 mr-2" /> Baixar PDF
               </Button>
-              <Button variant="outline" className="col-span-2">
-                <Instagram className="w-4 h-4 mr-2" /> Gerar Stories
-              </Button>
+               <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
+                 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
+               </Button>
+               <Button variant="outline">
+                 <Instagram className="w-4 h-4 mr-2" /> Stories
+               </Button>
             </div>
           </CardContent>
         </Card>
