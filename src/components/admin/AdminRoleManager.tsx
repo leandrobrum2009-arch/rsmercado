@@ -1,3 +1,4 @@
+   const [isColumnMissing, setIsColumnMissing] = useState(false)
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -47,8 +48,22 @@
          .select('*, profiles(full_name, email)')
          .eq('role', 'admin')
        
-       if (error) throw error
+       if (error) {
+         if (error.message.includes('column "permissions" does not exist')) {
+           setIsColumnMissing(true)
+         }
+         throw error
+       }
        setAdmins(data || [])
+             {isColumnMissing && (
+               <div className="bg-red-50 border border-red-200 p-4 rounded-xl mb-6">
+                 <p className="text-red-800 text-xs font-black uppercase">Erro: Estrutura de Banco de Dados Ausente</p>
+                 <p className="text-red-600 text-[10px] font-bold mt-1">
+                   A coluna 'permissions' não foi encontrada na tabela 'user_roles'. 
+                   Por favor, execute o script SQL de migração no painel do Supabase.
+                 </p>
+               </div>
+             )}
      } catch (err: any) {
        console.error('Error fetching admins:', err)
        toast.error('Erro ao carregar administradores')
