@@ -100,16 +100,24 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       // Use multiple sources for images as requested
-      const imageSources = [
-        `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
-        `https://source.unsplash.com/featured/800x400?food,${encodeURIComponent(mainProduct.toLowerCase())}`,
-        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop` // Fallback
-      ];
-      const image_url = imageSources[Math.floor(Math.random() * imageSources.length)];
+       // Use multiple sources for images as requested
+       const sources = [
+         `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+         `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`,
+         `https://picsum.photos/800/400?random=${Date.now()}`
+       ];
+       
+       let image_url = '';
+       for (const src of sources) {
+         const exists = await checkImageExists(src);
+         if (exists) {
+           image_url = src;
+           break;
+         }
+       }
 
-      // Image validation: don't register if image_url is missing or invalid
-      if (!image_url || image_url.trim() === '') {
-        toast.error('Não foi possível encontrar uma imagem para esta receita. Tente novamente.');
+       if (!image_url) {
+         toast.error('Nenhuma imagem válida encontrada. A receita não será cadastrada sem foto.');
         setIsAiGenerating(false);
         return;
       }
@@ -152,11 +160,22 @@ export function RecipeManager() {
     }
   }
 
-  const handleSeed40Recipes = async () => {
-    setIsLoading(true)
-    toast.info('Iniciando cadastro em massa de 40 receitas...')
-    
-    const detailedTemplates = [
+   const checkImageExists = (url: string): Promise<boolean> => {
+     return new Promise((resolve) => {
+       const img = new Image();
+       img.onload = () => resolve(true);
+       img.onerror = () => resolve(false);
+       img.src = url;
+       // Timeout after 3 seconds
+       setTimeout(() => resolve(false), 3000);
+     });
+   };
+
+   const handleSeed40Recipes = async () => {
+     setIsLoading(true);
+     toast.info('Iniciando cadastro em massa de 40 receitas...');
+     
+     const detailedTemplates = [
       { 
         title: 'Feijoada Completa Tradicional', 
         description: 'A clássica feijoada brasileira, rica em sabores e tradição. Um prato completo que reúne o melhor das carnes defumadas com feijão preto selecionado.', 
@@ -323,44 +342,86 @@ export function RecipeManager() {
           {name: 'Manteiga', quantity: '2 colheres'}
         ]
       },
-      {
-        title: 'Tacos de Peixe Estilo Baja',
-        description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte. Uma explosão de sabores cítricos e texturas.',
-        instructions: '1. Peixe: Empane as tiras de peixe branco em uma massa leve de cerveja ou farinha e frite até dourar.\n2. Repolho: Misture repolho fatiado com limão, coentro e sal.\n3. Molho: Prepare um creme de iogurte com limão e pimenta.\n4. Tortilhas: Aqueça as tortilhas de milho levemente.\n5. Montagem: Coloque o peixe, o repolho e finalize com o molho e fatias de abacate.',
-        category: 'Mexicana',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=800&h=400&fit=crop',
-        ingredients: [
-          {name: 'Filé de Peixe Branco', quantity: '500g'},
-          {name: 'Tortilhas de Milho', quantity: '10 unidades'},
-          {name: 'Repolho Roxo', quantity: '200g'},
-          {name: 'Iogurte Natural', quantity: '1 pote'},
-          {name: 'Abacate', quantity: '1 unidade'},
-          {name: 'Limão', quantity: '2 unidades'}
-        ]
-      }
-    ];
+       {
+         title: 'Tacos de Peixe Estilo Baja',
+         description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte.',
+         instructions: '1. Peixe: Empane e frite.\n2. Repolho: Misture com limão.\n3. Molho: Iogurte e limão.\n4. Tortilhas: Aqueça.\n5. Montagem: Tudo na tortilha.',
+         category: 'Mexicana',
+         difficulty: 'Média',
+         keywords: 'fish,taco,mexican',
+         ingredients: [{name: 'Peixe', quantity: '500g'}]
+       },
+       {
+         title: 'Salmão Grelhado com Ervas',
+         description: 'Filé de salmão suculento com crosta de ervas finas e limão siciliano.',
+         instructions: '1. Tempere o salmão.\n2. Grelhe por 4 minutos cada lado.\n3. Adicione ervas e limão.\n4. Sirva com aspargos.',
+         category: 'Saudável',
+         difficulty: 'Fácil',
+         keywords: 'salmon,fish,grilled',
+         ingredients: [{name: 'Salmão', quantity: '200g'}]
+       },
+       {
+         title: 'Nhoque de Batata Caseiro',
+         description: 'Massa leve feita em casa com batatas selecionadas e molho de tomate fresco.',
+         instructions: '1. Cozinhe as batatas.\n2. Amasse e misture com farinha e ovo.\n3. Modele os nhoques.\n4. Cozinhe em água fervente.\n5. Sirva com molho.',
+         category: 'Italiana',
+         difficulty: 'Média',
+         keywords: 'gnocchi,pasta,italian',
+         ingredients: [{name: 'Batata', quantity: '1kg'}]
+       },
+       {
+         title: 'Hambúrguer Artesanal',
+         description: 'Blend especial de carnes com queijo derretido e pão brioche tostado.',
+         instructions: '1. Molde os hambúrgueres.\n2. Grelhe no ponto desejado.\n3. Derreta o queijo.\n4. Monte no pão com molho especial.',
+         category: 'Lanche',
+         difficulty: 'Fácil',
+         keywords: 'burger,meat,fastfood',
+         ingredients: [{name: 'Carne Moída', quantity: '200g'}]
+       }
+     ];
+ 
+     try {
+       const { data: existingRecipes } = await supabase.from('recipes').select('title');
+       const existingSet = new Set((existingRecipes || []).map(r => normalize(r.title)));
+ 
+       const finalRecipes = [];
+       let addedCount = 0;
+ 
+       const imageSources = [
+         (k: string) => `https://loremflickr.com/800/400/food,recipe,${k}`,
+         (k: string) => `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop&q=${k}`,
+         (k: string) => `https://picsum.photos/seed/${k}/800/400`
+       ];
 
-    try {
-      // Buscar títulos existentes para evitar duplicatas
-      const { data: existingRecipes } = await supabase.from('recipes').select('title');
-      const existingSet = new Set((existingRecipes || []).map(r => normalize(r.title)));
+       for(let i = 0; i < 40; i++) {
+         const template = detailedTemplates[i % detailedTemplates.length];
+         const nTitle = normalize(template.title);
+         
+         if (!existingSet.has(nTitle)) {
+           // Try different sources until one works
+           let validImageUrl = '';
+           const keywords = template.keywords || normalize(template.title);
+           
+           for (const source of imageSources) {
+             const testUrl = source(keywords + i);
+             const exists = await checkImageExists(testUrl);
+             if (exists) {
+               validImageUrl = testUrl;
+               break;
+             }
+           }
 
-      const finalRecipes = [];
-      let addedCount = 0;
-
-      for(let i = 0; i < 40; i++) {
-        const template = detailedTemplates[i % detailedTemplates.length];
-        const baseTitle = template.title;
-        
-        // Só adiciona se o título (sem o sufixo anterior) não existir
-        const nTitle = normalize(baseTitle);
-        if (!existingSet.has(nTitle)) {
-          finalRecipes.push({ ...template, title: baseTitle });
-          existingSet.add(nTitle);
-          addedCount++;
-        }
-      }
+           if (validImageUrl) {
+             finalRecipes.push({ 
+               ...template, 
+               image_url: validImageUrl,
+               keywords: undefined // Remove helper property
+             });
+             existingSet.add(nTitle);
+             addedCount++;
+           }
+         }
+       }
 
       if (finalRecipes.length > 0) {
         const { error } = await supabase.from('recipes').insert(finalRecipes)
@@ -441,31 +502,42 @@ export function RecipeManager() {
 
   return (
     <div className="space-y-6">
-       {isAdmin === false && (
-         <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-6 flex items-center gap-3">
-           <AlertCircle className="text-red-600" />
-           <div>
-             <p className="text-xs font-black text-red-700 uppercase">Acesso Restrito pelo Banco de Dados</p>
-             <p className="text-[10px] text-red-600 font-bold uppercase">Suas permissões RLS não permitem salvar. Use a página /admin-fix primeiro.</p>
-           </div>
-         </div>
-       )}
+        {isAdmin === null ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="animate-spin h-8 w-8 text-zinc-300" />
+          </div>
+        ) : isAdmin === false ? (
+          <div className="bg-red-50 border-2 border-red-200 p-4 rounded-2xl mb-6 flex items-center gap-3">
+            <AlertCircle className="text-red-600" />
+            <div>
+              <p className="text-xs font-black text-red-700 uppercase">Acesso Restrito pelo Banco de Dados</p>
+              <p className="text-[10px] text-red-600 font-bold uppercase">Suas permissões RLS não permitem salvar. Use a página /admin-fix primeiro.</p>
+            </div>
+          </div>
+        ) : null}
 
       <div className="flex justify-between items-center gap-4 flex-wrap bg-white p-4 rounded-2xl shadow-sm border">
         <div>
           <h2 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Portal de Gastronomia</h2>
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Controle total das receitas e IA</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
-            <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
-          </Button>
-          <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
-            <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
-          </Button>
-          <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
-            <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-          </Button>
+        <div className="flex gap-2 flex-wrap items-center">
+          {isAdmin === true && (
+            <>
+              <Button variant="outline" onClick={handleDeleteAllRecipes} disabled={isLoading} className="border-2 border-red-200 text-red-600 font-black uppercase text-[10px] h-10 px-6 hover:bg-red-50 shadow-sm transition-all active:scale-95">
+                <Trash2 className="mr-2 h-4 w-4" /> Deletar Tudo
+              </Button>
+              <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
+                <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
+              </Button>
+              <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
+                <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
+              </Button>
+              <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
+                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
