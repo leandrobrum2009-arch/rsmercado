@@ -163,10 +163,14 @@ BEGIN
      END IF;
  
      -- WhatsApp
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
-         CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
-     END IF;
-END $$;`
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
+          CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
+      END IF;
+ END $$;
+ 
+ -- 9. REPARAR CATEGORIAS
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
