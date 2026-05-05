@@ -233,9 +233,17 @@ CREATE POLICY "Users insert own order items" ON public.order_items FOR INSERT TO
 CREATE POLICY "Users manage own recipes" ON public.user_recipes FOR ALL TO authenticated USING (user_id = auth.uid());
 
 -- 7. Buckets de Storage
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('products', 'products', true), ('banners', 'banners', true), ('categories', 'categories', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
+-- 7. Buckets de Storage (Criação Resiliente)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
+VALUES 
+  ('products', 'products', true, 5242880, '{"image/*"}'), 
+  ('banners', 'banners', true, 5242880, '{"image/*"}'), 
+  ('categories', 'categories', true, 5242880, '{"image/*"}'),
+  ('avatars', 'avatars', true, 2097152, '{"image/*"}')
+ON CONFLICT (id) DO UPDATE SET 
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 DO $$ 
 DECLARE pol record;
@@ -246,9 +254,9 @@ BEGIN
     END LOOP;
 END $$;
 
-CREATE POLICY "Public storage access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'banners', 'categories'));
-CREATE POLICY "Auth storage upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners', 'categories'));
-CREATE POLICY "Admin storage control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners', 'categories'));
+CREATE POLICY "Public storage access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
+CREATE POLICY "Auth storage upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
+CREATE POLICY "Admin storage control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
 
 -- Notificar reload
 NOTIFY pgrst, 'reload schema';

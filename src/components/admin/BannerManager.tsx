@@ -25,15 +25,27 @@ export function BannerManager() {
        const fileName = `banner-${Math.random().toString(36).substring(2)}.${fileExt}`
        const filePath = `${fileName}`
  
-       const { data, error } = await supabase.storage
-         .from('products') // Using existing bucket for simplicity, or we could use 'banners' if it exists
-         .upload(filePath, file)
- 
-       if (error) throw error
- 
-       const { data: { publicUrl } } = supabase.storage
-         .from('products')
-         .getPublicUrl(filePath)
+        // Try banners bucket, fallback to products
+        let bucketName = 'banners';
+        let uploadError = null;
+        
+        const { data: uploadData, error: firstError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file);
+        
+        if (firstError) {
+          bucketName = 'products';
+          const { data: retryData, error: retryError } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, file);
+          uploadError = retryError;
+        }
+  
+        if (uploadError) throw uploadError;
+  
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath)
  
        setNewBanner({ ...newBanner, image_url: publicUrl })
        toast.success('Banner carregado com sucesso!')
