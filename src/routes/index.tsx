@@ -6,7 +6,31 @@
  import { StoriesCarousel } from "@/components/home/StoriesCarousel";
  import { RecipeFeed } from "@/components/home/RecipeFeed";
  import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
- import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2 } from "lucide-react";
+   import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell } from "lucide-react";
+ import { Badge } from "@/components/ui/badge";
+ 
+ function DailyFlyer() {
+   return (
+     <div className="bg-green-600 text-white p-5 rounded-3xl mb-8 flex items-center justify-between shadow-xl shadow-green-100 relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]">
+       <div className="absolute -right-10 -top-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:scale-150 transition-transform" />
+       <div className="flex items-center gap-4 relative z-10">
+         <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-inner">
+           <Bell className="animate-bounce" size={24} />
+         </div>
+         <div>
+           <div className="flex items-center gap-2 mb-1">
+             <Badge className="bg-amber-400 text-amber-900 border-0 text-[8px] font-black uppercase px-2 py-0.5 shadow-sm">Oferta do Dia</Badge>
+             <h3 className="font-black uppercase italic tracking-tighter text-xl leading-none">Super Encarte</h3>
+           </div>
+           <p className="text-[10px] font-bold uppercase text-green-100 opacity-90">Hortifruti e Açougue válidos até 20h!</p>
+         </div>
+       </div>
+       <button className="bg-white text-green-600 px-5 py-2.5 rounded-xl font-black uppercase text-[10px] shadow-lg relative z-10 hover:bg-zinc-100 transition-colors">
+         Ver Agora
+       </button>
+     </div>
+   )
+ }
 import { Link } from "@tanstack/react-router";
  import { useEffect, useState } from "react";
  import { supabase } from "@/lib/supabase";
