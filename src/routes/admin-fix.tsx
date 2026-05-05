@@ -1,3 +1,26 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key } from 'lucide-react'
+
+export const Route = createFileRoute('/admin-fix')({
+  component: AdminFix,
+})
+
+function AdminFix() {
+    const [key, setKey] = useState('') 
+   const [email, setEmail] = useState('')
+   const [loading, setLoading] = useState(false)
+   const [status, setStatus] = useState('')
+   const [confirming, setConfirming] = useState(false)
+   const [seeding, setSeeding] = useState(false)
+   const [testing, setTesting] = useState(false)
+   const [currentUser, setCurrentUser] = useState<any>(null)
+   const [userRole, setUserRole] = useState<string | null>(null)
+ 
     const handleRepairDB = async () => {
       setStatus('Preparando instruções de reparo...')
       const sql = `
@@ -34,33 +57,10 @@ ON CONFLICT (id) DO UPDATE SET public = true;
 `;
       
       console.log('REPAIR SQL:', sql);
-      alert('INSTRUÇÕES DE REPARO:\n\n1. O código SQL foi impresso no Console (F12).\n2. Copie o SQL.\n3. Vá ao painel do Supabase > SQL Editor.\n4. Cole e clique em RUN.');
+      alert('INSTRUÇÕES DE REPARO:\\n\\n1. O código SQL foi impresso no Console (F12).\\n2. Copie o SQL.\\n3. Vá ao painel do Supabase > SQL Editor.\\n4. Cole e clique em RUN.');
       setStatus('SQL impresso no Console (F12). Copie e cole no Supabase.');
     }
 
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key } from 'lucide-react'
-
-export const Route = createFileRoute('/admin-fix')({
-  component: AdminFix,
-})
-
-function AdminFix() {
-    const [key, setKey] = useState('') 
-   const [email, setEmail] = useState('')
-   const [loading, setLoading] = useState(false)
-   const [status, setStatus] = useState('')
-   const [confirming, setConfirming] = useState(false)
-   const [seeding, setSeeding] = useState(false)
-   const [testing, setTesting] = useState(false)
-   const [currentUser, setCurrentUser] = useState<any>(null)
-   const [userRole, setUserRole] = useState<string | null>(null)
- 
    useEffect(() => {
      const fetchUser = async () => {
        const { data: { session } } = await supabase.auth.getSession()
