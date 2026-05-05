@@ -553,23 +553,39 @@ NOTIFY pgrst, 'reload schema';
                  GERAR SQL DE REPARO
                </Button>
  
-               {showSql && (
-                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
-                   <div className="relative">
+                {showSql && (
+                  <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                    <p className="text-[10px] font-black text-center text-zinc-500 uppercase tracking-widest animate-pulse">
+                      ↓ Código gerado com sucesso! Clique no botão verde abaixo ↓
+                    </p>
+                    <div className="relative">
                      <textarea 
                        readOnly 
                        value={generatedSql}
                        className="w-full h-48 p-3 bg-zinc-900 text-green-400 font-mono text-[10px] rounded-lg border-2 border-zinc-700"
                      />
-                     <Button 
-                       size="sm" 
-                       className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600"
-                       onClick={copyToClipboard}
-                     >
-                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                     </Button>
-                   </div>
-                   <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg">
+                      <Button 
+                        size="sm" 
+                        className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border-2 border-zinc-600 px-3 font-black text-[10px]"
+                        onClick={copyToClipboard}
+                      >
+                        {copied ? (
+                          <><Check className="h-3 w-3 mr-1" /> COPIADO</>
+                        ) : (
+                          <><Copy className="h-3 w-3 mr-1" /> COPIAR CÓDIGO</>
+                        )}
+                      </Button>
+                    </div>
+ 
+                    <Button 
+                      onClick={copyToClipboard}
+                      className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase tracking-widest shadow-xl animate-bounce"
+                    >
+                      {copied ? <Check className="mr-2" /> : <Copy className="mr-2" />}
+                      {copied ? 'CÓDIGO COPIADO!' : 'CLIQUE AQUI PARA COPIAR O CÓDIGO'}
+                    </Button>
+ 
+                    <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg mt-4">
                      <div className="flex items-start gap-3">
                        <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">1</div>
                        <p>COPIE todo o código acima (clique no botão de copiar).</p>
