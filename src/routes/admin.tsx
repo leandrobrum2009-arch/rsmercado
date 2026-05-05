@@ -16,10 +16,12 @@ import {
    Menu,
    X,
      Users,
-      Bell,
-      AlertCircle,
-      Truck
-    } from 'lucide-react'
+       Bell,
+       AlertCircle,
+       Truck,
+        Percent
+     } from 'lucide-react'
+ import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -146,10 +148,11 @@ function RouteComponent() {
      },
        {
          title: 'Marketing e Conteúdo',
-         items: [
-           { id: 'banners', label: 'Banners', icon: ImageIcon },
-              { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-              { id: 'recipes', label: 'Receitas', icon: ChefHat },
+          items: [
+            { id: 'offers', label: 'Gestão de Ofertas', icon: Percent },
+            { id: 'banners', label: 'Banners', icon: ImageIcon },
+               { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+               { id: 'recipes', label: 'Receitas', icon: ChefHat },
               { id: 'notifications', label: 'Notificações', icon: Bell },
               { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
            ]
@@ -267,9 +270,12 @@ function RouteComponent() {
                  <TabsContent value="delivery_report" className="mt-0 focus-visible:ring-0">
                    <DeliveryReport />
                  </TabsContent>
-                 <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
-                   <HomeLayoutManager />
-                 </TabsContent>
+                  <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
+                    <HomeLayoutManager />
+                  </TabsContent>
+                  <TabsContent value="offers" className="mt-0 focus-visible:ring-0">
+                    <OfferManager />
+                  </TabsContent>
             </Tabs>
           </div>
         </main>
