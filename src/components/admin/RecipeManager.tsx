@@ -558,6 +558,28 @@ export function RecipeManager() {
               <Textarea value={manualRecipe.instructions} onChange={(e) => setManualRecipe({...manualRecipe, instructions: e.target.value})} className="rounded-xl border-2 min-h-[100px]" />
             </div>
             <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Ingredientes (Nome, Quantidade)</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+                {manualRecipe.ingredients.map((ing: any, idx: number) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input placeholder="Nome" value={ing.name} onChange={(e) => {
+                      const newIngs = [...manualRecipe.ingredients]
+                      newIngs[idx].name = e.target.value
+                      setManualRecipe({...manualRecipe, ingredients: newIngs})
+                    }} className="h-8 text-xs rounded-lg" />
+                    <Input placeholder="Qtd" value={ing.quantity} onChange={(e) => {
+                      const newIngs = [...manualRecipe.ingredients]
+                      newIngs[idx].quantity = e.target.value
+                      setManualRecipe({...manualRecipe, ingredients: newIngs})
+                    }} className="h-8 text-xs rounded-lg w-20" />
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualRecipe({...manualRecipe, ingredients: [...manualRecipe.ingredients, {name: '', quantity: ''}]})} className="h-6 text-[9px] uppercase font-bold">
+                + Adicionar Ingrediente
+              </Button>
+            </div>
+            <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase">URL da Imagem</Label>
               <Input value={manualRecipe.image_url} placeholder="https://exemplo.com/foto.jpg" onChange={(e) => setManualRecipe({...manualRecipe, image_url: e.target.value})} className="rounded-xl border-2" />
             </div>
