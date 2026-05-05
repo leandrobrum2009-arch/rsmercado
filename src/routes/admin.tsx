@@ -105,6 +105,18 @@ export const Route = createFileRoute('/admin')({
    const [sidebarOpen, setSidebarOpen] = useState(false)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
    const [lastError, setLastError] = useState<string | null>(null)
+             {lastError && (
+               <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 rounded-2xl flex items-center gap-3 text-red-700">
+                 <AlertCircle className="flex-shrink-0" />
+                 <div className="flex-1">
+                   <p className="text-xs font-black uppercase">Erro de Diagnóstico Admin</p>
+                   <p className="text-sm font-medium">{lastError}</p>
+                 </div>
+                 <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin-fix'} className="border-red-200 text-red-700 hover:bg-red-100">
+                   Reparar Banco
+                 </Button>
+               </div>
+             )}
  
    useEffect(() => {
      const fetchPermissionsAndAdmin = async () => {
