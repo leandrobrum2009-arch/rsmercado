@@ -132,7 +132,20 @@ BEGIN
 END $$;
 
 CREATE TABLE IF NOT EXISTS public.user_roles (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, role));
-CREATE TABLE IF NOT EXISTS public.profiles (id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, full_name TEXT, avatar_url TEXT, whatsapp TEXT, updated_at TIMESTAMPTZ DEFAULT NOW(), is_admin BOOLEAN DEFAULT FALSE);
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, 
+    full_name TEXT, 
+    avatar_url TEXT, 
+    whatsapp TEXT, 
+    updated_at TIMESTAMPTZ DEFAULT NOW(), 
+    is_admin BOOLEAN DEFAULT FALSE,
+    loyalty_points INTEGER DEFAULT 0,
+    points_balance INTEGER DEFAULT 0,
+    loyalty_tier TEXT DEFAULT 'bronze',
+    birth_date DATE,
+    gender TEXT,
+    household_status TEXT
+);
 CREATE TABLE IF NOT EXISTS public.orders (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id), total_amount DECIMAL(10,2) NOT NULL, payment_method TEXT, status TEXT DEFAULT 'pending', points_earned INTEGER DEFAULT 0, customer_name TEXT, customer_phone TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS public.order_items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE, product_id UUID REFERENCES public.products(id), quantity INTEGER NOT NULL, unit_price DECIMAL(10,2) NOT NULL);
 CREATE TABLE IF NOT EXISTS public.user_recipes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, recipe_id UUID REFERENCES public.recipes(id) ON DELETE CASCADE, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, recipe_id));
@@ -150,6 +163,14 @@ BEGIN
         ALTER TABLE public.products ADD COLUMN brand TEXT;
     END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+    
+    -- Garantir colunas de pontos e perfil em perfis
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'loyalty_points') THEN ALTER TABLE public.profiles ADD COLUMN loyalty_points INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'points_balance') THEN ALTER TABLE public.profiles ADD COLUMN points_balance INTEGER DEFAULT 0; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'loyalty_tier') THEN ALTER TABLE public.profiles ADD COLUMN loyalty_tier TEXT DEFAULT 'bronze'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'birth_date') THEN ALTER TABLE public.profiles ADD COLUMN birth_date DATE; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'gender') THEN ALTER TABLE public.profiles ADD COLUMN gender TEXT; END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'household_status') THEN ALTER TABLE public.profiles ADD COLUMN household_status TEXT; END IF;
     
     -- Garante que perfis existem para usuários atuais
     INSERT INTO public.profiles (id, full_name)
@@ -223,6 +244,26 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
    SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin')
    OR COALESCE(auth.jwt() ->> 'email', '') = 'leandrobrum2009@gmail.com';
 $$;
+
+-- Proteção de Campos Sensíveis (Segurança)
+CREATE OR REPLACE FUNCTION public.protect_profile_sensitive_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT public.is_admin() THEN
+        NEW.is_admin := OLD.is_admin;
+        NEW.loyalty_points := OLD.loyalty_points;
+        NEW.points_balance := OLD.points_balance;
+        NEW.loyalty_tier := OLD.loyalty_tier;
+        NEW.id := OLD.id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trigger_protect_profile_sensitive_fields ON public.profiles;
+CREATE TRIGGER trigger_protect_profile_sensitive_fields
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.protect_profile_sensitive_fields();
 
  -- 5. Habilitar RLS
  ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
