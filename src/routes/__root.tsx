@@ -1,17 +1,5 @@
    import { StoreAlertBanner } from "../components/StoreAlertBanner";
-   useEffect(() => {
-     const trackVisit = async () => {
-       const { data: { user } } = await supabase.auth.getUser();
-       await supabase.from('site_visits').insert({
-         user_id: user?.id || null,
-         path: window.location.pathname,
-         user_agent: navigator.userAgent
-       });
-     };
-     trackVisit();
-   }, [location.pathname]);
    import { registerServiceWorker } from "../lib/webpush";
-     registerServiceWorker();
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
    import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell } from "lucide-react";
    import { NotificationCenter } from "../components/NotificationCenter";
@@ -95,8 +83,27 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
+   useEffect(() => {
+     if (typeof window !== 'undefined') {
+       registerServiceWorker();
+     }
+ 
+     const trackVisit = async () => {
+       try {
+         const { data: { user } } = await supabase.auth.getUser();
+         await supabase.from('site_visits').insert({
+           user_id: user?.id || null,
+           path: location.pathname,
+           user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR'
+         });
+       } catch (e) {
+         console.error('Tracking error:', e);
+       }
+     };
+ 
+     trackVisit();
+ 
+     const fetchSettings = async () => {
       try {
         const { data, error } = await supabase.from('store_settings').select('*');
         if (error) throw error;
