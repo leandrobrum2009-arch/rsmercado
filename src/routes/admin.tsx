@@ -15,9 +15,10 @@ import {
   ShieldCheck, 
    Menu,
    X,
-    Users,
-    Bell
-  } from 'lucide-react'
+     Users,
+     Bell,
+     AlertCircle
+   } from 'lucide-react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -137,15 +138,12 @@ function RouteComponent() {
          title: 'Marketing e Conteúdo',
          items: [
            { id: 'banners', label: 'Banners', icon: ImageIcon },
-            { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-            { id: 'recipes', label: 'Receitas', icon: ChefHat },
-            { id: 'notifications', label: 'Notificações', icon: Bell },
-            { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
-                <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
-                  <AlertManager />
-                </TabsContent>
-         ]
-       },
+              { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+              { id: 'recipes', label: 'Receitas', icon: ChefHat },
+              { id: 'notifications', label: 'Notificações', icon: Bell },
+              { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
+           ]
+         },
        {
        title: 'Configurações e Integrações',
        items: [
@@ -252,6 +250,9 @@ function RouteComponent() {
                 </TabsContent>
                 <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
                   <NotificationManager />
+                </TabsContent>
+                <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
+                  <AlertManager />
                 </TabsContent>
             </Tabs>
           </div>
