@@ -172,6 +172,7 @@ BEGIN
  -- 9. REPARAR CATEGORIAS E PRODUTOS
  ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
  ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS accept_marketing BOOLEAN DEFAULT TRUE;
  
  -- ATUALIZAR POLÍTICAS
  DROP POLICY IF EXISTS "Admins can do everything on categories" ON public.categories;
