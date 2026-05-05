@@ -45,8 +45,8 @@ export const Route = createFileRoute("/")({
 // create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
   function Index() {
     const [layout, setLayout] = useState<any[]>([
-       { id: 'search', visible: true },
-       { id: 'delivery_check', visible: true },
+        { id: 'search', visible: true },
+        { id: 'delivery_check', visible: true },
          case 'delivery_check':
            return (
              <div key="delivery_check" className="px-4 pt-2 -mt-6 relative z-20">
