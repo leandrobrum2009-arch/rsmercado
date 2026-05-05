@@ -142,21 +142,107 @@ export function RecipeManager() {
     toast.info('Iniciando cadastro em massa de 40 receitas...')
     
     const detailedTemplates = [
-      { title: 'Feijoada Completa Tradicional', description: 'A clássica feijoada brasileira.', instructions: '...', category: 'Brasileira', difficulty: 'Difícil', image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd', ingredients: [{name:'Feijão', quantity:'1kg'}] },
-      { title: 'Strogonoff de Frango Cremoso', description: 'Um prato rápido e delicioso.', instructions: '...', category: 'Almoço', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd', ingredients: [{name:'Frango', quantity:'500g'}] },
-      { title: 'Bolo de Cenoura com Chocolate', description: 'O lanche perfeito.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62', ingredients: [{name:'Cenoura', quantity:'3un'}] },
-      { title: 'Moqueca de Peixe Capixaba', description: 'Sabor do mar.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288', ingredients: [{name:'Peixe', quantity:'1kg'}] },
-      { title: 'Lasanha à Bolonhesa', description: 'Massa clássica.', instructions: '...', category: 'Italiana', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141', ingredients: [{name:'Carne Moída', quantity:'500g'}] },
-      { title: 'Salpicão de Frango', description: 'Frescor no prato.', instructions: '...', category: 'Salada', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c', ingredients: [{name:'Frango Desfiado', quantity:'300g'}] },
-      { title: 'Pão de Queijo Mineiro', description: 'Tradição pura.', instructions: '...', category: 'Lanche', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6', ingredients: [{name:'Polvilho', quantity:'500g'}] },
-      { title: 'Pudim de Leite Condensado', description: 'A sobremesa favorita.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c', ingredients: [{name:'Leite Condensado', quantity:'1 lata'}] },
-      { title: 'Escondidinho de Carne Seca', description: 'Sabor marcante.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41', ingredients: [{name:'Mandioca', quantity:'1kg'}] },
-      { title: 'Brigadeiro Gourmet', description: 'Festa em casa.', instructions: '...', category: 'Doces', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32', ingredients: [{name:'Chocolate', quantity:'1 barra'}] },
-      { title: 'Risoto de Cogumelos', description: 'Elegância e sabor.', instructions: '...', category: 'Italiana', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371', ingredients: [{name:'Arroz Arbóreo', quantity:'200g'}] },
-      { title: 'Tapioca com Queijo e Presunto', description: 'Rápido e leve.', instructions: '...', category: 'Lanche', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1541014741259-de529411b96a', ingredients: [{name:'Goma de Tapioca', quantity:'100g'}] },
-      { title: 'Torta de Limão', description: 'Azedinho doce.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13', ingredients: [{name:'Limão', quantity:'3un'}] },
-      { title: 'Frango com Quiabo', description: 'Clássico mineiro.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d', ingredients: [{name:'Quiabo', quantity:'300g'}] },
-      { title: 'Mousse de Maracujá', description: 'Leveza tropical.', instructions: '...', category: 'Sobremesa', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e', ingredients: [{name:'Maracujá', quantity:'2un'}] }
+      { 
+        title: 'Feijoada Completa Tradicional', 
+        description: 'A clássica feijoada brasileira, rica em sabores e tradição. Um prato completo que reúne o melhor das carnes defumadas com feijão preto selecionado.', 
+        instructions: '1. Deixe o feijão de molho por 12 horas.\n2. Cozinhe o feijão com as carnes salgadas (previamente dessalgadas).\n3. Adicione o paio e a linguiça calabresa após 40 minutos.\n4. Faça um refogado com alho, cebola e uma concha do caldo do feijão amassado.\n5. Junte o refogado à panela e deixe engrossar o caldo.', 
+        category: 'Brasileira', 
+        difficulty: 'Difícil', 
+        image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Feijão Preto', quantity:'1kg'},
+          {name:'Carne Seca', quantity:'500g'},
+          {name:'Lombo Salgado', quantity:'500g'},
+          {name:'Linguiça Calabresa', quantity:'2 unidades'},
+          {name:'Paio', quantity:'2 unidades'},
+          {name:'Bacon', quantity:'200g'},
+          {name:'Cebola', quantity:'2 unidades'},
+          {name:'Alho', quantity:'4 dentes'},
+          {name:'Louro', quantity:'3 folhas'}
+        ] 
+      },
+      { 
+        title: 'Strogonoff de Frango Cremoso', 
+        description: 'Um prato rápido, prático e que agrada a todos. O segredo está no equilíbrio entre o molho de tomate e o creme de leite.', 
+        instructions: '1. Corte o frango em cubos e tempere.\n2. Doure a cebola e o alho, depois acrescente o frango.\n3. Quando o frango estiver cozido, adicione o ketchup, a mostarda e os cogumelos.\n4. Desligue o fogo e misture o creme de leite suavemente.\n5. Sirva com arroz branco e batata palha.', 
+        category: 'Almoço', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Peito de Frango', quantity:'500g'},
+          {name:'Creme de Leite', quantity:'1 lata'},
+          {name:'Ketchup', quantity:'3 colheres'},
+          {name:'Mostarda', quantity:'1 colher'},
+          {name:'Cogumelos em conserva', quantity:'100g'},
+          {name:'Cebola', quantity:'1 unidade'},
+          {name:'Alho', quantity:'2 dentes'}
+        ] 
+      },
+      { 
+        title: 'Bolo de Cenoura com Chocolate', 
+        description: 'O lanche perfeito para a tarde. Massa fofinha de cenoura com uma cobertura de chocolate crocante que todo mundo ama.', 
+        instructions: '1. Bata no liquidificador as cenouras, os ovos e o óleo.\n2. Em uma tigela, misture o açúcar e a farinha, depois adicione a mistura do liquidificador.\n3. Por último, adicione o fermento.\n4. Asse por 40 minutos a 180°C.\n5. Para a calda: misture chocolate, açúcar e leite no fogo até engrossar.', 
+        category: 'Sobremesa', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Cenoura média', quantity:'3 unidades'},
+          {name:'Ovo', quantity:'4 unidades'},
+          {name:'Óleo', quantity:'1 xícara'},
+          {name:'Açúcar', quantity:'2 xícaras'},
+          {name:'Farinha de Trigo', quantity:'2 xícaras'},
+          {name:'Fermento em pó', quantity:'1 colher'},
+          {name:'Chocolate em pó', quantity:'1 xícara'}
+        ] 
+      },
+      { 
+        title: 'Moqueca de Peixe Capixaba', 
+        description: 'O verdadeiro sabor do mar em uma panela de barro. Peixe fresco cozido lentamente com tomate, coentro e urucum.', 
+        instructions: '1. Tempere o peixe com sal e limão.\n2. Em uma panela, faça camadas de cebola, tomate e peixe.\n3. Regue com azeite e adicione o urucum dissolvido.\n4. Cozinhe com a panela tampada por 20 minutos.\n5. Finalize com muito coentro e cebolinha.', 
+        category: 'Brasileira', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Postas de Peixe (Badejo ou Robalo)', quantity:'1kg'},
+          {name:'Tomate maduro', quantity:'4 unidades'},
+          {name:'Cebola branca', quantity:'2 unidades'},
+          {name:'Coentro fresco', quantity:'1 maço'},
+          {name:'Urucum ou Colorau', quantity:'2 colheres'},
+          {name:'Limão', quantity:'2 unidades'},
+          {name:'Azeite de Oliva', quantity:'100ml'}
+        ] 
+      },
+      { 
+        title: 'Lasanha à Bolonhesa', 
+        description: 'Massa clássica italiana montada em camadas com molho de carne rico em sabor e queijo derretido.', 
+        instructions: '1. Prepare o molho bolonhesa refogando a carne com temperos e extrato de tomate.\n2. Faça um molho branco (bechamel) com leite e farinha.\n3. Monte a lasanha: molho, massa, presunto, queijo, repetindo as camadas.\n4. Finalize com parmesão ralado por cima.\n5. Gratine no forno por 30 minutos.', 
+        category: 'Italiana', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Massa de Lasanha', quantity:'500g'},
+          {name:'Carne Moída', quantity:'500g'},
+          {name:'Queijo Mussarela', quantity:'400g'},
+          {name:'Presunto', quantity:'300g'},
+          {name:'Molho de Tomate', quantity:'2 sachês'},
+          {name:'Leite', quantity:'500ml'},
+          {name:'Farinha de Trigo', quantity:'2 colheres'}
+        ] 
+      },
+      { 
+        title: 'Pudim de Leite Condensado', 
+        description: 'A sobremesa mais amada das famílias brasileiras. Textura aveludada e calda de caramelo perfeita.', 
+        instructions: '1. Derreta o açúcar na forma para fazer a calda.\n2. Bata no liquidificador o leite condensado, o leite e os ovos.\n3. Despeje na forma caramelizada.\n4. Asse em banho-maria por cerca de 1 hora e 30 minutos.\n5. Deixe esfriar e leve à geladeira por 6 horas antes de desenformar.', 
+        category: 'Sobremesa', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=800&h=400&fit=crop', 
+        ingredients: [
+          {name:'Leite Condensado', quantity:'1 lata'},
+          {name:'Leite Integral', quantity:'1 lata (medida)'},
+          {name:'Ovo', quantity:'3 unidades'},
+          {name:'Açúcar (para a calda)', quantity:'1 xícara'}
+        ] 
+      }
     ];
 
     try {
