@@ -63,6 +63,9 @@ export const sendWhatsAppMessage = async (phone: string, message: string) => {
     // Sanitize URL: remove trailing slash if present
     const baseUrl = config.apiUrl.replace(/\/$/, '');
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const response = await fetch(`${baseUrl}/message/sendText/${config.instanceId}`, {
       method: 'POST',
       headers: {
@@ -72,8 +75,11 @@ export const sendWhatsAppMessage = async (phone: string, message: string) => {
       body: JSON.stringify({
         number: `55${phone.replace(/\D/g, '')}`,
         text: message
-      })
+      }),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     let result;
     try {
