@@ -176,8 +176,52 @@ BEGIN
  DROP POLICY IF EXISTS "Admins can do everything on categories" ON public.categories;
  CREATE POLICY "Admins can do everything on categories" ON public.categories FOR ALL USING (public.is_admin());
  
- DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
- CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());`
+  DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
+  CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());
+
+ -- 10. NOTIFICAÇÕES E ALERTAS
+ CREATE TABLE IF NOT EXISTS public.notifications (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     title TEXT NOT NULL,
+     content TEXT NOT NULL,
+     type TEXT DEFAULT 'info',
+     is_read BOOLEAN DEFAULT FALSE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ DO $$ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='notifications' AND policyname='Users view own notifications') THEN
+         CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+     END IF;
+ END $$;
+ 
+ CREATE TABLE IF NOT EXISTS public.store_alerts (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     message TEXT NOT NULL,
+     type TEXT DEFAULT 'info',
+     is_active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
+ DO $$ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_alerts' AND policyname='Public view alerts') THEN
+         CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
+     END IF;
+ END $$;
+ 
+ CREATE TABLE IF NOT EXISTS public.site_visits (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     visitor_id TEXT,
+     page_path TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+ DO $$ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Public insert visits') THEN
+         CREATE POLICY "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
+     END IF;
+ END $$;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
