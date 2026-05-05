@@ -20,9 +20,10 @@ import { SmartImage } from "./ui/SmartImage";
      multiplier?: number;
   }
  
-  export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
-   const { addToCart, items, updateQuantity } = useCart();
-   const cartItem = items.find(i => i.id === product.id);
+   export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
+    const { addToCart, items, updateQuantity } = useCart();
+    const cartItem = items.find(i => i.id === product.id);
+    const isOutOfStock = product.stock !== undefined && product.stock <= 0;
  
    const handleAdd = () => {
      addToCart(product);
@@ -39,6 +40,11 @@ import { SmartImage } from "./ui/SmartImage";
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+              <span className="bg-red-600 text-white font-black uppercase text-[10px] px-3 py-1 rounded-full animate-pulse shadow-lg">Sem Estoque</span>
+            </div>
+          )}
            <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
              {product.tags && product.tags.map((tag: string) => (
                <div key={tag} className="bg-zinc-900 text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-lg border border-white/20">
@@ -104,13 +110,14 @@ import { SmartImage } from "./ui/SmartImage";
                  </button>
                </div>
              ) : (
-                <button 
-                  onClick={handleAdd}
-                  className="w-full bg-zinc-900 text-white py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-md"
-                >
-                  <Plus size={14} className="text-green-400" />
-                  Adicionar
-                </button>
+                 <button 
+                   onClick={handleAdd}
+                   disabled={isOutOfStock}
+                   className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${isOutOfStock ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none' : 'bg-zinc-900 text-white hover:bg-black'}`}
+                 >
+                   <Plus size={14} className={isOutOfStock ? 'text-zinc-300' : 'text-green-400'} />
+                   {isOutOfStock ? 'Indisponível' : 'Adicionar'}
+                 </button>
              )}
            </div>
          </div>
