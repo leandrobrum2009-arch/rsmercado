@@ -82,15 +82,13 @@ CREATE TABLE IF NOT EXISTS public.recipes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS public.user_roles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    role TEXT NOT NULL DEFAULT 'user',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, role)
-);
+CREATE TABLE IF NOT EXISTS public.user_roles (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL, role TEXT NOT NULL DEFAULT 'user', created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, role));
+CREATE TABLE IF NOT EXISTS public.profiles (id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, full_name TEXT, avatar_url TEXT, whatsapp TEXT, updated_at TIMESTAMPTZ DEFAULT NOW(), is_admin BOOLEAN DEFAULT FALSE);
+CREATE TABLE IF NOT EXISTS public.orders (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id), total_amount DECIMAL(10,2) NOT NULL, payment_method TEXT, status TEXT DEFAULT 'pending', points_earned INTEGER DEFAULT 0, customer_name TEXT, customer_phone TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS public.order_items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE, product_id UUID REFERENCES public.products(id), quantity INTEGER NOT NULL, unit_price DECIMAL(10,2) NOT NULL);
+CREATE TABLE IF NOT EXISTS public.user_recipes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, recipe_id UUID REFERENCES public.recipes(id) ON DELETE CASCADE, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, recipe_id));
 
--- 2. Atualização de Colunas Faltantes
+-- 2. Atualização de Colunas e Tabelas
 DO $$ 
 BEGIN 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'banner_url') THEN
@@ -102,9 +100,12 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
         ALTER TABLE public.products ADD COLUMN brand TEXT;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN
-        ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0;
-    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+    
+    -- Garante que perfis existem para usuários atuais
+    INSERT INTO public.profiles (id, full_name)
+    SELECT id, email FROM auth.users
+    ON CONFLICT (id) DO NOTHING;
 END $$;
 
 -- 3. Funções de Auditoria e Promoção
@@ -161,7 +162,7 @@ DECLARE
     tab text;
     pol record;
 BEGIN
-    FOR tab IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('products', 'categories', 'banners', 'store_settings', 'recipes', 'user_roles')
+    FOR tab IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('products', 'categories', 'banners', 'store_settings', 'recipes', 'user_roles', 'profiles', 'orders', 'order_items', 'user_recipes')
     LOOP
         FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = tab AND schemaname = 'public'
         LOOP
@@ -176,7 +177,11 @@ CREATE POLICY "Public Read Categories" ON public.categories FOR SELECT USING (tr
 CREATE POLICY "Public Read Banners" ON public.banners FOR SELECT USING (true);
 CREATE POLICY "Public Read Settings" ON public.store_settings FOR SELECT USING (true);
 CREATE POLICY "Public Read Recipes" ON public.recipes FOR SELECT USING (true);
+CREATE POLICY "Public Read Profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Self Read Roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "Self Read Orders" ON public.orders FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "Self Read Order Items" ON public.order_items FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
+CREATE POLICY "Self Read User Recipes" ON public.user_recipes FOR SELECT TO authenticated USING (user_id = auth.uid());
 
 CREATE POLICY "Admin Manage Products" ON public.products FOR ALL TO authenticated USING (public.is_admin());
 CREATE POLICY "Admin Manage Categories" ON public.categories FOR ALL TO authenticated USING (public.is_admin());
@@ -184,6 +189,15 @@ CREATE POLICY "Admin Manage Banners" ON public.banners FOR ALL TO authenticated 
 CREATE POLICY "Admin Manage Settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
 CREATE POLICY "Admin Manage Recipes" ON public.recipes FOR ALL TO authenticated USING (public.is_admin());
 CREATE POLICY "Admin Manage Roles" ON public.user_roles FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Profiles" ON public.profiles FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Orders" ON public.orders FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Order Items" ON public.order_items FOR ALL TO authenticated USING (public.is_admin());
+
+-- Permissões de escrita para usuários comuns (Perfis e Pedidos)
+CREATE POLICY "Users update own profile" ON public.profiles FOR UPDATE TO authenticated USING (id = auth.uid());
+CREATE POLICY "Users insert own orders" ON public.orders FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users insert own order items" ON public.order_items FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid()));
+CREATE POLICY "Users manage own recipes" ON public.user_recipes FOR ALL TO authenticated USING (user_id = auth.uid());
 
 -- 7. Buckets de Storage
 INSERT INTO storage.buckets (id, name, public) 
