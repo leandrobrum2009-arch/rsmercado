@@ -586,29 +586,58 @@ export function ProductImporter() {
                  </Button>
                </div>
              </CardHeader>
-             <CardContent className="p-12">
-               <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-2xl p-12 hover:border-zinc-900 transition-colors cursor-pointer group relative">
-                 <Input 
-                   type="file" 
-                   accept=".csv" 
-                   onChange={handleCsvUpload} 
-                   className="absolute inset-0 opacity-0 cursor-pointer" 
-                 />
-                 <div className="bg-zinc-100 p-6 rounded-full group-hover:bg-zinc-900 group-hover:text-white transition-all">
-                   <FileUp className="h-12 w-12" />
-                 </div>
-                 <div className="mt-6 text-center">
-                   <h3 className="font-black uppercase italic text-xl">Clique para selecionar ou arraste o arquivo</h3>
-                   <p className="text-zinc-500 font-bold uppercase text-[10px] mt-2">Suporta arquivos .csv (Colunas: nome, marca, tamanho, preco, categoria)</p>
-                 </div>
-                 {csvFile && (
-                   <div className="mt-6 flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200">
-                     <CheckCircle2 className="h-4 w-4" />
-                     <span className="text-xs font-black uppercase">{csvFile.name}</span>
-                   </div>
-                 )}
-               </div>
-             </CardContent>
+              <CardContent className="p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">1. Definir Categoria Principal (Opcional)</label>
+                    <Select value={category} onValueChange={(val) => {
+                      setCategory(val);
+                      if (csvData.length > 0) {
+                        const updated = csvData.map(p => ({ ...p, category: val }));
+                        setCsvData(updated);
+                        setSuggestedProducts(updated);
+                      }
+                    }}>
+                      <SelectTrigger className="h-12 border-2 border-zinc-200 rounded-xl font-bold">
+                        <SelectValue placeholder="Selecione uma categoria para aplicar ao arquivo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableCategories.length > 0 ? (
+                          availableCategories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)
+                        ) : (
+                          categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[9px] text-zinc-400 font-medium italic">Se você selecionar uma categoria aqui, ela será aplicada a todos os produtos do CSV que você subir.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">2. Upload do Arquivo</label>
+                    <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-2xl p-8 hover:border-zinc-900 transition-colors cursor-pointer group relative bg-zinc-50/50">
+                      <Input 
+                        type="file" 
+                        accept=".csv" 
+                        onChange={handleCsvUpload} 
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                      />
+                      <div className="bg-white p-4 rounded-full group-hover:bg-zinc-900 group-hover:text-white shadow-sm transition-all">
+                        <FileUp className="h-8 w-8" />
+                      </div>
+                      <div className="mt-4 text-center">
+                        <h3 className="font-black uppercase text-sm">Selecionar .CSV</h3>
+                        {csvFile ? (
+                           <div className="mt-2 flex items-center gap-2 text-green-700 font-bold text-xs uppercase">
+                             <CheckCircle2 className="h-3 w-3" /> {csvFile.name}
+                           </div>
+                        ) : (
+                          <p className="text-zinc-500 font-bold uppercase text-[9px] mt-1">Colunas: nome, marca, tamanho, preco, categoria</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
            </Card>
  
            {csvData.length > 0 && (
