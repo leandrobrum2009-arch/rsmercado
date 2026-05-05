@@ -138,14 +138,20 @@ export function LoyaltyManager() {
  
     const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
       const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
-      if (error) toast.error('Erro ao atualizar status')
-      else fetchData()
+      if (error) {
+        console.error('Error toggling neighborhood status:', error)
+        toast.error('Erro ao atualizar status: ' + error.message)
+      } else {
+        fetchData()
+      }
     }
 
     const updateNeighborhoodFee = async (id: string, fee: string) => {
       const { error } = await supabase.from('delivery_neighborhoods').update({ fee: parseFloat(fee) || 0 }).eq('id', id)
-      if (error) toast.error('Erro ao atualizar taxa')
-      else {
+      if (error) {
+        console.error('Error updating neighborhood fee:', error)
+        toast.error('Erro ao atualizar taxa: ' + error.message)
+      } else {
         toast.success('Taxa atualizada!')
         setEditingFee(null)
         fetchData()
