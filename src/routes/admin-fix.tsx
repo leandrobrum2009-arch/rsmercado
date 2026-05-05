@@ -546,7 +546,7 @@ NOTIFY pgrst, 'reload schema';
                      </div>
                      <div className="flex items-start gap-3">
                        <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">2</div>
-                       <p>Vá ao painel Supabase > SQL EDITOR e clique em "+ New Query".</p>
+                       <p>Vá ao painel Supabase {'>'} SQL EDITOR e clique em "+ New Query".</p>
                      </div>
                      <div className="flex items-start gap-3">
                        <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">3</div>
