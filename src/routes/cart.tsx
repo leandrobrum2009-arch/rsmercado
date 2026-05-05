@@ -37,6 +37,11 @@ function CartPage() {
         if (data) {
           setDeliveryFee(data.fee);
           setIsValidDeliveryArea(true);
+          if (data.fee > 0) {
+            toast.success(`Taxa de entrega para ${selectedAddress.neighborhood}: ${formatCurrency(data.fee)}`);
+          } else {
+            toast.success(`Entrega grátis para ${selectedAddress.neighborhood}!`);
+          }
         } else {
           setDeliveryFee(0);
           setIsValidDeliveryArea(false);
