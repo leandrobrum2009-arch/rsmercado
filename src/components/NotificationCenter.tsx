@@ -1,3 +1,13 @@
+ import { subscribeToPush } from '@/lib/webpush'
+   const handleSubscribe = async () => {
+     const success = await subscribeToPush()
+     if (success) {
+       toast.success('Notificações ativadas!')
+     } else {
+       toast.error('Erro ao ativar notificações. Verifique as permissões do navegador.')
+     }
+   }
+ 
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { Bell, BellDot, X, Check } from 'lucide-react'
@@ -107,11 +117,16 @@
        <PopoverContent className="w-80 p-0" align="end">
          <div className="flex items-center justify-between p-4 border-b">
            <h4 className="font-semibold">Notificações</h4>
-           {unreadCount > 0 && (
-             <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-8">
-               Limpar todas
+           <div className="flex gap-2">
+             <Button variant="ghost" size="sm" onClick={handleSubscribe} className="text-[10px] h-7 px-2 border">
+               Ativar Push
              </Button>
-           )}
+             {unreadCount > 0 && (
+               <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-[10px] h-7 px-2">
+                 Limpar
+               </Button>
+             )}
+           </div>
          </div>
          <ScrollArea className="h-[400px]">
            {notifications.length === 0 ? (
