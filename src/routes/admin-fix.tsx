@@ -553,9 +553,12 @@ NOTIFY pgrst, 'reload schema';
                  GERAR SQL DE REPARO
                </Button>
  
-               {showSql && (
-                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
-                   <div className="relative">
+                {showSql && (
+                  <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                    <p className="text-[10px] font-black text-center text-zinc-500 uppercase tracking-widest animate-pulse">
+                      ↓ Código gerado com sucesso! Clique no botão verde abaixo ↓
+                    </p>
+                    <div className="relative">
                      <textarea 
                        readOnly 
                        value={generatedSql}
