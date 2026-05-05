@@ -168,9 +168,16 @@ BEGIN
       END IF;
  END $$;
  
- -- 9. REPARAR CATEGORIAS
+ -- 9. REPARAR CATEGORIAS E PRODUTOS
  ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
- ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;`
+ ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS banner_url TEXT;
+ 
+ -- ATUALIZAR POLÍTICAS
+ DROP POLICY IF EXISTS "Admins can do everything on categories" ON public.categories;
+ CREATE POLICY "Admins can do everything on categories" ON public.categories FOR ALL USING (public.is_admin());
+ 
+ DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
+ CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
