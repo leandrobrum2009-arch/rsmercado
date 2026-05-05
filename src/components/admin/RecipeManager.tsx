@@ -306,6 +306,38 @@ export function RecipeManager() {
           {name: 'Queijo Coalho', quantity: '200g'},
           {name: 'Cebola Roxa', quantity: '1 unidade'}
         ]
+      },
+      {
+        title: 'Risoto de Funghi Secchi',
+        description: 'Um clássico da culinária italiana, cremoso e com o sabor profundo e amadeirado dos cogumelos secos. Perfeito para um jantar especial.',
+        instructions: '1. Preparo do Funghi: Hidrate o funghi secchi em água morna por 30 minutos. Coe e reserve o líquido.\n2. Refogado: Doure a cebola e o alho em manteiga e azeite. Adicione o arroz arbóreo e refogue.\n3. Vinho: Adicione o vinho branco seco e mexa até evaporar.\n4. Caldo: Vá adicionando o líquido do funghi e caldo de legumes quente, concha por concha, mexendo sempre.\n5. Finalização: Quando o arroz estiver al dente, adicione o funghi picado, queijo parmesão ralado e uma colher de manteiga gelada para dar brilho.',
+        category: 'Italiana',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Arroz Arbóreo', quantity: '2 xícaras'},
+          {name: 'Funghi Secchi', quantity: '50g'},
+          {name: 'Vinho Branco Seco', quantity: '150ml'},
+          {name: 'Caldo de Legumes', quantity: '1.5L'},
+          {name: 'Queijo Parmesão', quantity: '100g'},
+          {name: 'Manteiga', quantity: '2 colheres'}
+        ]
+      },
+      {
+        title: 'Tacos de Peixe Estilo Baja',
+        description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte. Uma explosão de sabores cítricos e texturas.',
+        instructions: '1. Peixe: Empane as tiras de peixe branco em uma massa leve de cerveja ou farinha e frite até dourar.\n2. Repolho: Misture repolho fatiado com limão, coentro e sal.\n3. Molho: Prepare um creme de iogurte com limão e pimenta.\n4. Tortilhas: Aqueça as tortilhas de milho levemente.\n5. Montagem: Coloque o peixe, o repolho e finalize com o molho e fatias de abacate.',
+        category: 'Mexicana',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1512838243191-e81e8f66f1fd?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Filé de Peixe Branco', quantity: '500g'},
+          {name: 'Tortilhas de Milho', quantity: '10 unidades'},
+          {name: 'Repolho Roxo', quantity: '200g'},
+          {name: 'Iogurte Natural', quantity: '1 pote'},
+          {name: 'Abacate', quantity: '1 unidade'},
+          {name: 'Limão', quantity: '2 unidades'}
+        ]
       }
     ];
 
