@@ -3,7 +3,7 @@
  import { supabase } from "@/lib/supabase";
  import { Loader2 } from "lucide-react";
  
-  export const ProductGrid = ({ title }: { title: string }) => {
+  export const ProductGrid = ({ title, categoryName }: { title: string, categoryName?: string }) => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [multiplier, setMultiplier] = useState(1);
@@ -21,13 +21,20 @@
      fetchMultiplier();
     const fetchProducts = async () => {
       try {
-        // Try to fetch with all filters
-        let { data, error } = await supabase
-          .from('products')
-          .select('*, categories(name)')
-          .eq('is_available', true)
-          .eq('is_approved', true)
-          .order('created_at', { ascending: false });
+         // Try to fetch with all filters
+         let query = supabase
+           .from('products')
+           .select('*, categories(name)')
+           .eq('is_available', true)
+           .eq('is_approved', true);
+
+         if (categoryName) {
+           // This assumes categories(name) can be filtered this way or we need a join
+           // For simplicity in this env, we'll filter after fetch if needed, 
+           // but let's try a basic join filter
+         }
+
+         let { data, error } = await query.order('created_at', { ascending: false });
 
         // If it fails because of missing columns, try a simpler query
         if (error && error.message.includes('column')) {
@@ -40,9 +47,16 @@
           error = result.error;
         }
 
-        if (error) throw error;
+         if (error) throw error;
+ 
+         let filteredData = data || [];
+         if (categoryName) {
+           filteredData = filteredData.filter((p: any) => 
+             p.categories?.name?.toLowerCase().includes(categoryName.toLowerCase())
+           );
+         }
 
-        setProducts(data || []);
+         setProducts(filteredData);
       } catch (err) {
         console.error('Error fetching products:', err);
         setProducts([]);
