@@ -78,19 +78,33 @@ function CartPage() {
     setIsProcessing(true);
     try {
       // 1. Create Order
-      const { data: order, error: orderError } = await supabase
+      const orderPayload: any = {
+        user_id: profile.id,
+        total_amount: total,
+        payment_method: paymentMethod,
+        status: 'pending',
+        points_earned: Math.floor(total * pointsMultiplier),
+        customer_name: profile.full_name,
+        customer_phone: profile.whatsapp
+      };
+
+      let { data: order, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: profile.id,
-          total_amount: total,
-          payment_method: paymentMethod,
-          status: 'pending',
-          points_earned: Math.floor(total * pointsMultiplier),
-          customer_name: profile.full_name,
-          customer_phone: profile.whatsapp
-        })
+        .insert(orderPayload)
         .select()
         .single();
+
+      if (orderError && orderError.message.includes('column')) {
+        console.warn('Falling back to minimal order insert');
+        const { customer_name, customer_phone, ...minimalPayload } = orderPayload;
+        const result = await supabase
+          .from('orders')
+          .insert(minimalPayload)
+          .select()
+          .single();
+        order = result.data;
+        orderError = result.error;
+      }
 
       if (orderError) throw orderError;
 
