@@ -132,10 +132,24 @@ function ProfilePage() {
                </AvatarFallback>
              )}
            </Avatar>
-           <div>
-             <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
-             <p className="text-gray-400 font-bold text-xs tracking-widest">{session.user.email}</p>
-           </div>
+            <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
+                  <p className="text-gray-400 font-bold text-xs tracking-widest">{session.user.email}</p>
+                </div>
+                <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-4 rounded-2xl text-white shadow-xl shadow-amber-200">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Meus Pontos</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-black">{profile?.loyalty_points || 0}</span>
+                    <span className="text-[10px] font-bold uppercase">PTS</span>
+                  </div>
+                  <div className="mt-2 text-[9px] font-bold uppercase bg-white/20 py-1 px-2 rounded-lg backdrop-blur-sm">
+                    Cliente {profile?.loyalty_points > 1000 ? 'VIP Platinum' : profile?.loyalty_points > 500 ? 'VIP Ouro' : 'Bronze'}
+                  </div>
+                </div>
+              </div>
+            </div>
          </div>
        </div>
  
