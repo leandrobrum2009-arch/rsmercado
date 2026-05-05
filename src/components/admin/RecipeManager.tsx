@@ -242,6 +242,36 @@ export function RecipeManager() {
           {name:'Ovo', quantity:'3 unidades'},
           {name:'Açúcar (para a calda)', quantity:'1 xícara'}
         ] 
+      },
+      {
+        title: 'Arroz Carreteiro Gaúcho',
+        description: 'Um clássico do Rio Grande do Sul, feito com sobras de churrasco ou charque, arroz e muitos temperos.',
+        instructions: '1. Frite o charque em cubos até dourar.\n2. Adicione cebola, alho e pimentão refogando bem.\n3. Acrescente o arroz e frite levemente.\n4. Adicione água quente e cozinhe em fogo baixo.\n5. Finalize com salsinha e cebolinha picadas.',
+        category: 'Brasileira',
+        difficulty: 'Fácil',
+        image_url: 'https://images.unsplash.com/photo-1512058560366-cd2429555614?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Arroz', quantity: '2 xícaras'},
+          {name: 'Charque', quantity: '500g'},
+          {name: 'Cebola', quantity: '1 unidade'},
+          {name: 'Alho', quantity: '3 dentes'},
+          {name: 'Salsinha', quantity: 'a gosto'}
+        ]
+      },
+      {
+        title: 'Torta de Frango com Requeijão',
+        description: 'Torta salgada de liquidificador, super prática e com recheio cremoso de frango desfiado.',
+        instructions: '1. Bata os ingredientes da massa no liquidificador.\n2. Refogue o frango com tomate e azeitonas.\n3. Coloque metade da massa em uma forma, adicione o recheio e o requeijão.\n4. Cubra com o restante da massa.\n5. Asse por 35 minutos até dourar.',
+        category: 'Lanche',
+        difficulty: 'Fácil',
+        image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Frango Desfiado', quantity: '500g'},
+          {name: 'Requeijão Cremoso', quantity: '200g'},
+          {name: 'Farinha de Trigo', quantity: '3 xícaras'},
+          {name: 'Leite', quantity: '2 xícaras'},
+          {name: 'Ovo', quantity: '3 unidades'}
+        ]
       }
     ];
 
