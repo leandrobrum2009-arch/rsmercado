@@ -26,8 +26,20 @@ function AdminFix() {
    const [userRole, setUserRole] = useState<string | null>(null)
  
       const generateRepairSql = () => {
-        const sql = `-- REPARO COMPLETO E DEFINITIVO DO BANCO DE DATOS (v1.0.4)
--- 0. Limpeza Geral de Funções (Garante que não haverá erro de tipo de retorno)
+        const sql = `-- REPARO COMPLETO E DEFINITIVO DO BANCO DE DATOS (v1.0.5)
+-- 1. Limpeza Extrema de Políticas (Evita erros de dependência)
+DO $$ 
+DECLARE
+    r record;
+BEGIN
+    -- Remove todas as políticas de todas as tabelas do schema public
+    FOR r IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public') 
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+    END LOOP;
+END $$;
+
+-- 2. Limpeza Geral de Funções
 DROP FUNCTION IF EXISTS public.promote_to_admin(text) CASCADE;
 DROP FUNCTION IF EXISTS public.promote_to_admin() CASCADE;
 DROP FUNCTION IF EXISTS public.confirm_user_email(text, text) CASCADE;
@@ -36,7 +48,7 @@ DROP FUNCTION IF EXISTS public.exec_sql(text) CASCADE;
 DROP FUNCTION IF EXISTS public.has_role(uuid, text) CASCADE;
 DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
 
--- 1. Criação de Tabelas
+-- 3. Criação de Tabelas
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
