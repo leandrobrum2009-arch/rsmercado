@@ -134,10 +134,20 @@ DO $$ BEGIN
 END $$;
 
 -- 4. Buckets de Armazenamento
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('products', 'products', true), ('banners', 'banners', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
-`;
+ INSERT INTO storage.buckets (id, name, public) 
+ VALUES ('products', 'products', true), ('banners', 'banners', true)
+ ON CONFLICT (id) DO UPDATE SET public = true;
+ 
+ -- Políticas de Storage
+ DROP POLICY IF EXISTS "Public access" ON storage.objects;
+ CREATE POLICY "Public access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'banners'));
+ 
+ DROP POLICY IF EXISTS "Authenticated upload" ON storage.objects;
+ CREATE POLICY "Authenticated upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners'));
+ 
+ DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
+ CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
+ `;
       
       navigator.clipboard.writeText(sql);
       alert('SQL DE REPARO COPIADO!\\n\\n1. Vá ao painel do Supabase > SQL Editor.\\n2. Cole (Ctrl+V) e clique em RUN.');
