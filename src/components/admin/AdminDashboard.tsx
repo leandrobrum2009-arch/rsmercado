@@ -98,7 +98,6 @@
        
        setLowStockProducts(lowStock || [])
  
- 
    useEffect(() => {
      fetchDashboardData()
    }, [timeRange])
