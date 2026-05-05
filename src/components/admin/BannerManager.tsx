@@ -57,13 +57,18 @@ export function BannerManager() {
       const { data: { session } } = await supabase.auth.getSession();
       const isSuperAdmin = session?.user?.email === 'leandrobrum2009@gmail.com';
 
-      const { data: bannersData, error: bError } = await supabase.from('banners').select('*').order('created_at', { ascending: false });
+       const { data: bannersData, error: bError } = await supabase
+         .from('banners')
+         .select('*')
+         .order('created_at', { ascending: false });
+
        if (bError) {
-         console.error('Error fetching banners:', bError)
+         console.error('Error fetching banners:', bError);
          if (bError.message.includes('relation "banners" does not exist')) {
-           toast.error('Tabela de banners não encontrada. Por favor, execute o Reparador Admin.')
+           // Silent fail if it doesn't exist, as the migration might be pending
+           console.warn('Banners table not found yet.');
          } else {
-           toast.error('Erro ao carregar banners do banco de dados')
+           toast.error('Erro ao carregar banners: ' + bError.message);
          }
        }
 
