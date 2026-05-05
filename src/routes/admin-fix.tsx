@@ -77,14 +77,33 @@ CREATE TABLE IF NOT EXISTS public.delivery_neighborhoods (
 );
 ALTER TABLE public.delivery_neighborhoods ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE IF NOT EXISTS public.loyalty_rewards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    points_cost INTEGER NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-ALTER TABLE public.loyalty_rewards ENABLE ROW LEVEL SECURITY;
+ CREATE TABLE IF NOT EXISTS public.loyalty_rewards (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     points_cost INTEGER NOT NULL,
+     reward_type TEXT NOT NULL DEFAULT 'product',
+     reward_data JSONB DEFAULT '{}',
+     image_url TEXT,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.loyalty_rewards ENABLE ROW LEVEL SECURITY;
+ 
+ -- 7. MISSÕES SEMANAIS
+ CREATE TABLE IF NOT EXISTS public.weekly_challenges (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     requirement_type TEXT NOT NULL DEFAULT 'total_amount',
+     requirement_data JSONB DEFAULT '{}',
+     points_reward INTEGER NOT NULL,
+     start_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+     end_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT (NOW() + INTERVAL '7 days'),
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.weekly_challenges ENABLE ROW LEVEL SECURITY;
 
 -- 7. TABELAS DE WHATSAPP
 CREATE TABLE IF NOT EXISTS public.whatsapp_templates (
@@ -119,10 +138,33 @@ BEGIN
         CREATE POLICY "Admin manage settings" ON public.store_settings FOR ALL USING (public.is_admin());
     END IF;
 
-    -- WhatsApp
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
-        CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
-    END IF;
+     -- Fidelidade
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='loyalty_rewards' AND policyname='Admin manage rewards') THEN
+         CREATE POLICY "Admin manage rewards" ON public.loyalty_rewards FOR ALL USING (public.is_admin());
+     END IF;
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='loyalty_rewards' AND policyname='Public read rewards') THEN
+         CREATE POLICY "Public read rewards" ON public.loyalty_rewards FOR SELECT USING (active = true);
+     END IF;
+ 
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='weekly_challenges' AND policyname='Admin manage challenges') THEN
+         CREATE POLICY "Admin manage challenges" ON public.weekly_challenges FOR ALL USING (public.is_admin());
+     END IF;
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='weekly_challenges' AND policyname='Public read challenges') THEN
+         CREATE POLICY "Public read challenges" ON public.weekly_challenges FOR SELECT USING (active = true);
+     END IF;
+ 
+     -- Bairros
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='delivery_neighborhoods' AND policyname='Admin manage neighborhoods') THEN
+         CREATE POLICY "Admin manage neighborhoods" ON public.delivery_neighborhoods FOR ALL USING (public.is_admin());
+     END IF;
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='delivery_neighborhoods' AND policyname='Public read neighborhoods') THEN
+         CREATE POLICY "Public read neighborhoods" ON public.delivery_neighborhoods FOR SELECT USING (active = true);
+     END IF;
+ 
+     -- WhatsApp
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
+         CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
+     END IF;
 END $$;`
  
    const copyToClipboard = () => {
