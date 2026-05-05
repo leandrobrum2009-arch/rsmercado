@@ -8,16 +8,28 @@ const supabase = createClient(
 async function check() {
   const { data, error } = await supabase
     .from('recipes')
-    .select('title, count(*)')
-    .group('title')
-    .having('count(*) > 1')
+    .select('id, title')
   
   if (error) {
     console.error('Error:', error)
     return
   }
   
-  console.log('Duplicates found:', data)
+  const counts = {}
+  const duplicates = []
+  
+  for (const item of data || []) {
+    const title = item.title.toLowerCase().trim()
+    if (!counts[title]) {
+      counts[title] = []
+    }
+    counts[title].push(item.id)
+    if (counts[title].length > 1) {
+      duplicates.push({ title, ids: counts[title] })
+    }
+  }
+  
+  console.log('Duplicates found:', JSON.stringify(duplicates, null, 2))
 }
 
 check()
