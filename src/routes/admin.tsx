@@ -16,9 +16,10 @@ import {
    Menu,
    X,
      Users,
-     Bell,
-     AlertCircle
-   } from 'lucide-react'
+      Bell,
+      AlertCircle,
+      Truck
+    } from 'lucide-react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
