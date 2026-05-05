@@ -126,7 +126,7 @@ export function CategoryManagement() {
     if (error) toast.error('Erro ao adicionar categoria')
     else {
        toast.success('Categoria adicionada!')
-        setNewCategory({ name: '', slug: '', icon_url: '', icon_name: '', banner_url: '' })
+        setNewCategory({ name: '', slug: '', icon_url: '', icon_name: `ShoppingBag:${selectedStyle}`, banner_url: '' })
        fetchCategories()
     }
   }
