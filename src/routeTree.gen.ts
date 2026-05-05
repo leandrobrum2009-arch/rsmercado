@@ -13,6 +13,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InstallRouteImport } from './routes/install'
+import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminFixRouteImport } from './routes/admin-fix'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -36,6 +37,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
   path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeliveryRoute = DeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/delivery'
     | '/install'
     | '/profile'
     | '/recipes'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/delivery'
     | '/install'
     | '/profile'
     | '/recipes'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/delivery'
     | '/install'
     | '/profile'
     | '/recipes'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
+  DeliveryRoute: typeof DeliveryRoute
   InstallRoute: typeof InstallRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/install'
       fullPath: '/install'
       preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delivery': {
+      id: '/delivery'
+      path: '/delivery'
+      fullPath: '/delivery'
+      preLoaderRoute: typeof DeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
+  DeliveryRoute: DeliveryRoute,
   InstallRoute: InstallRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
