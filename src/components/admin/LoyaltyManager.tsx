@@ -193,22 +193,35 @@ export function LoyaltyManager() {
                      <option value="product">Produto Grátis</option>
                    </select>
                  </div>
-                 <Button onClick={async () => {
-                   if (!newReward.title || !newReward.points_cost) return;
-                   setLoading(true);
-                   const { error } = await supabase.from('loyalty_rewards').insert({
-                     title: newReward.title,
-                     points_cost: parseInt(newReward.points_cost),
-                     reward_type: newReward.reward_type,
-                     active: true
-                   });
-                   if (!error) {
-                     toast.success('Recompensa adicionada!');
-                     setNewReward({ title: '', description: '', points_cost: '', reward_type: 'product' });
-                     fetchData();
-                   } else toast.error('Erro ao adicionar');
-                   setLoading(false);
-                 }} className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Adicionar</Button>
+                  <Button onClick={async () => {
+                    if (!newReward.title || !newReward.points_cost) {
+                      toast.error('Informe o título e o custo em pontos');
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.from('loyalty_rewards').insert({
+                        title: newReward.title,
+                        points_cost: parseInt(newReward.points_cost),
+                        reward_type: newReward.reward_type,
+                        active: true
+                      });
+                      if (!error) {
+                        toast.success('Recompensa adicionada!');
+                        setNewReward({ title: '', description: '', points_cost: '', reward_type: 'product' });
+                        fetchData();
+                      } else {
+                        console.error('Error adding reward:', error);
+                        toast.error('Erro ao adicionar: ' + error.message);
+                      }
+                    } catch (err: any) {
+                      toast.error('Erro: ' + err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }} disabled={loading} className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">
+                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Adicionar'}
+                  </Button>
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                  {rewards.map(r => (
@@ -252,23 +265,38 @@ export function LoyaltyManager() {
                    <Label className="text-[10px] uppercase font-bold">Descrição do Objetivo</Label>
                    <Input placeholder="Ex: Faça um pedido acima de R$ 150,00" value={newChallenge.description} onChange={e => setNewChallenge({...newChallenge, description: e.target.value})} />
                  </div>
-                 <Button onClick={async () => {
-                   if (!newChallenge.title || !newChallenge.points_reward) return;
-                   setLoading(true);
-                   const { error } = await supabase.from('weekly_challenges').insert({
-                     ...newChallenge,
-                     points_reward: parseInt(newChallenge.points_reward),
-                     start_date: new Date().toISOString(),
-                     end_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
-                     active: true
-                   });
-                   if (!error) {
-                     toast.success('Desafio criado!');
-                     setNewChallenge({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' });
-                     fetchData();
-                   } else toast.error('Erro ao criar desafio');
-                   setLoading(false);
-                 }} className="col-span-2 bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Publicar Desafio</Button>
+                  <Button onClick={async () => {
+                    if (!newChallenge.title || !newChallenge.points_reward) {
+                      toast.error('Informe o título e o prêmio do desafio');
+                      return;
+                    }
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase.from('weekly_challenges').insert({
+                        title: newChallenge.title,
+                        description: newChallenge.description,
+                        points_reward: parseInt(newChallenge.points_reward),
+                        requirement_type: newChallenge.requirement_type || 'total_amount',
+                        start_date: new Date().toISOString(),
+                        end_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
+                        active: true
+                      });
+                      if (!error) {
+                        toast.success('Desafio criado!');
+                        setNewChallenge({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' });
+                        fetchData();
+                      } else {
+                        console.error('Error creating challenge:', error);
+                        toast.error('Erro ao criar desafio: ' + error.message);
+                      }
+                    } catch (err: any) {
+                      toast.error('Erro: ' + err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }} disabled={loading} className="col-span-2 bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">
+                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Publicar Desafio'}
+                  </Button>
                </div>
                <div className="space-y-4">
                  {challenges.map(c => (
