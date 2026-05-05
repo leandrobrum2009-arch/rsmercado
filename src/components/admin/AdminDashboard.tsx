@@ -85,6 +85,9 @@
    const [topProducts, setTopProducts] = useState<any[]>([])
    const [peakHours, setPeakHours] = useState<any[]>([])
     const [demographics, setDemographics] = useState<any[]>([])
+    const [relationshipStats, setRelationshipStats] = useState<any[]>([])
+    const [neighborhoodStats, setNeighborhoodStats] = useState<any[]>([])
+    const [neighborhoodProductStats, setNeighborhoodProductStats] = useState<any[]>([])
     const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [timeRange, setTimeRange] = useState('month')
@@ -102,12 +105,26 @@
        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
  
-       const { data: orders } = await supabase
-         .from('orders')
-         .select('total_amount, created_at, status')
-         .neq('status', 'cancelled')
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('total_amount, created_at, status, delivery_address, delivery_neighborhood_id')
+          .neq('status', 'cancelled')
  
        if (orders) {
+          // Neighborhood stats
+          const neighborhoodCounts: Record<string, number> = {}
+
+          orders.forEach(o => {
+            const neighborhood = o.delivery_address?.neighborhood || 'Não informado'
+            neighborhoodCounts[neighborhood] = (neighborhoodCounts[neighborhood] || 0) + 1
+          })
+
+          const nStats = Object.entries(neighborhoodCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 8)
+
+          setNeighborhoodStats(nStats)
          const revenueToday = orders.filter(o => o.created_at >= today).reduce((acc, o) => acc + Number(o.total_amount), 0)
          const revenueWeek = orders.filter(o => o.created_at >= lastWeek).reduce((acc, o) => acc + Number(o.total_amount), 0)
          const revenueMonth = orders.filter(o => o.created_at >= lastMonth).reduce((acc, o) => acc + Number(o.total_amount), 0)
@@ -123,9 +140,9 @@
        }
  
        // 2. Get top products
-       const { data: productsData } = await supabase
-         .from('order_items')
-         .select('quantity, unit_price, products(name)')
+        const { data: productsData } = await supabase
+          .from('order_items')
+          .select('quantity, unit_price, products(name), orders(delivery_address)')
        
        if (productsData) {
          const grouped = productsData.reduce((acc: any, item: any) => {
@@ -141,6 +158,28 @@
            .slice(0, 5)
          
          setTopProducts(top)
+          
+          // Top products by neighborhood
+          const neighborhoodProdMap: Record<string, Record<string, number>> = {}
+          productsData.forEach((item: any) => {
+            const neighborhood = item.orders?.delivery_address?.neighborhood || 'Não informado'
+            const prodName = item.products?.name || 'Desconhecido'
+            
+            if (!neighborhoodProdMap[neighborhood]) neighborhoodProdMap[neighborhood] = {}
+            neighborhoodProdMap[neighborhood][prodName] = (neighborhoodProdMap[neighborhood][prodName] || 0) + item.quantity
+          })
+
+          const npStats = Object.entries(neighborhoodProdMap).map(([neighborhood, products]) => {
+            const topProduct = Object.entries(products)
+              .sort((a, b) => b[1] - a[1])[0]
+            return {
+              neighborhood,
+              product: topProduct ? topProduct[0] : 'N/A',
+              sales: topProduct ? topProduct[1] : 0
+            }
+          }).sort((a, b) => b.sales - a.sales).slice(0, 5)
+
+          setNeighborhoodProductStats(npStats)
        }
  
        // 3. Peak hours from site_visits (or mock if empty)
@@ -169,24 +208,34 @@
          ])
        }
  
-       // 4. Demographics from profiles
-       const { data: profiles } = await supabase
-         .from('profiles')
-         .select('gender, status')
-       
-       if (profiles) {
-         const genderCounts = profiles.reduce((acc: any, p: any) => {
-           const g = p.gender || 'Não informado'
-           acc[g] = (acc[g] || 0) + 1
-           return acc
-         }, {})
- 
-         const demoData = Object.entries(genderCounts).map(([name, value]) => ({ name, value }))
-         setDemographics(demoData.length > 0 ? demoData : [
-           { name: 'Homens', value: 45 },
-           { name: 'Mulheres', value: 55 }
-         ])
-       }
+        // 4. Demographics from profiles
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('gender, household_status')
+        
+        if (profiles) {
+          const genderCounts = profiles.reduce((acc: any, p: any) => {
+            const g = p.gender === 'man' ? 'Homens' : p.gender === 'woman' ? 'Mulheres' : 'Outros/Não inf.'
+            acc[g] = (acc[g] || 0) + 1
+            return acc
+          }, {})
+  
+          const demoData = Object.entries(genderCounts).map(([name, value]) => ({ name, value }))
+          setDemographics(demoData.length > 0 ? demoData : [
+            { name: 'Homens', value: 45 },
+            { name: 'Mulheres', value: 55 }
+          ])
+
+          const householdCounts = profiles.reduce((acc: any, p: any) => {
+            const s = p.household_status === 'alone' ? 'Solteiro' : 
+                      (p.household_status === 'couple' || p.household_status === 'family') ? 'Casal/Família' : 'Não informado'
+            acc[s] = (acc[s] || 0) + 1
+            return acc
+          }, {})
+
+          const householdData = Object.entries(householdCounts).map(([name, value]) => ({ name, value }))
+          setRelationshipStats(householdData)
+        }
  
         const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
         setStats((prev: any) => ({ ...prev, customers_count: count || 0 }))
@@ -400,7 +449,168 @@
          </Card>
        </div>
  
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Neighborhoods Report */}
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="border-b border-zinc-50 pb-4">
+              <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                <BarChart3 className="text-blue-500" size={16} /> Pedidos por Bairro
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Distribuição geográfica de vendas</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={neighborhoodStats} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f4f4f5" />
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      width={100}
+                      tick={{fontSize: 10, fontWeight: 700, fill: '#71717a'}}
+                    />
+                    <Tooltip 
+                      cursor={{fill: 'transparent'}}
+                      contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold'}}
+                    />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Top Products by Neighborhood */}
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="border-b border-zinc-50 pb-4">
+              <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                <Package className="text-purple-500" size={16} /> Destaques por Bairro
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">O produto mais pedido em cada local</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-zinc-50">
+                {neighborhoodProductStats.length === 0 ? (
+                  <div className="p-12 text-center text-zinc-400 font-bold uppercase text-[10px]">Aguardando dados geográficos</div>
+                ) : (
+                  neighborhoodProductStats.map((item, i) => (
+                    <div key={i} className="p-4 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center text-[10px] font-black text-zinc-500">
+                          {i + 1}
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-zinc-900 leading-tight">{item.neighborhood}</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{item.product}</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-purple-50 text-purple-600 border-0 text-[10px] font-black uppercase px-2 py-0.5">
+                        {item.sales} und
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Household status demographics */}
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="border-b border-zinc-50 pb-4">
+              <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                <Users className="text-rose-500" size={16} /> Perfil Familiar
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Composição do público (Casal vs Solteiro)</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={relationshipStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {relationshipStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#f43f5e', '#fbbf24', '#94a3b8'][index % 3]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold'}}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {relationshipStats.map((d, i) => (
+                  <div key={d.name} className="flex justify-between items-center p-2 rounded-xl bg-zinc-50">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#f43f5e', '#fbbf24', '#94a3b8'][i % 3] }} />
+                      <span className="text-[10px] font-black uppercase text-zinc-600">{d.name}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-900">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Keep the original gender demographics but styled similarly */}
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="border-b border-zinc-50 pb-4">
+              <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                <Users className="text-amber-500" size={16} /> Perfil por Gênero
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase text-zinc-400">Distribuição entre Homens e Mulheres</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={demographics}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {demographics.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold'}}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {demographics.map((d, i) => (
+                  <div key={d.name} className="flex justify-between items-center p-2 rounded-xl bg-zinc-50">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                      <span className="text-[10px] font-black uppercase text-zinc-600">{d.name}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-900">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
          {/* Top Selling Products */}
          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white">
            <CardHeader className="border-b border-zinc-50 pb-4">
