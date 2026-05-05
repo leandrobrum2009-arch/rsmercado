@@ -217,7 +217,12 @@ Last Error: ${lastError || 'Nenhum'}
 
 TABELA user_roles:
 Roles Encontradas: ${roles ? JSON.stringify(roles) : 'Nenhuma'}
-Erro ao ler roles: ${rolesError?.message || 'Nenhum'}`)
+Erro ao ler roles: ${rolesError?.message || 'Nenhum'}
+
+FUNÇÕES NO BANCO:
+Função is_admin: ${fnMissing ? 'FALTANDO (REPARAR)' : 'OK'}
+Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK'}
+`)
             }}
           >
             <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
