@@ -80,13 +80,23 @@ export function LoyaltyManager() {
 
   const saveSettings = async () => {
     setLoading(true)
-    const { error } = await supabase.from('store_settings').upsert({
-      key: 'points_multiplier',
-      value: settings
-    })
-    if (error) toast.error('Erro ao salvar configurações')
-    else toast.success('Configurações salvas!')
-    setLoading(false)
+    try {
+      const { error } = await supabase.from('store_settings').upsert({
+        key: 'points_multiplier',
+        value: settings
+      })
+      if (error) {
+        console.error('Error saving settings:', error)
+        toast.error('Erro ao salvar configurações: ' + error.message)
+      } else {
+        toast.success('Configurações salvas!')
+      }
+    } catch (err: any) {
+      console.error('Catch saving settings:', err)
+      toast.error('Erro ao salvar: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const addNeighborhood = async () => {
