@@ -201,7 +201,19 @@ function RouteComponent() {
             onClick={async () => {
               const { data } = await supabase.auth.getSession()
               const { data: rpcData, error: rpcError } = await supabase.rpc('is_admin')
-              alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nAdmin State: ${isAdminDiagnostic}\nRPC Result: ${rpcData}\nRPC Error: ${rpcError?.message || 'None'}\nLast Error: ${lastError || 'None'}`)
+              const { data: roles, error: rolesError } = await supabase.from('user_roles').select('*').eq('user_id', data.session?.user.id)
+              
+              alert(`DIAGNÓSTICO DETALHADO:
+User Email: ${data.session?.user.email}
+User ID: ${data.session?.user.id}
+Admin State: ${isAdminDiagnostic}
+RPC is_admin Result: ${rpcData}
+RPC is_admin Error: ${rpcError?.message || 'Nenhum'}
+Last Error: ${lastError || 'Nenhum'}
+
+TABELA user_roles:
+Roles Encontradas: ${roles ? JSON.stringify(roles) : 'Nenhuma'}
+Erro ao ler roles: ${rolesError?.message || 'Nenhum'}`)
             }}
           >
             <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
