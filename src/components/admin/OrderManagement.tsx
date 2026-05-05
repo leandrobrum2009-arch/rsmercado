@@ -213,7 +213,11 @@ import { toast } from '@/lib/toast'
                                    </div>
                                    <div className="flex items-center gap-1 mt-1 text-zinc-500">
                                      <CreditCard size={12} />
-                                     <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
+                                    <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
+                                  </div>
+                                  <div className="flex items-center gap-1 mt-1 text-amber-600">
+                                    <ShoppingBag size={12} />
+                                    <p className="text-xs font-black uppercase">Pontos: {order.points_earned || 0}</p>
                                    </div>
                                  </div>
                                </div>
