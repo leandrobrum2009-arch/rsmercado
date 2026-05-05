@@ -212,8 +212,9 @@ BEGIN
  
  CREATE TABLE IF NOT EXISTS public.site_visits (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     visitor_id TEXT,
-     page_path TEXT,
+     user_id UUID,
+     path TEXT,
+     user_agent TEXT,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
  );
  ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
