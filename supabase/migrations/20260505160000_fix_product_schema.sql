@@ -106,3 +106,46 @@ GRANT ALL ON public.profiles TO authenticated;
 
 -- Ensure sequences are granted if any (usually serial/id)
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+
+-- IMPROVE IS_ADMIN FUNCTION
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (
+    EXISTS (
+      SELECT 1 FROM public.user_roles 
+      WHERE user_id = auth.uid() AND role = 'admin'
+    ) OR 
+    (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- PROMOTE TO ADMIN RPC
+CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Simple check for secret key (should be rotated in production)
+  IF secret_key = 'RSMERCADO_ADMIN_2024' OR secret_key = 'CHAVE_MESTRE' THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (auth.uid(), 'admin')
+    ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+    
+    UPDATE public.profiles SET is_admin = true WHERE id = auth.uid();
+    RETURN TRUE;
+  END IF;
+  RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ENSURE USER ROLES TABLE
+CREATE TABLE IF NOT EXISTS public.user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'user',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id)
+);
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can see all roles" ON public.user_roles;
+CREATE POLICY "Admins can see all roles" ON public.user_roles FOR SELECT USING (public.is_admin());
