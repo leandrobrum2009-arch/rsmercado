@@ -113,8 +113,8 @@ function RecipesPage() {
       
       const newRecipe = {
         title,
-        description: `Nossa inteligência artificial elaborou uma reportagem gastronômica exclusiva utilizando: ${aiInput}. Descubra como transformar itens simples em um prato de alta culinária.`,
-        instructions: `1. Preparação: Reúna todos os itens: ${aiInput}.\n2. Processamento: Comece preparando a base do prato com cuidado.\n3. Cocção: Mantenha o fogo controlado para preservar os nutrientes.\n4. Finalização: Sirva imediatamente com um toque de azeite e ervas frescas.`,
+        description: `Nossa inteligência artificial elaborou uma reportagem gastronômica exclusiva utilizando: ${aiInput}. Esta criação explora o equilíbrio perfeito entre os ingredientes fornecidos para entregar um prato sofisticado e nutritivo.`,
+        instructions: `1. Organização: Separe e prepare todos os itens: ${aiInput}. Certifique-se de que estão limpos e prontos para o uso.\n2. Início do Preparo: Comece refogando a base (cebola e alho se tiver) e adicione os ingredientes mais densos da lista.\n3. Cocção Lenta: Mantenha o fogo baixo para que os sabores de ${mainProduct} se desenvolvam plenamente.\n4. Ajuste de Temperos: Durante o cozimento, prove e ajuste o sal e as especiarias conforme sua preferência.\n5. Apresentação: Sirva em uma louça clara para destacar as cores dos ingredientes e finalize com um fio de azeite extra virgem.`,
         category: 'Reportagem IA',
         difficulty: 'Média',
         image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
