@@ -425,9 +425,9 @@ export function RecipeManager() {
       }
       
       fetchRecipes()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Import error:', error);
-      toast.error('Erro na importação em massa')
+      toast.error('Erro na importação: ' + (error.message || 'Erro desconhecido'))
     } finally {
       setIsLoading(false)
     }
