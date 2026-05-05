@@ -2,19 +2,25 @@
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Users, Loader2, Search } from 'lucide-react'
- import { Input } from '@/components/ui/input'
+  import { Users, Loader2, Search, Edit, Save, X } from 'lucide-react'
+  import { Input } from '@/components/ui/input'
+  import { Button } from '@/components/ui/button'
+  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+  import { toast } from '@/lib/toast'
  
  export function CustomerManagement() {
    const [customers, setCustomers] = useState<any[]>([])
    const [loading, setLoading] = useState(true)
    const [searchTerm, setSearchTerm] = useState('')
+   const [editingCustomer, setEditingCustomer] = useState<any>(null)
+   const [isSaving, setIsSaving] = useState(false)
  
    useEffect(() => {
      fetchCustomers()
    }, [])
  
    const fetchCustomers = async () => {
+     setLoading(true)
      const { data, error } = await supabase
        .from('profiles')
        .select('*')
@@ -22,10 +28,35 @@
      
      if (error) {
        console.error('Error fetching customers:', error)
+       toast.error('Erro ao carregar clientes')
      } else {
        setCustomers(data || [])
      }
      setLoading(false)
+   }
+ 
+   const handleSave = async () => {
+     if (!editingCustomer) return
+     setIsSaving(true)
+     try {
+       const { error } = await supabase
+         .from('profiles')
+         .update({
+           full_name: editingCustomer.full_name,
+           whatsapp: editingCustomer.whatsapp,
+           loyalty_points: parseInt(editingCustomer.loyalty_points)
+         })
+         .eq('id', editingCustomer.id)
+ 
+       if (error) throw error
+       toast.success('Cliente atualizado com sucesso!')
+       setEditingCustomer(null)
+       fetchCustomers()
+     } catch (error: any) {
+       toast.error('Erro ao salvar: ' + error.message)
+     } finally {
+       setIsSaving(false)
+     }
    }
  
    const filteredCustomers = customers.filter(c => 
@@ -59,6 +90,7 @@
                <TableHead>WhatsApp</TableHead>
                <TableHead>Pontos</TableHead>
                <TableHead>Data Cadastro</TableHead>
+               <TableHead className="text-right">Ações</TableHead>
              </TableRow>
            </TableHeader>
            <TableBody>
@@ -81,12 +113,66 @@
                    <TableCell className="text-xs text-muted-foreground">
                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                    </TableCell>
+                   <TableCell className="text-right">
+                     <Button variant="ghost" size="icon" onClick={() => setEditingCustomer(customer)}>
+                       <Edit className="h-4 w-4" />
+                     </Button>
+                   </TableCell>
                  </TableRow>
                ))
              )}
            </TableBody>
          </Table>
        </CardContent>
+ 
+       <Dialog open={!!editingCustomer} onOpenChange={(open) => !open && setEditingCustomer(null)}>
+         <DialogContent className="max-w-md rounded-2xl">
+           <DialogHeader>
+             <DialogTitle className="font-black uppercase italic">Editar Cliente</DialogTitle>
+             <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400">
+               Atualize os dados e pontos de fidelidade do cliente.
+             </DialogDescription>
+           </DialogHeader>
+           {editingCustomer && (
+             <div className="space-y-4 py-4">
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase text-zinc-500">Nome Completo</label>
+                 <Input 
+                   value={editingCustomer.full_name || ''} 
+                   onChange={e => setEditingCustomer({...editingCustomer, full_name: e.target.value})}
+                   className="rounded-xl"
+                 />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase text-zinc-500">WhatsApp</label>
+                 <Input 
+                   value={editingCustomer.whatsapp || ''} 
+                   onChange={e => setEditingCustomer({...editingCustomer, whatsapp: e.target.value})}
+                   className="rounded-xl"
+                 />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase text-zinc-500">Pontos de Fidelidade</label>
+                 <Input 
+                   type="number"
+                   value={editingCustomer.loyalty_points || 0} 
+                   onChange={e => setEditingCustomer({...editingCustomer, loyalty_points: e.target.value})}
+                   className="rounded-xl"
+                 />
+               </div>
+             </div>
+           )}
+           <DialogFooter className="gap-2">
+             <Button variant="ghost" onClick={() => setEditingCustomer(null)} className="rounded-xl font-bold uppercase text-[10px]">
+               <X className="mr-2 h-4 w-4" /> Cancelar
+             </Button>
+             <Button onClick={handleSave} disabled={isSaving} className="rounded-xl font-bold uppercase text-[10px] bg-zinc-900">
+               {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+               Salvar Alterações
+             </Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
      </Card>
    )
  }
