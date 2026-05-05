@@ -19,7 +19,9 @@ import {
        Bell,
        AlertCircle,
        Truck,
-        Percent
+       Percent,
+       Lock
+ import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
      } from 'lucide-react'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect } from '@tanstack/react-router'
@@ -95,7 +97,27 @@ export const Route = createFileRoute('/admin')({
 })
 
 function RouteComponent() {
-  const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+   const [userPermissions, setUserPermissions] = useState<string[]>([])
+       try {
+         const { data: { session } } = await supabase.auth.getSession()
+         if (session) {
+           const { data: roleData } = await supabase
+             .from('user_roles')
+             .select('permissions')
+             .eq('user_id', session.user.id)
+             .maybeSingle()
+           
+           if (roleData?.permissions) {
+             setUserPermissions(roleData.permissions)
+           } else if (session.user.email === 'leandrobrum2009@gmail.com') {
+             // Super admin fallback
+             setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "whatsapp", "webhooks", "admin_roles"])
+           }
+         }
+       } catch (err) {
+         console.error('Error fetching user permissions:', err)
+       }
+ 
    const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
@@ -163,7 +185,23 @@ function RouteComponent() {
            { id: 'settings', label: 'Dados da Loja', icon: Settings },
            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
            { id: 'webhooks', label: 'Webhooks', icon: Webhook }
-         ]
+          ],
+          adminOnly: true
+        },
+        {
+          title: 'Controle de Acesso',
+          items: [
+            { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock }
+          ],
+          adminOnly: true
+        }
+     ];
+                   const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
+                   if (!isAllowed) return null
+                   
+                <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
+                  <AdminRoleManager />
+                </TabsContent>
      }
    ];
 
