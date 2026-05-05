@@ -45,10 +45,12 @@ export const Route = createFileRoute('/recipes')({
 function RecipesPage() {
   const { recipes: allRecipes } = Route.useLoaderData()
   const [selectedCategory, setSelectedCategory] = useState('Todas')
-  const categories = ['Todas', ...Array.from(new Set(allRecipes.map((r: any) => r.category)))]
-  const filteredRecipes = selectedCategory === 'Todas' 
-    ? allRecipes 
-    : allRecipes.filter((r: any) => r.category === selectedCategory)
+   const categories = ['Todas', 'Favoritas', ...Array.from(new Set(allRecipes.map((r: any) => r.category)))]
+   const filteredRecipes = selectedCategory === 'Todas' 
+     ? allRecipes 
+     : selectedCategory === 'Favoritas'
+       ? allRecipes.filter((r: any) => savedRecipes.includes(r.id))
+       : allRecipes.filter((r: any) => r.category === selectedCategory)
 
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
   const [savedRecipes, setSavedRecipes] = useState<string[]>([])
