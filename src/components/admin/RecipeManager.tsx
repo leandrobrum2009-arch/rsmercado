@@ -142,75 +142,27 @@ export function RecipeManager() {
     toast.info('Iniciando cadastro em massa de 40 receitas...')
     
     const detailedTemplates = [
-      {
-        title: 'Feijoada Completa Tradicional',
-        description: 'A clássica feijoada brasileira com carnes selecionadas e o tempero caseiro que todos amam.',
-        instructions: '1. Deixe o feijão de molho por 12h.\n2. Cozinhe as carnes salgadas separadamente.\n3. Cozinhe o feijão preto com louro.\n4. Junte as carnes ao feijão e deixe apurar.\n5. Refogue alho, cebola e bacon para temperar.',
-        category: 'Brasileira',
-        difficulty: 'Difícil',
-        image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
-        ingredients: [
-          { name: 'Feijão Preto', quantity: '1kg' },
-          { name: 'Paio', quantity: '200g' },
-          { name: 'Carne Seca', quantity: '300g' },
-          { name: 'Costelinha de Porco', quantity: '500g' },
-          { name: 'Cebola', quantity: '2 unidades' }
-        ]
-      },
-      {
-        title: 'Strogonoff de Frango Cremoso',
-        description: 'Um prato rápido, prático e delicioso para o dia a dia.',
-        instructions: '1. Corte o frango em cubos e tempere.\n2. Refogue o frango até dourar.\n3. Adicione cebola e cogumelos.\n4. Misture o ketchup, mostarda e molho inglês.\n5. Finalize com creme de leite sem ferver.',
-        category: 'Almoço Especial',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
-        ingredients: [
-          { name: 'Peito de Frango', quantity: '500g' },
-          { name: 'Creme de Leite', quantity: '1 lata' },
-          { name: 'Champignon', quantity: '100g' },
-          { name: 'Ketchup', quantity: '3 colheres' },
-          { name: 'Batata Palha', quantity: '1 pacote' }
-        ]
-      },
-      {
-        title: 'Bolo de Cenoura com Chocolate',
-        description: 'O lanche perfeito: massa fofinha de cenoura com cobertura crocante de chocolate.',
-        instructions: '1. Bata no liquidificador cenouras, ovos e óleo.\n2. Misture açúcar e farinha de trigo à mão.\n3. Adicione o fermento suavemente.\n4. Asse por 40 min.\n5. Prepare a calda com chocolate e manteiga.',
-        category: 'Sobremesa',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80',
-        ingredients: [
-          { name: 'Cenoura', quantity: '3 unidades' },
-          { name: 'Ovo', quantity: '3 unidades' },
-          { name: 'Farinha de Trigo', quantity: '2 xícaras' },
-          { name: 'Chocolate em Pó', quantity: '1 xícara' },
-          { name: 'Leite', quantity: '1/2 xícara' }
-        ]
-      },
-      {
-        title: 'Moqueca de Peixe Capixaba',
-        description: 'O verdadeiro sabor do mar com azeite de dendê e leite de coco.',
-        instructions: '1. Tempere o peixe com limão e sal.\n2. Refogue tomate, cebola e coentro.\n3. Disponha as postas de peixe.\n4. Regue com leite de coco e dendê.\n5. Cozinhe por 15 minutos sem mexer muito.',
-        category: 'Brasileira',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
-        ingredients: [
-          { name: 'Postas de Peixe', quantity: '1kg' },
-          { name: 'Leite de Coco', quantity: '200ml' },
-          { name: 'Azeite de Dendê', quantity: '2 colheres' },
-          { name: 'Pimentão', quantity: '1 unidade' },
-          { name: 'Coentro', quantity: '1 maço' }
-        ]
-      }
+      { title: 'Feijoada Completa Tradicional', description: 'A clássica feijoada brasileira.', instructions: '...', category: 'Brasileira', difficulty: 'Difícil', image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd', ingredients: [{name:'Feijão', quantity:'1kg'}] },
+      { title: 'Strogonoff de Frango Cremoso', description: 'Um prato rápido e delicioso.', instructions: '...', category: 'Almoço', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd', ingredients: [{name:'Frango', quantity:'500g'}] },
+      { title: 'Bolo de Cenoura com Chocolate', description: 'O lanche perfeito.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62', ingredients: [{name:'Cenoura', quantity:'3un'}] },
+      { title: 'Moqueca de Peixe Capixaba', description: 'Sabor do mar.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288', ingredients: [{name:'Peixe', quantity:'1kg'}] },
+      { title: 'Lasanha à Bolonhesa', description: 'Massa clássica.', instructions: '...', category: 'Italiana', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141', ingredients: [{name:'Carne Moída', quantity:'500g'}] },
+      { title: 'Salpicão de Frango', description: 'Frescor no prato.', instructions: '...', category: 'Salada', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c', ingredients: [{name:'Frango Desfiado', quantity:'300g'}] },
+      { title: 'Pão de Queijo Mineiro', description: 'Tradição pura.', instructions: '...', category: 'Lanche', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6', ingredients: [{name:'Polvilho', quantity:'500g'}] },
+      { title: 'Pudim de Leite Condensado', description: 'A sobremesa favorita.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c', ingredients: [{name:'Leite Condensado', quantity:'1 lata'}] },
+      { title: 'Escondidinho de Carne Seca', description: 'Sabor marcante.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41', ingredients: [{name:'Mandioca', quantity:'1kg'}] },
+      { title: 'Brigadeiro Gourmet', description: 'Festa em casa.', instructions: '...', category: 'Doces', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32', ingredients: [{name:'Chocolate', quantity:'1 barra'}] },
+      { title: 'Risoto de Cogumelos', description: 'Elegância e sabor.', instructions: '...', category: 'Italiana', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371', ingredients: [{name:'Arroz Arbóreo', quantity:'200g'}] },
+      { title: 'Tapioca com Queijo e Presunto', description: 'Rápido e leve.', instructions: '...', category: 'Lanche', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1541014741259-de529411b96a', ingredients: [{name:'Goma de Tapioca', quantity:'100g'}] },
+      { title: 'Torta de Limão', description: 'Azedinho doce.', instructions: '...', category: 'Sobremesa', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1519915028121-7d3463d20b13', ingredients: [{name:'Limão', quantity:'3un'}] },
+      { title: 'Frango com Quiabo', description: 'Clássico mineiro.', instructions: '...', category: 'Brasileira', difficulty: 'Média', image_url: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d', ingredients: [{name:'Quiabo', quantity:'300g'}] },
+      { title: 'Mousse de Maracujá', description: 'Leveza tropical.', instructions: '...', category: 'Sobremesa', difficulty: 'Fácil', image_url: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e', ingredients: [{name:'Maracujá', quantity:'2un'}] }
     ];
 
     try {
       // Buscar títulos existentes para evitar duplicatas
-      const { data: existingRecipes } = await supabase
-        .from('recipes')
-        .select('title');
-      
-      const existingTitles = new Set((existingRecipes || []).map(r => r.title.toLowerCase().trim()));
+      const { data: existingRecipes } = await supabase.from('recipes').select('title');
+      const existingSet = new Set((existingRecipes || []).map(r => normalize(r.title)));
 
       const finalRecipes = [];
       let addedCount = 0;
@@ -220,13 +172,10 @@ export function RecipeManager() {
         const baseTitle = template.title;
         
         // Só adiciona se o título (sem o sufixo anterior) não existir
-        if (!existingTitles.has(baseTitle.toLowerCase().trim())) {
-          finalRecipes.push({
-            ...template,
-            title: baseTitle,
-            image_url: `${template.image_url.split('?')[0]}?w=800&h=400&fit=crop&sig=${i}`
-          });
-          existingTitles.add(baseTitle.toLowerCase().trim());
+        const nTitle = normalize(baseTitle);
+        if (!existingSet.has(nTitle)) {
+          finalRecipes.push({ ...template, title: baseTitle });
+          existingSet.add(nTitle);
           addedCount++;
         }
       }
