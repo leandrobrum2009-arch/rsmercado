@@ -47,17 +47,9 @@
                                error.message?.includes('schema cache') || 
                                error.message?.includes('404');
 
-         if (isMissingTable) {
-           toast.error(
-             <div className="flex flex-col gap-2">
-               <p>A tabela de configurações (store_settings) não foi encontrada.</p>
-               <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
-                 Reparar Banco de Dados
-               </Button>
-             </div>,
-             { duration: 10000 }
-           );
-         }
+          if (isMissingTable) {
+            window.location.href = '/admin-fix';
+          }
          setIsLoading(false);
          return;
        }
