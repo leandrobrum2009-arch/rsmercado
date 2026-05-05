@@ -60,15 +60,24 @@
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
         const filePath = `store/${fileName}`
 
-        const { data, error } = await supabase.storage
-          .from('products') // Using 'products' bucket as it's already configured in Supabase
-          .upload(filePath, file)
+       // Ensure bucket exists or use a fallback
+       const bucketName = 'products';
+       
+       const { data: uploadData, error: uploadError } = await supabase.storage
+         .from(bucketName)
+         .upload(filePath, file, {
+           cacheControl: '3600',
+           upsert: true
+         })
 
-        if (error) throw error
+       if (uploadError) {
+         console.error('Upload error details:', uploadError);
+         throw new Error(`Erro no armazenamento: ${uploadError.message}. Verifique se o bucket '${bucketName}' permite uploads.`);
+       }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('products')
-          .getPublicUrl(filePath)
+       const { data: { publicUrl } } = supabase.storage
+         .from(bucketName)
+         .getPublicUrl(filePath)
 
         setSettings({ ...settings, logo_url: publicUrl })
         toast.success('Logomarca carregada com sucesso!')
@@ -82,13 +91,14 @@
    const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
-     // Basic URL validation
-     if (settings.logo_url && !settings.logo_url.startsWith('http')) {
-       return toast.error('URL da logomarca inválida');
-     }
- 
      setIsSaving(true)
      try {
+       const { data: isAdmin } = await supabase.rpc('is_admin');
+       const { data: { session } } = await supabase.auth.getSession();
+       if (!isAdmin && session?.user?.email !== 'leandrobrum2009@gmail.com') {
+         throw new Error('Sem permissão administrativa no banco de dados.');
+       }
+
        const updates = [
          { key: 'site_name', value: settings.site_name },
          { key: 'logo_url', value: settings.logo_url },
@@ -98,19 +108,22 @@
          { key: 'opening_hours', value: settings.opening_hours },
          { key: 'instagram_url', value: settings.instagram_url },
          { key: 'facebook_url', value: settings.facebook_url },
-          { key: 'store_description', value: settings.store_description },
-          { key: 'points_ratio', value: settings.points_ratio }
+         { key: 'store_description', value: settings.store_description },
+         { key: 'points_ratio', value: settings.points_ratio }
        ];
  
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
-       if (error) throw error;
+       if (error) {
+         console.error('Upsert error:', error);
+         throw error;
+       }
  
        toast.success('Configurações salvas com sucesso!');
        fetchSettings();
-     } catch (error) {
-       console.error(error)
-       toast.error('Erro ao salvar configurações')
+     } catch (error: any) {
+       console.error('Save error:', error)
+       toast.error('Erro ao salvar: ' + (error.message || 'Erro desconhecido'))
      } finally {
        setIsSaving(false)
      }
