@@ -189,7 +189,11 @@ DO $$ BEGIN
     CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
     CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
     CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
-    CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+     -- Drop any other potentially recursive policies
+     DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+     DROP POLICY IF EXISTS "Admins can do everything" ON public.user_roles;
+     
+     CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
     
     -- Admin policies
     DROP POLICY IF EXISTS "Admins manage everything" ON public.products;
