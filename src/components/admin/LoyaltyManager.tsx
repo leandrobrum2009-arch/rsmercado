@@ -112,7 +112,7 @@ export function LoyaltyManager() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-8">
-        <div className="bg-zinc-900 p-3 rounded-2xl text-white shadow-lg">
+        <div className="bg-zinc-900 p-3 rounded-lg text-white shadow-lg">
           <Trophy size={24} />
         </div>
         <div>
