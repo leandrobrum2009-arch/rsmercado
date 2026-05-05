@@ -54,7 +54,7 @@ export function ProductManagement() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
    const [newProduct, setNewProduct] = useState({
-     name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: ''
+      name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: ''
    })
   const [uploading, setUploading] = useState(false)
 
@@ -155,8 +155,9 @@ export function ProductManagement() {
        category_id: newProduct.category_id,
        image_url: newProduct.image_url,
        stock: parseInt(newProduct.stock) || 0,
-       points_value: parseInt(newProduct.points_value) || 0,
-       brand: newProduct.brand
+        points_value: parseInt(newProduct.points_value) || 0,
+        brand: newProduct.brand,
+        tags: newProduct.tags ? newProduct.tags.split(',').map(t => t.trim()) : []
      };
 
     let { error } = await supabase.from('products').insert([productToInsert])
@@ -175,7 +176,7 @@ export function ProductManagement() {
       toast.error('Falha ao salvar produto. Verifique sua conexão e permissões.')
     } else {
        toast.success('Produto adicionado!')
-       setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '' })
+        setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '' })
        fetchData()
     }
   }
@@ -267,6 +268,10 @@ export function ProductManagement() {
                 <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
                   <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                </div>
+                <div className="space-y-2 col-span-2 md:col-span-1">
+                  <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
+                  <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                 </div>
                 <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>

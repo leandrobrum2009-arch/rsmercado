@@ -15,11 +15,12 @@
  import { toast } from "@/lib/toast";
 import { SmartImage } from "./ui/SmartImage";
  
- interface ProductProps {
-    product: any;
- }
+  interface ProductProps {
+     product: any;
+     multiplier?: number;
+  }
  
- export const ProductCard = ({ product }: ProductProps) => {
+  export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
    const { addToCart, items, updateQuantity } = useCart();
    const cartItem = items.find(i => i.id === product.id);
  
@@ -44,9 +45,9 @@ import { SmartImage } from "./ui/SmartImage";
                  {tag}
                </div>
              ))}
-            {product.points_value > 0 && (
+            {(product.points_value > 0 || (product.price * multiplier) > 0) && (
               <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                +{product.points_value} PTS
+                +{product.points_value > 0 ? product.points_value : Math.floor(product.price * multiplier)} PTS
               </div>
             )}
             {product.categories?.name && (

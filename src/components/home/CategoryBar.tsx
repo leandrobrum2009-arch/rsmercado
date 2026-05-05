@@ -37,10 +37,11 @@ const iconMap: Record<string, any> = {
 };
 
 const fallbackCategories = [
+  { name: "Mercearia", slug: "mercearia" },
+  { name: "Bebidas", slug: "bebidas" },
   { name: "Hortifruti", slug: "hortifruti" },
   { name: "Padaria", slug: "padaria" },
   { name: "Carnes", slug: "acougue" },
-  { name: "Bebidas", slug: "bebidas" },
   { name: "Laticínios", slug: "laticinios" },
   { name: "Limpeza", slug: "limpeza" },
   { name: "Pet Shop", slug: "pet-shop" },
@@ -54,11 +55,22 @@ export const CategoryBar = () => {
     const fetchCategories = async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
-        .order('name');
+        .select('*');
       
       if (data && data.length > 0) {
-        setCategories(data);
+        // Sort prioritizing specific categories
+        const prioritized = ["Mercearia", "Bebidas"];
+        const sorted = [...data].sort((a, b) => {
+          const aIndex = prioritized.indexOf(a.name);
+          const bIndex = prioritized.indexOf(b.name);
+          
+          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          
+          return a.name.localeCompare(b.name);
+        });
+        setCategories(sorted);
       } else {
         setCategories(fallbackCategories);
       }

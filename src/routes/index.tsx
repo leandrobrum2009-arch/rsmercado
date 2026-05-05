@@ -75,7 +75,7 @@ export const Route = createFileRoute("/")({
         {/* AI Generator Prominent Banner */}
         <AiRecipeBanner />
 
-        <ProductGrid title="Ingredientes em Oferta" />
+        <ProductGrid title="Ingredientes em Oferta" categoryName="Hortifruti" />
 
         {/* PWA Install Banner */}
         <div className="px-4 py-2">
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/")({
           </Link>
         </div>
 
-        <ProductGrid title="Destaques" />
+        <ProductGrid title="Destaques da Mercearia" categoryName="Mercearia" />
  
         {/* Encartes Digitais - Moved down */}
         <div className="px-4 py-4">
@@ -129,7 +129,7 @@ export const Route = createFileRoute("/")({
           </div>
         </div>
 
-        <ProductGrid title="Mais Vendidos" />
+        <ProductGrid title="Bebidas Mais Vendidas" categoryName="Bebidas" />
  
        {/* First Purchase Coupon */}
        <div className="px-4 py-6">
@@ -145,7 +145,7 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-       <ProductGrid title="Ofertas de Limpeza" />
+        <ProductGrid title="Ofertas de Limpeza" categoryName="Limpeza" />
      </div>
    );
  }

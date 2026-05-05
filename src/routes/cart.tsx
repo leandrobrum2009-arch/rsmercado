@@ -17,7 +17,7 @@ function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [isProcessing, setIsProcessing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
-  const [pointsRatio, setPointsRatio] = useState(1);
+  const [pointsMultiplier, setPointsMultiplier] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,9 +34,10 @@ function CartPage() {
     };
 
     const fetchSettings = async () => {
-      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_ratio').maybeSingle();
-      if (data) {
-        setPointsRatio(Number(data.value) || 1);
+      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
+      if (data && data.value) {
+        const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
+        setPointsMultiplier(Number(val) || 1);
       }
     };
 
@@ -77,20 +78,33 @@ function CartPage() {
     setIsProcessing(true);
     try {
       // 1. Create Order
-      const { data: order, error: orderError } = await supabase
+      const orderPayload: any = {
+        user_id: profile.id,
+        total_amount: total,
+        payment_method: paymentMethod,
+        status: 'pending',
+        points_earned: Math.floor(total * pointsMultiplier),
+        customer_name: profile.full_name,
+        customer_phone: profile.whatsapp
+      };
+
+      let { data: order, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: profile.id,
-          total_amount: total,
-          payment_method: paymentMethod,
-          status: 'pending',
-           points_earned: Math.floor(total * pointsRatio),
-           // Adding these just in case they are expected by the schema now or in the future
-           customer_name: profile.full_name,
-           customer_phone: profile.whatsapp
-        })
+        .insert(orderPayload)
         .select()
         .single();
+
+      if (orderError && orderError.message.includes('column')) {
+        console.warn('Falling back to minimal order insert');
+        const { customer_name, customer_phone, ...minimalPayload } = orderPayload;
+        const result = await supabase
+          .from('orders')
+          .insert(minimalPayload)
+          .select()
+          .single();
+        order = result.data;
+        orderError = result.error;
+      }
 
       if (orderError) throw orderError;
 
@@ -117,7 +131,7 @@ function CartPage() {
       
        const waResult = await sendWhatsAppMessage(profile.whatsapp, message);
  
-       toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsRatio)} pontos.`);
+       toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
       clearCart();
       navigate({ to: "/profile" });
     } catch (error: any) {
