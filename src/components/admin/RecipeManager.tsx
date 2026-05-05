@@ -303,7 +303,7 @@ export function RecipeManager() {
                       <span className="font-black text-xs uppercase italic tracking-tighter">{item.title}</span>
                     </div>
                   </TableCell>
-                  <TableCell><span className="text-[10px] font-bold uppercase bg-zinc-100 px-2 py-1 rounded-full">{item.category}</span></TableCell>
+                  <TableCell><span className="text-[10px] font-bold uppercase bg-zinc-100 px-2 py-1 rounded-md">{item.category}</span></TableCell>
                   <TableCell className="text-center"><span className="text-[10px] font-black uppercase">{item.difficulty}</span></TableCell>
                   <TableCell className="text-right pr-6">
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 rounded-xl">
@@ -320,7 +320,7 @@ export function RecipeManager() {
       <Dialog open={isAiModalOpen} onOpenChange={setIsAiModalOpen}>
         <DialogContent className="max-w-md rounded-3xl border-4 border-purple-100">
           <DialogHeader>
-            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-2">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
               <Sparkles className="text-purple-600" size={24} />
             </div>
             <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Gerador Gourmet IA</DialogTitle>
