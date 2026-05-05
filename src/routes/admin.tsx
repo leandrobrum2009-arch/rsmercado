@@ -152,10 +152,7 @@ function RouteComponent() {
             { id: 'offers', label: 'Gestão de Ofertas', icon: Percent },
             { id: 'banners', label: 'Banners', icon: ImageIcon },
                { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-                <TabsContent value="offers" className="mt-0 focus-visible:ring-0">
-                  <OfferManager />
-                </TabsContent>
-              { id: 'recipes', label: 'Receitas', icon: ChefHat },
+               { id: 'recipes', label: 'Receitas', icon: ChefHat },
               { id: 'notifications', label: 'Notificações', icon: Bell },
               { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
            ]
@@ -273,9 +270,12 @@ function RouteComponent() {
                  <TabsContent value="delivery_report" className="mt-0 focus-visible:ring-0">
                    <DeliveryReport />
                  </TabsContent>
-                 <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
-                   <HomeLayoutManager />
-                 </TabsContent>
+                  <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
+                    <HomeLayoutManager />
+                  </TabsContent>
+                  <TabsContent value="offers" className="mt-0 focus-visible:ring-0">
+                    <OfferManager />
+                  </TabsContent>
             </Tabs>
           </div>
         </main>
