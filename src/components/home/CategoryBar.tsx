@@ -7,7 +7,9 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const getIcon = (cat: any) => {
+const getIconConfig = (cat: any) => {
+  const [name, style] = (cat.icon_name || "").split(":");
+  
   const icons: Record<string, any> = {
     Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
     ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
@@ -21,7 +23,14 @@ const getIcon = (cat: any) => {
     "Infantil": Baby, "Perfumaria": Bath, "Floricultura": Flower2
   };
   
-  return icons[cat.icon_name] || icons[cat.name] || ShoppingBag;
+  const IconComponent = icons[name] || icons[cat.name] || ShoppingBag;
+  
+  let strokeWidth = 1.5;
+  if (style === "bold") strokeWidth = 2.5;
+  if (style === "classic") strokeWidth = 2.0;
+  if (style === "thin") strokeWidth = 1.0;
+  
+  return { IconComponent, strokeWidth };
 };
 
 const fallbackCategories = [
@@ -92,7 +101,7 @@ export const CategoryBar = () => {
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
-                   const IconComponent = getIcon(cat);
+                   const { IconComponent, strokeWidth } = getIconConfig(cat);
                  return (
                    <button
                      key={cat.slug}
@@ -102,9 +111,9 @@ export const CategoryBar = () => {
                       <div className="w-16 h-16 rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         {cat.icon_url ? (
-                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10" alt={cat.name} />
+                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10 brightness-0 opacity-40 group-hover:brightness-100 group-hover:opacity-100 transition-all" alt={cat.name} />
                         ) : (
-                          <IconComponent size={24} strokeWidth={1.5} className="transition-colors relative z-10" />
+                          <IconComponent size={24} strokeWidth={strokeWidth} className="transition-colors relative z-10" />
                         )}
                       </div>
                      <span className="text-[10px] font-black uppercase tracking-tight text-zinc-500 group-hover:text-zinc-900 text-center transition-colors">
