@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, ChefHat, Plus, ChefHatIcon, Info } from 'lucide-react'
+import { Loader2, ChefHat, Plus, ChefHatIcon, Info, AlertCircle } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { useCart } from '@/contexts/CartContext'
 
