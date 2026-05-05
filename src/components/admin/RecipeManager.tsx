@@ -118,36 +118,81 @@ export function RecipeManager() {
     setIsLoading(true)
     toast.info('Iniciando cadastro em massa de 40 receitas...')
     
-    const brazilianDishes = [
-      'Feijoada Completa', 'Moqueca Baiana', 'Coxinha de Frango', 'Pão de Queijo Mineiro',
-      'Brigadeiro Gourmet', 'Farofa de Bacon', 'Bolo de Cenoura com Calda', 'Arroz Carreteiro',
-      'Escondidinho de Carne Seca', 'Vaca Atolada', 'Tapioca Recheada', 'Açaí na Tigela',
-      'Quindim Tradicional', 'Mousse de Maracujá', 'Pudim de Leite Moça', 'Salpicão de Frango',
-      'Maionese de Domingo', 'Churrasco Gaúcho', 'Pastel de Feira', 'Tacacá do Norte',
-      'Acarajé Crocante', 'Baião de Dois', 'Galinhada Goiana', 'Peixe na Telha',
-      'Bobó de Camarão', 'Caldo Verde', 'Canjica Doce', 'Pamonha de Milho Verde',
-      'Curau Cremoso', 'Bolinha de Queijo', 'Kibe Assado', 'Pizza de Calabresa',
-      'Lasanha Bolonhesa', 'Strogonoff de Frango', 'Frango com Quiabo', 'Dobradinha',
-      'Sarapatel', 'Buchada de Bode', 'Arroz Doce Cremoso', 'Romeu e Julieta'
-    ]
+    const detailedTemplates = [
+      {
+        title: 'Feijoada Completa Tradicional',
+        description: 'A clássica feijoada brasileira com carnes selecionadas e o tempero caseiro que todos amam.',
+        instructions: '1. Deixe o feijão de molho por 12h.\n2. Cozinhe as carnes salgadas separadamente.\n3. Cozinhe o feijão preto com louro.\n4. Junte as carnes ao feijão e deixe apurar.\n5. Refogue alho, cebola e bacon para temperar.',
+        category: 'Brasileira',
+        difficulty: 'Difícil',
+        image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
+        ingredients: [
+          { name: 'Feijão Preto', quantity: '1kg' },
+          { name: 'Paio', quantity: '200g' },
+          { name: 'Carne Seca', quantity: '300g' },
+          { name: 'Costelinha de Porco', quantity: '500g' },
+          { name: 'Cebola', quantity: '2 unidades' }
+        ]
+      },
+      {
+        title: 'Strogonoff de Frango Cremoso',
+        description: 'Um prato rápido, prático e delicioso para o dia a dia.',
+        instructions: '1. Corte o frango em cubos e tempere.\n2. Refogue o frango até dourar.\n3. Adicione cebola e cogumelos.\n4. Misture o ketchup, mostarda e molho inglês.\n5. Finalize com creme de leite sem ferver.',
+        category: 'Almoço Especial',
+        difficulty: 'Fácil',
+        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
+        ingredients: [
+          { name: 'Peito de Frango', quantity: '500g' },
+          { name: 'Creme de Leite', quantity: '1 lata' },
+          { name: 'Champignon', quantity: '100g' },
+          { name: 'Ketchup', quantity: '3 colheres' },
+          { name: 'Batata Palha', quantity: '1 pacote' }
+        ]
+      },
+      {
+        title: 'Bolo de Cenoura com Chocolate',
+        description: 'O lanche perfeito: massa fofinha de cenoura com cobertura crocante de chocolate.',
+        instructions: '1. Bata no liquidificador cenouras, ovos e óleo.\n2. Misture açúcar e farinha de trigo à mão.\n3. Adicione o fermento suavemente.\n4. Asse por 40 min.\n5. Prepare a calda com chocolate e manteiga.',
+        category: 'Sobremesa',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80',
+        ingredients: [
+          { name: 'Cenoura', quantity: '3 unidades' },
+          { name: 'Ovo', quantity: '3 unidades' },
+          { name: 'Farinha de Trigo', quantity: '2 xícaras' },
+          { name: 'Chocolate em Pó', quantity: '1 xícara' },
+          { name: 'Leite', quantity: '1/2 xícara' }
+        ]
+      },
+      {
+        title: 'Moqueca de Peixe Capixaba',
+        description: 'O verdadeiro sabor do mar com azeite de dendê e leite de coco.',
+        instructions: '1. Tempere o peixe com limão e sal.\n2. Refogue tomate, cebola e coentro.\n3. Disponha as postas de peixe.\n4. Regue com leite de coco e dendê.\n5. Cozinhe por 15 minutos sem mexer muito.',
+        category: 'Brasileira',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
+        ingredients: [
+          { name: 'Postas de Peixe', quantity: '1kg' },
+          { name: 'Leite de Coco', quantity: '200ml' },
+          { name: 'Azeite de Dendê', quantity: '2 colheres' },
+          { name: 'Pimentão', quantity: '1 unidade' },
+          { name: 'Coentro', quantity: '1 maço' }
+        ]
+      }
+    ];
 
-    const categories = ['Brasileira', 'Sobremesa', 'Lanche', 'Almoço Especial']
-    
-    const mockRecipes = brazilianDishes.map((title, i) => ({
-      title: title,
-      description: `O segredo do melhor ${title} que você já provou. Uma receita que passa de geração em geração.`,
-      instructions: `1. Limpe e pique os ingredientes.\n2. Inicie o refogado com alho e cebola.\n3. Adicione os itens principais e cozinhe em fogo brando.\n4. Ajuste o sal e sirva com acompanhamentos frescos.`,
-      category: categories[i % categories.length],
-      difficulty: i % 3 === 0 ? 'Fácil' : i % 3 === 1 ? 'Média' : 'Difícil',
-      image_url: `https://images.unsplash.com/photo-${1504674900247 - i * 1000}?w=800&h=400&fit=crop`,
-      ingredients: [
-        { name: 'Ingrediente Principal', quantity: '500g' },
-        { name: 'Temperos da Casa', quantity: 'a gosto' }
-      ]
-    }))
+    const finalRecipes = [];
+    for(let i = 0; i < 40; i++) {
+      const template = detailedTemplates[i % detailedTemplates.length];
+      finalRecipes.push({
+        ...template,
+        title: `${template.title} #${Math.floor(i/detailedTemplates.length) + 1}`,
+        image_url: `${template.image_url.split('?')[0]}?w=800&h=400&fit=crop&sig=${i}`
+      });
+    }
 
     try {
-      const { error } = await supabase.from('recipes').insert(mockRecipes)
+      const { error } = await supabase.from('recipes').insert(finalRecipes)
       if (error) throw error
       toast.success('40 receitas brasileiras cadastradas com sucesso!')
       fetchRecipes()

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2, ChefHat, Plus, ChefHatIcon, Info } from 'lucide-react'
+import { Loader2, ChefHat, Plus, ChefHatIcon, Info, AlertCircle } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { useCart } from '@/contexts/CartContext'
 
@@ -53,28 +53,49 @@ export function RecipeSuggestions({ cartItems }: { cartItems: any[] }) {
     }
   }
 
-  const addMissingToCart = async (missingIngredients: any[]) => {
-    toast.info('Buscando produtos para completar sua receita...')
-    
-    let addedCount = 0
-    for (const ing of missingIngredients) {
-      // Try to find a matching product in the database
-      const { data: products } = await supabase
-        .from('products')
-        .select('*')
-        .ilike('name', `%${ing.name}%`)
-        .limit(1)
+  const [checkingStock, setCheckingStock] = useState<Record<string, boolean>>({})
+  const [stockStatus, setStockStatus] = useState<Record<string, any>>({})
 
-      if (products && products.length > 0) {
-        addToCart(products[0])
+  useEffect(() => {
+    const checkAllStock = async () => {
+      const status: Record<string, any> = {}
+      for (const recipe of suggestions) {
+        for (const ing of recipe.missing) {
+          if (status[ing.name]) continue
+          const { data } = await supabase
+            .from('products')
+            .select('*')
+            .ilike('name', `%${ing.name}%`)
+            .limit(1)
+          status[ing.name] = data && data.length > 0 ? data[0] : null
+        }
+      }
+      setStockStatus(status)
+    }
+    if (suggestions.length > 0) {
+      checkAllStock()
+    }
+  }, [suggestions])
+
+  const addMissingToCart = async (missingIngredients: any[]) => {
+    let addedCount = 0
+    let missingFromStore: string[] = []
+
+    for (const ing of missingIngredients) {
+      const product = stockStatus[ing.name]
+      if (product) {
+        addToCart(product)
         addedCount++
       } else {
-        toast.error(`Não encontramos "${ing.name}" em nosso estoque.`)
+        missingFromStore.push(ing.name)
       }
     }
 
     if (addedCount > 0) {
       toast.success(`${addedCount} produtos adicionados para completar sua receita!`)
+    }
+    if (missingFromStore.length > 0) {
+      toast.error(`Infelizmente não temos: ${missingFromStore.join(', ')} em nosso estoque no momento.`, { duration: 5000 })
     }
   }
 
@@ -113,26 +134,38 @@ export function RecipeSuggestions({ cartItems }: { cartItems: any[] }) {
                 </div>
                 <p className="text-[10px] text-gray-500 line-clamp-2">{recipe.description}</p>
                 
-                {recipe.missing.length > 0 ? (
-                  <div className="pt-1">
-                    <p className="text-[9px] font-bold text-amber-600 uppercase">Falta para fazer:</p>
-                    <p className="text-[9px] text-gray-400">
-                      {recipe.missing.map((m: any) => m.name).join(', ')}
-                    </p>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 text-[8px] font-black uppercase mt-1 p-0 hover:bg-transparent hover:text-green-600"
-                      onClick={() => addMissingToCart(recipe.missing)}
-                    >
-                      <Plus size={10} className="mr-1" /> Completar Ingredientes
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-[9px] font-black text-green-600 uppercase pt-1">
-                    <ChefHatIcon size={12} /> Você tem tudo que precisa!
-                  </div>
-                )}
+                <div className="pt-2">
+                  {recipe.missing.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-bold text-amber-600 uppercase flex items-center gap-1">
+                        <AlertCircle size={10} /> Itens Faltantes:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {recipe.missing.map((m: any) => (
+                          <Badge 
+                            key={m.name} 
+                            variant="secondary" 
+                            className={`text-[8px] px-1 py-0 h-4 border-0 ${stockStatus[m.name] ? 'bg-zinc-100 text-zinc-600' : 'bg-red-50 text-red-500 line-through'}`}
+                          >
+                            {m.name}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full h-8 text-[9px] font-black uppercase rounded-xl bg-green-600 hover:bg-green-700 shadow-lg shadow-green-100"
+                        onClick={() => addMissingToCart(recipe.missing)}
+                      >
+                        <Plus size={12} className="mr-1" /> Adicionar Faltantes ao Carrinho
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-[9px] font-black text-green-600 uppercase bg-green-50 p-2 rounded-xl border border-green-100">
+                      <ChefHatIcon size={12} /> Você tem todos os ingredientes!
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </Card>

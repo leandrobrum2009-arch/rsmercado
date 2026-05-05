@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Sparkles, BrainCircuit, Plus, Save } from 'lucide-react'
+import { Loader2, BookOpen, Clock, ChefHat, Bookmark, BookmarkCheck, Share2, Sparkles, BrainCircuit, Plus, Save, ShoppingCart, Info, AlertCircle } from 'lucide-react'
+import { useCart } from '@/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/lib/toast'
 import { Label } from '@/components/ui/label'
@@ -44,6 +45,7 @@ export const Route = createFileRoute('/recipes')({
 
 function RecipesPage() {
   const { recipes: allRecipes } = Route.useLoaderData()
+  const { items: cartItems, addToCart } = useCart()
   const [selectedCategory, setSelectedCategory] = useState('Todas')
    const categories = ['Todas', 'Favoritas', ...Array.from(new Set(allRecipes.map((r: any) => r.category)))]
    const filteredRecipes = selectedCategory === 'Todas' 
@@ -151,6 +153,52 @@ function RecipesPage() {
     }
   }
 
+
+  const [stockStatus, setStockStatus] = useState<Record<string, any>>({})
+
+  useEffect(() => {
+    const checkStockForSelected = async () => {
+      if (!selectedRecipe) return
+      const status: Record<string, any> = {}
+      const ingredients = selectedRecipe.ingredients || []
+      for (const ing of ingredients) {
+        const { data } = await supabase
+          .from('products')
+          .select('*')
+          .ilike('name', `%${ing.name}%`)
+          .limit(1)
+        status[ing.name] = data && data.length > 0 ? data[0] : null
+      }
+      setStockStatus(status)
+    }
+    checkStockForSelected()
+  }, [selectedRecipe])
+
+  const handleAddMissingToCart = async (ingredients: any[]) => {
+    let addedCount = 0
+    let missingFromStore: string[] = []
+    const cartNames = cartItems.map(item => item.name.toLowerCase())
+
+    for (const ing of ingredients) {
+      const isInCart = cartNames.some(cn => cn.includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(cn))
+      if (isInCart) continue
+
+      const product = stockStatus[ing.name]
+      if (product) {
+        addToCart(product)
+        addedCount++
+      } else {
+        missingFromStore.push(ing.name)
+      }
+    }
+
+    if (addedCount > 0) {
+      toast.success(`${addedCount} produtos adicionados ao seu carrinho!`)
+    }
+    if (missingFromStore.length > 0) {
+      toast.error(`Não encontramos em estoque: ${missingFromStore.join(', ')}`, { duration: 5000 })
+    }
+  }
 
   return (
     <div className="bg-zinc-50 min-h-screen pb-20">
@@ -283,20 +331,52 @@ function RecipesPage() {
                     </div>
                   </div>
                   
-                  <div className="space-y-6">
-                    <div className="bg-green-50 p-6 rounded-3xl border border-green-100">
-                      <h4 className="font-black uppercase text-[10px] tracking-widest text-green-600 mb-4">Itens Necessários</h4>
+                  <div className="space-y-4">
+                    <div className="bg-zinc-50 p-6 rounded-3xl border-2 border-zinc-100">
+                      <h4 className="font-black uppercase text-[10px] tracking-widest text-zinc-400 mb-4">Checklist de Ingredientes</h4>
                       <ul className="space-y-3">
-                        {(selectedRecipe.ingredients || []).map((ing: any, i: number) => (
-                          <li key={i} className="flex flex-col border-b border-green-100/50 pb-2 last:border-0">
-                            <span className="text-xs font-black uppercase text-zinc-900 leading-tight">{ing.name}</span>
-                            <span className="text-[10px] font-bold text-green-600/70">{ing.quantity}</span>
-                          </li>
-                        ))}
+                        {(selectedRecipe.ingredients || []).map((ing: any, i: number) => {
+                          const cartNames = cartItems.map(item => item.name.toLowerCase());
+                          const isInCart = cartNames.some(cn => cn.includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(cn));
+                          const existsInStore = stockStatus[ing.name] !== null;
+                          
+                          return (
+                            <li key={i} className="flex items-center justify-between border-b border-zinc-200/50 pb-2 last:border-0">
+                              <div className="flex flex-col">
+                                <span className={`text-xs font-black uppercase leading-tight ${isInCart ? 'text-green-600 line-through' : 'text-zinc-900'}`}>
+                                  {ing.name}
+                                </span>
+                                <span className="text-[10px] font-bold text-zinc-400">{ing.quantity}</span>
+                              </div>
+                              {isInCart ? (
+                                <Badge className="bg-green-100 text-green-600 text-[8px] border-0">No Carrinho</Badge>
+                              ) : !existsInStore ? (
+                                <Badge className="bg-red-50 text-red-500 text-[8px] border-0">Indisponível</Badge>
+                              ) : (
+                                <Badge className="bg-amber-50 text-amber-600 text-[8px] border-0">Faltando</Badge>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
+                      
+                      <Button 
+                        className="w-full mt-6 h-12 bg-green-600 hover:bg-green-700 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-green-100"
+                        onClick={() => handleAddMissingToCart(selectedRecipe.ingredients || [])}
+                      >
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Adicionar Faltantes
+                      </Button>
                     </div>
-                    <Button className="w-full h-12 bg-zinc-900 rounded-2xl font-black uppercase text-[10px] tracking-widest" onClick={() => setSelectedRecipe(null)}>
-                      Fechar Leitura
+
+                    <div className="bg-amber-50 p-4 rounded-2xl flex gap-3 border border-amber-100">
+                      <Info className="text-amber-600 shrink-0" size={18} />
+                      <p className="text-[9px] text-amber-800 font-medium leading-tight">
+                        O sistema identifica automaticamente os itens que você já tem no carrinho para facilitar sua compra!
+                      </p>
+                    </div>
+
+                    <Button variant="ghost" className="w-full h-10 rounded-2xl font-black uppercase text-[10px] tracking-widest text-zinc-400" onClick={() => setSelectedRecipe(null)}>
+                      Fechar
                     </Button>
                   </div>
                 </div>
