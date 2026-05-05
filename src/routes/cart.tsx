@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
-import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat } from "lucide-react";
+ import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +17,8 @@ function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [isProcessing, setIsProcessing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
   const navigate = useNavigate();
 
@@ -41,7 +43,40 @@ function CartPage() {
       }
     };
 
-    fetchProfile();
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        setProfile(profileData);
+
+        // Addresses
+        const { data: addrData } = await supabase
+          .from('user_addresses')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+        
+        setAddresses(addrData || []);
+        if (addrData && addrData.length > 0) {
+          setSelectedAddress(addrData.find(a => a.is_default) || addrData[0]);
+        }
+      }
+    };
+
+    const fetchSettings = async () => {
+      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
+      if (data && data.value) {
+        const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
+        setPointsMultiplier(Number(val) || 1);
+      }
+    };
+
+    fetchData();
     fetchSettings();
   }, []);
 
@@ -75,6 +110,12 @@ function CartPage() {
       return;
     }
 
+    if (!selectedAddress) {
+      toast.error("Por favor, adicione um endereço de entrega.");
+      navigate({ to: "/profile" });
+      return;
+    }
+
     setIsProcessing(true);
     try {
       // 1. Create Order
@@ -85,7 +126,8 @@ function CartPage() {
         status: 'pending',
         points_earned: Math.floor(total * pointsMultiplier),
         customer_name: profile.full_name,
-        customer_phone: profile.whatsapp
+        customer_phone: profile.whatsapp,
+        delivery_address: selectedAddress
       };
 
       let { data: order, error: orderError } = await supabase
