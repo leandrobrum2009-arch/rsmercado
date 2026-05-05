@@ -572,8 +572,17 @@ NOTIFY pgrst, 'reload schema';
                           <><Copy className="h-3 w-3 mr-1" /> COPIAR CÓDIGO</>
                         )}
                       </Button>
-                   </div>
-                   <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg">
+                    </div>
+ 
+                    <Button 
+                      onClick={copyToClipboard}
+                      className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black uppercase tracking-widest shadow-xl animate-bounce"
+                    >
+                      {copied ? <Check className="mr-2" /> : <Copy className="mr-2" />}
+                      {copied ? 'CÓDIGO COPIADO!' : 'CLIQUE AQUI PARA COPIAR O CÓDIGO'}
+                    </Button>
+ 
+                    <div className="p-4 bg-blue-600 text-white rounded-xl text-xs font-bold flex flex-col gap-3 shadow-lg mt-4">
                      <div className="flex items-start gap-3">
                        <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">1</div>
                        <p>COPIE todo o código acima (clique no botão de copiar).</p>
