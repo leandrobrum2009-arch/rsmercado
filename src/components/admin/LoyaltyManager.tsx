@@ -53,8 +53,9 @@ export function LoyaltyManager() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: settingsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
-      if (settingsData) {
+      // Fetch Settings
+      const { data: settingsData, error: sErr } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+      if (!sErr && settingsData) {
         const val = settingsData.value;
         if (typeof val === 'object' && val !== null) {
           setSettings(val);
@@ -63,14 +64,21 @@ export function LoyaltyManager() {
         }
       }
 
-      const { data: nData } = await supabase.from('delivery_neighborhoods').select('*').order('name')
-      setNeighborhoods(nData || [])
+      // Fetch Neighborhoods
+      const { data: nData, error: nErr } = await supabase.from('delivery_neighborhoods').select('*').order('name');
+      if (!nErr) setNeighborhoods(nData || []);
+      else console.error('Error fetching neighborhoods:', nErr);
 
-      const { data: rData } = await supabase.from('loyalty_rewards').select('*').order('points_cost')
-      setRewards(rData || [])
+      // Fetch Rewards
+      const { data: rData, error: rErr } = await supabase.from('loyalty_rewards').select('*').order('points_cost');
+      if (!rErr) setRewards(rData || []);
+      else console.error('Error fetching rewards:', rErr);
 
-      const { data: cData } = await supabase.from('weekly_challenges').select('*').order('start_date', { ascending: false })
-      setChallenges(cData || [])
+      // Fetch Challenges
+      const { data: cData, error: cErr } = await supabase.from('weekly_challenges').select('*').order('start_date', { ascending: false });
+      if (!cErr) setChallenges(cData || []);
+      else console.error('Error fetching challenges:', cErr);
+
     } catch (error) {
       console.error('Error fetching loyalty data:', error)
     } finally {
