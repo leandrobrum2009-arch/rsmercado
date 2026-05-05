@@ -124,19 +124,16 @@ function RouteComponent() {
          { id: 'importer', label: 'Importação', icon: Upload },
        ]
      },
-      {
-        title: 'Marketing e Conteúdo',
-        items: [
-          { id: 'banners', label: 'Banners', icon: ImageIcon },
-          { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-          { id: 'recipes', label: 'Receitas', icon: ChefHat },
-          { id: 'notifications', label: 'Notificações', icon: Bell },
-        ]
-      },
-               <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
-                 <NotificationManager />
-               </TabsContent>
-     {
+       {
+         title: 'Marketing e Conteúdo',
+         items: [
+           { id: 'banners', label: 'Banners', icon: ImageIcon },
+           { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+           { id: 'recipes', label: 'Receitas', icon: ChefHat },
+           { id: 'notifications', label: 'Notificações', icon: Bell },
+         ]
+       },
+       {
        title: 'Configurações e Integrações',
        items: [
            { id: 'settings', label: 'Dados da Loja', icon: Settings },
@@ -236,6 +233,9 @@ function RouteComponent() {
                 </TabsContent>
                 <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
                   <WebhookManager />
+                </TabsContent>
+                <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
+                  <NotificationManager />
                 </TabsContent>
             </Tabs>
           </div>
