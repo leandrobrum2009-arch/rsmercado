@@ -10,29 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
  import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare } from 'lucide-react'
  import { sendWhatsAppMessage } from '@/lib/whatsapp'
  import { toast } from '@/lib/toast'
-   const handleWhatsAppShare = async () => {
-     if (selectedProducts.length === 0) {
-       toast.error('Adicione produtos ao encarte primeiro')
-       return
-     }
- 
-     let message = `🔥 *OFERTAS DO DIA - ${storeSettings.site_name || 'RS SUPERMERCADO'}* 🔥\n\n`
-     
-     selectedProducts.forEach((p: any) => {
-       message += `📍 *${p.name}*\n`
-       message += `💰 Por apenas: *R$ ${p.price.toFixed(2)}*\n`
-       message += `➖➖\n`
-     })
- 
-     message += `\n🛒 *Peça agora pelo site:* ${window.location.origin}\n`
-     message += `📦 *Entregamos na sua casa!*`
- 
-     const url = `https://wa.me/?text=${encodeURIComponent(message)}`
-     window.open(url, '_blank')
-     
-     toast.success('WhatsApp aberto para compartilhamento!')
-   }
- 
 type FlyerProduct = {
   id: string
   name: string
