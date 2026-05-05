@@ -85,7 +85,18 @@
    const [topProducts, setTopProducts] = useState<any[]>([])
    const [peakHours, setPeakHours] = useState<any[]>([])
    const [demographics, setDemographics] = useState<any[]>([])
+   const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
    const [loading, setLoading] = useState(true)
+       // 5. Get low stock products
+       const { data: lowStock } = await supabase
+         .from('products')
+         .select('name, stock')
+         .lt('stock', 5)
+         .order('stock', { ascending: true })
+         .limit(3)
+       
+       setLowStockProducts(lowStock || [])
+ 
    const [timeRange, setTimeRange] = useState('month')
  
    useEffect(() => {
@@ -431,10 +442,21 @@
                <h4 className="font-black uppercase italic tracking-tighter text-lg mb-1 text-zinc-800">Público Feminino (55%)</h4>
                <p className="text-xs text-zinc-500 font-medium">Campanhas focadas em Hortifruti e Limpeza performam melhor.</p>
              </div>
-             <div className="p-4 bg-amber-50 rounded-3xl border border-amber-100 relative overflow-hidden group cursor-pointer">
-               <h4 className="font-black uppercase italic tracking-tighter text-lg mb-1 text-amber-900">3 Itens Sem Estoque</h4>
-               <p className="text-xs text-amber-700 font-medium">Arroz, Feijão e Leite estão com níveis críticos. Reponha agora!</p>
-             </div>
+             {lowStockProducts.length > 0 ? (
+               <div className="p-4 bg-amber-50 rounded-3xl border border-amber-100 relative overflow-hidden group cursor-pointer" onClick={() => window.location.hash = '#products'}>
+                 <h4 className="font-black uppercase italic tracking-tighter text-lg mb-1 text-amber-900">
+                   {lowStockProducts.length} {lowStockProducts.length === 1 ? 'Item com' : 'Itens com'} Baixo Estoque
+                 </h4>
+                 <p className="text-xs text-amber-700 font-medium">
+                   {lowStockProducts.map(p => `${p.name} (${p.stock} un)`).join(', ')}... Reponha agora!
+                 </p>
+               </div>
+             ) : (
+               <div className="p-4 bg-green-50 rounded-3xl border border-green-100 relative overflow-hidden group cursor-pointer">
+                 <h4 className="font-black uppercase italic tracking-tighter text-lg mb-1 text-green-900">Estoque em Dia</h4>
+                 <p className="text-xs text-green-700 font-medium">Todos os seus principais produtos estão com bons níveis de estoque.</p>
+               </div>
+             )}
            </CardContent>
          </Card>
        </div>
