@@ -29,25 +29,36 @@
  
     const fetchSettings = async () => {
       setIsLoading(true)
-      try {
-        const { data, error } = await supabase.from('store_settings').select('*')
-        
-         if (error) {
-           console.error('Error fetching settings:', error);
-           if (error.message.includes('relation "store_settings" does not exist') || error.message.includes('schema cache')) {
-             toast.error(
-               <div className="flex flex-col gap-2">
-                 <p>A tabela de configurações (store_settings) não foi encontrada.</p>
-                 <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
-                   Reparar Banco de Dados
-                 </Button>
-               </div>,
-               { duration: 10000 }
-             );
-           }
-           setIsLoading(false);
-           return;
+       let data = null;
+       let error = null;
+       try {
+         const response = await supabase.from('store_settings').select('*');
+         data = response.data;
+         error = response.error;
+       } catch (err: any) {
+         error = err;
+       }
+
+       if (error) {
+         console.error('Error fetching settings:', error);
+         const isMissingTable = error.message?.includes('relation "store_settings" does not exist') || 
+                               error.message?.includes('schema cache') || 
+                               error.message?.includes('404');
+
+         if (isMissingTable) {
+           toast.error(
+             <div className="flex flex-col gap-2">
+               <p>A tabela de configurações (store_settings) não foi encontrada.</p>
+               <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
+                 Reparar Banco de Dados
+               </Button>
+             </div>,
+             { duration: 10000 }
+           );
          }
+         setIsLoading(false);
+         return;
+       }
 
         if (data) {
           const newSettings = { ...settings }
