@@ -37,15 +37,15 @@ export function WhatsAppManager() {
   const suggestedTemplates = [
     { 
       name: '🚀 Ofertas da Semana', 
-      content: '📢 *O NOVO ENCARTE CHEGOU!* 📢\n\nConfira as melhores ofertas que preparamos para você esta semana.\n\n🛒 Acesse agora: ' + window.location.origin + '\n\n*RS Supermercado - Qualidade e Preço Baixo!*' 
+      content: '📢 *O NOVO ENCARTE CHEGOU!* 📢\n\nOlá {{nome}}! Confira as melhores ofertas que preparamos para você esta semana.\n\n🛒 Acesse agora: ' + window.location.origin + '\n\n*RS Supermercado - Qualidade e Preço Baixo!*' 
     },
     { 
       name: '🥩 Promoção Açougue', 
-      content: '🥩 *DIA DE CHURRASCO!* 🥩\n\nAs melhores carnes com os melhores preços estão aqui. Venha conferir nossa seleção especial de hoje.\n\n📍 ' + window.location.origin + '\n\n*Aproveite enquanto durarem os estoques!*' 
+      content: '🥩 *DIA DE CHURRASCO!* 🥩\n\nOlá {{nome}}, as melhores carnes com os melhores preços estão aqui. Venha conferir nossa seleção especial de hoje.\n\n📍 ' + window.location.origin + '\n\n*Aproveite enquanto durarem os estoques!*' 
     },
     { 
       name: '🎁 Cupom de Desconto', 
-      content: '🎁 *UM PRESENTE PRA VOCÊ!* 🎁\n\nUse o cupom *VOLTEI5* e ganhe 5% de desconto na sua próxima compra pelo site.\n\n👉 Compre aqui: ' + window.location.origin + '\n\n*Válido por tempo limitado!*' 
+      content: '🎁 *UM PRESENTE PRA VOCÊ!* 🎁\n\nOi {{nome}}! Use o cupom *VOLTEI5* e ganhe 5% de desconto na sua próxima compra pelo site.\n\n👉 Compre aqui: ' + window.location.origin + '\n\n*Válido por tempo limitado!*' 
     },
     { 
       name: '🕒 Horário Especial', 
