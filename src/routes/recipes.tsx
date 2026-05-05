@@ -156,49 +156,71 @@ function RecipesPage() {
 
   const [stockStatus, setStockStatus] = useState<Record<string, any>>({})
 
-  useEffect(() => {
-    const checkStockForSelected = async () => {
-      if (!selectedRecipe) return
-      const status: Record<string, any> = {}
-      const ingredients = selectedRecipe.ingredients || []
-      for (const ing of ingredients) {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .ilike('name', `%${ing.name}%`)
-          .limit(1)
-        status[ing.name] = data && data.length > 0 ? data[0] : null
-      }
-      setStockStatus(status)
-    }
-    checkStockForSelected()
-  }, [selectedRecipe])
-
-  const handleAddMissingToCart = async (ingredients: any[]) => {
-    let addedCount = 0
-    let missingFromStore: string[] = []
-    const cartNames = cartItems.map(item => item.name.toLowerCase())
-
-    for (const ing of ingredients) {
-      const isInCart = cartNames.some(cn => cn.includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(cn))
-      if (isInCart) continue
-
-      const product = stockStatus[ing.name]
-      if (product) {
-        addToCart(product)
-        addedCount++
-      } else {
-        missingFromStore.push(ing.name)
-      }
-    }
-
-    if (addedCount > 0) {
-      toast.success(`${addedCount} produtos adicionados ao seu carrinho!`)
-    }
-    if (missingFromStore.length > 0) {
-      toast.error(`Não encontramos em estoque: ${missingFromStore.join(', ')}`, { duration: 5000 })
-    }
-  }
+   useEffect(() => {
+     const checkStockForSelected = async () => {
+       if (!selectedRecipe) return
+       const status: Record<string, any> = {}
+       const ingredients = selectedRecipe.ingredients || []
+       
+       // Fetch all active products once to avoid multiple DB calls
+       const { data: allProducts } = await supabase
+         .from('products')
+         .select('*, categories(name)')
+         .eq('is_available', true)
+       
+       if (!allProducts) return;
+ 
+       for (const ing of ingredients) {
+         const ingName = ing.name.toLowerCase()
+         // Improved fuzzy matching: 
+         // 1. Try to find exact match
+         // 2. Try to find if product name contains ingredient name
+         // 3. Try to find if ingredient name contains product name
+         // 4. Try word-by-word matching
+         const match = allProducts.find(p => {
+           const pName = p.name.toLowerCase()
+           if (pName === ingName) return true
+           if (pName.includes(ingName) || ingName.includes(pName)) return true
+           
+           // Split by spaces and check if any significant word matches
+           const ingWords = ingName.split(' ').filter(w => w.length > 3)
+           const pWords = pName.split(' ').filter(w => w.length > 3)
+           return ingWords.some(iw => pWords.includes(iw))
+         })
+         
+         status[ing.name] = match || null
+       }
+       setStockStatus(status)
+     }
+     checkStockForSelected()
+   }, [selectedRecipe])
+ 
+   const handleAddMissingToCart = async (ingredients: any[]) => {
+     let addedCount = 0
+     let missingFromStore: string[] = []
+     const cartIds = cartItems.map(item => item.id)
+ 
+     for (const ing of ingredients) {
+       const product = stockStatus[ing.name]
+       if (!product) {
+         missingFromStore.push(ing.name)
+         continue
+       }
+ 
+       const alreadyInCart = cartIds.includes(product.id)
+       if (!alreadyInCart) {
+         addToCart(product)
+         addedCount++
+       }
+     }
+ 
+     if (addedCount > 0) {
+       toast.success(`${addedCount} produtos adicionados ao seu carrinho!`)
+     }
+     if (missingFromStore.length > 0) {
+       toast.error(`Não encontramos alguns itens em estoque: ${missingFromStore.join(', ')}`, { duration: 5000 })
+     }
+   }
 
   return (
     <div className="bg-zinc-50 min-h-screen pb-20">
