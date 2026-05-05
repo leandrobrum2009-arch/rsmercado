@@ -71,9 +71,56 @@ CREATE TABLE IF NOT EXISTS public.products (
     stock INTEGER DEFAULT 0,
     is_approved BOOLEAN DEFAULT TRUE,
     is_available BOOLEAN DEFAULT TRUE,
-    points_value INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+     points_value INTEGER DEFAULT 0,
+     tags TEXT[] DEFAULT '{}',
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Bairros de Entrega
+ CREATE TABLE IF NOT EXISTS public.delivery_neighborhoods (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     name TEXT NOT NULL UNIQUE,
+     fee DECIMAL(10,2) DEFAULT 0,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Recompensas de Fidelidade
+ CREATE TABLE IF NOT EXISTS public.loyalty_rewards (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     points_cost INTEGER NOT NULL,
+     reward_type TEXT NOT NULL,
+     reward_data JSONB,
+     image_url TEXT,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Desafios Semanais
+ CREATE TABLE IF NOT EXISTS public.weekly_challenges (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     requirement_type TEXT NOT NULL,
+     requirement_data JSONB,
+     points_reward INTEGER NOT NULL,
+     start_date DATE NOT NULL,
+     end_date DATE NOT NULL,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ CREATE TABLE IF NOT EXISTS public.user_challenge_progress (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     challenge_id UUID REFERENCES public.weekly_challenges(id) ON DELETE CASCADE,
+     progress JSONB DEFAULT '{}',
+     completed BOOLEAN DEFAULT FALSE,
+     completed_at TIMESTAMPTZ,
+     UNIQUE(user_id, challenge_id)
+ );
 
 CREATE TABLE IF NOT EXISTS public.banners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
