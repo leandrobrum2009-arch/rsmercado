@@ -1,3 +1,10 @@
+      -- Categorias e Produtos (Admin total)
+      DROP POLICY IF EXISTS "Admins can do everything on categories" ON public.categories;
+      CREATE POLICY "Admins can do everything on categories" ON public.categories FOR ALL USING (public.is_admin());
+      
+      DROP POLICY IF EXISTS "Admins can do everything on products" ON public.products;
+      CREATE POLICY "Admins can do everything on products" ON public.products FOR ALL USING (public.is_admin());
+ 
  import { createFileRoute } from '@tanstack/react-router'
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
