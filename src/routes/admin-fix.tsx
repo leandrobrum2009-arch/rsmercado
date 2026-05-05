@@ -623,10 +623,13 @@ NOTIFY pgrst, 'reload schema';
                        <div className="bg-white text-blue-600 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">3</div>
                        <p>Cole o código e clique em <b>RUN</b> (no canto inferior direito).</p>
                      </div>
-                     <div className="flex items-start gap-3 mt-2 pt-2 border-t border-blue-400">
-                       <div className="bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">!</div>
-                       <p className="uppercase tracking-tighter">Após o "Success", RECARREGUE ESTE SITE para ativar as mudanças.</p>
-                     </div>
+                      <div className="flex items-start gap-3 mt-2 pt-2 border-t border-blue-400">
+                        <div className="bg-amber-400 text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-black">!</div>
+                        <div className="flex flex-col gap-1">
+                          <p className="uppercase font-black text-amber-200 leading-none">IMPORTANTE:</p>
+                          <p className="uppercase tracking-tighter">Após o "Success" no Supabase, você DEVE RECARREGAR ESTE SITE para ativar as mudanças.</p>
+                        </div>
+                      </div>
                    </div>
                  </div>
                )}
