@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare } from 'lucide-react'
  import { sendWhatsAppMessage } from '@/lib/whatsapp'
+ import { toast } from '@/lib/toast'
    const handleWhatsAppShare = async () => {
      if (selectedProducts.length === 0) {
        toast.error('Adicione produtos ao encarte primeiro')
@@ -26,16 +27,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
      message += `\n🛒 *Peça agora pelo site:* ${window.location.origin}\n`
      message += `📦 *Entregamos na sua casa!*`
  
-     // Sharing - usually to "all" or just opening the app for manual sharing
-     // We'll use an empty phone to trigger the "Select Contact" flow in WhatsApp Web/App
-     const cleanPhone = (storeSettings.whatsapp || '').replace(/\D/g, '')
      const url = `https://wa.me/?text=${encodeURIComponent(message)}`
      window.open(url, '_blank')
      
      toast.success('WhatsApp aberto para compartilhamento!')
    }
  
-import { toast } from '@/lib/toast'
 
 type FlyerProduct = {
   id: string
