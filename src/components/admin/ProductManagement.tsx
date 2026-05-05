@@ -434,9 +434,19 @@ import { SmartImage } from '@/components/ui/SmartImage'
               onClick={seedInitialData} 
               className="border-zinc-300 text-zinc-600 hover:bg-zinc-50 font-black uppercase text-[10px]"
             >
-              <Database className="mr-2 h-4 w-4" /> Semear Dados
-            </Button>
-            <Button 
+               <Database className="mr-2 h-4 w-4" /> Semear Dados
+             </Button>
+             <Button 
+               variant="outline" 
+               onClick={() => {
+                 // Using a manual state update if possible, or just informing the user
+                 toast.info('Utilize a aba "Organizador" no menu lateral para mover produtos entre categorias em massa.')
+               }}
+               className="border-zinc-300 text-zinc-600 hover:bg-zinc-50 font-black uppercase text-[10px]"
+             >
+               <LayoutGrid className="mr-2 h-4 w-4" /> Organizar em Massa
+             </Button>
+             <Button 
               variant="outline" 
               onClick={approveAll} 
               className="border-green-600 text-green-600 hover:bg-green-50 font-black uppercase text-[10px]"
