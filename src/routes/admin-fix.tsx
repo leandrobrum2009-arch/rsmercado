@@ -369,9 +369,41 @@ CREATE POLICY "Public storage access" ON storage.objects FOR SELECT USING (bucke
 CREATE POLICY "Auth storage upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
 CREATE POLICY "Admin storage control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
 
--- Notificar reload
-NOTIFY pgrst, 'reload schema';
-`;
+ -- 8. Gatilhos e Automações
+ CREATE OR REPLACE FUNCTION public.calculate_points_on_order()
+ RETURNS TRIGGER AS $trigger$
+ DECLARE
+     points_multiplier INTEGER;
+ BEGIN
+     IF (NEW.status = 'delivered' AND OLD.status != 'delivered') THEN
+         SELECT (value->>'points_per_real')::INTEGER INTO points_multiplier 
+         FROM public.store_settings WHERE key = 'points_multiplier';
+         
+         IF points_multiplier IS NULL THEN points_multiplier := 1; END IF;
+ 
+         UPDATE public.profiles 
+         SET loyalty_points = COALESCE(loyalty_points, 0) + floor(NEW.total_amount * points_multiplier)
+         WHERE id = NEW.user_id;
+         
+         NEW.points_earned := floor(NEW.total_amount * points_multiplier);
+     END IF;
+     RETURN NEW;
+ END;
+ $trigger$ LANGUAGE plpgsql SECURITY DEFINER;
+ 
+ DROP TRIGGER IF EXISTS on_order_delivered ON public.orders;
+ CREATE TRIGGER on_order_delivered
+     BEFORE UPDATE ON public.orders
+     FOR EACH ROW
+     EXECUTE FUNCTION public.calculate_points_on_order();
+ 
+ -- Seed Settings e Neighborhoods
+ INSERT INTO public.store_settings (key, value) VALUES ('points_multiplier', '{"multiplier": 1, "points_per_real": 1}') ON CONFLICT (key) DO NOTHING;
+ INSERT INTO public.delivery_neighborhoods (name, fee) VALUES ('Centro', 5.00), ('Bairro Alto', 7.00), ('Vila Nova', 4.50) ON CONFLICT (name) DO NOTHING;
+ 
+ -- Notificar reload
+ NOTIFY pgrst, 'reload schema';
+ `;
        setGeneratedSql(sql);
        setShowSql(true);
        setStatus('SQL gerado com sucesso! Veja abaixo.');
