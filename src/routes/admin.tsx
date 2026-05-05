@@ -16,9 +16,10 @@ import {
    Menu,
    X,
      Users,
-     Bell,
-     AlertCircle
-   } from 'lucide-react'
+      Bell,
+      AlertCircle,
+      Truck
+    } from 'lucide-react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -32,7 +33,8 @@ import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
-import { WebhookManager } from '@/components/admin/WebhookManager'
+ import { WebhookManager } from '@/components/admin/WebhookManager'
+ import { DeliveryReport } from '@/components/admin/DeliveryReport'
    import { LoyaltyManager } from '@/components/admin/LoyaltyManager'
    import { HomeLayoutManager } from '@/components/admin/HomeLayoutManager'
 import { CustomerManagement } from '@/components/admin/CustomerManagement'
@@ -117,7 +119,13 @@ function RouteComponent() {
     check()
   }, [])
 
-    const menuGroups = [
+     const menuGroups = [
+       {
+         title: 'Relatórios',
+         items: [
+           { id: 'delivery_report', label: 'Relatório de Entregas', icon: Truck },
+         ]
+       },
       {
         title: 'Visão Geral',
         items: [
@@ -255,6 +263,9 @@ function RouteComponent() {
                 </TabsContent>
                  <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
                    <AlertManager />
+                 </TabsContent>
+                 <TabsContent value="delivery_report" className="mt-0 focus-visible:ring-0">
+                   <DeliveryReport />
                  </TabsContent>
                  <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
                    <HomeLayoutManager />
