@@ -80,7 +80,8 @@ import { toast } from '@/lib/toast'
       return
     }
 
-    toast.success('Status atualizado!')
+    const pointsMessage = status === 'delivered' ? ' e pontos creditados!' : '!';
+    toast.success(`Status atualizado${pointsMessage}`);
     fetchOrders()
 
     // Notify via WhatsApp if enabled
