@@ -94,6 +94,25 @@ export const Route = createFileRoute("/")({
               </div>
             </div>
           );
+        case 'delivery_check':
+          return (
+            <div key="delivery_check" className="px-4 pt-2 -mt-6 relative z-20">
+              <Link to="/delivery" className="bg-white rounded-2xl p-4 shadow-xl border border-zinc-100 flex items-center justify-between group active:scale-[0.98] transition-transform">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                    <Truck size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none mb-1">Entregas em Piraí</p>
+                    <p className="text-sm font-black text-zinc-800">CONSULTAR TAXA POR BAIRRO</p>
+                  </div>
+                </div>
+                <div className="bg-zinc-100 text-zinc-400 p-2 rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors">
+                  <Search size={16} />
+                </div>
+              </Link>
+            </div>
+          );
         case 'flyer':
           return <div key="flyer" className="px-4 pt-4"><DailyFlyer /></div>;
         case 'banner_carousel':
