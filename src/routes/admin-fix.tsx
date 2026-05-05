@@ -25,31 +25,9 @@ function AdminFix() {
    const [currentUser, setCurrentUser] = useState<any>(null)
    const [userRole, setUserRole] = useState<string | null>(null)
  
-     const generateRepairSql = () => {
-       const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
- -- 1. Criação e Atualização de Tabelas
- -- Adicionar colunas faltantes se as tabelas já existirem
- DO $$ 
- BEGIN 
-     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'products') THEN
-         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'size') THEN
-             ALTER TABLE public.products ADD COLUMN size TEXT;
-         END IF;
-         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
-             ALTER TABLE public.products ADD COLUMN brand TEXT;
-         END IF;
-         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN
-             ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0;
-         END IF;
-     END IF;
- 
-     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'categories') THEN
-         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'banner_url') THEN
-             ALTER TABLE public.categories ADD COLUMN banner_url TEXT;
-         END IF;
-     END IF;
- END $$;
- 
+      const generateRepairSql = () => {
+        const sql = `-- REPARO COMPLETO E DEFINITIVO DO BANCO DE DATOS
+-- 1. Criação de Tabelas
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -104,51 +82,6 @@ CREATE TABLE IF NOT EXISTS public.recipes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
- -- 2. Funções Administrativas e RPCs
- CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
- RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
- BEGIN
-   -- Altere 'CHAVE_MESTRE' para uma chave sua se desejar
-   IF secret_key = 'CHAVE_MESTRE' THEN
-     INSERT INTO public.user_roles (user_id, role)
-     VALUES (auth.uid(), 'admin')
-     ON CONFLICT (user_id, role) DO NOTHING;
-     RETURN true;
-   END IF;
-   RETURN false;
- END;
- $$;
- 
- CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm text, secret_key text)
- RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
- BEGIN
-   IF secret_key = 'CHAVE_MESTRE' THEN
-     UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = email_to_confirm;
-     RETURN true;
-   END IF;
-   RETURN false;
- END;
- $$;
- 
- CREATE OR REPLACE FUNCTION public.audit_rls_status()
- RETURNS TABLE (
-     table_name text,
-     rls_enabled boolean,
-     policy_count bigint
- ) LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
-     SELECT 
-         t.relname::text as table_name,
-         t.relrowsecurity as rls_enabled,
-         (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid) as policy_count
-     FROM pg_class t
-     JOIN pg_namespace n ON n.oid = t.relnamespace
-     WHERE n.nspname = 'public' 
-     AND t.relkind = 'r'
-     AND t.relname NOT IN ('pg_stat_statements', 'spatial_ref_sys')
-     ORDER BY t.relname;
- $$;
- 
- -- 3. Correção de User Roles e Recursão
 CREATE TABLE IF NOT EXISTS public.user_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -157,18 +90,65 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     UNIQUE(user_id, role)
 );
 
-CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role text)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role);
+-- 2. Atualização de Colunas Faltantes
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'categories' AND column_name = 'banner_url') THEN
+        ALTER TABLE public.categories ADD COLUMN banner_url TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'size') THEN
+        ALTER TABLE public.products ADD COLUMN size TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
+        ALTER TABLE public.products ADD COLUMN brand TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN
+        ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0;
+    END IF;
+END $$;
+
+-- 3. Funções de Auditoria e Promoção
+CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF secret_key = 'CHAVE_MESTRE' THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (auth.uid(), 'admin')
+    ON CONFLICT (user_id, role) DO NOTHING;
+    RETURN true;
+  END IF;
+  RETURN false;
+END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm text, secret_key text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF secret_key = 'CHAVE_MESTRE' THEN
+    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = email_to_confirm;
+    RETURN true;
+  END IF;
+  RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.audit_rls_status()
+RETURNS TABLE (table_name text, rls_enabled boolean, policy_count bigint) 
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+    SELECT t.relname::text, t.relrowsecurity, (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid)
+    FROM pg_class t JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public' AND t.relkind = 'r' AND t.relname NOT IN ('pg_stat_statements', 'spatial_ref_sys')
+    ORDER BY t.relname;
+$$;
+
+-- 4. Funções de Acesso (SEM RECURSÃO)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') 
-  OR (SELECT email FROM auth.users WHERE id = auth.uid()) = 'leandrobrum2009@gmail.com';
+  OR auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com';
 $$;
 
- -- 4. Habilitar RLS e Políticas
+-- 5. Habilitar RLS e Limpar Políticas
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
@@ -176,60 +156,56 @@ ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
-DO $$ BEGIN
-    DROP POLICY IF EXISTS "Public read products" ON public.products;
-    DROP POLICY IF EXISTS "Public read categories" ON public.categories;
-    DROP POLICY IF EXISTS "Public read banners" ON public.banners;
-    DROP POLICY IF EXISTS "Public read store_settings" ON public.store_settings;
-    DROP POLICY IF EXISTS "Public read recipes" ON public.recipes;
-    DROP POLICY IF EXISTS "Users can read own roles" ON public.user_roles;
-    
-    CREATE POLICY "Public read products" ON public.products FOR SELECT USING (true);
-    CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
-    CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
-    CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
-    CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
-     -- Limpeza total de políticas em user_roles para evitar recursão
-     END $$;
-     DO $$ 
-     DECLARE pol record;
-     BEGIN 
-         FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = 'user_roles' AND schemaname = 'public' LOOP
-             EXECUTE format('DROP POLICY %I ON public.user_roles', pol.policyname);
-         END LOOP;
-     END $$;
-     DO $$ BEGIN
-     CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
-    
-    -- Admin policies
-    DROP POLICY IF EXISTS "Admins manage everything" ON public.products;
-    CREATE POLICY "Admins manage everything" ON public.products FOR ALL TO authenticated USING (public.is_admin());
-    
-    DROP POLICY IF EXISTS "Admins manage banners" ON public.banners;
-    CREATE POLICY "Admins manage banners" ON public.banners FOR ALL TO authenticated USING (public.is_admin());
-    
-    DROP POLICY IF EXISTS "Admins manage store_settings" ON public.store_settings;
-    CREATE POLICY "Admins manage store_settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
+DO $$ 
+DECLARE
+    tab text;
+    pol record;
+BEGIN
+    FOR tab IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('products', 'categories', 'banners', 'store_settings', 'recipes', 'user_roles')
+    LOOP
+        FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = tab AND schemaname = 'public'
+        LOOP
+            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', pol.policyname, tab);
+        END LOOP;
+    END LOOP;
 END $$;
 
- -- 5. Buckets de Armazenamento
- INSERT INTO storage.buckets (id, name, public) 
- VALUES ('products', 'products', true), ('banners', 'banners', true)
- ON CONFLICT (id) DO UPDATE SET public = true;
- 
- -- Políticas de Storage
- DROP POLICY IF EXISTS "Public access" ON storage.objects;
- CREATE POLICY "Public access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'banners'));
- 
- DROP POLICY IF EXISTS "Authenticated upload" ON storage.objects;
- CREATE POLICY "Authenticated upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners'));
- 
-  DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
-  CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
- 
-  -- Recarregar cache do PostgREST
-  NOTIFY pgrst, 'reload schema';
-  `;
+-- 6. Recriar Políticas
+CREATE POLICY "Public Read Products" ON public.products FOR SELECT USING (true);
+CREATE POLICY "Public Read Categories" ON public.categories FOR SELECT USING (true);
+CREATE POLICY "Public Read Banners" ON public.banners FOR SELECT USING (true);
+CREATE POLICY "Public Read Settings" ON public.store_settings FOR SELECT USING (true);
+CREATE POLICY "Public Read Recipes" ON public.recipes FOR SELECT USING (true);
+CREATE POLICY "Self Read Roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+CREATE POLICY "Admin Manage Products" ON public.products FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Categories" ON public.categories FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Banners" ON public.banners FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Settings" ON public.store_settings FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Recipes" ON public.recipes FOR ALL TO authenticated USING (public.is_admin());
+CREATE POLICY "Admin Manage Roles" ON public.user_roles FOR ALL TO authenticated USING (public.is_admin());
+
+-- 7. Buckets de Storage
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('products', 'products', true), ('banners', 'banners', true), ('categories', 'categories', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DO $$ 
+DECLARE pol record;
+BEGIN
+    FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage'
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', pol.policyname);
+    END LOOP;
+END $$;
+
+CREATE POLICY "Public storage access" ON storage.objects FOR SELECT USING (bucket_id IN ('products', 'banners', 'categories'));
+CREATE POLICY "Auth storage upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners', 'categories'));
+CREATE POLICY "Admin storage control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners', 'categories'));
+
+-- Notificar reload
+NOTIFY pgrst, 'reload schema';
+`;
        setGeneratedSql(sql);
        setShowSql(true);
        setStatus('SQL gerado com sucesso! Veja abaixo.');
