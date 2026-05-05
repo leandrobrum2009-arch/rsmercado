@@ -100,16 +100,24 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       // Use multiple sources for images as requested
-      const imageSources = [
-        `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
-        `https://source.unsplash.com/featured/800x400?food,${encodeURIComponent(mainProduct.toLowerCase())}`,
-        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop` // Fallback
-      ];
-      const image_url = imageSources[Math.floor(Math.random() * imageSources.length)];
+       // Use multiple sources for images as requested
+       const sources = [
+         `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+         `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`,
+         `https://picsum.photos/800/400?random=${Date.now()}`
+       ];
+       
+       let image_url = '';
+       for (const src of sources) {
+         const exists = await checkImageExists(src);
+         if (exists) {
+           image_url = src;
+           break;
+         }
+       }
 
-      // Image validation: don't register if image_url is missing or invalid
-      if (!image_url || image_url.trim() === '') {
-        toast.error('Não foi possível encontrar uma imagem para esta receita. Tente novamente.');
+       if (!image_url) {
+         toast.error('Nenhuma imagem válida encontrada. A receita não será cadastrada sem foto.');
         setIsAiGenerating(false);
         return;
       }
