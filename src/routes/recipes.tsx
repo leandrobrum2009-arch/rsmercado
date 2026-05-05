@@ -91,13 +91,28 @@ function RecipesPage() {
     setIsAiGenerating(true)
     
     try {
-      // Simulate AI thinking
-      await new Promise(resolve => setTimeout(resolve, 2000))
       const products = aiInput.split(',').map(p => p.trim())
       const mainProduct = products[0] || 'Ingrediente'
+      const title = `Especial IA: O Segredo do ${mainProduct}`
+
+      // Check for duplicates before generating/inserting
+      const { data: existing } = await supabase
+        .from('recipes')
+        .select('id')
+        .ilike('title', title)
+        .maybeSingle()
+
+      if (existing) {
+        toast.error('Já existe uma receita com este título!')
+        setIsAiGenerating(false)
+        return
+      }
+      
+      // Simulate AI thinking
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
       const newRecipe = {
-        title: `Especial IA: O Segredo do ${mainProduct}`,
+        title,
         description: `Nossa inteligência artificial elaborou uma reportagem gastronômica exclusiva utilizando: ${aiInput}. Descubra como transformar itens simples em um prato de alta culinária.`,
         instructions: `1. Preparação: Reúna todos os itens: ${aiInput}.\n2. Processamento: Comece preparando a base do prato com cuidado.\n3. Cocção: Mantenha o fogo controlado para preservar os nutrientes.\n4. Finalização: Sirva imediatamente com um toque de azeite e ervas frescas.`,
         category: 'Reportagem IA',
