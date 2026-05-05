@@ -12,8 +12,10 @@ export function LoyaltyManager() {
   const [settings, setSettings] = useState<any>({ points_per_real: 1 })
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
-  const [rewards, setRewards] = useState<any[]>([])
+   const [rewards, setRewards] = useState<any[]>([])
    const [challenges, setChallenges] = useState<any[]>([])
+   const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
+   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
  
    const importNeighborhoods = async () => {
      setLoading(true)
@@ -122,10 +124,136 @@ export function LoyaltyManager() {
       </div>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6">
-          <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px]">Configurações</TabsTrigger>
-          <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px]">Bairros & Taxas</TabsTrigger>
-        </TabsList>
+         <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6 flex overflow-x-auto no-scrollbar">
+           <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Configurações</TabsTrigger>
+           <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Recompensas</TabsTrigger>
+           <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Desafios Semanais</TabsTrigger>
+           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Bairros & Taxas</TabsTrigger>
+         </TabsList>
+         <TabsContent value="rewards">
+           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
+             <CardHeader className="bg-zinc-900 text-white">
+               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                 <Gift size={16} /> Catálogo de Trocas (Pontos)
+               </CardTitle>
+             </CardHeader>
+             <CardContent className="p-6 space-y-6">
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200">
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase text-zinc-500">Título / Cupom</label>
+                   <Input placeholder="Ex: R$ 20,00 de desconto" value={newReward.title} onChange={e => setNewReward({...newReward, title: e.target.value})} />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase text-zinc-500">Custo em Pontos</label>
+                   <Input type="number" placeholder="1000" value={newReward.points_cost} onChange={e => setNewReward({...newReward, points_cost: e.target.value})} />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase text-zinc-500">Tipo</label>
+                   <select className="w-full h-10 px-3 rounded-lg border-zinc-200 bg-white text-xs font-bold" value={newReward.reward_type} onChange={e => setNewReward({...newReward, reward_type: e.target.value})}>
+                     <option value="coupon">Cupom de Desconto</option>
+                     <option value="product">Produto Grátis</option>
+                   </select>
+                 </div>
+                 <Button onClick={async () => {
+                   if (!newReward.title || !newReward.points_cost) return;
+                   setLoading(true);
+                   const { error } = await supabase.from('loyalty_rewards').insert({
+                     title: newReward.title,
+                     points_cost: parseInt(newReward.points_cost),
+                     reward_type: newReward.reward_type,
+                     active: true
+                   });
+                   if (!error) {
+                     toast.success('Recompensa adicionada!');
+                     setNewReward({ title: '', description: '', points_cost: '', reward_type: 'product' });
+                     fetchData();
+                   } else toast.error('Erro ao adicionar');
+                   setLoading(false);
+                 }} className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Adicionar</Button>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                 {rewards.map(r => (
+                   <div key={r.id} className="p-4 bg-white border border-zinc-100 rounded-2xl flex items-center justify-between shadow-sm">
+                     <div>
+                       <p className="font-black uppercase text-xs">{r.title}</p>
+                       <p className="font-bold text-[10px] text-amber-600">{r.points_cost} PONTOS</p>
+                       <Badge variant="outline" className="text-[8px] uppercase mt-1">{r.reward_type}</Badge>
+                     </div>
+                     <Button variant="ghost" size="icon" onClick={async () => {
+                       await supabase.from('loyalty_rewards').delete().eq('id', r.id);
+                       fetchData();
+                     }} className="text-zinc-300 hover:text-red-500">
+                       <Trash2 size={16} />
+                     </Button>
+                   </div>
+                 ))}
+               </div>
+             </CardContent>
+           </Card>
+         </TabsContent>
+ 
+         <TabsContent value="challenges">
+           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
+             <CardHeader className="bg-zinc-900 text-white">
+               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                 <Target size={16} /> Missões e Desafios Semanais
+               </CardTitle>
+             </CardHeader>
+             <CardContent className="p-6 space-y-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200">
+                 <div className="space-y-2">
+                   <Label className="text-[10px] uppercase font-bold">Título da Missão</Label>
+                   <Input placeholder="Ex: Super Compra da Semana" value={newChallenge.title} onChange={e => setNewChallenge({...newChallenge, title: e.target.value})} />
+                 </div>
+                 <div className="space-y-2">
+                   <Label className="text-[10px] uppercase font-bold">Prêmio (Pontos)</Label>
+                   <Input type="number" placeholder="500" value={newChallenge.points_reward} onChange={e => setNewChallenge({...newChallenge, points_reward: e.target.value})} />
+                 </div>
+                 <div className="space-y-2 col-span-2">
+                   <Label className="text-[10px] uppercase font-bold">Descrição do Objetivo</Label>
+                   <Input placeholder="Ex: Faça um pedido acima de R$ 150,00" value={newChallenge.description} onChange={e => setNewChallenge({...newChallenge, description: e.target.value})} />
+                 </div>
+                 <Button onClick={async () => {
+                   if (!newChallenge.title || !newChallenge.points_reward) return;
+                   setLoading(true);
+                   const { error } = await supabase.from('weekly_challenges').insert({
+                     ...newChallenge,
+                     points_reward: parseInt(newChallenge.points_reward),
+                     start_date: new Date().toISOString(),
+                     end_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
+                     active: true
+                   });
+                   if (!error) {
+                     toast.success('Desafio criado!');
+                     setNewChallenge({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' });
+                     fetchData();
+                   } else toast.error('Erro ao criar desafio');
+                   setLoading(false);
+                 }} className="col-span-2 bg-zinc-900 font-black uppercase text-[10px] h-10 rounded-xl">Publicar Desafio</Button>
+               </div>
+               <div className="space-y-4">
+                 {challenges.map(c => (
+                   <div key={c.id} className="p-4 bg-white border border-zinc-100 rounded-2xl flex items-center justify-between shadow-sm">
+                     <div className="flex items-center gap-4">
+                       <div className="bg-amber-100 p-3 rounded-full text-amber-600"><Target size={20} /></div>
+                       <div>
+                         <p className="font-black uppercase text-sm">{c.title}</p>
+                         <p className="text-xs text-zinc-500">{c.description}</p>
+                         <p className="font-bold text-[10px] text-green-600">PRÊMIO: {c.points_reward} PONTOS</p>
+                       </div>
+                     </div>
+                     <Button variant="ghost" size="icon" onClick={async () => {
+                       await supabase.from('weekly_challenges').delete().eq('id', c.id);
+                       fetchData();
+                     }} className="text-zinc-300 hover:text-red-500">
+                       <Trash2 size={16} />
+                     </Button>
+                   </div>
+                 ))}
+               </div>
+             </CardContent>
+           </Card>
+         </TabsContent>
 
         <TabsContent value="settings">
           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
