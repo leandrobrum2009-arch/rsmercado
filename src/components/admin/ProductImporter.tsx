@@ -148,23 +148,42 @@ export function ProductImporter() {
     let to = 999;
     let hasMore = true;
 
-    while (hasMore) {
-      const { data, error } = await supabase
-        .from('products')
-        .select('name, brand, size')
-        .is('deleted_at', null)
-        .range(from, to);
-      
-      if (error || !data || data.length === 0) {
-        hasMore = false;
-      } else {
-        allExisting = [...allExisting, ...data];
-        if (data.length < 1000) hasMore = false;
-        else {
-          from += 1000;
-          to += 1000;
+    try {
+      while (hasMore) {
+        // Robust selection that falls back if brand/size are missing
+        const { data, error } = await supabase
+          .from('products')
+          .select('name, brand, size')
+          .is('deleted_at', null)
+          .range(from, to);
+        
+        if (error) {
+          const { data: minimalData, error: minError } = await supabase
+            .from('products')
+            .select('name')
+            .is('deleted_at', null)
+            .range(from, to);
+          
+          if (minError || !minimalData || minimalData.length === 0) {
+            hasMore = false;
+          } else {
+            allExisting = [...allExisting, ...minimalData];
+            if (minimalData.length < 1000) hasMore = false;
+            else { from += 1000; to += 1000; }
+          }
+        } else if (!data || data.length === 0) {
+          hasMore = false;
+        } else {
+          allExisting = [...allExisting, ...data];
+          if (data.length < 1000) hasMore = false;
+          else {
+            from += 1000;
+            to += 1000;
+          }
         }
       }
+    } catch (err) {
+      console.error('Error fetching existing:', err);
     }
 
     // Robust normalization for duplicate checking
@@ -370,9 +389,18 @@ export function ProductImporter() {
         let allCurrent: any[] = [];
         let f = 0; let t = 999; let hm = true;
         while(hm) {
-          const { data } = await supabase.from('products').select('name, brand, size').is('deleted_at', null).range(f, t);
-          if (!data || data.length === 0) hm = false;
-          else {
+          const { data, error } = await supabase.from('products').select('name, brand, size').is('deleted_at', null).range(f, t);
+          if (error) {
+            const { data: md } = await supabase.from('products').select('name').is('deleted_at', null).range(f, t);
+            if (!md || md.length === 0) hm = false;
+            else {
+              allCurrent = [...allCurrent, ...md];
+              if (md.length < 1000) hm = false;
+              else { f += 1000; t += 1000; }
+            }
+          } else if (!data || data.length === 0) {
+            hm = false;
+          } else {
             allCurrent = [...allCurrent, ...data];
             if (data.length < 1000) hm = false;
             else { f += 1000; t += 1000; }
@@ -438,7 +466,17 @@ export function ProductImporter() {
             continue;
           }
 
-          const { error } = await supabase.from('products').insert(productData);
+          let { error } = await supabase.from('products').insert(productData);
+          
+          if (error && error.message.includes('column')) {
+            // Schema mismatch fallback
+            const { name, price, category_id, image_url, is_approved, is_available } = productData;
+            const { error: retryError } = await supabase.from('products').insert({
+              name, price, category_id, image_url, is_approved, is_available
+            });
+            error = retryError;
+          }
+
           if (!error) {
             successCount++;
             currentSet.add(pKey); // Add to local set to avoid duplicates within the same import batch
