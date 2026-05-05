@@ -26,7 +26,8 @@ export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag', banner_url: '' })
+   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag:minimalist', banner_url: '' })
+   const [selectedStyle, setSelectedStyle] = useState('minimalist')
     const elegantIcons = [
       { name: 'Apple', label: 'Frutas' },
       { name: 'Beef', label: 'Carnes' },
@@ -182,22 +183,43 @@ export function CategoryManagement() {
                         </label>
                      </div>
                    </div>
-                   <div className="space-y-2 col-span-2">
-                     <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Escolha o Ícone Moderno</Label>
+                   <div className="space-y-4 col-span-2">
+                     <div className="flex items-center justify-between">
+                       <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Escolha o Ícone Moderno</Label>
+                       <div className="flex bg-zinc-100 p-1 rounded-lg gap-1">
+                         {['thin', 'minimalist', 'classic', 'bold'].map((style) => (
+                           <button
+                             key={style}
+                             type="button"
+                             onClick={() => {
+                               setSelectedStyle(style);
+                               const name = newCategory.icon_name.split(':')[0];
+                               setNewCategory({...newCategory, icon_name: `${name}:${style}`});
+                             }}
+                             className={`px-2 py-1 rounded text-[8px] font-bold uppercase transition-all ${selectedStyle === style ? 'bg-primary text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                           >
+                             {style}
+                           </button>
+                         ))}
+                       </div>
+                     </div>
                      <div className="grid grid-cols-4 md:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-2 bg-zinc-50 rounded-2xl border border-zinc-100">
                         {elegantIcons.map((icon) => {
                           const Icon = getIconComponent(icon.name);
-                          const isSelected = newCategory.icon_name === icon.name;
+                          const currentName = newCategory.icon_name.split(':')[0];
+                          const isSelected = currentName === icon.name;
                           
                           return (
-                            <div className="group relative">
+                            <div className="group relative" key={icon.name}>
                               <button
-                                key={icon.name}
                                 type="button"
-                                onClick={() => setNewCategory({...newCategory, icon_name: icon.name})}
+                                onClick={() => setNewCategory({...newCategory, icon_name: `${icon.name}:${selectedStyle}`})}
                                 className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border-2 w-full aspect-square ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-lg shadow-primary/20' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary'}`}
                               >
-                                <Icon size={24} strokeWidth={1.5} />
+                                <Icon 
+                                  size={24} 
+                                  strokeWidth={selectedStyle === 'bold' ? 2.5 : selectedStyle === 'classic' ? 2.0 : selectedStyle === 'thin' ? 1.0 : 1.5} 
+                                />
                                 <span className={`text-[8px] font-bold uppercase truncate w-full text-center ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{icon.label}</span>
                               </button>
                             </div>
