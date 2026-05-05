@@ -1,10 +1,13 @@
- import { Instagram, Play, Heart, MessageCircle } from 'lucide-react'
+ import { Instagram, Play, Heart, MessageCircle, X } from 'lucide-react'
+ import { useState } from 'react'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { Button } from '@/components/ui/button'
  import { motion } from 'framer-motion'
  
- export function InstagramFeed() {
-   const { settings } = useStoreSettings()
+  export function InstagramFeed() {
+    const { settings } = useStoreSettings()
+    const [selectedReel, setSelectedReel] = useState<any>(null)
    
    if (!settings.instagram_url) return null
  
@@ -50,12 +53,12 @@
          </div>
  
          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-           {reels.map((reel, idx) => (
+            {reels.map((reel) => (
              <motion.div 
                key={reel.id}
                whileHover={{ y: -5 }}
                className="min-w-[200px] md:min-w-[240px] aspect-[9/16] relative rounded-[32px] overflow-hidden group cursor-pointer shadow-xl border-4 border-white"
-               onClick={() => reel.url ? window.open(reel.url, '_blank') : handleFollow()}
+                onClick={() => setSelectedReel(reel)}
              >
                <img 
                  src={reel.thumbnail} 
@@ -87,6 +90,40 @@
            ))}
          </div>
        </div>
-     </section>
-   )
- }
+      </section>
+
+      <Dialog open={!!selectedReel} onOpenChange={(open) => !open && setSelectedReel(null)}>
+        <DialogContent className="max-w-[400px] p-0 overflow-hidden bg-black border-zinc-800 rounded-[32px]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Instagram Reel</DialogTitle>
+          </DialogHeader>
+          {selectedReel && (
+            <div className="relative aspect-[9/16] w-full">
+              <iframe
+                src={`${selectedReel.url.split('?')[0]}embed`}
+                className="w-full h-full border-0"
+                allowFullScreen
+                scrolling="no"
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              />
+              <div className="absolute top-4 right-4 z-50">
+                 <DialogClose asChild>
+                   <button className="bg-black/50 hover:bg-black/70 p-2 rounded-full text-white transition-colors">
+                     <X size={20} />
+                   </button>
+                 </DialogClose>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                <Button 
+                  onClick={() => window.open(selectedReel.url, '_blank')}
+                  className="w-full bg-white text-black hover:bg-zinc-200 font-black uppercase text-xs rounded-xl h-12"
+                >
+                  Abrir no Instagram
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    )
+  }
