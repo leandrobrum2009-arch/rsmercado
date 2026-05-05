@@ -155,15 +155,22 @@ function CartPage() {
 
       if (itemsError) throw itemsError;
 
-      // 3. Send WhatsApp Notification
-      const message = formatWhatsAppMessage('order', {
-        id: order.id,
-        total_amount: total,
-        status: 'Recebido'
-      });
-      
-       const waResult = await sendWhatsAppMessage(profile.whatsapp, message);
- 
+       // 3. Send WhatsApp Notifications
+       const userMessage = formatWhatsAppMessage('order', {
+         id: order.id,
+         total_amount: total,
+         status: 'Recebido'
+       });
+       
+       await sendWhatsAppMessage(profile.whatsapp, userMessage);
+
+       // Notify Admin
+       const { data: storeData } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+       if (storeData && storeData.value) {
+         const adminMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n👤 Cliente: *${profile.full_name}*\n💰 Valor: *R$ ${total.toFixed(2)}*\n📍 Bairro: *${selectedAddress.neighborhood}*\n💳 Pagamento: *${paymentMethod.toUpperCase()}*\n\n👉 Acesse o painel para gerenciar: ${window.location.origin}/admin`;
+         await sendWhatsAppMessage(storeData.value, adminMessage);
+       }
+
        toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
       clearCart();
       navigate({ to: "/profile" });
