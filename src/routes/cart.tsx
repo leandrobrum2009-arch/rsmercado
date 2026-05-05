@@ -68,16 +68,7 @@ function CartPage() {
       }
     };
 
-    const fetchSettings = async () => {
-      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
-      if (data && data.value) {
-        const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
-        setPointsMultiplier(Number(val) || 1);
-      }
-    };
-
     fetchData();
-    fetchSettings();
   }, []);
 
   if (items.length === 0) {
