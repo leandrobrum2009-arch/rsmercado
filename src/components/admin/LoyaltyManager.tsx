@@ -100,22 +100,33 @@ export function LoyaltyManager() {
   }
 
   const addNeighborhood = async () => {
-    if (!newNeighborhood.name) return
+    if (!newNeighborhood.name) {
+      toast.error('Informe o nome do bairro');
+      return;
+    }
     setLoading(true)
-     const { error } = await supabase.from('delivery_neighborhoods').insert({
-       name: newNeighborhood.name,
-       fee: parseFloat(newNeighborhood.fee) || 0,
-       active: newNeighborhood.active
-     })
- 
-     if (error) toast.error('Erro ao adicionar bairro: ' + error.message)
-     else {
-       toast.success('Bairro adicionado!')
-       setNewNeighborhood({ name: '', fee: '', active: true })
-       fetchData()
-     }
-     setLoading(false)
-   }
+    try {
+      const { error } = await supabase.from('delivery_neighborhoods').insert({
+        name: newNeighborhood.name,
+        fee: parseFloat(newNeighborhood.fee) || 0,
+        active: newNeighborhood.active
+      })
+
+      if (error) {
+        console.error('Error adding neighborhood:', error);
+        toast.error('Erro ao adicionar bairro: ' + error.message);
+      } else {
+        toast.success('Bairro adicionado!');
+        setNewNeighborhood({ name: '', fee: '', active: true });
+        fetchData();
+      }
+    } catch (err: any) {
+      console.error('Catch adding neighborhood:', err);
+      toast.error('Erro ao processar: ' + err.message);
+    } finally {
+      setLoading(false)
+    }
+  }
  
     const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
       const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
