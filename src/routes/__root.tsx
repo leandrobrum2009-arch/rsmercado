@@ -1,3 +1,5 @@
+   import { registerServiceWorker } from "../lib/webpush";
+     registerServiceWorker();
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
    import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell } from "lucide-react";
    import { NotificationCenter } from "../components/NotificationCenter";
