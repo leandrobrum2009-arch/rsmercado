@@ -1,5 +1,6 @@
  import { Instagram, Play, Heart, MessageCircle, X } from 'lucide-react'
  import { useState } from 'react'
+ import { supabase } from '@/lib/supabase'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { Button } from '@/components/ui/button'
