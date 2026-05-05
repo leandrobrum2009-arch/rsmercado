@@ -167,8 +167,13 @@ export function ProductImporter() {
       }
     }
 
-    // Create a robust set for duplicate checking - also normalize strings
-    const normalize = (str: string) => (str || '').toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // Robust normalization for duplicate checking
+    const normalize = (str: string) => (str || '')
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, ""); // Remove everything except alphanumeric
     
     const existingSet = new Set(
       allExisting.map(p => 
@@ -418,6 +423,21 @@ export function ProductImporter() {
             image_url: p.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(pName + " " + pBrand + " fundo branco")}&w=400&h=400&c=7`
           };
   
+          // Use maybeSingle to check for existence one last time before inserting
+          const { data: exists } = await supabase
+            .from('products')
+            .select('id')
+            .eq('name', pName)
+            .eq('brand', pBrand)
+            .eq('size', pSize)
+            .is('deleted_at', null)
+            .maybeSingle();
+
+          if (exists) {
+            successCount++; 
+            continue;
+          }
+
           const { error } = await supabase.from('products').insert(productData);
           if (!error) {
             successCount++;

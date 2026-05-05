@@ -60,9 +60,9 @@
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
         const filePath = `store/${fileName}`
 
-       // Ensure bucket exists or use a fallback
-       const bucketName = 'products';
-       
+       // Use the dedicated banners bucket or fallback to products
+       const bucketName = 'banners';
+
        const { data: uploadData, error: uploadError } = await supabase.storage
          .from(bucketName)
          .upload(filePath, file, {
