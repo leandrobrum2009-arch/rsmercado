@@ -1,11 +1,55 @@
+ import { supabase } from './supabase'
+ 
 import { supabase } from './supabase'
 
-export interface WhatsAppConfig {
-  apiKey: string;
-  instanceId: string;
-  apiUrl: string;
-  enabled: boolean;
-}
+ export interface WhatsAppConfig {
+   apiKey: string;
+   instanceId: string;
+   apiUrl: string;
+   enabled: boolean;
+   notify_order_status?: boolean; // Default true
+   notify_new_order_admin?: boolean; // Default true
+   prevent_duplicates?: boolean; // Prevent sending same message twice
+   duplicate_cooldown_hours?: number; // Hours to wait before allowed to resend
+ }
+ export const generateMessageHash = (message: string) => {
+   // Simple hash for content comparison
+   let hash = 0;
+   for (let i = 0; i < message.length; i++) {
+     const char = message.charCodeAt(i);
+     hash = ((hash << 5) - hash) + char;
+     hash |= 0; 
+   }
+   return hash.toString();
+ }
+ 
+ export const checkDuplicateMessage = async (phone: string, message: string, hours: number = 24) => {
+   const cleanPhone = phone.replace(/\D/g, '');
+   const hash = generateMessageHash(message);
+   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+ 
+   const { data, error } = await supabase
+     .from('whatsapp_logs')
+     .select('id')
+     .eq('phone', cleanPhone)
+     .eq('message_hash', hash)
+     .gt('sent_at', cutoff)
+     .maybeSingle();
+ 
+   return !!data;
+ }
+ 
+ export const logSentMessage = async (phone: string, message: string, campaignId?: string) => {
+   const cleanPhone = phone.replace(/\D/g, '');
+   const hash = generateMessageHash(message);
+   
+   await supabase.from('whatsapp_logs').insert({
+     phone: cleanPhone,
+     message_hash: hash,
+     campaign_id: campaignId || null
+   });
+ }
+ 
 
 export const getWhatsAppConfig = async (): Promise<WhatsAppConfig | null> => {
   const { data } = await supabase
@@ -48,7 +92,21 @@ export const formatWhatsAppMessage = (type: 'promotion' | 'order', data: any) =>
   return '';
 }
 
-export const sendWhatsAppMessage = async (phone: string, message: string) => {
+ export const sendWhatsAppMessage = async (phone: string, message: string, campaignId?: string) => {
+   // Check for duplicates if enabled
+   if (config.prevent_duplicates) {
+     const isDuplicate = await checkDuplicateMessage(phone, message, config.duplicate_cooldown_hours || 24);
+     if (isDuplicate) {
+       console.warn('Duplicate WhatsApp message blocked for:', phone);
+       return { success: false, error: 'Duplicate blocked', status: 429 };
+     }
+   }
+ 
+     // Log success
+     if (response.ok) {
+       await logSentMessage(phone, message, campaignId);
+     }
+ 
   const config = await getWhatsAppConfig();
   
   if (!config || !config.enabled || !config.apiKey) {
