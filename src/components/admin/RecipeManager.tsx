@@ -101,12 +101,12 @@ export function RecipeManager() {
       
       const newRecipe = {
         title,
-        description: `Uma criação exclusiva da nossa inteligência artificial utilizando ${aiInput}.`,
-        instructions: `1. Prepare sua bancada com: ${aiInput}.\n2. Combine os sabores conforme sua intuição.\n3. Cozinhe com atenção aos detalhes.\n4. Finalize com um toque especial de temperos frescos.`,
+        description: `Esta receita foi cuidadosamente elaborada por nosso algoritmo de gastronomia para destacar os sabores de: ${aiInput}. Uma combinação harmoniosa de texturas e aromas para uma experiência única.`,
+        instructions: `1. Preparação Inicial: Comece organizando todos os ingredientes: ${aiInput}. Lave e corte os vegetais e proteínas em tamanhos uniformes.\n2. Base de Sabor: Em uma panela aquecida com um fio de azeite, doure os ingredientes principais começando pelos que exigem mais tempo de cocção.\n3. Desenvolvimento: Adicione os temperos de sua preferência e deixe os sabores se integrarem em fogo médio. Se necessário, adicione um pouco de água ou caldo para manter a umidade.\n4. Finalização: Cozinhe até que a textura esteja ao seu gosto. Desligue o fogo e adicione ervas frescas por cima antes de servir.\n5. Serviço: Disponha em um prato fundo para preservar o calor e finalize com um toque de pimenta moída na hora.`,
         category: 'Inovação IA',
         difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop',
-        ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
+        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        ingredients: products.map(p => ({ name: p, quantity: '1 porção/unidade' }))
       }
 
       const { data: { session } } = await supabase.auth.getSession()
