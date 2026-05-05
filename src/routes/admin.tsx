@@ -92,10 +92,24 @@ function RouteComponent() {
   const [activeTab, setActiveTab] = useState('products')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
+  const [lastError, setLastError] = useState<string | null>(null)
+
   useEffect(() => {
     const check = async () => {
-      const { data } = await supabase.rpc('is_admin')
-      setIsAdminDiagnostic(data)
+      try {
+        const { data, error } = await supabase.rpc('is_admin')
+        if (error) {
+          console.error('Diagnostic RPC error:', error)
+          setLastError(error.message)
+          setIsAdminDiagnostic(false)
+        } else {
+          setIsAdminDiagnostic(data)
+          setLastError(null)
+        }
+      } catch (err: any) {
+        setLastError(err.message)
+        setIsAdminDiagnostic(false)
+      }
     }
     check()
   }, [])
@@ -184,10 +198,31 @@ function RouteComponent() {
             variant="ghost" 
             size="sm" 
             className="w-full justify-start text-[10px] text-zinc-500 hover:text-white"
-            onClick={() => {
-              supabase.auth.getSession().then(({data}) => {
-                alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nAdmin State: ${isAdminDiagnostic}`)
-              })
+            onClick={async () => {
+              const { data } = await supabase.auth.getSession()
+              const { data: rpcData, error: rpcError } = await supabase.rpc('is_admin')
+              const { data: roles, error: rolesError } = await supabase.from('user_roles').select('*').eq('user_id', data.session?.user.id || '00000000-0000-0000-0000-000000000000')
+              
+              // Check if functions exist
+              const { error: fnError } = await supabase.rpc('is_admin')
+              const fnMissing = fnError?.message?.includes('Could not find the function')
+              
+              alert(`DIAGNÓSTICO DETALHADO:
+User Email: ${data.session?.user.email}
+User ID: ${data.session?.user.id}
+Admin State: ${isAdminDiagnostic}
+RPC is_admin Result: ${rpcData}
+RPC is_admin Error: ${rpcError?.message || 'Nenhum'}
+Last Error: ${lastError || 'Nenhum'}
+
+TABELA user_roles:
+Roles Encontradas: ${roles ? JSON.stringify(roles) : 'Nenhuma'}
+Erro ao ler roles: ${rolesError?.message || 'Nenhum'}
+
+FUNÇÕES NO BANCO:
+Função is_admin: ${fnMissing ? 'FALTANDO (REPARAR)' : 'OK'}
+Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK'}
+`)
             }}
           >
             <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
@@ -205,7 +240,9 @@ function RouteComponent() {
               </div>
               <div>
                 <p className="font-black uppercase text-xs text-red-900">Acesso Restrito no Banco</p>
-                <p className="text-[10px] text-red-700 font-bold">O banco de dados não te reconheceu como Admin. Algumas funções podem falhar.</p>
+                <p className="text-[10px] text-red-700 font-bold">
+                  {lastError ? `Erro técnico: ${lastError}` : "O banco de dados não te reconheceu como Admin. Algumas funções podem falhar."}
+                </p>
               </div>
               <Button size="sm" className="ml-auto bg-red-600 font-bold text-[10px]" onClick={() => window.location.href = '/admin-fix'}>REPARAR</Button>
             </div>
