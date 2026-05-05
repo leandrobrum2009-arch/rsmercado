@@ -1,39 +1,33 @@
 import { Link } from "@tanstack/react-router";
-import { 
-  Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
-  ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
-  GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2
-} from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { Sparkles, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const getIcon = (cat: any) => {
-  const icons: Record<string, any> = {
-    Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
-    ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
-    GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2,
-    "Hortifruti": Apple, "Frutas": Apple, "Legumes": Carrot, "Verduras": Carrot,
-    "Padaria": Croissant, "Pães": Croissant, "Carnes": Beef, "Açougue": Beef,
-    "Bebidas": Wine, "Cervejas": Wine, "Vinhos": Wine, "Laticínios": Milk,
-    "Leites": Milk, "Limpeza": SprayCan, "Higiene": Brush, "Pet Shop": Dog,
-    "Pets": Dog, "Doces": Cookie, "Mercearia": Coffee, "Peixaria": Fish,
-    "Frios": IceCream, "Congelados": IceCream, "Bazar": Utensils,
-    "Infantil": Baby, "Perfumaria": Bath, "Floricultura": Flower2
-  };
+const getIconConfig = (cat: any) => {
+  const [name, style] = (cat.icon_name || "").split(":");
   
-  return icons[cat.icon_name] || icons[cat.name] || ShoppingBag;
+  // @ts-ignore
+  const IconComponent = LucideIcons[name] || LucideIcons[cat.name] || ShoppingBag;
+  
+  let strokeWidth = 1.5;
+  if (style === "bold") strokeWidth = 2.5;
+  if (style === "classic") strokeWidth = 2.0;
+  if (style === "thin") strokeWidth = 1.0;
+  
+  return { IconComponent, strokeWidth };
 };
 
 const fallbackCategories = [
-  { name: "Mercearia", slug: "mercearia" },
-  { name: "Bebidas", slug: "bebidas" },
-  { name: "Hortifruti", slug: "hortifruti" },
-  { name: "Padaria", slug: "padaria" },
-  { name: "Carnes", slug: "acougue" },
-  { name: "Laticínios", slug: "laticinios" },
-  { name: "Limpeza", slug: "limpeza" },
-  { name: "Pet Shop", slug: "pet-shop" },
-  { name: "Higiene", slug: "higiene" },
+  { name: "Hortifruti", slug: "hortifruti", icon_name: "Apple" },
+  { name: "Carnes", slug: "acougue", icon_name: "Beef" },
+  { name: "Padaria", slug: "padaria", icon_name: "Croissant" },
+  { name: "Laticínios", slug: "laticinios", icon_name: "Milk" },
+  { name: "Bebidas", slug: "bebidas", icon_name: "Wine" },
+  { name: "Doces", slug: "doces", icon_name: "Cookie" },
+  { name: "Limpeza", slug: "limpeza", icon_name: "SprayCan" },
+  { name: "Higiene", slug: "higiene", icon_name: "Brush" },
+  { name: "Pet Shop", slug: "pet-shop", icon_name: "Dog" },
 ];
 
 export const CategoryBar = () => {
@@ -92,32 +86,19 @@ export const CategoryBar = () => {
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
-                   const IconComponent = getIcon(cat);
-                  const colors: Record<string, { bg: string, text: string, border: string, shadow: string }> = {
-                    "Hortifruti": { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-100", shadow: "shadow-emerald-100" },
-                    "Padaria": { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-100", shadow: "shadow-orange-100" },
-                    "Carnes": { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-100", shadow: "shadow-rose-100" },
-                    "Bebidas": { bg: "bg-indigo-50", text: "text-indigo-600", border: "border-indigo-100", shadow: "shadow-indigo-100" },
-                    "Laticínios": { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-100", shadow: "shadow-blue-100" },
-                    "Limpeza": { bg: "bg-sky-50", text: "text-sky-600", border: "border-sky-100", shadow: "shadow-sky-100" },
-                    "Pet Shop": { bg: "bg-amber-50", text: "text-amber-600", border: "border-amber-100", shadow: "shadow-amber-100" },
-                    "Higiene": { bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-100", shadow: "shadow-purple-100" },
-                    "Mercearia": { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200", shadow: "shadow-amber-100" },
-                  };
-                  const colorData = colors[cat.name] || { bg: "bg-zinc-50", text: "text-zinc-600", border: "border-zinc-100", shadow: "shadow-zinc-100" };
-                 
+                   const { IconComponent, strokeWidth } = getIconConfig(cat);
                  return (
                    <button
                      key={cat.slug}
                      onClick={() => window.location.href = `/search?q=${cat.name}`}
                      className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20"
                    >
-                      <div className={`w-16 h-16 rounded-[22px] ${colorData.bg} ${colorData.text} ${colorData.border} border-2 flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm ${colorData.shadow} relative overflow-hidden`}>
+                      <div className="w-16 h-16 rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         {cat.icon_url ? (
-                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10" alt={cat.name} />
+                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10 brightness-0 opacity-40 group-hover:brightness-100 group-hover:opacity-100 transition-all" alt={cat.name} />
                         ) : (
-                          <IconComponent size={28} strokeWidth={2.5} className="transition-colors relative z-10" />
+                          <IconComponent size={24} strokeWidth={strokeWidth} className="transition-colors relative z-10" />
                         )}
                       </div>
                      <span className="text-[10px] font-black uppercase tracking-tight text-zinc-500 group-hover:text-zinc-900 text-center transition-colors">
