@@ -189,7 +189,17 @@ DO $$ BEGIN
     CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
     CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
     CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
-    CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+     -- Limpeza total de políticas em user_roles para evitar recursão
+     END $$;
+     DO $$ 
+     DECLARE pol record;
+     BEGIN 
+         FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = 'user_roles' AND schemaname = 'public' LOOP
+             EXECUTE format('DROP POLICY %I ON public.user_roles', pol.policyname);
+         END LOOP;
+     END $$;
+     DO $$ BEGIN
+     CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
     
     -- Admin policies
     DROP POLICY IF EXISTS "Admins manage everything" ON public.products;

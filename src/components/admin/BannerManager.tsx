@@ -129,7 +129,7 @@ export function BannerManager() {
        // Ensure category_id is either a valid UUID or null
        const bannerToInsert = {
          ...newBanner,
-         category_id: newBanner.category_id && newBanner.category_id !== '' ? newBanner.category_id : null
+        category_id: newBanner.category_id && newBanner.category_id !== '' && newBanner.category_id !== 'none' ? newBanner.category_id : null
        }
    
        const { error } = await supabase.from('banners').insert([bannerToInsert])
@@ -198,12 +198,12 @@ export function BannerManager() {
              </div>
             <div className="space-y-2">
                <label className="text-xs font-black uppercase text-zinc-500">Categoria (Opcional)</label>
-              <Select onValueChange={(val) => setNewBanner({...newBanner, category_id: val})}>
+               <Select onValueChange={(val) => setNewBanner({...newBanner, category_id: val === 'none' ? '' : val})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                   <SelectItem value="none">Nenhuma</SelectItem>
                   {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
