@@ -1,23 +1,3 @@
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase">Ingredientes (Nome, Quantidade)</Label>
-              {manualRecipe.ingredients.map((ing, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <Input placeholder="Nome" value={ing.name} onChange={(e) => {
-                    const newIngs = [...manualRecipe.ingredients]
-                    newIngs[idx].name = e.target.value
-                    setManualRecipe({...manualRecipe, ingredients: newIngs})
-                  }} className="rounded-xl border-2 text-xs" />
-                  <Input placeholder="Qtd" value={ing.quantity} onChange={(e) => {
-                    const newIngs = [...manualRecipe.ingredients]
-                    newIngs[idx].quantity = e.target.value
-                    setManualRecipe({...manualRecipe, ingredients: newIngs})
-                  }} className="rounded-xl border-2 text-xs w-24" />
-                </div>
-              ))}
-              <Button variant="ghost" size="sm" onClick={() => setManualRecipe({...manualRecipe, ingredients: [...manualRecipe.ingredients, {name: '', quantity: ''}]})} className="text-[10px] uppercase font-bold">
-                + Adicionar Ingrediente
-              </Button>
-            </div>
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
