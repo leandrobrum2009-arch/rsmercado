@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-    import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks } from 'lucide-react'
+    import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -22,7 +22,8 @@ export function WhatsAppManager() {
    const [blastMessage, setBlastMessage] = useState('')
    const [isBlasting, setIsBlasting] = useState(false)
    const [scheduledDate, setScheduledDate] = useState('')
-   const [targetCoupon, setTargetCoupon] = useState('all')
+   const [targetSegment, setTargetSegment] = useState('all')
+   const [targetCoupon, setTargetCoupon] = useState('')
    const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
    const [campaigns, setCampaigns] = useState<any[]>([])
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
@@ -135,31 +136,60 @@ export function WhatsAppManager() {
        return
      }
  
-     const confirmMsg = targetCoupon === 'all' 
-       ? 'Deseja enviar esta mensagem para TODOS os clientes cadastrados AGORA?' 
-       : `Deseja enviar para os clientes que usaram o cupom "${targetCoupon}"?`
+      const segmentLabels: Record<string, string> = {
+        all: 'TODOS os clientes',
+        new: 'novos clientes (30 dias)',
+        vip: 'clientes VIP (+500 pts)',
+        active: 'clientes ativos (compras recentes)',
+        inactive: 'clientes inativos (sem compras recentes)',
+        coupon: `quem usou o cupom "${targetCoupon}"`
+      }
+
+      const confirmMsg = `Deseja enviar esta mensagem para ${segmentLabels[targetSegment] || 'o segmento selecionado'} AGORA?`
  
      if (!confirm(confirmMsg)) return
      
      setIsBlasting(true)
      try {
-        let customerQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null).eq('accept_marketing', true)
-       
-       if (targetCoupon !== 'all') {
-         const { data: orderUsers } = await supabase.from('orders').select('user_id').eq('coupon_code', targetCoupon)
-         const userIds = Array.from(new Set(orderUsers?.map(o => o.user_id).filter(Boolean)))
-         if (userIds.length === 0) {
-           toast.error('Nenhum cliente encontado para este cupom')
-           setIsBlasting(false)
-           return
-         }
-         customerQuery = customerQuery.in('id', userIds)
-       }
- 
-       const { data: customers } = await customerQuery
+        let customers: any[] = []
+        const baseQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null).eq('accept_marketing', true)
+
+        if (targetSegment === 'all') {
+          const { data } = await baseQuery
+          customers = data || []
+        } else if (targetSegment === 'new') {
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          const { data } = await baseQuery.gt('created_at', thirtyDaysAgo)
+          customers = data || []
+        } else if (targetSegment === 'vip') {
+          const { data } = await baseQuery.gt('points_balance', 500)
+          customers = data || []
+        } else if (targetSegment === 'coupon') {
+          const { data: orderUsers } = await supabase.from('orders').select('user_id').eq('coupon_code', targetCoupon)
+          const userIds = Array.from(new Set(orderUsers?.map(o => o.user_id).filter(Boolean)))
+          if (userIds.length > 0) {
+            const { data } = await baseQuery.in('id', userIds)
+            customers = data || []
+          }
+        } else if (targetSegment === 'active' || targetSegment === 'inactive') {
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          const { data: recentOrders } = await supabase.from('orders').select('user_id').gt('created_at', thirtyDaysAgo)
+          const activeUserIds = Array.from(new Set(recentOrders?.map(o => o.user_id).filter(Boolean)))
+          
+          if (targetSegment === 'active') {
+            if (activeUserIds.length > 0) {
+              const { data } = await baseQuery.in('id', activeUserIds)
+              customers = data || []
+            }
+          } else {
+            const { data } = await baseQuery.not('id', 'in', `(${activeUserIds.join(',')})`)
+            customers = data || []
+          }
+        }
        
        if (!customers || customers.length === 0) {
-         toast.error('Nenhum cliente com WhatsApp encontrado')
+          toast.error('Nenhum cliente encontrado para este segmento')
+          setIsBlasting(false)
          return
        }
  
@@ -167,7 +197,7 @@ export function WhatsAppManager() {
          message: blastMessage,
          status: 'processing',
          total_recipients: customers.length,
-         target_audience: targetCoupon === 'all' ? 'all' : `coupon:${targetCoupon}`
+          target_audience: targetSegment === 'coupon' ? `coupon:${targetCoupon}` : targetSegment
        }).select().single()
  
        if (campaignError) throw campaignError
@@ -281,26 +311,43 @@ export function WhatsAppManager() {
                 </select>
               </div>
  
-             <div className="space-y-2">
-               <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
-                 <Filter size={12} /> Segmentar por Cupom
-               </Label>
-               <select 
-                 className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
-                 value={targetCoupon}
-                 onChange={(e) => setTargetCoupon(e.target.value)}
-               >
-                 <option value="all">Todos os Clientes</option>
-                 {availableCoupons.map(cp => (
-                   <option key={cp} value={cp}>Quem usou cupom: {cp}</option>
-                 ))}
-               </select>
-               {targetCoupon !== 'all' && (
-                 <p className="text-[9px] text-zinc-500 font-bold italic">
-                   Filtrando clientes que já finalizaram pedidos usando este código.
-                 </p>
-               )}
-             </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                    <Users size={12} /> Segmento de Público
+                  </Label>
+                  <select 
+                    className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                    value={targetSegment}
+                    onChange={(e) => setTargetSegment(e.target.value)}
+                  >
+                    <option value="all">Todos os Clientes</option>
+                    <option value="new">Novos (30 dias)</option>
+                    <option value="vip">Clientes VIP (+500 pts)</option>
+                    <option value="active">Ativos (Compraram recentemente)</option>
+                    <option value="inactive">Inativos (Sem compras recentes)</option>
+                    <option value="coupon">Por Cupom Específico</option>
+                  </select>
+                </div>
+
+                {targetSegment === 'coupon' && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                      <Tag size={12} /> Selecione o Cupom
+                    </Label>
+                    <select 
+                      className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                      value={targetCoupon}
+                      onChange={(e) => setTargetCoupon(e.target.value)}
+                    >
+                      <option value="">Escolha um cupom...</option>
+                      {availableCoupons.map(cp => (
+                        <option key={cp} value={cp}>{cp}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
  
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
