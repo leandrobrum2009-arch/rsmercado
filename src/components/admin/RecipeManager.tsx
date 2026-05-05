@@ -197,6 +197,39 @@ export function RecipeManager() {
     }
   }
 
+  const handleCleanDuplicates = async () => {
+    setIsLoading(true)
+    try {
+      const { data } = await supabase.from('recipes').select('id, title').order('created_at', { ascending: true })
+      if (!data) return
+
+      const seen = new Set()
+      const toDelete = []
+
+      for (const recipe of data) {
+        const nTitle = normalize(recipe.title)
+        if (seen.has(nTitle)) {
+          toDelete.push(recipe.id)
+        } else {
+          seen.add(nTitle)
+        }
+      }
+
+      if (toDelete.length > 0) {
+        const { error } = await supabase.from('recipes').delete().in('id', toDelete)
+        if (error) throw error
+        toast.success(`${toDelete.length} duplicatas removidas!`)
+        fetchRecipes()
+      } else {
+        toast.info('Nenhuma duplicata encontrada.')
+      }
+    } catch (error) {
+      toast.error('Erro ao limpar duplicatas')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta receita?')) return
     try {
@@ -226,15 +259,15 @@ export function RecipeManager() {
           <h2 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Portal de Gastronomia</h2>
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Controle total das receitas e IA</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={handleCleanDuplicates} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
+            <Trash2 className="mr-2 h-4 w-4 text-red-500" /> Limpar Duplicatas
+          </Button>
           <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6">
-            <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear 40 Receitas
+            <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
           </Button>
           <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100">
             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-          </Button>
-          <Button onClick={() => setIsAiModalOpen(true)} className="bg-zinc-900 font-black uppercase text-[10px] h-10 px-6">
-            <Plus className="mr-2 h-4 w-4" /> Nova Manual
           </Button>
         </div>
       </div>
