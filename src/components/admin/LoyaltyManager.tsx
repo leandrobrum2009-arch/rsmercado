@@ -5,6 +5,16 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon } from 'lucide-react'
 import { toast } from '@/lib/toast'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+export function LoyaltyManager() {
+  const [loading, setLoading] = useState(false)
+  const [settings, setSettings] = useState<any>({ points_per_real: 1 })
+  const [neighborhoods, setNeighborhoods] = useState<any[]>([])
+   const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
+  const [rewards, setRewards] = useState<any[]>([])
+   const [challenges, setChallenges] = useState<any[]>([])
+ 
    const importNeighborhoods = async () => {
      setLoading(true)
      const list = [
@@ -32,16 +42,6 @@ import { toast } from '@/lib/toast'
      }
      setLoading(false)
    }
- 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-export function LoyaltyManager() {
-  const [loading, setLoading] = useState(false)
-  const [settings, setSettings] = useState<any>({ points_per_real: 1 })
-  const [neighborhoods, setNeighborhoods] = useState<any[]>([])
-   const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
-  const [rewards, setRewards] = useState<any[]>([])
-  const [challenges, setChallenges] = useState<any[]>([])
 
   useEffect(() => {
     fetchData()
