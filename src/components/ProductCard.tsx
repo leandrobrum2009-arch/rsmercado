@@ -45,12 +45,30 @@ import { SmartImage } from "./ui/SmartImage";
               <span className="bg-red-600 text-white font-black uppercase text-[10px] px-3 py-1 rounded-full animate-pulse shadow-lg">Sem Estoque</span>
             </div>
           )}
-           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-             {product.tags && product.tags.map((tag: string) => (
-               <div key={tag} className="bg-zinc-900 text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-lg border border-white/20">
-                 {tag}
-               </div>
-             ))}
+            <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+              {product.tags && product.tags.map((tag: string) => {
+                const isBadge = ['OFERTA', 'NOVO', 'RELAMPAGO', 'EXCLUSIVO', 'DESTAQUE'].includes(tag);
+                if (!isBadge) return (
+                  <div key={tag} className="bg-zinc-900 text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-lg border border-white/20">
+                    {tag}
+                  </div>
+                );
+                
+                const badgeStyles: Record<string, string> = {
+                  'OFERTA': 'bg-red-600 text-white',
+                  'NOVO': 'bg-green-600 text-white',
+                  'RELAMPAGO': 'bg-amber-500 text-white animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]',
+                  'EXCLUSIVO': 'bg-purple-600 text-white',
+                  'DESTAQUE': 'bg-blue-600 text-white animate-bounce'
+                };
+                
+                return (
+                  <div key={tag} className={`${badgeStyles[tag] || 'bg-zinc-900 text-white'} text-[9px] font-black px-2 py-1 rounded-sm uppercase tracking-tighter shadow-xl border border-white/10 flex items-center gap-1`}>
+                    {tag === 'RELAMPAGO' && <Zap size={10} className="fill-white" />}
+                    {tag}
+                  </div>
+                );
+              })}
             {(product.points_value > 0 || (product.price * multiplier) > 0) && (
               <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                 +{product.points_value > 0 ? product.points_value : Math.floor(product.price * multiplier)} PTS
