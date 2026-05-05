@@ -1,3 +1,4 @@
+   import { StoreAlertBanner } from "../components/StoreAlertBanner";
    useEffect(() => {
      const trackVisit = async () => {
        const { data: { user } } = await supabase.auth.getUser();
@@ -186,7 +187,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
  
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50">
+       <div className="flex flex-col min-h-screen bg-gray-50">
+         <StoreAlertBanner />
         {isSupabaseMissing && (
           <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse z-[60]">
             <div className="flex items-center gap-3">
