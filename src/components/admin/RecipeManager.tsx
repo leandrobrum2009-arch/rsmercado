@@ -99,13 +99,28 @@ export function RecipeManager() {
 
       await new Promise(resolve => setTimeout(resolve, 2000))
       
+      // Use multiple sources for images as requested
+      const imageSources = [
+        `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://source.unsplash.com/featured/800x400?food,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop` // Fallback
+      ];
+      const image_url = imageSources[Math.floor(Math.random() * imageSources.length)];
+
+      // Image validation: don't register if image_url is missing or invalid
+      if (!image_url || image_url.trim() === '') {
+        toast.error('Não foi possível encontrar uma imagem para esta receita. Tente novamente.');
+        setIsAiGenerating(false);
+        return;
+      }
+
       const newRecipe = {
         title,
         description: `Esta receita foi cuidadosamente elaborada por nosso algoritmo de gastronomia para destacar os sabores de: ${aiInput}. Uma combinação harmoniosa de texturas e aromas para uma experiência única.`,
         instructions: `1. Preparação Inicial: Comece organizando todos os ingredientes: ${aiInput}. Lave e corte os vegetais e proteínas em tamanhos uniformes.\n2. Base de Sabor: Em uma panela aquecida com um fio de azeite, doure os ingredientes principais começando pelos que exigem mais tempo de cocção.\n3. Desenvolvimento: Adicione os temperos de sua preferência e deixe os sabores se integrarem em fogo médio. Se necessário, adicione um pouco de água ou caldo para manter a umidade.\n4. Finalização: Cozinhe até que a textura esteja ao seu gosto. Desligue o fogo e adicione ervas frescas por cima antes de servir.\n5. Serviço: Disponha em um prato fundo para preservar o calor e finalize com um toque de pimenta moída na hora.`,
         category: 'Inovação IA',
         difficulty: 'Média',
-        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
+        image_url,
         ingredients: products.map(p => ({ name: p, quantity: '1 porção/unidade' }))
       }
 
