@@ -63,11 +63,30 @@ CREATE TABLE IF NOT EXISTS public.banners (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Configurações da Loja (Correção Definitiva)
 CREATE TABLE IF NOT EXISTS public.store_settings (
     key TEXT PRIMARY KEY,
     value JSONB,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Garante que se a tabela existir de migrações antigas, o valor seja JSONB
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'store_settings') THEN
+        -- Remove coluna ID se ela existir e KEY não for a PK
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'store_settings' AND column_name = 'id') THEN
+             -- Só remove se pudermos garantir que key será PK
+             ALTER TABLE public.store_settings DROP CONSTRAINT IF EXISTS store_settings_pkey;
+             ALTER TABLE public.store_settings DROP COLUMN IF EXISTS id;
+             ALTER TABLE public.store_settings ADD PRIMARY KEY (key);
+        END IF;
+
+        IF (SELECT data_type FROM information_schema.columns WHERE table_name = 'store_settings' AND column_name = 'value') = 'text' THEN
+            ALTER TABLE public.store_settings ALTER COLUMN value TYPE JSONB USING value::jsonb;
+        END IF;
+    END IF;
+END $$;
 
 -- Recria receitas se necessário ou garante que a tabela existe
 CREATE TABLE IF NOT EXISTS public.recipes (
