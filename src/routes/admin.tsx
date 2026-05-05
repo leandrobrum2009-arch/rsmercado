@@ -20,9 +20,27 @@ import {
        AlertCircle,
        Truck,
        Percent,
-       Lock
- import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
+        Lock,
+        Percent,
+        ShoppingBag,
+        Tag,
+        ClipboardList,
+        Upload,
+        ChefHat,
+        LayoutTemplate,
+        Image as ImageIcon,
+        MessageSquare,
+        Webhook,
+        Settings,
+        ShieldCheck,
+        Menu,
+        X,
+        Users,
+        Bell,
+        AlertCircle,
+        Truck
      } from 'lucide-react'
+ import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
