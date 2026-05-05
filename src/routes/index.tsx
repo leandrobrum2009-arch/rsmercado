@@ -4,8 +4,9 @@
   import { CategoryBar } from "@/components/home/CategoryBar";
  import { ProductGrid } from "@/components/home/ProductGrid";
  import { StoriesCarousel } from "@/components/home/StoriesCarousel";
- import { RecipeFeed } from "@/components/home/RecipeFeed";
- import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
+  import { RecipeFeed } from "@/components/home/RecipeFeed";
+  import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
+  import { InstagramFeed } from "@/components/home/InstagramFeed";
    import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell } from "lucide-react";
  import { Badge } from "@/components/ui/badge";
  
@@ -98,7 +99,9 @@ export const Route = createFileRoute("/")({
         <RecipeFeed />
 
         {/* AI Generator Prominent Banner */}
-        <AiRecipeBanner />
+         <AiRecipeBanner />
+ 
+         <InstagramFeed />
 
         <ProductGrid title="Ingredientes em Oferta" categoryName="Hortifruti" />
 
