@@ -17,7 +17,69 @@ export function WhatsAppManager() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsAdding] = useState(false)
-  const [testPhone, setTestPhone] = useState('')
+   const [testPhone, setTestPhone] = useState('')
+   const [blastMessage, setBlastMessage] = useState('')
+   const [isBlasting, setIsBlasting] = useState(false)
+   const handleBlast = async () => {
+     if (!blastMessage) return toast.error('Digite a mensagem para o envio em massa')
+     if (!confirm('Deseja enviar esta mensagem para TODOS os clientes cadastrados?')) return
+     
+     setIsBlasting(true)
+     try {
+       const { data: customers } = await supabase.from('profiles').select('whatsapp').not('whatsapp', 'is', null)
+       
+       if (!customers || customers.length === 0) {
+         toast.error('Nenhum cliente com WhatsApp encontrado')
+         return
+       }
+ 
+       let count = 0
+       for (const customer of customers) {
+         const result = await sendWhatsAppMessage(customer.whatsapp, blastMessage)
+         if (result.success) count++
+         // Small delay to avoid rate limits
+         await new Promise(resolve => setTimeout(resolve, 1000))
+       }
+       
+       toast.success(`${count} mensagens enviadas com sucesso!`)
+       setBlastMessage('')
+     } catch (error) {
+       toast.error('Erro no envio em massa')
+     } finally {
+       setIsBlasting(false)
+     }
+   }
+ 
+       <Card className="border-green-200 shadow-lg overflow-hidden">
+         <CardHeader className="bg-green-600 text-white">
+           <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+             <Send size={16} /> Mala Direta (Envio em Massa)
+           </CardTitle>
+         </CardHeader>
+         <CardContent className="p-6 space-y-4">
+           <div className="space-y-2">
+             <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
+             <textarea 
+               className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
+               placeholder="Ex: 🚀 Super Oferta de hoje: Arroz Tio João 5kg por apenas R$ 24,90! Venha conferir no site: https://sualoja.com"
+               value={blastMessage}
+               onChange={(e) => setBlastMessage(e.target.value)}
+             />
+           </div>
+           <Button 
+             onClick={handleBlast} 
+             disabled={isBlasting || !config.enabled} 
+             className="w-full bg-green-600 hover:bg-green-700 font-black uppercase italic h-12 rounded-2xl shadow-xl shadow-green-100"
+           >
+             {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
+             {config.enabled ? 'Disparar para todos os clientes' : 'Ative a API para usar Mala Direta'}
+           </Button>
+           {!config.enabled && (
+             <p className="text-[9px] text-center text-zinc-400 font-bold uppercase italic">O envio em massa requer uma API conectada.</p>
+           )}
+         </CardContent>
+       </Card>
+ 
 
   useEffect(() => {
     fetchConfig()
