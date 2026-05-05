@@ -3,7 +3,8 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload } from 'lucide-react'
+import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon } from 'lucide-react'
+import { toast } from '@/lib/toast'
    const importNeighborhoods = async () => {
      setLoading(true)
      const list = [
@@ -32,7 +33,6 @@ import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Uploa
      setLoading(false)
    }
  
-import { toast } from '@/lib/toast'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function LoyaltyManager() {
