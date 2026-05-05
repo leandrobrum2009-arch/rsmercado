@@ -56,7 +56,32 @@ export function ProductManagement() {
    const [selectedBrand, setSelectedBrand] = useState('all')
    const [selectedCategory, setSelectedCategory] = useState('all')
    const [sortField, setSortField] = useState('name')
-   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+    const [isQuickEditOpen, setIsQuickEditOpen] = useState(false)
+    const [quickEditCategory, setQuickEditCategory] = useState('all')
+    const [quickEditPrices, setQuickEditQuickPrices] = useState<Record<string, string>>({})
+   const handleQuickPriceUpdate = async () => {
+     setIsSubmitting(true)
+     try {
+       const updates = Object.entries(quickEditPrices).map(([id, price]) => ({
+         id,
+         price: parseFloat(price)
+       }))
+ 
+       for (const update of updates) {
+         await supabase.from('products').update({ price: update.price }).eq('id', update.id)
+       }
+ 
+       toast.success('Preços atualizados com sucesso!')
+       setIsQuickEditOpen(false)
+       fetchData()
+     } catch (err) {
+       toast.error('Erro ao atualizar preços')
+     } finally {
+       setIsSubmitting(false)
+     }
+   }
+ 
    const filteredProducts = products
      .filter(p => {
        const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -354,8 +379,23 @@ export function ProductManagement() {
            </div>
          </div>
        </div>
-        <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
-        <div className="flex gap-2 items-center">
+         <div className="flex items-center gap-3">
+           <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
+           <Button 
+             variant="outline" 
+             size="sm"
+             onClick={() => {
+               const initialPrices: Record<string, string> = {}
+               products.forEach(p => initialPrices[p.id] = p.price.toString())
+               setQuickEditQuickPrices(initialPrices)
+               setIsQuickEditOpen(true)
+             }}
+             className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold uppercase text-[10px]"
+           >
+             <Zap className="mr-1 h-3 w-3" /> Edição Rápida de Preços
+           </Button>
+         </div>
+         <div className="flex gap-2 items-center">
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -428,10 +468,11 @@ export function ProductManagement() {
                  <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
                  <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
                  <TableHead className="text-[10px] font-black uppercase">Bags / Etiquetas</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase text-center">Estoque</TableHead>
                  <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
-              <TableHead className="text-[10px] font-black uppercase text-center">Venda Online</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
-            </TableRow>
+                 <TableHead className="text-[10px] font-black uppercase text-center">Venda Online</TableHead>
+                 <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
+               </TableRow>
           </TableHeader>
           <TableBody>
              {filteredProducts.length === 0 && (
@@ -465,7 +506,80 @@ export function ProductManagement() {
                      ))}
                    </div>
                  </TableCell>
-                <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
+                 <TableCell className="text-center">
+                   <div className={`inline-flex items-center px-2 py-1 rounded-full font-black text-[10px] ${p.stock <= 5 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-green-100 text-green-700'}`}>
+                     {p.stock || 0} un
+                   </div>
+                 </TableCell>
+                 <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
+       <Dialog open={isQuickEditOpen} onOpenChange={setIsQuickEditOpen}>
+         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+           <DialogHeader className="p-6 bg-zinc-900 text-white">
+             <DialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Atualização de Preços Diária</DialogTitle>
+             <div className="flex items-center gap-4 mt-4">
+               <div className="flex-1">
+                 <Label className="text-[10px] font-black uppercase text-zinc-400 mb-1 block">Filtrar Categoria</Label>
+                 <Select value={quickEditCategory} onValueChange={setQuickEditCategory}>
+                   <SelectTrigger className="h-9 bg-zinc-800 border-zinc-700 text-xs">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="all">Todas as Categorias</SelectItem>
+                     {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div className="pt-5">
+                 <p className="text-[10px] font-bold text-zinc-500">Editando {products.filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory).length} itens</p>
+               </div>
+             </div>
+           </DialogHeader>
+           
+           <div className="flex-1 overflow-y-auto p-6 bg-white">
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-center">Preço Atual</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-right w-40">Novo Preço (R$)</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {products
+                   .filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory)
+                   .map(p => (
+                     <TableRow key={p.id}>
+                       <TableCell>
+                         <div className="flex items-center gap-2">
+                           <img src={p.image_url} className="w-8 h-8 rounded object-cover border" />
+                           <p className="text-xs font-bold uppercase">{p.name}</p>
+                         </div>
+                       </TableCell>
+                       <TableCell className="text-center text-xs font-medium text-zinc-400">R$ {p.price.toFixed(2)}</TableCell>
+                       <TableCell>
+                         <Input 
+                           type="number" 
+                           step="0.01"
+                           value={quickEditPrices[p.id] || ''} 
+                           onChange={(e) => setQuickEditQuickPrices({...quickEditPrices, [p.id]: e.target.value})}
+                           className="text-right font-black text-xs h-8 border-amber-200 focus:ring-amber-500"
+                         />
+                       </TableCell>
+                     </TableRow>
+                   ))}
+               </TableBody>
+             </Table>
+           </div>
+ 
+           <DialogFooter className="p-6 border-t bg-zinc-50 gap-2">
+             <Button variant="ghost" onClick={() => setIsQuickEditOpen(false)} className="font-bold uppercase text-[10px]">Cancelar</Button>
+             <Button onClick={handleQuickPriceUpdate} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8">
+               {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+               Salvar Todos os Preços
+             </Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
                 <TableCell className="text-center">
                   <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p.id, p.is_available)} />
                 </TableCell>
