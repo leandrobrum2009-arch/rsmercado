@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap } from 'lucide-react'
+    import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
