@@ -1,15 +1,6 @@
- import { subscribeToPush } from '@/lib/webpush'
-   const handleSubscribe = async () => {
-     const success = await subscribeToPush()
-     if (success) {
-       toast.success('Notificações ativadas!')
-     } else {
-       toast.error('Erro ao ativar notificações. Verifique as permissões do navegador.')
-     }
-   }
- 
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
+ import { subscribeToPush } from '@/lib/webpush'
  import { Bell, BellDot, X, Check } from 'lucide-react'
  import { Button } from '@/components/ui/button'
  import {
@@ -26,6 +17,15 @@
    const [notifications, setNotifications] = useState<any[]>([])
    const [unreadCount, setUnreadCount] = useState(0)
    const [isOpen, setIsOpen] = useState(false)
+ 
+   const handleSubscribe = async () => {
+     const success = await subscribeToPush()
+     if (success) {
+       toast.success('Notificações ativadas!')
+     } else {
+       toast.error('Erro ao ativar notificações. Verifique as permissões do navegador.')
+     }
+   }
  
    useEffect(() => {
      const fetchNotifications = async () => {
@@ -49,25 +49,39 @@
  
      fetchNotifications()
  
-     // Subscribe to new notifications
-     const channel = supabase
-       .channel('user-notifications')
-       .on('postgres_changes', { 
-         event: 'INSERT', 
-         schema: 'public', 
-         table: 'notifications' 
-       }, (payload) => {
-         setNotifications(prev => [payload.new, ...prev].slice(0, 20))
-         setUnreadCount(prev => prev + 1)
-         toast.info(payload.new.title, {
-           description: payload.new.message
-         })
-       })
-       .subscribe()
- 
-     return () => {
-       supabase.removeChannel(channel)
-     }
+      let channel: any;
+
+      const setupSubscription = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Use a unique channel name to avoid "already subscribed" errors when mounted twice
+        const channelName = `user-notifications-${user.id}-${Math.random().toString(36).substr(2, 9)}`
+        
+        channel = supabase
+          .channel(channelName)
+          .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          }, (payload) => {
+            setNotifications(prev => [payload.new, ...prev].slice(0, 20))
+            setUnreadCount(prev => prev + 1)
+            toast.info(payload.new.title, {
+              description: payload.new.message
+            })
+          })
+          .subscribe()
+      }
+
+      setupSubscription()
+
+      return () => {
+        if (channel) {
+          supabase.removeChannel(channel)
+        }
+      }
    }, [])
  
    const markAsRead = async (id: string) => {
