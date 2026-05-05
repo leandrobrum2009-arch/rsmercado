@@ -118,7 +118,8 @@ function CartPage() {
         points_earned: Math.floor(total * pointsMultiplier),
         customer_name: profile.full_name,
         customer_phone: profile.whatsapp,
-        delivery_address: selectedAddress
+        delivery_address: selectedAddress,
+        coupon_code: coupon
       };
 
       let { data: order, error: orderError } = await supabase

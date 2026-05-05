@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
- import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle } from 'lucide-react'
+  import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -22,6 +22,8 @@ export function WhatsAppManager() {
    const [blastMessage, setBlastMessage] = useState('')
    const [isBlasting, setIsBlasting] = useState(false)
    const [scheduledDate, setScheduledDate] = useState('')
+   const [targetCoupon, setTargetCoupon] = useState('all')
+   const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
    const [campaigns, setCampaigns] = useState<any[]>([])
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
  
@@ -49,6 +51,14 @@ export function WhatsAppManager() {
      }
    }
  
+   const fetchCoupons = async () => {
+     const { data } = await supabase.from('orders').select('coupon_code').not('coupon_code', 'is', null)
+     if (data) {
+       const unique = Array.from(new Set(data.map((o: any) => o.coupon_code).filter(Boolean))) as string[]
+       setAvailableCoupons(unique)
+     }
+   }
+ 
    const handleBlast = async () => {
      if (!blastMessage) return toast.error('Digite a mensagem para o envio em massa')
      
@@ -58,7 +68,7 @@ export function WhatsAppManager() {
          message: blastMessage,
          status: 'scheduled',
          scheduled_for: new Date(scheduledDate).toISOString(),
-         target_audience: 'all'
+         target_audience: targetCoupon === 'all' ? 'all' : `coupon:${targetCoupon}`
        })
        
        if (error) toast.error('Erro ao agendar envio: ' + error.message)
@@ -72,11 +82,28 @@ export function WhatsAppManager() {
        return
      }
  
-     if (!confirm('Deseja enviar esta mensagem para TODOS os clientes cadastrados AGORA?')) return
+     const confirmMsg = targetCoupon === 'all' 
+       ? 'Deseja enviar esta mensagem para TODOS os clientes cadastrados AGORA?' 
+       : `Deseja enviar para os clientes que usaram o cupom "${targetCoupon}"?`
+ 
+     if (!confirm(confirmMsg)) return
      
      setIsBlasting(true)
      try {
-       const { data: customers } = await supabase.from('profiles').select('whatsapp').not('whatsapp', 'is', null)
+       let customerQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null)
+       
+       if (targetCoupon !== 'all') {
+         const { data: orderUsers } = await supabase.from('orders').select('user_id').eq('coupon_code', targetCoupon)
+         const userIds = Array.from(new Set(orderUsers?.map(o => o.user_id).filter(Boolean)))
+         if (userIds.length === 0) {
+           toast.error('Nenhum cliente encontado para este cupom')
+           setIsBlasting(false)
+           return
+         }
+         customerQuery = customerQuery.in('id', userIds)
+       }
+ 
+       const { data: customers } = await customerQuery
        
        if (!customers || customers.length === 0) {
          toast.error('Nenhum cliente com WhatsApp encontrado')
@@ -86,7 +113,8 @@ export function WhatsAppManager() {
        const { data: campaign, error: campaignError } = await supabase.from('whatsapp_campaigns').insert({
          message: blastMessage,
          status: 'processing',
-         total_recipients: customers.length
+         total_recipients: customers.length,
+         target_audience: targetCoupon === 'all' ? 'all' : `coupon:${targetCoupon}`
        }).select().single()
  
        if (campaignError) throw campaignError
@@ -116,6 +144,7 @@ export function WhatsAppManager() {
    useEffect(() => {
      fetchConfig()
      fetchCampaigns()
+     fetchCoupons()
    }, [])
 
   const fetchConfig = async () => {
@@ -163,6 +192,27 @@ export function WhatsAppManager() {
              </CardTitle>
            </CardHeader>
            <CardContent className="p-6 space-y-4 flex-1">
+             <div className="space-y-2">
+               <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                 <Filter size={12} /> Segmentar por Cupom
+               </Label>
+               <select 
+                 className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                 value={targetCoupon}
+                 onChange={(e) => setTargetCoupon(e.target.value)}
+               >
+                 <option value="all">Todos os Clientes</option>
+                 {availableCoupons.map(cp => (
+                   <option key={cp} value={cp}>Quem usou cupom: {cp}</option>
+                 ))}
+               </select>
+               {targetCoupon !== 'all' && (
+                 <p className="text-[9px] text-zinc-500 font-bold italic">
+                   Filtrando clientes que já finalizaram pedidos usando este código.
+                 </p>
+               )}
+             </div>
+ 
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
                <textarea 
