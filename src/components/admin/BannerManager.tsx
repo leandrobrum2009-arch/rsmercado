@@ -57,12 +57,19 @@ export function BannerManager() {
       const { data: { session } } = await supabase.auth.getSession();
       const isSuperAdmin = session?.user?.email === 'leandrobrum2009@gmail.com';
 
-       // Use a more robust select that handles missing tables or columns gracefully
-       const { data: bannersData, error: bError } = await supabase
-         .from('banners')
-         .select('*')
-         .order('created_at', { ascending: false })
-         .catch(() => ({ data: [], error: { message: 'relation "banners" does not exist' } }));
+       let bannersData = null;
+       let bError = null;
+
+       try {
+         const response = await supabase
+           .from('banners')
+           .select('*')
+           .order('created_at', { ascending: false });
+         bannersData = response.data;
+         bError = response.error;
+       } catch (err: any) {
+         bError = err;
+       }
 
        if (bError) {
          console.error('Error fetching banners:', bError);
@@ -93,7 +100,7 @@ export function BannerManager() {
       const safeBanners = bannersData || [];
       const safeCategories = catData || [];
       
-      const mappedBanners = safeBanners.map(banner => ({
+      const mappedBanners = safeBanners.map((banner: any) => ({
         ...banner,
         categories: safeCategories.find(c => c.id === banner.category_id)
       }));
