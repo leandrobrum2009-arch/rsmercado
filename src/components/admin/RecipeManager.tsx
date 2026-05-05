@@ -99,7 +99,6 @@ export function RecipeManager() {
 
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Use multiple sources for images as requested
        // Use multiple sources for images as requested
        const sources = [
          `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
@@ -166,8 +165,7 @@ export function RecipeManager() {
        img.onload = () => resolve(true);
        img.onerror = () => resolve(false);
        img.src = url;
-       // Timeout after 3 seconds
-       setTimeout(() => resolve(false), 3000);
+       setTimeout(() => resolve(false), 2000); // 2s timeout
      });
    };
 
@@ -342,42 +340,46 @@ export function RecipeManager() {
           {name: 'Manteiga', quantity: '2 colheres'}
         ]
       },
-       {
-         title: 'Tacos de Peixe Estilo Baja',
-         description: 'Tacos refrescantes com peixe crocante, repolho temperado e molho de iogurte.',
-         instructions: '1. Peixe: Empane e frite.\n2. Repolho: Misture com limão.\n3. Molho: Iogurte e limão.\n4. Tortilhas: Aqueça.\n5. Montagem: Tudo na tortilha.',
-         category: 'Mexicana',
-         difficulty: 'Média',
-         keywords: 'fish,taco,mexican',
-         ingredients: [{name: 'Peixe', quantity: '500g'}]
-       },
-       {
-         title: 'Salmão Grelhado com Ervas',
-         description: 'Filé de salmão suculento com crosta de ervas finas e limão siciliano.',
-         instructions: '1. Tempere o salmão.\n2. Grelhe por 4 minutos cada lado.\n3. Adicione ervas e limão.\n4. Sirva com aspargos.',
-         category: 'Saudável',
-         difficulty: 'Fácil',
-         keywords: 'salmon,fish,grilled',
-         ingredients: [{name: 'Salmão', quantity: '200g'}]
-       },
-       {
-         title: 'Nhoque de Batata Caseiro',
-         description: 'Massa leve feita em casa com batatas selecionadas e molho de tomate fresco.',
-         instructions: '1. Cozinhe as batatas.\n2. Amasse e misture com farinha e ovo.\n3. Modele os nhoques.\n4. Cozinhe em água fervente.\n5. Sirva com molho.',
-         category: 'Italiana',
-         difficulty: 'Média',
-         keywords: 'gnocchi,pasta,italian',
-         ingredients: [{name: 'Batata', quantity: '1kg'}]
-       },
-       {
-         title: 'Hambúrguer Artesanal',
-         description: 'Blend especial de carnes com queijo derretido e pão brioche tostado.',
-         instructions: '1. Molde os hambúrgueres.\n2. Grelhe no ponto desejado.\n3. Derreta o queijo.\n4. Monte no pão com molho especial.',
-         category: 'Lanche',
-         difficulty: 'Fácil',
-         keywords: 'burger,meat,fastfood',
-         ingredients: [{name: 'Carne Moída', quantity: '200g'}]
-       }
+       { title: 'Moqueca de Camarão', category: 'Baiana', keywords: 'shrimp,moqueca' },
+       { title: 'Filé Mignon ao Poivre', category: 'Francesa', keywords: 'steak,pepper' },
+       { title: 'Risoto de Cogumelos', category: 'Italiana', keywords: 'risotto,mushroom' },
+       { title: 'Salmão com Alcaparras', category: 'Saudável', keywords: 'salmon,caper' },
+       { title: 'Picanha ao Alho', category: 'Churrasco', keywords: 'picanha,garlic' },
+       { title: 'Bacalhau à Gomes de Sá', category: 'Portuguesa', keywords: 'codfish,potato' },
+       { title: 'Nhoque de Batata Doce', category: 'Massa', keywords: 'gnocchi,sweetpotato' },
+       { title: 'Quiche de Alho Poró', category: 'Francesa', keywords: 'quiche,leek' },
+       { title: 'Ceviche Clássico', category: 'Peruana', keywords: 'ceviche,fish' },
+       { title: 'Paella Valeciana', category: 'Espanhola', keywords: 'paella,seafood' },
+       { title: 'Ratatouille Tradicional', category: 'Vegana', keywords: 'vegetables,stew' },
+       { title: 'Hambúrguer de Grão de Bico', category: 'Vegetariana', keywords: 'burger,chickpea' },
+       { title: 'Sushi Variado', category: 'Japonesa', keywords: 'sushi,fish' },
+       { title: 'Pad Thai de Frango', category: 'Tailandesa', keywords: 'noodles,chicken' },
+       { title: 'Guacamole com Nachos', category: 'Mexicana', keywords: 'avocado,nacho' },
+       { title: 'Mousse de Maracujá', category: 'Sobremesa', keywords: 'passionfruit,mousse' },
+       { title: 'Petit Gâteau', category: 'Sobremesa', keywords: 'chocolate,lava' },
+       { title: 'Torta de Maçã', category: 'Sobremesa', keywords: 'apple,pie' },
+       { title: 'Cheesecake de Frutas Vermelhas', category: 'Sobremesa', keywords: 'cheesecake,berry' },
+       { title: 'Panqueca Americana', category: 'Café', keywords: 'pancake,syrup' },
+       { title: 'Carne de Panela com Batata', category: 'Caseira', keywords: 'meat,potato' },
+       { title: 'Frango Assado com Ervas', category: 'Assado', keywords: 'chicken,herb' },
+       { title: 'Lasanha de Berinjela', category: 'Vegetariana', keywords: 'eggplant,lasagna' },
+       { title: 'Espaguete à Carbonara', category: 'Italiana', keywords: 'pasta,bacon' },
+       { title: 'Arroz de Marisco', category: 'Portuguesa', keywords: 'rice,seafood' },
+       { title: ' Yakisoba de Carne', category: 'Chinesa', keywords: 'noodles,meat' },
+       { title: 'Tacos de Carne Asada', category: 'Mexicana', keywords: 'meat,taco' },
+       { title: 'Falafel com Hummus', category: 'Árabe', keywords: 'chickpea,dip' },
+       { title: 'Kibe Assado Recheado', category: 'Árabe', keywords: 'meat,wheat' },
+       { title: 'Tabule Refrescante', category: 'Árabe', keywords: 'salad,parsley' },
+       { title: 'Bobó de Camarão', category: 'Baiana', keywords: 'shrimp,cassava' },
+       { title: 'Arroz com Frango e Pequi', category: 'Goiana', keywords: 'chicken,rice,pequi' },
+       { title: 'Feijão Tropeiro Mineiro', category: 'Mineira', keywords: 'beans,bacon' },
+       { title: 'Galinhada com Guariroba', category: 'Regional', keywords: 'chicken,rice' },
+       { title: 'Pão de Ló de Laranja', category: 'Bolo', keywords: 'cake,orange' },
+       { title: 'Torta Holandesa', category: 'Sobremesa', keywords: 'pie,cookie' },
+       { title: 'Pudim de Chia com Coco', category: 'Fitness', keywords: 'chia,coconut' },
+       { title: 'Salada Caesar com Frango', category: 'Salada', keywords: 'salad,chicken' },
+       { title: 'Sopa de Cebola Francesa', category: 'Sopa', keywords: 'onion,soup' },
+       { title: 'Bruschetta de Tomate', category: 'Entrada', keywords: 'bread,tomato' }
      ];
  
      try {
@@ -394,28 +396,36 @@ export function RecipeManager() {
        ];
 
        for(let i = 0; i < 40; i++) {
-         const template = detailedTemplates[i % detailedTemplates.length];
-         const nTitle = normalize(template.title);
+         const base = detailedTemplates[i % detailedTemplates.length];
+         const variant = i >= detailedTemplates.length ? ` ${Math.floor(i / detailedTemplates.length) + 1}` : '';
+         const title = base.title + variant;
+         const nTitle = normalize(title);
          
          if (!existingSet.has(nTitle)) {
-           // Try different sources until one works
-           let validImageUrl = '';
-           const keywords = template.keywords || normalize(template.title);
+           const keywords = (base as any).keywords || normalize(base.title);
+           const sources = [
+             `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(keywords.split(',')[0])}?random=${i}`,
+             `https://picsum.photos/seed/${encodeURIComponent(keywords)}${i}/800/400`,
+             `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`
+           ];
            
-           for (const source of imageSources) {
-             const testUrl = source(keywords + i);
-             const exists = await checkImageExists(testUrl);
-             if (exists) {
-               validImageUrl = testUrl;
+           let chosenUrl = '';
+           for (const url of sources) {
+             if (await checkImageExists(url)) {
+               chosenUrl = url;
                break;
              }
            }
-
-           if (validImageUrl) {
+ 
+           if (chosenUrl) {
              finalRecipes.push({ 
-               ...template, 
-               image_url: validImageUrl,
-               keywords: undefined // Remove helper property
+               title,
+               description: (base as any).description || `Uma deliciosa receita de ${title.toLowerCase()}.`,
+               instructions: (base as any).instructions || `1. Preparar ingredientes.\n2. Cozinhar bem.\n3. Servir quente.`,
+               category: base.category,
+               difficulty: (base as any).difficulty || 'Média',
+               image_url: chosenUrl,
+               ingredients: (base as any).ingredients || [{name: 'Ingrediente Base', quantity: '1 unidade'}]
              });
              existingSet.add(nTitle);
              addedCount++;
@@ -424,7 +434,13 @@ export function RecipeManager() {
        }
 
       if (finalRecipes.length > 0) {
-        const { error } = await supabase.from('recipes').insert(finalRecipes)
+        const { data: { session } } = await supabase.auth.getSession()
+        const recipesWithAuthor = finalRecipes.map(r => ({
+          ...r,
+          author_id: session?.user?.id
+        }))
+        
+        const { error } = await supabase.from('recipes').insert(recipesWithAuthor)
         if (error) throw error
         toast.success(`${addedCount} novas receitas brasileiras cadastradas!`);
       } else {
@@ -432,9 +448,9 @@ export function RecipeManager() {
       }
       
       fetchRecipes()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Import error:', error);
-      toast.error('Erro na importação em massa')
+      toast.error('Erro na importação: ' + (error.message || 'Erro desconhecido'))
     } finally {
       setIsLoading(false)
     }
