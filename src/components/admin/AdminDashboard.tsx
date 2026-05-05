@@ -188,10 +188,20 @@
          ])
        }
  
-       const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
-       setStats((prev: any) => ({ ...prev, customers_count: count || 0 }))
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
+        setStats((prev: any) => ({ ...prev, customers_count: count || 0 }))
  
-     } catch (err) {
+        // 5. Get low stock products
+        const { data: lowStock } = await supabase
+          .from('products')
+          .select('name, stock')
+          .lt('stock', 5)
+          .order('stock', { ascending: true })
+          .limit(3)
+        
+        setLowStockProducts(lowStock || [])
+  
+      } catch (err) {
        console.error('Error fetching dashboard data:', err)
      } finally {
        setLoading(false)
