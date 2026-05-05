@@ -1,26 +1,28 @@
  import { AlertManager } from '@/components/admin/AlertManager'
  import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
-import { 
-  ShoppingBag, 
-  Tag, 
-  ClipboardList, 
-  Upload, 
-  ChefHat, 
-  LayoutTemplate, 
-  Image as ImageIcon, 
+ import { 
+   ShoppingBag, 
+   Tag, 
+   ClipboardList, 
+   Upload, 
+   ChefHat, 
+   LayoutTemplate, 
+   Image as ImageIcon, 
    MessageSquare,
    Webhook,
-  Settings, 
-  ShieldCheck, 
+   Settings, 
+   ShieldCheck, 
    Menu,
    X,
-     Users,
-       Bell,
-       AlertCircle,
-       Truck,
-        Percent
-     } from 'lucide-react'
+   Users,
+   Bell,
+   AlertCircle,
+   Truck,
+   Percent,
+   Lock
+ } from 'lucide-react'
+ import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
@@ -94,32 +96,49 @@ export const Route = createFileRoute('/admin')({
   component: RouteComponent,
 })
 
-function RouteComponent() {
-  const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+ function RouteComponent() {
+   const [userPermissions, setUserPermissions] = useState<string[]>([])
+   const [session, setSession] = useState<any>(null)
    const [activeTab, setActiveTab] = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  
-  const [lastError, setLastError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const { data, error } = await supabase.rpc('is_admin')
-        if (error) {
-          console.error('Diagnostic RPC error:', error)
-          setLastError(error.message)
-          setIsAdminDiagnostic(false)
-        } else {
-          setIsAdminDiagnostic(data)
-          setLastError(null)
-        }
-      } catch (err: any) {
-        setLastError(err.message)
-        setIsAdminDiagnostic(false)
-      }
-    }
-    check()
-  }, [])
+   const [sidebarOpen, setSidebarOpen] = useState(false)
+   const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
+   const [lastError, setLastError] = useState<string | null>(null)
+ 
+   useEffect(() => {
+     const fetchPermissionsAndAdmin = async () => {
+       try {
+         const { data: { session: currentSession } } = await supabase.auth.getSession()
+         setSession(currentSession)
+         
+         if (currentSession) {
+           const { data: roleData } = await supabase
+             .from('user_roles')
+             .select('permissions')
+             .eq('user_id', currentSession.user.id)
+             .maybeSingle()
+           
+           if (roleData?.permissions) {
+             setUserPermissions(roleData.permissions)
+           } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+             setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "whatsapp", "webhooks", "admin_roles"])
+           }
+         }
+ 
+         const { data, error } = await supabase.rpc('is_admin')
+         if (error) {
+           setLastError(error.message)
+           setIsAdminDiagnostic(false)
+         } else {
+           setIsAdminDiagnostic(data)
+         }
+       } catch (err: any) {
+         console.error('Error in Admin init:', err)
+         setLastError(err.message)
+         setIsAdminDiagnostic(false)
+       }
+     }
+     fetchPermissionsAndAdmin()
+   }, [])
 
      const menuGroups = [
        {
@@ -159,13 +178,19 @@ function RouteComponent() {
          },
        {
        title: 'Configurações e Integrações',
-       items: [
-           { id: 'settings', label: 'Dados da Loja', icon: Settings },
-           { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
-           { id: 'webhooks', label: 'Webhooks', icon: Webhook }
-         ]
-     }
-   ];
+        items: [
+            { id: 'settings', label: 'Dados da Loja', icon: Settings },
+            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+            { id: 'webhooks', label: 'Webhooks', icon: Webhook }
+          ]
+        },
+        {
+          title: 'Controle de Acesso',
+          items: [
+            { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock }
+          ]
+        }
+    ];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
@@ -192,9 +217,12 @@ function RouteComponent() {
              <div key={group.title} className="space-y-2">
                <h3 className="px-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{group.title}</h3>
                <div className="space-y-1">
-                 {group.items.map((item) => (
-                   <button
-                     key={item.id}
+                  {group.items.map((item) => {
+                    const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
+                    if (!isAllowed) return null
+                    return (
+                    <button
+                      key={item.id}
                      onClick={() => {
                        setActiveTab(item.id)
                        setSidebarOpen(false)
@@ -208,8 +236,9 @@ function RouteComponent() {
                    >
                      <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
                      {item.label}
-                   </button>
-                 ))}
+                    </button>
+                    )
+                  })}
                </div>
              </div>
            ))}
