@@ -122,6 +122,7 @@ function RouteComponent() {
           { id: 'orders', label: 'Pedidos', icon: ClipboardList },
           { id: 'products', label: 'Produtos', icon: ShoppingBag },
           { id: 'customers', label: 'Clientes', icon: Users },
+          { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
          { id: 'categories', label: 'Categorias', icon: Tag },
          { id: 'importer', label: 'Importação', icon: Upload },
        ]
