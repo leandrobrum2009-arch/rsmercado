@@ -38,7 +38,12 @@ import { SmartImage } from "./ui/SmartImage";
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+             {product.tags && product.tags.map((tag: string) => (
+               <div key={tag} className="bg-zinc-900 text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-lg border border-white/20">
+                 {tag}
+               </div>
+             ))}
             {product.points_value > 0 && (
               <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                 +{product.points_value} PTS
