@@ -112,11 +112,10 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
        // Use multiple sources for images as requested
-       const sources = [
-         `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
-         `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`,
-         `https://picsum.photos/800/400?random=${Date.now()}`
-       ];
+        const sources = [
+          `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`, // Default generic food
+          `https://loremflickr.com/800/400/meal,cooking,food?random=${Date.now()}`
+        ];
        
        let image_url = '';
        for (const src of sources) {
