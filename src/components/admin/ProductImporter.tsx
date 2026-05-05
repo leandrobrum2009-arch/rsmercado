@@ -166,10 +166,12 @@ export function ProductImporter() {
       }
     }
 
-    // Create a robust set for duplicate checking
+    // Create a robust set for duplicate checking - also normalize strings
+    const normalize = (str: string) => (str || '').toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
     const existingSet = new Set(
       allExisting.map(p => 
-        `${(p.name || '').toLowerCase().trim()}|${(p.brand || '').toLowerCase().trim()}|${(p.size || '').toLowerCase().trim()}`
+        `${normalize(p.name)}|${normalize(p.brand)}|${normalize(p.size)}`
       )
     );
 
@@ -300,7 +302,7 @@ export function ProductImporter() {
 
     while (suggestions.length < maxItems && attempts < randomizedData.length) {
       const template = randomizedData[attempts]
-      const key = `${template.name.toLowerCase().trim()}|${(template.brand || '').toLowerCase().trim()}|${(template.size || '').toLowerCase().trim()}`
+      const key = `${normalize(template.name)}|${normalize(template.brand)}|${normalize(template.size)}`
       
       if (!existingSet.has(key)) {
         const id = Math.random().toString(36).substr(2, 9)
