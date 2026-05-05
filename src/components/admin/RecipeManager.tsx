@@ -67,28 +67,37 @@ export function RecipeManager() {
     }
   }
 
+  const normalize = (str: string) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^a-z0-9]/g, ""); // Remove special chars
+  };
+
   const handleCreateAiRecipe = async () => {
     if (!aiInput.trim()) return toast.error('Digite os produtos para a IA')
     setIsAiGenerating(true)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
       const products = aiInput.split(',').map(p => p.trim())
       const mainProduct = products[0] || 'Ingrediente'
       const title = `Chef IA: ${mainProduct} Criativo`
       
-      // Verificar se já existe uma receita com este título
-      const { data: existing } = await supabase
-        .from('recipes')
-        .select('id')
-        .ilike('title', title)
-        .maybeSingle()
+      // Check for duplicates with robust normalization
+      const { data: allRecipes } = await supabase.from('recipes').select('title')
+      const nTitle = normalize(title)
+      const isDuplicate = (allRecipes || []).some(r => normalize(r.title) === nTitle)
 
-      if (existing) {
-        toast.error('Já existe uma receita com este título!');
+      if (isDuplicate) {
+        toast.error('Já existe uma receita similar a esta!');
         setIsAiGenerating(false);
         return;
       }
+
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
       const newRecipe = {
         title,
@@ -100,22 +109,22 @@ export function RecipeManager() {
         ingredients: products.map(p => ({ name: p, quantity: 'a gosto' }))
       }
 
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        const recipeToInsert = {
-          ...newRecipe,
-          author_id: session?.user?.id
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const recipeToInsert = {
+        ...newRecipe,
+        author_id: session?.user?.id
+      }
+
+      const { error: insertError } = await supabase.from('recipes').insert([recipeToInsert])
+      
+      if (insertError) {
+        console.error('Recipe creation error:', insertError);
+        if (insertError.message.includes('API key')) {
+          throw new Error('Chave de API inválida no Supabase');
         }
- 
-         const { error: insertError } = await supabase.from('recipes').insert([recipeToInsert])
-       
-       if (insertError) {
-         console.error('Recipe creation error:', insertError);
-         if (insertError.message.includes('API key')) {
-           throw new Error('Chave de API inválida no Supabase');
-         }
-         throw insertError;
-       }
+        throw insertError;
+      }
       
       toast.success('Receita gerada pela IA e salva no catálogo!')
       setIsAiModalOpen(false)
