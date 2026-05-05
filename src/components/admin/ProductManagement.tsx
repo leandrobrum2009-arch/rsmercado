@@ -49,13 +49,41 @@ export function ProductManagement() {
     }
   }
 
-  const [products, setProducts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+   const [products, setProducts] = useState<any[]>([])
+   const [categories, setCategories] = useState<any[]>([])
+   const [isLoading, setIsLoading] = useState(true)
+   const [searchQuery, setSearchQuery] = useState('')
+   const [selectedBrand, setSelectedBrand] = useState('all')
+   const [selectedCategory, setSelectedCategory] = useState('all')
+   const [sortField, setSortField] = useState('name')
+   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+   const filteredProducts = products
+     .filter(p => {
+       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
+       const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand
+       const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
+       return matchesSearch && matchesBrand && matchesCategory
+     })
+     .sort((a, b) => {
+       let valA = a[sortField] || ''
+       let valB = b[sortField] || ''
+       
+       if (typeof valA === 'string') valA = valA.toLowerCase()
+       if (typeof valB === 'string') valB = valB.toLowerCase()
+       
+       if (valA < valB) return sortOrder === 'asc' ? -1 : 1
+       if (valA > valB) return sortOrder === 'asc' ? 1 : -1
+       return 0
+     })
+ 
+   const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort()
+ 
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newProduct, setNewProduct] = useState({
-      name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: ''
-   })
+    const [newProduct, setNewProduct] = useState({
+       id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: ''
+    })
+    const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -141,13 +169,13 @@ export function ProductManagement() {
     }
   }
 
-  const handleAddProduct = async () => {
-    if (!newProduct.name || !newProduct.price || !newProduct.category_id) {
-      return toast.error('Nome, preço e categoria são obrigatórios')
-    }
-    
-    setIsSubmitting(true)
-     const productToInsert: any = {
+   const handleSaveProduct = async () => {
+     if (!newProduct.name || !newProduct.price || !newProduct.category_id) {
+       return toast.error('Nome, preço e categoria são obrigatórios')
+     }
+     
+     setIsSubmitting(true)
+     const productData: any = {
        name: newProduct.name,
        description: newProduct.description,
        price: Number(newProduct.price),
@@ -155,31 +183,59 @@ export function ProductManagement() {
        category_id: newProduct.category_id,
        image_url: newProduct.image_url,
        stock: parseInt(newProduct.stock) || 0,
-        points_value: parseInt(newProduct.points_value) || 0,
-        brand: newProduct.brand,
-        tags: newProduct.tags ? newProduct.tags.split(',').map(t => t.trim()) : []
+       points_value: parseInt(newProduct.points_value) || 0,
+       brand: newProduct.brand,
+       tags: newProduct.tags ? newProduct.tags.split(',').map(t => t.trim()) : []
      };
-
-    let { error } = await supabase.from('products').insert([productToInsert])
-    
-    if (error && error.message.includes('column')) {
-       console.warn('Minimal insert fallback');
-       // Try to remove potentially missing columns
-       const { name, price, category_id, image_url, description } = productToInsert;
-       const { error: retryError } = await supabase.from('products').insert([{ name, price, category_id, image_url, description }]);
-       error = retryError;
-    }
-    setIsSubmitting(false)
-    
-    if (error) {
-      console.error('Add product error:', error)
-      toast.error('Falha ao salvar produto. Verifique sua conexão e permissões.')
-    } else {
-       toast.success('Produto adicionado!')
-        setNewProduct({ name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '' })
+ 
+     let error;
+     if (isEditing) {
+       const { error: updateError } = await supabase
+         .from('products')
+         .update(productData)
+         .eq('id', newProduct.id)
+       error = updateError;
+     } else {
+       const { error: insertError } = await supabase
+         .from('products')
+         .insert([productData])
+       error = insertError;
+     }
+     
+     setIsSubmitting(false)
+     
+     if (error) {
+       console.error('Save product error:', error)
+       toast.error('Falha ao salvar produto.')
+     } else {
+       toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
+       resetForm()
        fetchData()
-    }
-  }
+     }
+   }
+ 
+   const resetForm = () => {
+     setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '' })
+     setIsEditing(false)
+   }
+ 
+   const handleEdit = (product: any) => {
+     setNewProduct({
+       id: product.id,
+       name: product.name,
+       description: product.description || '',
+       price: product.price.toString(),
+       old_price: product.old_price ? product.old_price.toString() : '',
+       category_id: product.category_id,
+       image_url: product.image_url || '',
+       stock: (product.stock || 0).toString(),
+       is_available: product.is_available,
+       points_value: (product.points_value || 0).toString(),
+       brand: product.brand || '',
+       tags: (product.tags || []).join(', ')
+     })
+     setIsEditing(true)
+   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza?')) return
@@ -231,7 +287,73 @@ export function ProductManagement() {
          </div>
        )}
  
-       <div className="flex justify-between items-center gap-4 flex-wrap">
+       <div className="flex justify-between items-center gap-4 flex-wrap mb-2">
+ 
+       <div className="bg-white p-4 border-2 border-zinc-100 rounded-xl shadow-sm space-y-4">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
+             <Input 
+               placeholder="Nome ou marca..." 
+               value={searchQuery} 
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="h-9 text-xs"
+             />
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Marca</Label>
+             <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+               <SelectTrigger className="h-9 text-xs">
+                 <SelectValue placeholder="Todas as marcas" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas as marcas</SelectItem>
+                 {brands.map(brand => (
+                   <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Categoria</Label>
+             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+               <SelectTrigger className="h-9 text-xs">
+                 <SelectValue placeholder="Todas as categorias" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas as categorias</SelectItem>
+                 {categories.map(cat => (
+                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Ordenar por</Label>
+             <div className="flex gap-1">
+               <Select value={sortField} onValueChange={setSortField}>
+                 <SelectTrigger className="h-9 text-xs flex-1">
+                   <SelectValue placeholder="Ordenar" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="name">Nome</SelectItem>
+                   <SelectItem value="brand">Marca</SelectItem>
+                   <SelectItem value="price">Preço</SelectItem>
+                   <SelectItem value="created_at">Data de Cadastro</SelectItem>
+                 </SelectContent>
+               </Select>
+               <Button 
+                 variant="outline" 
+                 size="icon" 
+                 className="h-9 w-9"
+                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+               >
+                 {sortOrder === 'asc' ? '↑' : '↓'}
+               </Button>
+             </div>
+           </div>
+         </div>
+       </div>
         <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
         <div className="flex gap-2 items-center">
           <div className="flex gap-2">
@@ -250,13 +372,13 @@ export function ProductManagement() {
               <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
             </Button>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
+           <Dialog onOpenChange={(open) => !open && resetForm()}>
+             <DialogTrigger asChild onClick={() => resetForm()}>
               <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
-              <DialogHeader><DialogTitle className="font-black uppercase">Cadastrar Produto</DialogTitle></DialogHeader>
-              <div className="grid grid-cols-2 gap-4 pt-4">
+               <DialogHeader><DialogTitle className="font-black uppercase">{isEditing ? 'Editar Produto' : 'Cadastrar Produto'}</DialogTitle></DialogHeader>
+               <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
                  <div className="space-y-2 col-span-2 md:col-span-1">
                    <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
                    <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
@@ -290,8 +412,8 @@ export function ProductManagement() {
                   <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
                   <Label className="font-bold">Disponível para venda na loja</Label>
                 </div>
-                <Button onClick={handleAddProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
-                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Produto'}
+                 <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
+                   {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : (isEditing ? 'Atualizar Produto' : 'Salvar Produto')}
                 </Button>
               </div>
             </DialogContent>
@@ -304,15 +426,15 @@ export function ProductManagement() {
           <TableHeader className="bg-zinc-50">
                <TableRow>
                  <TableHead className="text-[10px] font-black uppercase">Imagem</TableHead>
-                 <TableHead className="text-[10px] font-black uppercase">Nome</TableHead>
-                 <TableHead className="text-[10px] font-black uppercase">Marca</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
+                 <TableHead className="text-[10px] font-black uppercase">Bags / Etiquetas</TableHead>
                  <TableHead className="text-[10px] font-black uppercase text-center">Preço</TableHead>
               <TableHead className="text-[10px] font-black uppercase text-center">Venda Online</TableHead>
               <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 && (
+             {filteredProducts.length === 0 && (
               <TableRow>
                  <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-zinc-400">
@@ -323,7 +445,7 @@ export function ProductManagement() {
                 </TableCell>
               </TableRow>
             )}
-            {products.map((p) => (
+             {filteredProducts.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
                   <SmartImage src={p.image_url} tableName="products" itemId={p.id} className="w-10 h-10 object-cover rounded shadow-sm" />
@@ -331,15 +453,71 @@ export function ProductManagement() {
                  <TableCell className="font-bold text-xs uppercase">
                    <div className="flex flex-col">
                      <span>{p.name}</span>
-                     {p.brand && <span className="text-[9px] text-zinc-400 font-normal">{p.brand}</span>}
+                     <span className="text-[9px] text-zinc-400 font-normal italic">
+                       {p.brand ? `Marca: ${p.brand}` : 'Sem marca'} | {p.categories?.name || 'Sem categoria'}
+                     </span>
                    </div>
                  </TableCell>
-                 <TableCell className="text-xs uppercase font-medium">{p.brand || '-'}</TableCell>
+                 <TableCell>
+                   <div className="flex flex-wrap gap-1">
+                     {p.tags && p.tags.map((tag: string) => (
+                       <span key={tag} className="bg-zinc-100 text-[8px] font-black px-1.5 py-0.5 rounded border border-zinc-200 uppercase">{tag}</span>
+                     ))}
+                   </div>
+                 </TableCell>
                 <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
                 <TableCell className="text-center">
                   <Switch checked={p.is_available} onCheckedChange={() => toggleAvailability(p.id, p.is_available)} />
                 </TableCell>
-                <TableCell className="text-right">
+                 <TableCell className="text-right">
+                   <Dialog onOpenChange={(open) => !open && resetForm()}>
+                     <DialogTrigger asChild>
+                       <Button variant="ghost" size="icon" onClick={() => handleEdit(p)} className="text-zinc-500">
+                         <Edit className="h-4 w-4" />
+                       </Button>
+                     </DialogTrigger>
+                     <DialogContent className="max-w-2xl">
+                       <DialogHeader><DialogTitle className="font-black uppercase">Editar Produto</DialogTitle></DialogHeader>
+                       <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
+                         <div className="space-y-2 col-span-2 md:col-span-1">
+                           <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
+                           <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                         </div>
+                         <div className="space-y-2 col-span-2 md:col-span-1">
+                           <Label className="text-[10px] uppercase font-bold">Marca</Label>
+                           <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
+                         </div>
+                         <div className="space-y-2 col-span-2 md:col-span-1">
+                           <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
+                           <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                         </div>
+                         <div className="space-y-2 col-span-2 md:col-span-1">
+                           <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
+                           <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                         </div>
+                         <div className="space-y-2 col-span-2 md:col-span-1">
+                           <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>
+                           <Input type="number" value={newProduct.points_value} onChange={(e) => setNewProduct({...newProduct, points_value: e.target.value})} />
+                         </div>
+                         <div className="space-y-2">
+                           <Label className="text-[10px] uppercase font-bold">Categoria</Label>
+                           <Select value={newProduct.category_id} onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
+                             <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                             <SelectContent>
+                               {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                             </SelectContent>
+                           </Select>
+                         </div>
+                         <div className="flex items-center gap-2 col-span-2 py-2">
+                           <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                           <Label className="font-bold">Disponível para venda na loja</Label>
+                         </div>
+                         <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
+                           {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Atualizar Produto'}
+                         </Button>
+                       </div>
+                     </DialogContent>
+                   </Dialog>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-red-500">
                     <Trash2 className="h-4 w-4" />
                   </Button>
