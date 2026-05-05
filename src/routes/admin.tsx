@@ -92,10 +92,24 @@ function RouteComponent() {
   const [activeTab, setActiveTab] = useState('products')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
+  const [lastError, setLastError] = useState<string | null>(null)
+
   useEffect(() => {
     const check = async () => {
-      const { data } = await supabase.rpc('is_admin')
-      setIsAdminDiagnostic(data)
+      try {
+        const { data, error } = await supabase.rpc('is_admin')
+        if (error) {
+          console.error('Diagnostic RPC error:', error)
+          setLastError(error.message)
+          setIsAdminDiagnostic(false)
+        } else {
+          setIsAdminDiagnostic(data)
+          setLastError(null)
+        }
+      } catch (err: any) {
+        setLastError(err.message)
+        setIsAdminDiagnostic(false)
+      }
     }
     check()
   }, [])
@@ -184,10 +198,10 @@ function RouteComponent() {
             variant="ghost" 
             size="sm" 
             className="w-full justify-start text-[10px] text-zinc-500 hover:text-white"
-            onClick={() => {
-              supabase.auth.getSession().then(({data}) => {
-                alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nAdmin State: ${isAdminDiagnostic}`)
-              })
+            onClick={async () => {
+              const { data } = await supabase.auth.getSession()
+              const { data: rpcData, error: rpcError } = await supabase.rpc('is_admin')
+              alert(`DEBUG INFO:\nUser: ${data.session?.user.email}\nAdmin State: ${isAdminDiagnostic}\nRPC Result: ${rpcData}\nRPC Error: ${rpcError?.message || 'None'}\nLast Error: ${lastError || 'None'}`)
             }}
           >
             <Bug className="h-3 w-3 mr-2" /> Diagnóstico de Sistema
