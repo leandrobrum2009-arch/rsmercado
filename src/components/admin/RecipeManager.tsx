@@ -19,8 +19,10 @@ export function RecipeManager() {
 
    useEffect(() => {
      const check = async () => {
-       const { data } = await supabase.rpc('is_admin')
-       setIsAdmin(data)
+       const { data: isAdminRpc } = await supabase.rpc('is_admin')
+       const { data: { session } } = await supabase.auth.getSession()
+       const isSuper = session?.user?.email === 'leandrobrum2009@gmail.com'
+       setIsAdmin(isAdminRpc || isSuper)
      }
      check()
      fetchRecipes()
@@ -78,7 +80,7 @@ export function RecipeManager() {
           author_id: session?.user?.id
         }
  
-        const { error: insertError } = await supabase.from('recipes').insert(recipeToInsert)
+         const { error: insertError } = await supabase.from('recipes').insert([recipeToInsert])
        
        if (insertError) {
          console.error('Recipe creation error:', insertError);

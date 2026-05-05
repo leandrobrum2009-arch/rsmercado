@@ -53,7 +53,11 @@ export function BannerManager() {
     setIsLoading(true)
     try {
       // Try a simpler query first to avoid join errors if relations are not set
-      const { data: bannersData, error: bError } = await supabase.from('banners').select('*')
+      // More robust check including superadmin email
+      const { data: { session } } = await supabase.auth.getSession();
+      const isSuperAdmin = session?.user?.email === 'leandrobrum2009@gmail.com';
+
+      const { data: bannersData, error: bError } = await supabase.from('banners').select('*').order('created_at', { ascending: false });
        if (bError) {
          console.error('Error fetching banners:', bError)
          if (bError.message.includes('relation "banners" does not exist')) {
@@ -88,23 +92,31 @@ export function BannerManager() {
      if (!newBanner.image_url) return toast.error('URL da imagem é obrigatória')
      
      setIsAdding(true)
-     
-     // Ensure category_id is either a valid UUID or null
-     const bannerToInsert = {
-       ...newBanner,
-       category_id: newBanner.category_id && newBanner.category_id !== '' ? newBanner.category_id : null
-     }
- 
-     const { error } = await supabase.from('banners').insert([bannerToInsert])
-     setIsAdding(false)
-     
-     if (error) {
-       console.error('Error adding banner:', error)
-       toast.error('Erro ao adicionar banner: ' + error.message)
-     } else {
+     try {
+       const { data: isAdmin } = await supabase.rpc('is_admin');
+       const { data: { session } } = await supabase.auth.getSession();
+       if (!isAdmin && session?.user?.email !== 'leandrobrum2009@gmail.com') {
+         throw new Error('Sem permissão administrativa no banco de dados.');
+       }
+
+       // Ensure category_id is either a valid UUID or null
+       const bannerToInsert = {
+         ...newBanner,
+         category_id: newBanner.category_id && newBanner.category_id !== '' ? newBanner.category_id : null
+       }
+   
+       const { error } = await supabase.from('banners').insert([bannerToInsert])
+       
+       if (error) throw error;
+
        toast.success('Banner adicionado!')
        setNewBanner({ image_url: '', category_id: '', link_url: '', is_active: true })
        fetchData()
+     } catch (error: any) {
+       console.error('Error adding banner:', error)
+       toast.error('Erro ao adicionar: ' + error.message)
+     } finally {
+       setIsAdding(false)
      }
    }
 
