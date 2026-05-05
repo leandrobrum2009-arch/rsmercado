@@ -224,27 +224,17 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
    OR COALESCE(auth.jwt() ->> 'email', '') = 'leandrobrum2009@gmail.com';
 $$;
 
--- 5. Habilitar RLS e Limpar Políticas
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
-
-DO $$ 
-DECLARE
-    tab text;
-    pol record;
-BEGIN
-    FOR tab IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('products', 'categories', 'banners', 'store_settings', 'recipes', 'user_roles', 'profiles', 'orders', 'order_items', 'user_recipes')
-    LOOP
-        FOR pol IN SELECT policyname FROM pg_policies WHERE tablename = tab AND schemaname = 'public'
-        LOOP
-            EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', pol.policyname, tab);
-        END LOOP;
-    END LOOP;
-END $$;
+ -- 5. Habilitar RLS
+ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ ALTER TABLE public.user_recipes ENABLE ROW LEVEL SECURITY;
 
 -- 6. Recriar Políticas
 CREATE POLICY "Public Read Products" ON public.products FOR SELECT USING (true);
