@@ -380,9 +380,10 @@ export function RecipeManager() {
          if (!existingSet.has(nTitle)) {
            const keywords = (base as any).keywords || normalize(base.title);
            const sources = [
-             `https://loremflickr.com/800/400/food,recipe,${keywords}?random=${i}`,
-             `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop&sig=${i}`,
-             `https://picsum.photos/seed/${keywords}${i}/800/400`
+             `https://loremflickr.com/800/400/food,recipe,${keywords.split(',')[0]}?random=${i}`,
+             `https://picsum.photos/seed/${keywords}${i}/800/400`,
+             `https://source.unsplash.com/featured/800x400?food,${keywords.split(',')[0]}&sig=${i}`,
+             `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`
            ];
            
            let chosenUrl = '';
