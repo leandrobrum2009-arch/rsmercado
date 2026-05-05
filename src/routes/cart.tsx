@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
  import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info } from "lucide-react";
 import { useState, useEffect } from "react";
-import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage } from "../lib/whatsapp";
+import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
 import { RecipeSuggestions } from "@/components/RecipeSuggestions";
@@ -165,11 +165,14 @@ function CartPage() {
        
        await sendWhatsAppMessage(profile.whatsapp, userMessage);
 
-       // Notify Admin
-       const { data: storeData } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
-       if (storeData && storeData.value) {
-         const adminMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n👤 Cliente: *${profile.full_name}*\n💰 Valor: *R$ ${total.toFixed(2)}*\n📍 Bairro: *${selectedAddress.neighborhood}*\n💳 Pagamento: *${paymentMethod.toUpperCase()}*\n\n👉 Acesse o painel para gerenciar: ${window.location.origin}/admin`;
-         await sendWhatsAppMessage(storeData.value, adminMessage);
+       // Notify Admin if enabled
+       const waConfig = await getWhatsAppConfig();
+       if (waConfig?.notify_new_order_admin !== false) {
+         const { data: storeData } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+         if (storeData && storeData.value) {
+           const adminMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n👤 Cliente: *${profile.full_name}*\n💰 Valor: *R$ ${total.toFixed(2)}*\n📍 Bairro: *${selectedAddress.neighborhood}*\n💳 Pagamento: *${paymentMethod.toUpperCase()}*\n\n👉 Acesse o painel para gerenciar: ${window.location.origin}/admin`;
+           await sendWhatsAppMessage(storeData.value, adminMessage);
+         }
        }
 
        toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
