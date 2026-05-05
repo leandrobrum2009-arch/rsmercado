@@ -58,13 +58,16 @@ export function OrderManagement() {
 
     // Notify via WhatsApp
     if (customerPhone) {
-      const statusLabels: Record<string, string> = {
-        pending: 'Pendente',
-        preparing: 'Em Preparação',
-        out_for_delivery: 'Saiu para Entrega',
-        delivered: 'Entregue',
-        cancelled: 'Cancelado'
-      }
+       const statusLabels: Record<string, string> = {
+         pending: 'Pendente',
+         approved: 'Pedido Aprovado ✅',
+         collecting: 'Em Coleta 🛒',
+         collected: 'Pedido Coletado 📦',
+         waiting_courier: 'Aguardando Entregador 🛵',
+         out_for_delivery: 'Saiu para Entrega 🚚',
+         delivered: 'Entregue 🏁',
+         cancelled: 'Cancelado ❌'
+       }
       
       const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\nAgradecemos a preferência! 🛒`
       await sendWhatsAppMessage(customerPhone, message)
@@ -130,13 +133,16 @@ export function OrderManagement() {
                       <SelectTrigger className="w-[140px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="preparing">Preparando</SelectItem>
-                        <SelectItem value="out_for_delivery">Sai para Entrega</SelectItem>
-                        <SelectItem value="delivered">Entregue</SelectItem>
-                        <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </SelectContent>
+                       <SelectContent>
+                         <SelectItem value="pending">Pendente</SelectItem>
+                         <SelectItem value="approved">Aprovado</SelectItem>
+                         <SelectItem value="collecting">Em Coleta</SelectItem>
+                         <SelectItem value="collected">Coletado</SelectItem>
+                         <SelectItem value="waiting_courier">Aguardando Entregador</SelectItem>
+                         <SelectItem value="out_for_delivery">Saiu para Entrega</SelectItem>
+                         <SelectItem value="delivered">Entregue</SelectItem>
+                         <SelectItem value="cancelled">Cancelado</SelectItem>
+                       </SelectContent>
                     </Select>
                   </TableCell>
                 </TableRow>
