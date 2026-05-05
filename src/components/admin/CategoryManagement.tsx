@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat } from 'lucide-react'
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
@@ -14,7 +15,30 @@ export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: '', banner_url: '' })
+   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag', banner_url: '' })
+   const elegantIcons = [
+     { name: 'Apple', label: 'Maçã' },
+     { name: 'Beef', label: 'Carne' },
+     { name: 'Milk', label: 'Leite' },
+     { name: 'Beer', label: 'Bebida' },
+     { name: 'Fish', label: 'Peixe' },
+     { name: 'IceCream', label: 'Sorvete' },
+     { name: 'Coffee', label: 'Café' },
+     { name: 'Carrot', label: 'Cenoura' },
+     { name: 'Pizza', label: 'Pizza' },
+     { name: 'Wine', label: 'Vinho' },
+     { name: 'Egg', label: 'Ovos' },
+     { name: 'GlassWater', label: 'Água' },
+     { name: 'ChefHat', label: 'Culinária' },
+     { name: 'ShoppingBag', label: 'Geral' },
+     { name: 'Trash2', label: 'Limpeza' },
+     { name: 'Sparkles', label: 'Higiene' },
+     { name: 'Baby', label: 'Infantil' },
+     { name: 'Dog', label: 'Pet' },
+     { name: 'Grape', label: 'Frutas' },
+     { name: 'Wheat', label: 'Cereais' }
+   ];
+ 
    const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
 
   useEffect(() => {
@@ -137,8 +161,20 @@ export function CategoryManagement() {
                      </div>
                    </div>
                    <div className="space-y-2">
-                     <Label className="text-[10px] uppercase font-bold">Nome do Ícone (Lucide)</Label>
-                     <Input placeholder="Apple, Milk, Beef..." value={newCategory.icon_name} onChange={(e) => setNewCategory({...newCategory, icon_name: e.target.value})} />
+                     <Label className="text-[10px] uppercase font-bold">Ícone Elegante (Lucide)</Label>
+                     <Select 
+                       value={newCategory.icon_name} 
+                       onValueChange={(val) => setNewCategory({...newCategory, icon_name: val})}
+                     >
+                       <SelectTrigger className="h-10">
+                         <SelectValue placeholder="Escolha um ícone" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {elegantIcons.map(icon => (
+                           <SelectItem key={icon.name} value={icon.name}>{icon.label} ({icon.name})</SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
                    </div>
                  </div>
 

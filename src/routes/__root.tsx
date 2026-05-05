@@ -226,11 +226,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 py-1">
               {storeSettings.logo_url ? (
-                <img src={storeSettings.logo_url} alt="Logo" className="h-10 object-contain" />
+                <img src={storeSettings.logo_url} alt="Logo" className="h-14 md:h-16 object-contain" />
               ) : (
-                <span className="text-2xl font-bold text-primary">{storeSettings.site_name}</span>
+                <span className="text-2xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
               )}
             </Link>
             <div className="flex items-center space-x-4">
@@ -264,9 +264,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
          <div className="flex items-center justify-between h-14 px-4">
             <Link to="/" className="flex items-center gap-2">
               {storeSettings.logo_url ? (
-                <img src={storeSettings.logo_url} alt="Logo" className="h-8 object-contain" />
+                <img src={storeSettings.logo_url} alt="Logo" className="h-10 md:h-12 object-contain" />
               ) : (
-                <span className="text-xl font-bold text-primary">{storeSettings.site_name}</span>
+                <span className="text-xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
               )}
             </Link>
             <div className="flex items-center space-x-1">
