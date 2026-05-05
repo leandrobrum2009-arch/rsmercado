@@ -10,8 +10,9 @@
    opening_hours: string
    instagram_url: string
    facebook_url: string
-   store_description: string
- }
+    store_description: string
+    instagram_post_count: string
+  }
  
  const defaultSettings: StoreSettings = {
    site_name: 'Minha Loja',
@@ -22,8 +23,9 @@
    opening_hours: '',
    instagram_url: '',
    facebook_url: '',
-   store_description: ''
- }
+    store_description: '',
+    instagram_post_count: '6'
+  }
  
  export function useStoreSettings() {
    const [settings, setSettings] = useState<StoreSettings>(defaultSettings)
