@@ -29,6 +29,26 @@ export function WhatsAppManager() {
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
    const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+
+  const suggestedTemplates = [
+    { 
+      name: '🚀 Ofertas da Semana', 
+      content: '📢 *O NOVO ENCARTE CHEGOU!* 📢\n\nConfira as melhores ofertas que preparamos para você esta semana.\n\n🛒 Acesse agora: ' + window.location.origin + '\n\n*RS Supermercado - Qualidade e Preço Baixo!*' 
+    },
+    { 
+      name: '🥩 Promoção Açougue', 
+      content: '🥩 *DIA DE CHURRASCO!* 🥩\n\nAs melhores carnes com os melhores preços estão aqui. Venha conferir nossa seleção especial de hoje.\n\n📍 ' + window.location.origin + '\n\n*Aproveite enquanto durarem os estoques!*' 
+    },
+    { 
+      name: '🎁 Cupom de Desconto', 
+      content: '🎁 *UM PRESENTE PRA VOCÊ!* 🎁\n\nUse o cupom *VOLTEI5* e ganhe 5% de desconto na sua próxima compra pelo site.\n\n👉 Compre aqui: ' + window.location.origin + '\n\n*Válido por tempo limitado!*' 
+    },
+    { 
+      name: '🕒 Horário Especial', 
+      content: '🕒 *AVISO IMPORTANTE* 🕒\n\nInformamos que hoje estaremos abertos em horário especial: das 08h às 18h.\n\nAntecipe suas compras! 🛒' 
+    }
+  ]
+
    const fetchTemplates = async () => {
      const { data } = await supabase.from('whatsapp_templates').select('*').order('name')
      setTemplates(data || [])
@@ -356,6 +376,18 @@ export function WhatsAppManager() {
              </CardTitle>
            </CardHeader>
            <CardContent className="p-6 space-y-4">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {suggestedTemplates.map((t, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setNewTemplate({ name: t.name, content: t.content })}
+                    className="text-[9px] font-black uppercase bg-zinc-100 hover:bg-zinc-200 px-2 py-1 rounded-lg transition-colors"
+                  >
+                    + {t.name.split(' ')[1]}
+                  </button>
+                ))}
+              </div>
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Nome do Modelo</Label>
                <Input 
