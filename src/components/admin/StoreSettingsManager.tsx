@@ -17,8 +17,9 @@
      instagram_url: '',
      facebook_url: '',
       store_description: '',
-      points_ratio: '1'
-   })
+      points_ratio: '1',
+      instagram_post_count: '6'
+    })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState(false)
@@ -71,9 +72,10 @@
            if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
            if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
            if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
-           if (item.key === 'store_description') newSettings.store_description = item.value;
-           if (item.key === 'points_ratio') newSettings.points_ratio = item.value;
-         });
+            if (item.key === 'store_description') newSettings.store_description = item.value;
+            if (item.key === 'points_ratio') newSettings.points_ratio = item.value;
+            if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
+          });
          setSettings(newSettings);
        }
        setIsLoading(false);
@@ -142,9 +144,21 @@
          { key: 'opening_hours', value: settings.opening_hours },
          { key: 'instagram_url', value: settings.instagram_url },
          { key: 'facebook_url', value: settings.facebook_url },
-         { key: 'store_description', value: settings.store_description },
-         { key: 'points_ratio', value: settings.points_ratio }
-       ];
+          { key: 'store_description', value: settings.store_description },
+          { key: 'points_ratio', value: settings.points_ratio },
+          { key: 'instagram_post_count', value: settings.instagram_post_count }
+        ];
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-zinc-500">Qtd de Posts Instagram</label>
+                  <Input 
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={settings.instagram_post_count}
+                    onChange={(e) => setSettings({ ...settings, instagram_post_count: e.target.value })}
+                    className="rounded-xl border-zinc-200 focus:ring-primary w-24"
+                  />
+                </div>
  
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
