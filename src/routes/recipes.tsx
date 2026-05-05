@@ -238,7 +238,7 @@ function RecipesPage() {
           ))}
         </div>
 
-        {recipes.length === 0 && (
+        {filteredRecipes.length === 0 && (
           <div className="text-center py-40">
             <ChefHat className="w-16 h-16 mx-auto text-zinc-200 mb-4" />
             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-400">Nenhuma postagem no momento</h2>
