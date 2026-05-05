@@ -163,12 +163,9 @@ export const Route = createFileRoute('/admin')({
            { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
            { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
              { id: 'categories', label: 'Categorias', icon: Tag },
-             { id: 'organizer', label: 'Organizador', icon: LayoutTemplate },
-             { id: 'importer', label: 'Importação', icon: Upload },
-                   <TabsContent value="organizer" className="mt-0 focus-visible:ring-0">
-                     <ProductOrganizer />
-                   </TabsContent>
-       ]
+              { id: 'organizer', label: 'Organizador', icon: LayoutGrid },
+              { id: 'importer', label: 'Importação', icon: Upload },
+        ]
      },
        {
          title: 'Marketing e Conteúdo',
