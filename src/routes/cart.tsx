@@ -212,6 +212,61 @@ function CartPage() {
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
 
+        {/* Delivery Address */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2 flex justify-between items-center">
+            <span>Endereço de Entrega</span>
+            <Link to="/profile" className="text-[10px] text-green-600 font-black uppercase">Alterar / Novo</Link>
+          </h3>
+          {addresses.length === 0 ? (
+            <Link to="/profile" className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
+              <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
+              <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
+              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique aqui para adicionar</span>
+            </Link>
+          ) : (
+            <div className="bg-white rounded-3xl shadow-sm border p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-50 text-green-600 rounded-xl">
+                  <MapPin size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-gray-800">{selectedAddress?.recipient_name}</span>
+                    <span className="bg-gray-100 text-[8px] font-black px-2 py-0.5 rounded uppercase">{selectedAddress?.label}</span>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    {selectedAddress?.street}, {selectedAddress?.number}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {selectedAddress?.neighborhood} - {selectedAddress?.city}
+                  </p>
+                  {selectedAddress?.reference_point && (
+                    <div className="mt-2 text-[10px] text-zinc-600 bg-zinc-50 p-2 rounded-lg border border-zinc-100 flex items-center gap-1">
+                      <Info size={12} className="text-zinc-400" />
+                      <span className="font-bold uppercase opacity-60">Ref:</span> {selectedAddress?.reference_point}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {addresses.length > 1 && (
+                <div className="pt-3 border-t">
+                  <select 
+                    className="w-full bg-gray-50 border-none rounded-xl text-xs font-bold uppercase p-3"
+                    value={selectedAddress?.id}
+                    onChange={(e) => setSelectedAddress(addresses.find(a => a.id === e.target.value))}
+                  >
+                    {addresses.map(addr => (
+                      <option key={addr.id} value={addr.id}>{addr.label}: {addr.street}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Payment Methods */}
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2">Forma de Pagamento</h3>
