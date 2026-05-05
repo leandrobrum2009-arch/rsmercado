@@ -177,6 +177,10 @@ function RecipesPage() {
       </div>
 
       <div className="container mx-auto px-4">
+        <style>{`
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
         <div className="flex overflow-x-auto pb-6 gap-2 no-scrollbar mb-4">
           {categories.map((cat) => (
             <Button
