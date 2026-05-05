@@ -166,7 +166,7 @@ export function RecipeManager() {
        img.onload = () => resolve(true);
        img.onerror = () => resolve(false);
        img.src = url;
-       setTimeout(() => resolve(false), 3000); // 3s timeout
+       setTimeout(() => resolve(false), 2000); // 2s timeout
      });
    };
 
@@ -341,21 +341,26 @@ export function RecipeManager() {
           {name: 'Manteiga', quantity: '2 colheres'}
         ]
       },
-       { title: 'Filé Mignon ao Molho Madeira', category: 'Carnes', keywords: 'steak,meat' },
-       { title: 'Risoto de Limão Siciliano', category: 'Italiana', keywords: 'risotto,lemon' },
-       { title: 'Picanha Recheada', category: 'Churrasco', keywords: 'picanha,meat' },
-       { title: 'Frango com Quiabo', category: 'Mineira', keywords: 'chicken,okra' },
-       { title: 'Vatapá Baiano', category: 'Baiana', keywords: 'shrimp,creamy' },
-       { title: 'Brigadeiro Gourmet', category: 'Doce', keywords: 'chocolate' },
-       { title: 'Tapioca de Queijo', category: 'Café', keywords: 'tapioca,cheese' },
-       { title: 'Acarajé Completo', category: 'Baiana', keywords: 'beans,shrimp' },
-       { title: 'Pão de Queijo Mineiro', category: 'Café', keywords: 'cheese,bread' },
-       { title: 'Baião de Dois', category: 'Nordestina', keywords: 'rice,beans' },
-       { title: 'Coxinha de Frango', category: 'Salgado', keywords: 'chicken,snack' },
-       { title: 'Quindim Tradicional', category: 'Doce', keywords: 'egg,coconut' },
-       { title: 'Tacacá Paraense', category: 'Amazônica', keywords: 'shrimp,tucupi' },
-       { title: 'Arroz com Pequi', category: 'Regional', keywords: 'pequi,rice' },
-       { title: 'Feijão Tropeiro', category: 'Mineira', keywords: 'beans,flour' }
+       { title: 'Moqueca de Camarão', category: 'Baiana', keywords: 'shrimp,moqueca' },
+       { title: 'Filé Mignon ao Poivre', category: 'Francesa', keywords: 'steak,pepper' },
+       { title: 'Risoto de Cogumelos', category: 'Italiana', keywords: 'risotto,mushroom' },
+       { title: 'Salmão com Alcaparras', category: 'Saudável', keywords: 'salmon,caper' },
+       { title: 'Picanha ao Alho', category: 'Churrasco', keywords: 'picanha,garlic' },
+       { title: 'Bacalhau à Gomes de Sá', category: 'Portuguesa', keywords: 'codfish,potato' },
+       { title: 'Nhoque de Batata Doce', category: 'Massa', keywords: 'gnocchi,sweetpotato' },
+       { title: 'Quiche de Alho Poró', category: 'Francesa', keywords: 'quiche,leek' },
+       { title: 'Ceviche Clássico', category: 'Peruana', keywords: 'ceviche,fish' },
+       { title: 'Paella Valeciana', category: 'Espanhola', keywords: 'paella,seafood' },
+       { title: 'Ratatouille Tradicional', category: 'Vegana', keywords: 'vegetables,stew' },
+       { title: 'Hambúrguer de Grão de Bico', category: 'Vegetariana', keywords: 'burger,chickpea' },
+       { title: 'Sushi Variado', category: 'Japonesa', keywords: 'sushi,fish' },
+       { title: 'Pad Thai de Frango', category: 'Tailandesa', keywords: 'noodles,chicken' },
+       { title: 'Guacamole com Nachos', category: 'Mexicana', keywords: 'avocado,nacho' },
+       { title: 'Mousse de Maracujá', category: 'Sobremesa', keywords: 'passionfruit,mousse' },
+       { title: 'Petit Gâteau', category: 'Sobremesa', keywords: 'chocolate,lava' },
+       { title: 'Torta de Maçã', category: 'Sobremesa', keywords: 'apple,pie' },
+       { title: 'Cheesecake de Frutas Vermelhas', category: 'Sobremesa', keywords: 'cheesecake,berry' },
+       { title: 'Panqueca Americana', category: 'Café', keywords: 'pancake,syrup' }
      ];
  
      try {
