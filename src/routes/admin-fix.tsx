@@ -1,3 +1,10 @@
+-- 4. Colunas da Tabela Profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_points INTEGER DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+
+-- 5. Buckets de Armazenamento
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
