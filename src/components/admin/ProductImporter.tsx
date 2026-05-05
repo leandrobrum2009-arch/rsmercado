@@ -86,7 +86,7 @@ export function ProductImporter() {
       if (!searchQuery.trim()) return;
       setSearching(true);
       try {
-         const query = encodeURIComponent(searchQuery + " fundo branco oficial");
+         const query = encodeURIComponent(searchQuery + " fundo branco profissional oficial");
          const results = [
            `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
            `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
@@ -141,17 +141,35 @@ export function ProductImporter() {
     if (!category) return toast.error('Selecione uma categoria')
     setLoading(true)
     
-    // Get existing products to avoid duplicates - fetch more to be safe
-    let { data: existingProducts } = await supabase
-      .from('products')
-      .select('name, brand, size')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+    // Get existing products to avoid duplicates - fetch with pagination to get everything
+    let allExisting: any[] = [];
+    let from = 0;
+    let to = 999;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('name, brand, size')
+        .is('deleted_at', null)
+        .range(from, to);
+      
+      if (error || !data || data.length === 0) {
+        hasMore = false;
+      } else {
+        allExisting = [...allExisting, ...data];
+        if (data.length < 1000) hasMore = false;
+        else {
+          from += 1000;
+          to += 1000;
+        }
+      }
+    }
 
     // Create a robust set for duplicate checking
     const existingSet = new Set(
-      (existingProducts || []).map(p => 
-        `${p.name.toLowerCase().trim()}|${(p.brand || '').toLowerCase().trim()}|${(p.size || '').toLowerCase().trim()}`
+      allExisting.map(p => 
+        `${(p.name || '').toLowerCase().trim()}|${(p.brand || '').toLowerCase().trim()}|${(p.size || '').toLowerCase().trim()}`
       )
     );
 
