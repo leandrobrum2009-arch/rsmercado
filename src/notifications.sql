@@ -62,13 +62,13 @@
  CREATE POLICY "Admins can manage push subscriptions" ON public.push_subscriptions
      FOR ALL USING (public.is_admin());
  
- -- Function to decrease stock on order completion
+ -- Function to decrease or revert stock based on order status
  CREATE OR REPLACE FUNCTION update_stock_on_order()
  RETURNS TRIGGER AS $$
  DECLARE
      item RECORD;
  BEGIN
-     -- Only decrease stock when order is approved or delivered for the first time
+     -- 1. Decrease stock when order is approved (only if it was pending/new)
      IF (NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status = 'pending')) THEN
          FOR item IN SELECT product_id, quantity FROM public.order_items WHERE order_id = NEW.id LOOP
              UPDATE public.products 
@@ -76,6 +76,16 @@
              WHERE id = item.product_id;
          END LOOP;
      END IF;
+ 
+     -- 2. Revert stock when order is cancelled (only if it was already approved/later)
+     IF (NEW.status = 'cancelled' AND OLD.status NOT IN ('pending', 'cancelled')) THEN
+         FOR item IN SELECT product_id, quantity FROM public.order_items WHERE order_id = NEW.id LOOP
+             UPDATE public.products 
+             SET stock = stock + item.quantity
+             WHERE id = item.product_id;
+         END LOOP;
+     END IF;
+ 
      RETURN NEW;
  END;
  $$ LANGUAGE plpgsql SECURITY DEFINER;
