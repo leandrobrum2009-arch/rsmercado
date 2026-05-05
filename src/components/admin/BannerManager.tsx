@@ -62,15 +62,16 @@ export function BannerManager() {
          .select('*')
          .order('created_at', { ascending: false });
 
-       if (bError) {
-         console.error('Error fetching banners:', bError);
-         if (bError.message.includes('relation "banners" does not exist')) {
-           // Silent fail if it doesn't exist, as the migration might be pending
-           console.warn('Banners table not found yet.');
-         } else {
-           toast.error('Erro ao carregar banners: ' + bError.message);
-         }
-       }
+        if (bError) {
+          console.error('Error fetching banners:', bError);
+          if (bError.message.includes('relation "banners" does not exist')) {
+            toast.error('A tabela de banners não foi encontrada. Clique em Diagnóstico para reparar.');
+          } else {
+            toast.error('Erro ao carregar banners: ' + bError.message);
+          }
+          setIsLoading(false);
+          return;
+        }
 
       const { data: catData } = await supabase.from('categories').select('*')
       
