@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -273,7 +274,7 @@ import { formatCurrency, sendWhatsAppMessage } from '@/lib/whatsapp'
                                  <div className="bg-zinc-900 text-white p-6 space-y-2">
                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-400">
                                      <span>Subtotal dos Itens</span>
-                                     <span>R$ {parseFloat(order.total_amount - (order.delivery_fee || 0)).toFixed(2)}</span>
+                                     <span>R$ {(Number(order.total_amount) - (Number(order.delivery_fee) || 0)).toFixed(2)}</span>
                                    </div>
                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-400">
                                      <span>Taxa de Entrega</span>
@@ -282,7 +283,7 @@ import { formatCurrency, sendWhatsAppMessage } from '@/lib/whatsapp'
                                    <Separator className="bg-zinc-800 my-2" />
                                    <div className="flex justify-between items-center">
                                      <span className="text-xs font-black uppercase italic tracking-tighter">Total Geral</span>
-                                     <span className="text-xl font-black text-green-400">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
+                                     <span className="text-xl font-black text-green-400">R$ {Number(order.total_amount).toFixed(2)}</span>
                                    </div>
                                  </div>
                                </div>
@@ -296,8 +297,8 @@ import { formatCurrency, sendWhatsAppMessage } from '@/lib/whatsapp'
                                <Button 
                                  className="flex-1 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
                                  onClick={() => {
-                                   const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${parseFloat(order.total_amount).toFixed(2)}*\n\nLogo ele sairá para entrega! 🛒`
-                                   sendWhatsAppMessage(order.profiles?.whatsapp, message)
+                                   const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${Number(order.total_amount).toFixed(2)}*\n\nLogo ele sairá para entrega! 🛒`
+                                   sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
                                  }}
                                >
                                  <Phone size={16} className="mr-2" /> Chamar no Whats
