@@ -506,7 +506,7 @@ NOTIFY pgrst, 'reload schema';
        
        <Card className="w-full max-w-md border-4 border-zinc-900 shadow-2xl overflow-hidden">
          <div className="bg-zinc-900 p-2 text-center text-white font-bold text-[10px] uppercase tracking-widest">
-           Painel de Diagnóstico e Reparo
+            Painel de Diagnóstico e Reparo (v1.0.4)
          </div>
          <CardHeader>
            <CardTitle className="flex items-center gap-2">
