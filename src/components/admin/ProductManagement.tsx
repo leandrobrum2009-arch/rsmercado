@@ -49,9 +49,36 @@ export function ProductManagement() {
     }
   }
 
-  const [products, setProducts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+   const [products, setProducts] = useState<any[]>([])
+   const [categories, setCategories] = useState<any[]>([])
+   const [isLoading, setIsLoading] = useState(true)
+   const [searchQuery, setSearchQuery] = useState('')
+   const [selectedBrand, setSelectedBrand] = useState('all')
+   const [selectedCategory, setSelectedCategory] = useState('all')
+   const [sortField, setSortField] = useState('name')
+   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+   const filteredProducts = products
+     .filter(p => {
+       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
+       const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand
+       const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
+       return matchesSearch && matchesBrand && matchesCategory
+     })
+     .sort((a, b) => {
+       let valA = a[sortField] || ''
+       let valB = b[sortField] || ''
+       
+       if (typeof valA === 'string') valA = valA.toLowerCase()
+       if (typeof valB === 'string') valB = valB.toLowerCase()
+       
+       if (valA < valB) return sortOrder === 'asc' ? -1 : 1
+       if (valA > valB) return sortOrder === 'asc' ? 1 : -1
+       return 0
+     })
+ 
+   const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort()
+ 
   const [isSubmitting, setIsSubmitting] = useState(false)
    const [newProduct, setNewProduct] = useState({
       name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: ''
@@ -231,7 +258,73 @@ export function ProductManagement() {
          </div>
        )}
  
-       <div className="flex justify-between items-center gap-4 flex-wrap">
+       <div className="flex justify-between items-center gap-4 flex-wrap mb-2">
+ 
+       <div className="bg-white p-4 border-2 border-zinc-100 rounded-xl shadow-sm space-y-4">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
+             <Input 
+               placeholder="Nome ou marca..." 
+               value={searchQuery} 
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="h-9 text-xs"
+             />
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Marca</Label>
+             <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+               <SelectTrigger className="h-9 text-xs">
+                 <SelectValue placeholder="Todas as marcas" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas as marcas</SelectItem>
+                 {brands.map(brand => (
+                   <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Categoria</Label>
+             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+               <SelectTrigger className="h-9 text-xs">
+                 <SelectValue placeholder="Todas as categorias" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas as categorias</SelectItem>
+                 {categories.map(cat => (
+                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
+           <div className="space-y-1">
+             <Label className="text-[10px] uppercase font-black text-zinc-500">Ordenar por</Label>
+             <div className="flex gap-1">
+               <Select value={sortField} onValueChange={setSortField}>
+                 <SelectTrigger className="h-9 text-xs flex-1">
+                   <SelectValue placeholder="Ordenar" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="name">Nome</SelectItem>
+                   <SelectItem value="brand">Marca</SelectItem>
+                   <SelectItem value="price">Preço</SelectItem>
+                   <SelectItem value="created_at">Data de Cadastro</SelectItem>
+                 </SelectContent>
+               </Select>
+               <Button 
+                 variant="outline" 
+                 size="icon" 
+                 className="h-9 w-9"
+                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+               >
+                 {sortOrder === 'asc' ? '↑' : '↓'}
+               </Button>
+             </div>
+           </div>
+         </div>
+       </div>
         <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
         <div className="flex gap-2 items-center">
           <div className="flex gap-2">
@@ -312,7 +405,7 @@ export function ProductManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 && (
+             {filteredProducts.length === 0 && (
               <TableRow>
                  <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-zinc-400">
@@ -323,7 +416,7 @@ export function ProductManagement() {
                 </TableCell>
               </TableRow>
             )}
-            {products.map((p) => (
+             {filteredProducts.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>
                   <SmartImage src={p.image_url} tableName="products" itemId={p.id} className="w-10 h-10 object-cover rounded shadow-sm" />
