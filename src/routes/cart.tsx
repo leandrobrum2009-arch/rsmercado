@@ -388,7 +388,7 @@ function CartPage() {
           
           <button 
             onClick={handleCheckout}
-            disabled={isProcessing || isValidDeliveryArea === false || !selectedAddress}
+            disabled={isProcessing || isValidDeliveryArea !== true || !selectedAddress}
             className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
           >
             {isProcessing ? (
@@ -398,7 +398,7 @@ function CartPage() {
               </>
             ) : (
               <>
-                {isValidDeliveryArea === false ? 'Área não atendida' : 'Finalizar Pedido'}
+                {isValidDeliveryArea === false ? 'Área não atendida' : !selectedAddress ? 'Selecione o endereço' : 'Finalizar Pedido'}
                 <ArrowRight size={20} />
               </>
             )}
