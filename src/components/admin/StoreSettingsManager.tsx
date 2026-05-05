@@ -357,15 +357,25 @@
              <CardContent className="pt-6">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-4">
-                   <div className="space-y-2">
-                     <label className="text-xs font-black uppercase text-zinc-500">WhatsApp de Contato</label>
-                     <Input 
-                       value={settings.whatsapp}
-                       onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
-                       placeholder="Ex: 5511999999999"
-                       className="rounded-xl border-zinc-200"
-                     />
-                   </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase text-zinc-500">WhatsApp de Contato (Público)</label>
+                      <Input 
+                        value={settings.whatsapp}
+                        onChange={(e) => setSettings({ ...settings, whatsapp: e.target.value })}
+                        placeholder="Ex: 5511999999999"
+                        className="rounded-xl border-zinc-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase text-zinc-500">WhatsApp do Gestor (Privado)</label>
+                      <Input 
+                        value={settings.admin_whatsapp}
+                        onChange={(e) => setSettings({ ...settings, admin_whatsapp: e.target.value })}
+                        placeholder="Ex: 5511999999999"
+                        className="rounded-xl border-zinc-200"
+                      />
+                      <p className="text-[9px] text-zinc-400 font-bold uppercase">Receberá alertas automáticos de novos pedidos.</p>
+                    </div>
                    <div className="space-y-2">
                      <label className="text-xs font-black uppercase text-zinc-500">Horário de Funcionamento</label>
                      <Input 
@@ -397,13 +407,22 @@
                    </div>
                    <div className="space-y-2">
                      <label className="text-xs font-black uppercase text-zinc-500">Facebook (URL)</label>
-                     <Input 
-                       value={settings.facebook_url}
-                       onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
-                       placeholder="https://facebook.com/sualoja"
-                       className="rounded-xl border-zinc-200"
-                     />
-                   </div>
+                      <Input 
+                        value={settings.facebook_url}
+                        onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
+                        placeholder="https://facebook.com/sualoja"
+                        className="rounded-xl border-zinc-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase text-zinc-500">Posts Instagram (Dashboard)</label>
+                      <Input 
+                        type="number"
+                        value={settings.instagram_post_count}
+                        onChange={(e) => setSettings({ ...settings, instagram_post_count: e.target.value })}
+                        className="rounded-xl border-zinc-200 w-24"
+                      />
+                    </div>
                  </div>
                </div>
              </CardContent>
