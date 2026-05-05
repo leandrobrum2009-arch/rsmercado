@@ -20,7 +20,26 @@ function CartPage() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      if (selectedAddress?.neighborhood) {
+        const { data } = await supabase
+          .from('delivery_neighborhoods')
+          .select('fee')
+          .eq('name', selectedAddress.neighborhood)
+          .eq('active', true)
+          .maybeSingle();
+        
+        setDeliveryFee(data?.fee || 0);
+      } else {
+        setDeliveryFee(0);
+      }
+    };
+    fetchDeliveryFee();
+  }, [selectedAddress]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -112,7 +131,7 @@ function CartPage() {
       // 1. Create Order
       const orderPayload: any = {
         user_id: profile.id,
-        total_amount: total,
+        total_amount: total + deliveryFee,
         payment_method: paymentMethod,
         status: 'pending',
         points_earned: Math.floor(total * pointsMultiplier),
@@ -313,13 +332,20 @@ function CartPage() {
             <span>Subtotal</span>
             <span>{formatCurrency(total)}</span>
           </div>
-          <div className="flex justify-between text-gray-500">
-            <span>Entrega</span>
-            <span className="text-green-600 font-bold uppercase text-xs tracking-tighter self-center">Grátis</span>
+          <div className="flex justify-between items-center text-gray-500">
+            <span className="flex items-center gap-1">
+              Entrega 
+              <span className="text-[10px] font-bold text-zinc-400">({selectedAddress?.neighborhood || 'Escolha o endereço'})</span>
+            </span>
+            {deliveryFee > 0 ? (
+              <span className="text-zinc-900 font-bold">{formatCurrency(deliveryFee)}</span>
+            ) : (
+              <span className="text-green-600 font-bold uppercase text-xs tracking-tighter">Grátis</span>
+            )}
           </div>
           <div className="border-t pt-4 flex justify-between items-center">
             <span className="text-xl font-bold text-gray-800">Total</span>
-            <span className="text-2xl font-black text-green-700">{formatCurrency(total)}</span>
+            <span className="text-2xl font-black text-green-700">{formatCurrency(total + deliveryFee)}</span>
           </div>
         </div>
 

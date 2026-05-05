@@ -22,20 +22,18 @@ export function LoyaltyManager() {
    const importNeighborhoods = async () => {
      setLoading(true)
      const list = [
-       { name: 'Acampamento', fee: 15.00, active: true },
-       { name: 'Àgua Quente', fee: 10.00, active: true },
-       { name: 'Barra da Tijuca', fee: 25.00, active: false },
-       { name: 'Batume', fee: 10.00, active: true },
-       { name: 'Botafogo', fee: 25.00, active: true },
-       { name: 'Campinas', fee: 25.00, active: true },
-       { name: 'Canjiquinha', fee: 10.00, active: true },
-       { name: 'Morro agudo', fee: 10.00, active: true },
-       { name: 'Mottas', fee: 15.00, active: true },
-       { name: 'Rua dos mudos', fee: 10.00, active: true },
-       { name: 'Santa rosa', fee: 20.00, active: true },
-       { name: 'São Lourenço', fee: 25.00, active: true },
-       { name: 'Serra do capim', fee: 20.00, active: true },
-       { name: 'Soledade', fee: 0, active: true }
+        { name: 'Acampamento', fee: 15.00, active: true },
+        { name: 'Àgua Quente', fee: 10.00, active: true },
+        { name: 'Barra da Tijuca', fee: 25.00, active: true },
+        { name: 'Batume', fee: 10.00, active: true },
+        { name: 'Canjiquinha', fee: 10.00, active: true },
+        { name: 'Morro agudo', fee: 10.00, active: true },
+        { name: 'Mottas', fee: 15.00, active: true },
+        { name: 'Rua dos mudos', fee: 10.00, active: true },
+        { name: 'Santa rosa', fee: 20.00, active: true },
+        { name: 'São Lourenço', fee: 25.00, active: true },
+        { name: 'Serra do capim', fee: 20.00, active: true },
+        { name: 'Soledade', fee: 10.00, active: true }
      ]
  
      const { error } = await supabase.from('delivery_neighborhoods').upsert(list, { onConflict: 'name' })
