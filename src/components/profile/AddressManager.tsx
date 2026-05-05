@@ -77,7 +77,8 @@ export function AddressManager({ userId }: { userId: string }) {
       })
       fetchAddresses()
     } catch (error: any) {
-      toast.error('Erro ao salvar endereço: ' + error.message)
+       console.error('Save error details:', error)
+       toast.error('Erro ao salvar endereço. Por favor, verifique os dados e tente novamente.')
     } finally {
       setSaving(false)
     }
