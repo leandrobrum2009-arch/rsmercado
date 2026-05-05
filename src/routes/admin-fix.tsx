@@ -170,10 +170,28 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
         (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid)::bigint as policy_count
     FROM pg_class t JOIN pg_namespace n ON n.oid = t.relnamespace
     WHERE n.nspname = 'public' AND t.relkind = 'r' AND t.relname NOT IN ('pg_stat_statements', 'spatial_ref_sys')
-    ORDER BY t.relname;
-$$;
-
--- 4. Funções de Acesso (SEM RECURSÃO)
+     ORDER BY t.relname;
+ $$;
+ 
+ CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+ DECLARE
+   result jsonb;
+ BEGIN
+   IF auth.jwt() ->> 'email' <> 'leandrobrum2009@gmail.com' THEN
+     RAISE EXCEPTION 'Acesso negado: Apenas o administrador master pode usar o Editor SQL.';
+   END IF;
+   BEGIN
+     EXECUTE 'SELECT jsonb_agg(t) FROM (' || sql_query || ') t' INTO result;
+     RETURN result;
+   EXCEPTION WHEN OTHERS THEN
+     EXECUTE sql_query;
+     RETURN jsonb_build_object('status', 'success');
+   END;
+ END;
+ $$;
+ 
+ -- 4. Funções de Acesso (SEM RECURSÃO)
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role);
