@@ -160,7 +160,7 @@ export function RecipeManager() {
     }
   }
 
-   const validateImage = (url: string): Promise<boolean> => {
+   const checkImageExists = (url: string): Promise<boolean> => {
      return new Promise((resolve) => {
        const img = new Image();
        img.onload = () => resolve(true);
@@ -387,7 +387,7 @@ export function RecipeManager() {
            
            let chosenUrl = '';
            for (const url of sources) {
-             if (await validateImage(url)) {
+             if (await checkImageExists(url)) {
                chosenUrl = url;
                break;
              }
