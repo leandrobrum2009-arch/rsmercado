@@ -140,7 +140,7 @@ export function WhatsAppManager() {
      
      setIsBlasting(true)
      try {
-       let customerQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null)
+        let customerQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null).eq('accept_marketing', true)
        
        if (targetCoupon !== 'all') {
          const { data: orderUsers } = await supabase.from('orders').select('user_id').eq('coupon_code', targetCoupon)

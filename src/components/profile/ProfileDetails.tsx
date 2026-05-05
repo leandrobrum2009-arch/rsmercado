@@ -2,9 +2,10 @@
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle, Phone } from 'lucide-react'
+import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle, Phone, MessageSquare } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
@@ -15,7 +16,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
     gender: '',
     household_status: '',
     avatar_url: '',
-    whatsapp: ''
+    whatsapp: '',
+    accept_marketing: true
   })
 
   useEffect(() => {
@@ -26,7 +28,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
         gender: profile.gender || '',
         household_status: profile.household_status || '',
         avatar_url: profile.avatar_url || '',
-        whatsapp: profile.whatsapp || ''
+        whatsapp: profile.whatsapp || '',
+        accept_marketing: profile.accept_marketing !== false
       })
     }
   }, [profile])
@@ -73,7 +76,8 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
             gender: formData.gender,
             household_status: formData.household_status,
             avatar_url: formData.avatar_url,
-            whatsapp: formData.whatsapp
+            whatsapp: formData.whatsapp,
+            accept_marketing: formData.accept_marketing
           })
           .eq('id', profile.id);
  
@@ -253,6 +257,24 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 z-10" size={18} />
               </div>
             </div>
+            <div className="md:col-span-2 bg-green-50/50 p-4 rounded-2xl border border-green-100 flex items-start gap-3 mt-2">
+              <Checkbox 
+                id="marketing" 
+                checked={formData.accept_marketing}
+                onCheckedChange={(checked) => setFormData({ ...formData, accept_marketing: !!checked })}
+                className="mt-1"
+              />
+              <div className="space-y-1 cursor-pointer" onClick={() => setFormData({ ...formData, accept_marketing: !formData.accept_marketing })}>
+                <label htmlFor="marketing" className="text-xs font-black uppercase text-green-800 flex items-center gap-2 cursor-pointer">
+                  <MessageSquare size={14} /> Receber Ofertas via WhatsApp
+                </label>
+                <p className="text-[10px] font-bold text-green-600/70 leading-tight">
+                  Autorizo o envio de promoções, encartes e novidades diretamente no meu WhatsApp. 
+                  Prometemos não enviar spam!
+                </p>
+              </div>
+            </div>
+
           </div>
  
          <Button 

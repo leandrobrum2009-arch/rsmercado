@@ -34,10 +34,14 @@ import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
         })
 
         // Get all customers with whatsapp
-        const { data: customers } = await supabase.from('profiles').select('whatsapp').not('whatsapp', 'is', null)
+        const { data: customers } = await supabase
+          .from('profiles')
+          .select('whatsapp')
+          .not('whatsapp', 'is', null)
+          .eq('accept_marketing', true)
         
         if (!customers || customers.length === 0) {
-          toast.error('Nenhum cliente com WhatsApp encontrado')
+          toast.error('Nenhum cliente com WhatsApp e opt-in ativo encontrado')
           return
         }
 
