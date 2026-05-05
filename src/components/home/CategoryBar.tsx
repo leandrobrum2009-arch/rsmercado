@@ -7,33 +7,21 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const iconMap: Record<string, any> = {
-  "Hortifruti": Apple,
-  "Frutas": Apple,
-  "Legumes": Carrot,
-  "Verduras": Carrot,
-  "Padaria": Croissant,
-  "Pães": Croissant,
-  "Carnes": Beef,
-  "Açougue": Beef,
-  "Bebidas": Wine,
-  "Cervejas": Wine,
-  "Vinhos": Wine,
-  "Laticínios": Milk,
-  "Leites": Milk,
-  "Limpeza": SprayCan,
-  "Higiene": Brush,
-  "Pet Shop": Dog,
-  "Pets": Dog,
-  "Doces": Cookie,
-  "Mercearia": Coffee,
-  "Peixaria": Fish,
-  "Frios": IceCream,
-  "Congelados": IceCream,
-  "Bazar": Utensils,
-  "Infantil": Baby,
-  "Perfumaria": Bath,
-  "Floricultura": Flower2
+const getIcon = (cat: any) => {
+  const icons: Record<string, any> = {
+    Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, 
+    ShoppingBag, Sparkles, Carrot, Coffee, Cookie, Fish, 
+    GlassWater, IceCream, Pizza, Utensils, Baby, Bath, Flower2,
+    "Hortifruti": Apple, "Frutas": Apple, "Legumes": Carrot, "Verduras": Carrot,
+    "Padaria": Croissant, "Pães": Croissant, "Carnes": Beef, "Açougue": Beef,
+    "Bebidas": Wine, "Cervejas": Wine, "Vinhos": Wine, "Laticínios": Milk,
+    "Leites": Milk, "Limpeza": SprayCan, "Higiene": Brush, "Pet Shop": Dog,
+    "Pets": Dog, "Doces": Cookie, "Mercearia": Coffee, "Peixaria": Fish,
+    "Frios": IceCream, "Congelados": IceCream, "Bazar": Utensils,
+    "Infantil": Baby, "Perfumaria": Bath, "Floricultura": Flower2
+  };
+  
+  return icons[cat.icon_name] || icons[cat.name] || ShoppingBag;
 };
 
 const fallbackCategories = [
@@ -104,7 +92,7 @@ export const CategoryBar = () => {
         <div className="overflow-x-auto no-scrollbar pb-2">
           <div className="flex gap-4 px-4 min-w-max">
              {categories.map((cat) => {
-                  const IconComponent = iconMap[cat.name] || iconMap[cat.icon_name || ""] || ShoppingBag;
+                   const IconComponent = getIcon(cat);
                   const colors: Record<string, { bg: string, text: string, border: string, shadow: string }> = {
                     "Hortifruti": { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-100", shadow: "shadow-emerald-100" },
                     "Padaria": { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-100", shadow: "shadow-orange-100" },
