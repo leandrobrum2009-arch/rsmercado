@@ -1,8 +1,8 @@
  import { toast as sonnerToast } from "sonner";
  
  export const toast = {
-   success: (msg: string) => { sonnerToast.success(msg); },
-   error: (msg: string) => { sonnerToast.error(msg); },
-   info: (msg: string) => { sonnerToast.info(msg); },
-   warning: (msg: string) => { sonnerToast.warning(msg); },
+   success: (msg: any, options?: any) => { sonnerToast.success(msg, options); },
+   error: (msg: any, options?: any) => { sonnerToast.error(msg, options); },
+   info: (msg: any, options?: any) => { sonnerToast.info(msg, options); },
+   warning: (msg: any, options?: any) => { sonnerToast.warning(msg, options); },
  };

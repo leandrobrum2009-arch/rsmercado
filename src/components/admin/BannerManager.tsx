@@ -64,11 +64,19 @@ export function BannerManager() {
 
         if (bError) {
           console.error('Error fetching banners:', bError);
-          if (bError.message.includes('relation "banners" does not exist')) {
-            toast.error('A tabela de banners não foi encontrada. Clique em Diagnóstico para reparar.');
-          } else {
-            toast.error('Erro ao carregar banners: ' + bError.message);
-          }
+           if (bError.message.includes('relation "banners" does not exist') || bError.message.includes('schema cache')) {
+             toast.error(
+               <div className="flex flex-col gap-2">
+                 <p>A tabela de banners não foi encontrada no banco de dados.</p>
+                 <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
+                   Reparar Banco de Dados
+                 </Button>
+               </div>,
+               { duration: 10000 }
+             );
+           } else {
+             toast.error('Erro ao carregar banners: ' + bError.message);
+           }
           setIsLoading(false);
           return;
         }

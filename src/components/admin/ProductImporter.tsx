@@ -187,18 +187,29 @@ export function ProductImporter() {
     }
 
     // Robust normalization for duplicate checking
-    const normalize = (str: string) => (str || '')
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]/g, ""); // Remove everything except alphanumeric
-    
-    const existingSet = new Set(
-      allExisting.map(p => 
-        `${normalize(p.name)}|${normalize(p.brand)}|${normalize(p.size)}`
-      )
-    );
+     const normalize = (str: string) => {
+       if (!str) return '';
+       return str
+         .toLowerCase()
+         .trim()
+         .normalize("NFD")
+         .replace(/[\u0300-\u036f]/g, "")
+         .replace(/[^a-z0-9]/g, "");
+     };
+     
+     // Create a highly robust set of existing products for comparison
+     const existingSet = new Set();
+     allExisting.forEach(p => {
+       const nName = normalize(p.name);
+       const nBrand = normalize(p.brand);
+       const nSize = normalize(p.size);
+       
+       if (nName) {
+         existingSet.add(nName + (nBrand ? '|' + nBrand : '') + (nSize ? '|' + nSize : ''));
+         // Also add just name as a fallback for some cases
+         if (!nBrand && !nSize) existingSet.add(nName);
+       }
+     });
 
     // Realistic Brazilian supermarket product simulation
     const datasets: Record<string, any[]> = {
@@ -388,36 +399,64 @@ export function ProductImporter() {
         // Fetch ALL current products to prevent ANY duplication
         let allCurrent: any[] = [];
         let f = 0; let t = 999; let hm = true;
-        while(hm) {
-          const { data, error } = await supabase.from('products').select('name, brand, size').is('deleted_at', null).range(f, t);
-          if (error) {
-            const { data: md } = await supabase.from('products').select('name').is('deleted_at', null).range(f, t);
-            if (!md || md.length === 0) hm = false;
-            else {
-              allCurrent = [...allCurrent, ...md];
-              if (md.length < 1000) hm = false;
-              else { f += 1000; t += 1000; }
-            }
-          } else if (!data || data.length === 0) {
-            hm = false;
-          } else {
-            allCurrent = [...allCurrent, ...data];
-            if (data.length < 1000) hm = false;
-            else { f += 1000; t += 1000; }
-          }
-        }
+       while(hm) {
+         try {
+           const { data, error } = await supabase.from('products').select('name, brand, size').is('deleted_at', null).range(f, t);
+           if (error) {
+             // Fallback to minimal selection if size/brand columns are missing
+             const { data: md, error: me } = await supabase.from('products').select('name').is('deleted_at', null).range(f, t);
+             if (me || !md || md.length === 0) hm = false;
+             else {
+               allCurrent = [...allCurrent, ...md];
+               if (md.length < 1000) hm = false;
+               else { f += 1000; t += 1000; }
+             }
+           } else if (!data || data.length === 0) {
+             hm = false;
+           } else {
+             allCurrent = [...allCurrent, ...data];
+             if (data.length < 1000) hm = false;
+             else { f += 1000; t += 1000; }
+           }
+         } catch (e) {
+           hm = false;
+         }
+       }
+ 
+       const normalize = (str: string) => {
+         if (!str) return '';
+         return str
+           .toLowerCase()
+           .trim()
+           .normalize("NFD")
+           .replace(/[\u0300-\u036f]/g, "")
+           .replace(/[^a-z0-9]/g, "");
+       };
+ 
+       const currentSet = new Set();
+       allCurrent.forEach(cp => {
+         const nName = normalize(cp.name);
+         const nBrand = normalize(cp.brand);
+         const nSize = normalize(cp.size);
+         if (nName) {
+           currentSet.add(nName + (nBrand ? '|' + nBrand : '') + (nSize ? '|' + nSize : ''));
+         }
+       });
 
-        const currentSet = new Set(allCurrent.map(cp => 
-          `${(cp.name||'').toLowerCase().trim()}|${(cp.brand || '').toLowerCase().trim()}|${(cp.size || '').toLowerCase().trim()}`
-        ));
- 
-        for (const p of toImport) {
-          const pName = (p.name || '').trim();
-          const pBrand = (p.brand || '').trim();
-          const pSize = (p.size || '').trim();
-          const pKey = `${pName.toLowerCase()}|${pBrand.toLowerCase()}|${pSize.toLowerCase()}`;
- 
-          if (currentSet.has(pKey)) continue;
+         for (const p of toImport) {
+           const pName = (p.name || '').trim();
+           const pBrand = (p.brand || '').trim();
+           const pSize = (p.size || '').trim();
+           
+           const nName = normalize(pName);
+           const nBrand = normalize(pBrand);
+           const nSize = normalize(pSize);
+           const pKey = nName + (nBrand ? '|' + nBrand : '') + (nSize ? '|' + nSize : '');
+  
+           if (currentSet.has(pKey)) {
+             console.log('Skipping duplicate:', pName);
+             continue;
+           }
  
           const pCategory = p.category || category || 'Mercearia';
           let catId = categoryCache[pCategory.toLowerCase()];

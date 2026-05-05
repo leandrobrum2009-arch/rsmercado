@@ -27,21 +27,57 @@ function AdminFix() {
 -- COLE ESTE CÓDIGO NO SQL EDITOR DO SUPABASE
 
 -- 1. Colunas da Tabela Products
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS size TEXT;
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT TRUE;
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ -- 1. Tabela Products e Colunas
+ CREATE TABLE IF NOT EXISTS public.products (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     name TEXT NOT NULL,
+     description TEXT,
+     price DECIMAL(10,2) NOT NULL,
+     old_price DECIMAL(10,2),
+     category_id UUID,
+     image_url TEXT,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS size TEXT;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT TRUE;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0;
+ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS points_value INTEGER DEFAULT 0;
 
 -- 2. Tabela Banners
-CREATE TABLE IF NOT EXISTS public.banners (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    image_url TEXT NOT NULL,
-    link_url TEXT,
-    category_id UUID REFERENCES public.categories(id),
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+ CREATE TABLE IF NOT EXISTS public.categories (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     name TEXT NOT NULL,
+     slug TEXT UNIQUE NOT NULL,
+     icon_url TEXT,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ CREATE TABLE IF NOT EXISTS public.banners (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     image_url TEXT NOT NULL,
+     link_url TEXT,
+     category_id UUID REFERENCES public.categories(id),
+     is_active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ 
+ -- 2.5 Receitas e outras tabelas
+ CREATE TABLE IF NOT EXISTS public.recipes (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     instructions TEXT,
+     category TEXT,
+     difficulty TEXT,
+     image_url TEXT,
+     ingredients JSONB DEFAULT '[]'::jsonb,
+     author_id UUID REFERENCES auth.users(id),
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
 
 -- 3. Tabela Store Settings
 CREATE TABLE IF NOT EXISTS public.store_settings (
@@ -56,10 +92,25 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
  ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
  ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
  
- -- 5. Buckets de Armazenamento
- INSERT INTO storage.buckets (id, name, public) 
- VALUES ('products', 'products', true), ('banners', 'banners', true)
- ON CONFLICT (id) DO UPDATE SET public = true;
+  -- 6. Habilitar RLS e Políticas Básicas
+  ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.store_settings ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ 
+  -- Políticas de Leitura Pública
+  CREATE POLICY "Public read products" ON public.products FOR SELECT USING (true);
+  CREATE POLICY "Public read categories" ON public.categories FOR SELECT USING (true);
+  CREATE POLICY "Public read banners" ON public.banners FOR SELECT USING (true);
+  CREATE POLICY "Public read store_settings" ON public.store_settings FOR SELECT USING (true);
+  CREATE POLICY "Public read recipes" ON public.recipes FOR SELECT USING (true);
+ 
+  -- 7. Buckets de Armazenamento
+  INSERT INTO storage.buckets (id, name, public) 
+  VALUES ('products', 'products', true), ('banners', 'banners', true)
+  ON CONFLICT (id) DO UPDATE SET public = true;
  `;
       
       console.log('REPAIR SQL:', sql);
