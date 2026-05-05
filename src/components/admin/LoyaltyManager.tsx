@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon } from 'lucide-react'
+ import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X } from 'lucide-react'
  import { Badge } from '@/components/ui/badge'
  import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
@@ -357,10 +357,10 @@ export function LoyaltyManager() {
                               type="number" 
                               className="h-7 w-20 text-[10px] font-bold" 
                               value={editingFee.fee} 
-                              onChange={e => setEditingFee({...editingFee, fee: e.target.value})}
+                              onChange={e => setEditingFee(prev => prev ? {...prev, fee: e.target.value} : null)}
                               autoFocus
                             />
-                            <Button size="icon" className="h-7 w-7 bg-green-600" onClick={() => updateNeighborhoodFee(n.id, editingFee.fee)}>
+                            <Button size="icon" className="h-7 w-7 bg-green-600" onClick={() => editingFee && updateNeighborhoodFee(n.id, editingFee.fee)}>
                               <Save size={12} />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingFee(null)}>
