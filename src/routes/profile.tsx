@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
  import { AuthForm } from '@/components/auth/AuthForm'
  import { AdminSetup } from '@/components/admin/AdminSetup'
  import { Button } from '@/components/ui/button'
-  import { ProfileDetails } from '@/components/profile/ProfileDetails'
+   import { ProfileDetails } from '@/components/profile/ProfileDetails'
+   import { AddressManager } from '@/components/profile/AddressManager'
   import { OrderTracking } from '@/components/profile/OrderTracking'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -158,6 +159,7 @@ function ProfilePage() {
           <div className="lg:col-span-2 space-y-8">
             <OrderTracking userId={session.user.id} />
             <ProfileDetails profile={profile} onUpdate={checkSession} />
+            <AddressManager userId={session.user.id} />
           </div>
           
           <div className="space-y-6">
