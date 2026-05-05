@@ -246,31 +246,50 @@ export function RecipeManager() {
       {
         title: 'Arroz Carreteiro Gaúcho',
         description: 'Um clássico do Rio Grande do Sul, feito com sobras de churrasco ou charque, arroz e muitos temperos.',
-        instructions: '1. Frite o charque em cubos até dourar.\n2. Adicione cebola, alho e pimentão refogando bem.\n3. Acrescente o arroz e frite levemente.\n4. Adicione água quente e cozinhe em fogo baixo.\n5. Finalize com salsinha e cebolinha picadas.',
+        instructions: '1. Preparação: Comece fritando o charque em cubos em fogo médio até que esteja bem dourado e crocante.\n2. Refogado: Adicione cebola picada, alho esmagado e pimentão vermelho, refogando até os vegetais murcharem.\n3. Arroz: Acrescente o arroz agulhinha e frite por 2 minutos para absorver a gordura e os sabores das carnes.\n4. Cozimento: Adicione água quente suficiente para cobrir (proporção 2:1) e deixe cozinhar com a panela semi-tampada.\n5. Finalização: Quando a água secar, desligue o fogo, tampe totalmente e deixe descansar por 5 minutos. Sirva com salsinha fresca por cima.',
         category: 'Brasileira',
         difficulty: 'Fácil',
         image_url: 'https://images.unsplash.com/photo-1512058560366-cd2429555614?w=800&h=400&fit=crop',
         ingredients: [
-          {name: 'Arroz', quantity: '2 xícaras'},
-          {name: 'Charque', quantity: '500g'},
-          {name: 'Cebola', quantity: '1 unidade'},
+          {name: 'Arroz Agulhinha', quantity: '2 xícaras'},
+          {name: 'Charque picado', quantity: '500g'},
+          {name: 'Cebola média', quantity: '1 unidade'},
           {name: 'Alho', quantity: '3 dentes'},
-          {name: 'Salsinha', quantity: 'a gosto'}
+          {name: 'Pimentão Vermelho', quantity: '1/2 unidade'},
+          {name: 'Salsinha e Cebolinha', quantity: 'a gosto'}
         ]
       },
       {
         title: 'Torta de Frango com Requeijão',
-        description: 'Torta salgada de liquidificador, super prática e com recheio cremoso de frango desfiado.',
-        instructions: '1. Bata os ingredientes da massa no liquidificador.\n2. Refogue o frango com tomate e azeitonas.\n3. Coloque metade da massa em uma forma, adicione o recheio e o requeijão.\n4. Cubra com o restante da massa.\n5. Asse por 35 minutos até dourar.',
+        description: 'Torta salgada de liquidificador, super prática e com recheio cremoso de frango desfiado. Ideal para lanches rápidos ou jantares leves.',
+        instructions: '1. Recheio: Refogue o frango desfiado com cebola, alho, milho verde e molho de tomate até ficar suculento.\n2. Massa: No liquidificador, bata o leite, o óleo, os ovos e o sal. Adicione a farinha aos poucos e por último o fermento.\n3. Montagem: Em uma forma untada, despeje metade da massa.\n4. Camadas: Distribua o recheio de frango e coloque colheradas generosas de requeijão por cima.\n5. Forno: Cubra com o restante da massa e leve ao forno pré-aquecido a 200°C por cerca de 35 a 40 minutos.',
         category: 'Lanche',
         difficulty: 'Fácil',
         image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop',
         ingredients: [
-          {name: 'Frango Desfiado', quantity: '500g'},
+          {name: 'Peito de Frango cozido e desfiado', quantity: '500g'},
           {name: 'Requeijão Cremoso', quantity: '200g'},
           {name: 'Farinha de Trigo', quantity: '3 xícaras'},
-          {name: 'Leite', quantity: '2 xícaras'},
-          {name: 'Ovo', quantity: '3 unidades'}
+          {name: 'Leite Integral', quantity: '2 xícaras'},
+          {name: 'Ovo', quantity: '3 unidades'},
+          {name: 'Óleo de Soja', quantity: '1/2 xícara'},
+          {name: 'Fermento Químico', quantity: '1 colher'}
+        ]
+      },
+      {
+        title: 'Escondidinho de Carne Seca',
+        description: 'Um prato reconfortante que combina o purê de mandioca cremoso com o sabor intenso da carne seca bem temperada.',
+        instructions: '1. Purê: Cozinhe a mandioca até ficar bem macia. Amasse e misture com leite e manteiga até formar um purê liso.\n2. Carne: Refogue a carne seca desfiada com cebola roxa e manteiga de garrafa.\n3. Montagem: Em um refratário, faça uma camada de purê, depois a carne seca e finalize com mais purê.\n4. Cobertura: Cubra com queijo coalho ralado ou mussarela.\n5. Gratinar: Leve ao forno alto apenas para dourar o queijo por cima.',
+        category: 'Nordestina',
+        difficulty: 'Média',
+        image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=800&h=400&fit=crop',
+        ingredients: [
+          {name: 'Mandioca cozida', quantity: '1kg'},
+          {name: 'Carne Seca desfiada', quantity: '500g'},
+          {name: 'Manteiga de Garrafa', quantity: '3 colheres'},
+          {name: 'Leite Integral', quantity: '200ml'},
+          {name: 'Queijo Coalho', quantity: '200g'},
+          {name: 'Cebola Roxa', quantity: '1 unidade'}
         ]
       }
     ];
