@@ -2,10 +2,10 @@
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-  import { Users, Loader2, Search, Edit, Save, X } from 'lucide-react'
+  import { Users, Loader2, Search, Edit, Save, X, Plus } from 'lucide-react'
   import { Input } from '@/components/ui/input'
   import { Button } from '@/components/ui/button'
-  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
   import { toast } from '@/lib/toast'
  
  export function CustomerManagement() {
@@ -13,7 +13,38 @@
    const [loading, setLoading] = useState(true)
    const [searchTerm, setSearchTerm] = useState('')
    const [editingCustomer, setEditingCustomer] = useState<any>(null)
-   const [isSaving, setIsSaving] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+    const [isAddingNew, setIsAddingNew] = useState(false)
+    const [newCustomer, setNewCustomer] = useState({ full_name: '', whatsapp: '', loyalty_points: '0' })
+   const handleAddCustomer = async () => {
+     if (!newCustomer.full_name) return toast.error('Nome é obrigatório')
+     setIsSaving(true)
+     try {
+       // Using a temporary ID or letting Supabase handle it if auth allows, 
+       // but profiles are usually linked to auth.users. 
+       // For a store owner adding a "manual" customer, we might need a separate table or 
+       // just use the profiles table if they don't need login.
+       const { error } = await supabase
+         .from('profiles')
+         .insert({
+           id: crypto.randomUUID(), // Manual customer without auth account
+           full_name: newCustomer.full_name,
+           whatsapp: newCustomer.whatsapp,
+           loyalty_points: parseInt(newCustomer.loyalty_points)
+         })
+ 
+       if (error) throw error
+       toast.success('Novo cliente cadastrado!')
+       setIsAddingNew(false)
+       setNewCustomer({ full_name: '', whatsapp: '', loyalty_points: '0' })
+       fetchCustomers()
+     } catch (error: any) {
+       toast.error('Erro ao cadastrar: ' + error.message)
+     } finally {
+       setIsSaving(false)
+     }
+   }
+ 
  
    useEffect(() => {
      fetchCustomers()
@@ -72,15 +103,63 @@
          <CardTitle className="flex items-center gap-2">
            <Users className="text-primary" /> Gestão de Clientes
          </CardTitle>
-         <div className="relative w-64">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-           <Input 
-             placeholder="Buscar cliente..." 
-             className="pl-10"
-             value={searchTerm}
-             onChange={(e) => setSearchTerm(e.target.value)}
-           />
-         </div>
+          <div className="flex gap-2">
+            <Dialog open={isAddingNew} onOpenChange={setIsAddingNew}>
+              <DialogTrigger asChild>
+                <Button className="bg-zinc-900 font-black uppercase text-[10px]">
+                  <Plus className="mr-2 h-4 w-4" /> Novo Cliente
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md rounded-2xl">
+                <DialogHeader>
+                  <DialogTitle className="font-black uppercase italic">Novo Cadastro de Cliente</DialogTitle>
+                  <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400">Insira os dados do novo cliente.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Nome Completo</label>
+                    <Input 
+                      value={newCustomer.full_name} 
+                      onChange={e => setNewCustomer({...newCustomer, full_name: e.target.value})}
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">WhatsApp</label>
+                    <Input 
+                      value={newCustomer.whatsapp} 
+                      onChange={e => setNewCustomer({...newCustomer, whatsapp: e.target.value})}
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Pontos Iniciais</label>
+                    <Input 
+                      type="number"
+                      value={newCustomer.loyalty_points} 
+                      onChange={e => setNewCustomer({...newCustomer, loyalty_points: e.target.value})}
+                      className="rounded-xl"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleAddCustomer} disabled={isSaving} className="w-full font-black uppercase bg-zinc-900">
+                    {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                    Cadastrar Cliente
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Input 
+                placeholder="Buscar cliente..." 
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
        </CardHeader>
        <CardContent>
          <Table>

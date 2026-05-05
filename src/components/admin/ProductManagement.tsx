@@ -60,28 +60,29 @@ export function ProductManagement() {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [isQuickEditOpen, setIsQuickEditOpen] = useState(false)
     const [quickEditCategory, setQuickEditCategory] = useState('all')
-    const [quickEditPrices, setQuickEditQuickPrices] = useState<Record<string, string>>({})
-   const handleQuickPriceUpdate = async () => {
-     setIsSubmitting(true)
-     try {
-       const updates = Object.entries(quickEditPrices).map(([id, price]) => ({
-         id,
-         price: parseFloat(price)
-       }))
- 
-       for (const update of updates) {
-         await supabase.from('products').update({ price: update.price }).eq('id', update.id)
-       }
- 
-       toast.success('Preços atualizados com sucesso!')
-       setIsQuickEditOpen(false)
-       fetchData()
-     } catch (err) {
-       toast.error('Erro ao atualizar preços')
-     } finally {
-       setIsSubmitting(false)
-     }
-   }
+     const [quickEditData, setQuickEditData] = useState<Record<string, { price: string, stock: string }>>({})
+    const handleQuickUpdate = async () => {
+      setIsSubmitting(true)
+      try {
+        const updates = Object.entries(quickEditData).map(([id, data]) => ({
+          id,
+          price: parseFloat(data.price),
+          stock: parseInt(data.stock)
+        }))
+  
+        for (const update of updates) {
+          await supabase.from('products').update({ price: update.price, stock: update.stock }).eq('id', update.id)
+        }
+  
+        toast.success('Produtos atualizados com sucesso!')
+        setIsQuickEditOpen(false)
+        fetchData()
+      } catch (err) {
+        toast.error('Erro ao atualizar produtos')
+      } finally {
+        setIsSubmitting(false)
+      }
+    }
  
    const filteredProducts = products
      .filter(p => {
@@ -385,16 +386,16 @@ export function ProductManagement() {
            <Button 
              variant="outline" 
              size="sm"
-             onClick={() => {
-               const initialPrices: Record<string, string> = {}
-               products.forEach(p => initialPrices[p.id] = p.price.toString())
-               setQuickEditQuickPrices(initialPrices)
-               setIsQuickEditOpen(true)
-             }}
-             className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold uppercase text-[10px]"
-           >
-             <Zap className="mr-1 h-3 w-3" /> Edição Rápida de Preços
-           </Button>
+              onClick={() => {
+                const initialData: Record<string, { price: string, stock: string }> = {}
+                products.forEach(p => initialData[p.id] = { price: p.price.toString(), stock: (p.stock || 0).toString() })
+                setQuickEditData(initialData)
+                setIsQuickEditOpen(true)
+              }}
+              className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 font-bold uppercase text-[10px]"
+            >
+              <Zap className="mr-1 h-3 w-3" /> Atualização Rápida de Preços & Estoque
+            </Button>
          </div>
          <div className="flex gap-2 items-center">
           <div className="flex gap-2">
@@ -541,8 +542,8 @@ export function ProductManagement() {
                <TableHeader>
                  <TableRow>
                    <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
-                   <TableHead className="text-[10px] font-black uppercase text-center">Preço Atual</TableHead>
-                   <TableHead className="text-[10px] font-black uppercase text-right w-40">Novo Preço (R$)</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-center">Preço (R$)</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-center">Estoque (Qtd)</TableHead>
                  </TableRow>
                </TableHeader>
                <TableBody>
@@ -556,14 +557,21 @@ export function ProductManagement() {
                            <p className="text-xs font-bold uppercase">{p.name}</p>
                          </div>
                        </TableCell>
-                       <TableCell className="text-center text-xs font-medium text-zinc-400">R$ {p.price.toFixed(2)}</TableCell>
                        <TableCell>
                          <Input 
                            type="number" 
                            step="0.01"
-                           value={quickEditPrices[p.id] || ''} 
-                           onChange={(e) => setQuickEditQuickPrices({...quickEditPrices, [p.id]: e.target.value})}
-                           className="text-right font-black text-xs h-8 border-amber-200 focus:ring-amber-500"
+                           value={quickEditData[p.id]?.price || ''} 
+                           onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
+                           className="text-center font-black text-xs h-8 border-amber-100 focus:ring-amber-500"
+                         />
+                       </TableCell>
+                       <TableCell>
+                         <Input 
+                           type="number" 
+                           value={quickEditData[p.id]?.stock || ''} 
+                           onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], stock: e.target.value }})}
+                           className="text-center font-black text-xs h-8 border-amber-100 focus:ring-amber-500"
                          />
                        </TableCell>
                      </TableRow>
@@ -574,9 +582,9 @@ export function ProductManagement() {
  
            <DialogFooter className="p-6 border-t bg-zinc-50 gap-2">
              <Button variant="ghost" onClick={() => setIsQuickEditOpen(false)} className="font-bold uppercase text-[10px]">Cancelar</Button>
-             <Button onClick={handleQuickPriceUpdate} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8">
+             <Button onClick={handleQuickUpdate} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8 shadow-xl shadow-green-100">
                {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-               Salvar Todos os Preços
+               Salvar Alterações em Lote
              </Button>
            </DialogFooter>
          </DialogContent>
