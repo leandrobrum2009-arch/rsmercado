@@ -360,7 +360,27 @@ export function RecipeManager() {
        { title: 'Petit Gâteau', category: 'Sobremesa', keywords: 'chocolate,lava' },
        { title: 'Torta de Maçã', category: 'Sobremesa', keywords: 'apple,pie' },
        { title: 'Cheesecake de Frutas Vermelhas', category: 'Sobremesa', keywords: 'cheesecake,berry' },
-       { title: 'Panqueca Americana', category: 'Café', keywords: 'pancake,syrup' }
+       { title: 'Panqueca Americana', category: 'Café', keywords: 'pancake,syrup' },
+       { title: 'Carne de Panela com Batata', category: 'Caseira', keywords: 'meat,potato' },
+       { title: 'Frango Assado com Ervas', category: 'Assado', keywords: 'chicken,herb' },
+       { title: 'Lasanha de Berinjela', category: 'Vegetariana', keywords: 'eggplant,lasagna' },
+       { title: 'Espaguete à Carbonara', category: 'Italiana', keywords: 'pasta,bacon' },
+       { title: 'Arroz de Marisco', category: 'Portuguesa', keywords: 'rice,seafood' },
+       { title: ' Yakisoba de Carne', category: 'Chinesa', keywords: 'noodles,meat' },
+       { title: 'Tacos de Carne Asada', category: 'Mexicana', keywords: 'meat,taco' },
+       { title: 'Falafel com Hummus', category: 'Árabe', keywords: 'chickpea,dip' },
+       { title: 'Kibe Assado Recheado', category: 'Árabe', keywords: 'meat,wheat' },
+       { title: 'Tabule Refrescante', category: 'Árabe', keywords: 'salad,parsley' },
+       { title: 'Bobó de Camarão', category: 'Baiana', keywords: 'shrimp,cassava' },
+       { title: 'Arroz com Frango e Pequi', category: 'Goiana', keywords: 'chicken,rice,pequi' },
+       { title: 'Feijão Tropeiro Mineiro', category: 'Mineira', keywords: 'beans,bacon' },
+       { title: 'Galinhada com Guariroba', category: 'Regional', keywords: 'chicken,rice' },
+       { title: 'Pão de Ló de Laranja', category: 'Bolo', keywords: 'cake,orange' },
+       { title: 'Torta Holandesa', category: 'Sobremesa', keywords: 'pie,cookie' },
+       { title: 'Pudim de Chia com Coco', category: 'Fitness', keywords: 'chia,coconut' },
+       { title: 'Salada Caesar com Frango', category: 'Salada', keywords: 'salad,chicken' },
+       { title: 'Sopa de Cebola Francesa', category: 'Sopa', keywords: 'onion,soup' },
+       { title: 'Bruschetta de Tomate', category: 'Entrada', keywords: 'bread,tomato' }
      ];
  
      try {
