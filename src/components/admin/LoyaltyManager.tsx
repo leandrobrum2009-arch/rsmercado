@@ -59,18 +59,19 @@ export function LoyaltyManager() {
        fee: parseFloat(newNeighborhood.fee) || 0,
        active: newNeighborhood.active
      })
+ 
+     if (error) toast.error('Erro ao adicionar bairro: ' + error.message)
+     else {
+       toast.success('Bairro adicionado!')
+       setNewNeighborhood({ name: '', fee: '', active: true })
+       fetchData()
+     }
    const toggleNeighborhoodStatus = async (id: string, currentStatus: boolean) => {
      const { error } = await supabase.from('delivery_neighborhoods').update({ active: !currentStatus }).eq('id', id)
      if (error) toast.error('Erro ao atualizar status')
      else fetchData()
    }
  
-    if (error) toast.error('Erro ao adicionar bairro: ' + error.message)
-    else {
-      toast.success('Bairro adicionado!')
-      setNewNeighborhood({ name: '', fee: '' })
-      fetchData()
-    }
     setLoading(false)
   }
 
