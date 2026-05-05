@@ -1,6 +1,7 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+ import { toast } from '@/lib/toast'
  import { 
    TrendingUp, 
    Users, 
