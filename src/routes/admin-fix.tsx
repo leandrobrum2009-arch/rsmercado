@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,52 @@ function AdminFix() {
    const [currentUser, setCurrentUser] = useState<any>(null)
    const [userRole, setUserRole] = useState<string | null>(null)
  
+    const handleRepairDB = async () => {
+      setStatus('Preparando instruções de reparo...')
+      const sql = `
+-- COLE ESTE CÓDIGO NO SQL EDITOR DO SUPABASE
+
+-- 1. Colunas da Tabela Products
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS size TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- 2. Tabela Banners
+CREATE TABLE IF NOT EXISTS public.banners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    image_url TEXT NOT NULL,
+    link_url TEXT,
+    category_id UUID REFERENCES public.categories(id),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Tabela Store Settings
+CREATE TABLE IF NOT EXISTS public.store_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ -- 4. Colunas da Tabela Profiles
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS whatsapp TEXT;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS loyalty_points INTEGER DEFAULT 0;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+ 
+ -- 5. Buckets de Armazenamento
+ INSERT INTO storage.buckets (id, name, public) 
+ VALUES ('products', 'products', true), ('banners', 'banners', true)
+ ON CONFLICT (id) DO UPDATE SET public = true;
+ `;
+      
+      console.log('REPAIR SQL:', sql);
+      alert('INSTRUÇÕES DE REPARO:\\n\\n1. O código SQL foi impresso no Console (F12).\\n2. Copie o SQL.\\n3. Vá ao painel do Supabase > SQL Editor.\\n4. Cole e clique em RUN.');
+      setStatus('SQL impresso no Console (F12). Copie e cole no Supabase.');
+    }
+
    useEffect(() => {
      const fetchUser = async () => {
        const { data: { session } } = await supabase.auth.getSession()
@@ -280,10 +326,30 @@ function AdminFix() {
             </div>
           </div>
  
-          {/* STEP 2: Get Admin */}
+          {/* STEP 2: Database Repair */}
           <div className="space-y-4 border-t pt-8">
             <div className="flex items-center gap-3">
-              <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
+              <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">2</div>
+              <h3 className="font-black text-gray-900 uppercase tracking-tight">Reparar Estrutura (SQL)</h3>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 shadow-sm space-y-3">
+              <p className="text-[10px] text-blue-800 font-bold leading-tight uppercase">
+                Se as colunas ou tabelas estiverem faltando (Ex: erro de 'size'), clique abaixo.
+              </p>
+              <Button 
+                onClick={handleRepairDB}
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest"
+              >
+                GERAR SQL DE REPARO
+              </Button>
+            </div>
+          </div>
+
+          {/* STEP 3: Get Admin */}
+          <div className="space-y-4 border-t pt-8">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-black">3</div>
               <h3 className="font-black text-gray-900 uppercase tracking-tight">Privilégios Admin</h3>
             </div>
  

@@ -27,28 +27,41 @@
      fetchSettings()
    }, [])
  
-   const fetchSettings = async () => {
-     setIsLoading(true)
-     const { data } = await supabase.from('store_settings').select('*')
-     
-     if (data) {
-       const newSettings = { ...settings }
-       data.forEach(item => {
-         if (item.key === 'site_name') newSettings.site_name = item.value
-         if (item.key === 'logo_url') newSettings.logo_url = item.value
-         if (item.key === 'color_palette') newSettings.colors = item.value
-         if (item.key === 'address') newSettings.address = item.value
-         if (item.key === 'whatsapp') newSettings.whatsapp = item.value
-         if (item.key === 'opening_hours') newSettings.opening_hours = item.value
-         if (item.key === 'instagram_url') newSettings.instagram_url = item.value
-         if (item.key === 'facebook_url') newSettings.facebook_url = item.value
-         if (item.key === 'store_description') newSettings.store_description = item.value
-          if (item.key === 'points_ratio') newSettings.points_ratio = item.value
-       })
-       setSettings(newSettings)
-     }
-     setIsLoading(false)
-   }
+    const fetchSettings = async () => {
+      setIsLoading(true)
+      try {
+        const { data, error } = await supabase.from('store_settings').select('*')
+        
+        if (error) {
+          console.error('Error fetching settings:', error);
+          if (error.message.includes('relation "store_settings" does not exist')) {
+            toast.error('A tabela de configurações ainda não foi criada no banco de dados.');
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (data) {
+          const newSettings = { ...settings }
+          data.forEach(item => {
+            if (item.key === 'site_name') newSettings.site_name = item.value
+            if (item.key === 'logo_url') newSettings.logo_url = item.value
+            if (item.key === 'color_palette') newSettings.colors = item.value
+            if (item.key === 'address') newSettings.address = item.value
+            if (item.key === 'whatsapp') newSettings.whatsapp = item.value
+            if (item.key === 'opening_hours') newSettings.opening_hours = item.value
+            if (item.key === 'instagram_url') newSettings.instagram_url = item.value
+            if (item.key === 'facebook_url') newSettings.facebook_url = item.value
+            if (item.key === 'store_description') newSettings.store_description = item.value
+            if (item.key === 'points_ratio') newSettings.points_ratio = item.value
+          })
+          setSettings(newSettings)
+        }
+      } catch (err) {
+        console.error('Fetch settings catch:', err);
+      }
+      setIsLoading(false)
+    }
  
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
@@ -60,21 +73,26 @@
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
         const filePath = `store/${fileName}`
 
-       // Use the dedicated banners bucket or fallback to products
-       const bucketName = 'banners';
-
-       const { data: uploadData, error: uploadError } = await supabase.storage
+       // Try banners bucket, fallback to products
+       let bucketName = 'banners';
+       let uploadError = null;
+       
+       const { data: uploadData, error: firstError } = await supabase.storage
          .from(bucketName)
-         .upload(filePath, file, {
-           cacheControl: '3600',
-           upsert: true
-         })
-
-       if (uploadError) {
-         console.error('Upload error details:', uploadError);
-         throw new Error(`Erro no armazenamento: ${uploadError.message}. Verifique se o bucket '${bucketName}' permite uploads.`);
+         .upload(filePath, file, { cacheControl: '3600', upsert: true })
+       
+       if (firstError) {
+         bucketName = 'products';
+         const { data: retryData, error: retryError } = await supabase.storage
+           .from(bucketName)
+           .upload(filePath, file, { cacheControl: '3600', upsert: true });
+         uploadError = retryError;
        }
-
+ 
+       if (uploadError) {
+         throw new Error(`Erro no armazenamento: ${uploadError.message}`);
+       }
+ 
        const { data: { publicUrl } } = supabase.storage
          .from(bucketName)
          .getPublicUrl(filePath)
