@@ -110,3 +110,26 @@
      SELECT id, title, message, type FROM public.profiles;
  END;
  $$ LANGUAGE plpgsql SECURITY DEFINER;
+ 
+ -- Add demographic columns to profiles
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender TEXT; -- 'male', 'female', 'other'
+ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status TEXT; -- 'single', 'couple', 'family'
+ 
+ -- Table for site visits tracking
+ CREATE TABLE IF NOT EXISTS public.site_visits (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+     path TEXT,
+     user_agent TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ 
+ -- Enable RLS
+ ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+ 
+ -- Policy for site visits
+ CREATE POLICY "Authenticated users can insert visits" ON public.site_visits
+     FOR INSERT WITH CHECK (true);
+ 
+ CREATE POLICY "Admins can view site visits" ON public.site_visits
+     FOR SELECT USING (public.is_admin());
