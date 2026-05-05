@@ -130,12 +130,12 @@ function RouteComponent() {
           { id: 'orders', label: 'Pedidos', icon: ClipboardList },
           { id: 'products', label: 'Produtos', icon: ShoppingBag },
           { id: 'customers', label: 'Clientes', icon: Users },
-          { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
-          { id: 'layout', label: 'Layout Home', icon: Layout },
+           { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
+           { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
+           { id: 'categories', label: 'Categorias', icon: Tag },
                 <TabsContent value="layout" className="mt-0 focus-visible:ring-0">
                   <HomeLayoutManager />
                 </TabsContent>
-         { id: 'categories', label: 'Categorias', icon: Tag },
          { id: 'importer', label: 'Importação', icon: Upload },
        ]
      },
