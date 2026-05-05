@@ -134,7 +134,7 @@ BEGIN
     
     -- Configurações (Público lê, Admin altera)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_settings' AND policyname='Public read settings') THEN
-        CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (true);
+        CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config'));
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_settings' AND policyname='Admin manage settings') THEN
         CREATE POLICY "Admin manage settings" ON public.store_settings FOR ALL USING (public.is_admin());
