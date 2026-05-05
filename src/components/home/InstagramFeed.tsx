@@ -9,11 +9,11 @@
    if (!settings.instagram_url) return null
  
    const reels = [
-     { id: 1, thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=300', likes: '1.2k', comments: '45' },
-     { id: 2, thumbnail: 'https://images.unsplash.com/photo-1506484334402-40ff22e05a6d?q=80&w=300', likes: '850', comments: '12' },
-     { id: 3, thumbnail: 'https://images.unsplash.com/photo-1607623273562-6338d8503cb6?q=80&w=300', likes: '2.1k', comments: '89' },
-     { id: 4, thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300', likes: '940', comments: '23' },
-     { id: 5, thumbnail: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=300', likes: '3.4k', comments: '156' },
+     { id: 1, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=300', likes: '1.2k', comments: '45' },
+     { id: 2, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1506484334402-40ff22e05a6d?q=80&w=300', likes: '850', comments: '12' },
+     { id: 3, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1607623273562-6338d8503cb6?q=80&w=300', likes: '2.1k', comments: '89' },
+     { id: 4, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300', likes: '940', comments: '23' },
+     { id: 5, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=300', likes: '3.4k', comments: '156' },
    ]
  
    const handleFollow = () => {
@@ -46,7 +46,7 @@
                key={reel.id}
                whileHover={{ y: -5 }}
                className="min-w-[200px] md:min-w-[240px] aspect-[9/16] relative rounded-[32px] overflow-hidden group cursor-pointer shadow-xl border-4 border-white"
-               onClick={handleFollow}
+               onClick={() => reel.url ? window.open(reel.url, '_blank') : handleFollow()}
              >
                <img 
                  src={reel.thumbnail} 
