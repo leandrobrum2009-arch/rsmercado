@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { AuthForm } from '@/components/auth/AuthForm'
-import { AdminSetup } from '@/components/admin/AdminSetup'
- import { ProfileDetails } from '@/components/profile/ProfileDetails'
+ import { AuthForm } from '@/components/auth/AuthForm'
+ import { AdminSetup } from '@/components/admin/AdminSetup'
+ import { Button } from '@/components/ui/button'
+  import { ProfileDetails } from '@/components/profile/ProfileDetails'
+  import { OrderTracking } from '@/components/profile/OrderTracking'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat, Wrench } from 'lucide-react'
@@ -131,16 +133,51 @@ function ProfilePage() {
                </AvatarFallback>
              )}
            </Avatar>
-           <div>
-             <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
-             <p className="text-gray-400 font-bold text-xs tracking-widest">{session.user.email}</p>
-           </div>
+            <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">{profile?.full_name || 'USUÁRIO'}</h1>
+                  <p className="text-gray-400 font-bold text-xs tracking-widest">{session.user.email}</p>
+                </div>
+                <div className="bg-gradient-to-br from-amber-400 to-amber-600 p-4 rounded-2xl text-white shadow-xl shadow-amber-200">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Meus Pontos</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-black">{profile?.loyalty_points || 0}</span>
+                    <span className="text-[10px] font-bold uppercase">PTS</span>
+                  </div>
+                  <div className="mt-2 text-[9px] font-bold uppercase bg-white/20 py-1 px-2 rounded-lg backdrop-blur-sm">
+                    Cliente {profile?.loyalty_points > 1000 ? 'VIP Platinum' : profile?.loyalty_points > 500 ? 'VIP Ouro' : 'Bronze'}
+                  </div>
+                </div>
+              </div>
+            </div>
          </div>
        </div>
  
-       <ProfileDetails profile={profile} onUpdate={checkSession} />
- 
-       <AdminSetup />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <OrderTracking userId={session.user.id} />
+            <ProfileDetails profile={profile} onUpdate={checkSession} />
+          </div>
+          
+          <div className="space-y-6">
+            <AdminSetup />
+            
+            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-zinc-900 text-white">
+              <CardHeader>
+                <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-primary" /> Meus Pedidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-[10px] text-zinc-400 font-bold uppercase">Histórico completo de compras e entregas.</p>
+                <Button variant="outline" className="w-full border-zinc-700 text-white hover:bg-zinc-800 font-black uppercase text-[10px] rounded-xl h-12">
+                  Ver Histórico Completo
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
         <Card 

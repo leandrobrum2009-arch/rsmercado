@@ -71,9 +71,56 @@ CREATE TABLE IF NOT EXISTS public.products (
     stock INTEGER DEFAULT 0,
     is_approved BOOLEAN DEFAULT TRUE,
     is_available BOOLEAN DEFAULT TRUE,
-    points_value INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+     points_value INTEGER DEFAULT 0,
+     tags TEXT[] DEFAULT '{}',
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Bairros de Entrega
+ CREATE TABLE IF NOT EXISTS public.delivery_neighborhoods (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     name TEXT NOT NULL UNIQUE,
+     fee DECIMAL(10,2) DEFAULT 0,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Recompensas de Fidelidade
+ CREATE TABLE IF NOT EXISTS public.loyalty_rewards (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     points_cost INTEGER NOT NULL,
+     reward_type TEXT NOT NULL,
+     reward_data JSONB,
+     image_url TEXT,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ -- Desafios Semanais
+ CREATE TABLE IF NOT EXISTS public.weekly_challenges (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title TEXT NOT NULL,
+     description TEXT,
+     requirement_type TEXT NOT NULL,
+     requirement_data JSONB,
+     points_reward INTEGER NOT NULL,
+     start_date DATE NOT NULL,
+     end_date DATE NOT NULL,
+     active BOOLEAN DEFAULT TRUE,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
+ 
+ CREATE TABLE IF NOT EXISTS public.user_challenge_progress (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     challenge_id UUID REFERENCES public.weekly_challenges(id) ON DELETE CASCADE,
+     progress JSONB DEFAULT '{}',
+     completed BOOLEAN DEFAULT FALSE,
+     completed_at TIMESTAMPTZ,
+     UNIQUE(user_id, challenge_id)
+ );
 
 CREATE TABLE IF NOT EXISTS public.banners (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -141,7 +188,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     is_admin BOOLEAN DEFAULT FALSE,
     loyalty_points INTEGER DEFAULT 0
 );
-CREATE TABLE IF NOT EXISTS public.orders (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id), total_amount DECIMAL(10,2) NOT NULL, payment_method TEXT, status TEXT DEFAULT 'pending', points_earned INTEGER DEFAULT 0, customer_name TEXT, customer_phone TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+ CREATE TABLE IF NOT EXISTS public.orders (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+     user_id UUID REFERENCES auth.users(id), 
+     total_amount DECIMAL(10,2) NOT NULL, 
+     payment_method TEXT, 
+     status TEXT DEFAULT 'pending', 
+     tracking_status TEXT DEFAULT 'pending',
+     delivery_neighborhood_id UUID REFERENCES public.delivery_neighborhoods(id),
+     points_earned INTEGER DEFAULT 0, 
+     customer_name TEXT, 
+     customer_phone TEXT, 
+     whatsapp_notified_at TIMESTAMPTZ,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+ );
 CREATE TABLE IF NOT EXISTS public.order_items (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE, product_id UUID REFERENCES public.products(id), quantity INTEGER NOT NULL, unit_price DECIMAL(10,2) NOT NULL);
 CREATE TABLE IF NOT EXISTS public.user_recipes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE, recipe_id UUID REFERENCES public.recipes(id) ON DELETE CASCADE, created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, recipe_id));
 
@@ -157,7 +217,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'brand') THEN
         ALTER TABLE public.products ADD COLUMN brand TEXT;
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'points_value') THEN ALTER TABLE public.products ADD COLUMN points_value INTEGER DEFAULT 0; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'tags') THEN ALTER TABLE public.products ADD COLUMN tags TEXT[] DEFAULT '{}'; END IF;
+     
+     -- Ordens
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'tracking_status') THEN ALTER TABLE public.orders ADD COLUMN tracking_status TEXT DEFAULT 'pending'; END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'delivery_neighborhood_id') THEN ALTER TABLE public.orders ADD COLUMN delivery_neighborhood_id UUID REFERENCES public.delivery_neighborhoods(id); END IF;
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'whatsapp_notified_at') THEN ALTER TABLE public.orders ADD COLUMN whatsapp_notified_at TIMESTAMPTZ; END IF;
     
     -- Garantir coluna de pontos em perfis
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'loyalty_points') THEN 
@@ -303,9 +369,41 @@ CREATE POLICY "Public storage access" ON storage.objects FOR SELECT USING (bucke
 CREATE POLICY "Auth storage upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
 CREATE POLICY "Admin storage control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners', 'categories', 'avatars'));
 
--- Notificar reload
-NOTIFY pgrst, 'reload schema';
-`;
+ -- 8. Gatilhos e Automações
+ CREATE OR REPLACE FUNCTION public.calculate_points_on_order()
+ RETURNS TRIGGER AS $trigger$
+ DECLARE
+     points_multiplier INTEGER;
+ BEGIN
+     IF (NEW.status = 'delivered' AND OLD.status != 'delivered') THEN
+         SELECT (value->>'points_per_real')::INTEGER INTO points_multiplier 
+         FROM public.store_settings WHERE key = 'points_multiplier';
+         
+         IF points_multiplier IS NULL THEN points_multiplier := 1; END IF;
+ 
+         UPDATE public.profiles 
+         SET loyalty_points = COALESCE(loyalty_points, 0) + floor(NEW.total_amount * points_multiplier)
+         WHERE id = NEW.user_id;
+         
+         NEW.points_earned := floor(NEW.total_amount * points_multiplier);
+     END IF;
+     RETURN NEW;
+ END;
+ $trigger$ LANGUAGE plpgsql SECURITY DEFINER;
+ 
+ DROP TRIGGER IF EXISTS on_order_delivered ON public.orders;
+ CREATE TRIGGER on_order_delivered
+     BEFORE UPDATE ON public.orders
+     FOR EACH ROW
+     EXECUTE FUNCTION public.calculate_points_on_order();
+ 
+ -- Seed Settings e Neighborhoods
+ INSERT INTO public.store_settings (key, value) VALUES ('points_multiplier', '{"multiplier": 1, "points_per_real": 1}') ON CONFLICT (key) DO NOTHING;
+ INSERT INTO public.delivery_neighborhoods (name, fee) VALUES ('Centro', 5.00), ('Bairro Alto', 7.00), ('Vila Nova', 4.50) ON CONFLICT (name) DO NOTHING;
+ 
+ -- Notificar reload
+ NOTIFY pgrst, 'reload schema';
+ `;
        setGeneratedSql(sql);
        setShowSql(true);
        setStatus('SQL gerado com sucesso! Veja abaixo.');

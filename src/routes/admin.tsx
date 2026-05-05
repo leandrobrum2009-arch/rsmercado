@@ -30,8 +30,9 @@ import { FlyerCreator } from '@/components/admin/FlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
- import { WebhookManager } from '@/components/admin/WebhookManager'
- import { SQLEditor } from '@/components/admin/SQLEditor'
+  import { WebhookManager } from '@/components/admin/WebhookManager'
+  import { SQLEditor } from '@/components/admin/SQLEditor'
+  import { LoyaltyManager } from '@/components/admin/LoyaltyManager'
 import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -121,6 +122,7 @@ function RouteComponent() {
           { id: 'orders', label: 'Pedidos', icon: ClipboardList },
           { id: 'products', label: 'Produtos', icon: ShoppingBag },
           { id: 'customers', label: 'Clientes', icon: Users },
+          { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
          { id: 'categories', label: 'Categorias', icon: Tag },
          { id: 'importer', label: 'Importação', icon: Upload },
        ]
@@ -277,9 +279,12 @@ Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK
               <TabsContent value="orders" className="mt-0 focus-visible:ring-0">
                 <OrderManagement />
               </TabsContent>
-              <TabsContent value="customers" className="mt-0 focus-visible:ring-0">
-                <CustomerManagement />
-              </TabsContent>
+               <TabsContent value="customers" className="mt-0 focus-visible:ring-0">
+                 <CustomerManagement />
+               </TabsContent>
+               <TabsContent value="loyalty" className="mt-0 focus-visible:ring-0">
+                 <LoyaltyManager />
+               </TabsContent>
               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
                 <WhatsAppManager />
               </TabsContent>
