@@ -75,7 +75,8 @@ import { toast } from '@/lib/toast'
       .eq('id', orderId)
 
     if (error) {
-      toast.error('Erro ao atualizar status')
+      console.error('Error updating order status:', error)
+      toast.error(`Erro ao atualizar status: ${error.message}`)
       return
     }
 

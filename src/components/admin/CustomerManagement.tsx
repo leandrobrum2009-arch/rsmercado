@@ -24,14 +24,16 @@
        // but profiles are usually linked to auth.users. 
        // For a store owner adding a "manual" customer, we might need a separate table or 
        // just use the profiles table if they don't need login.
-       const { error } = await supabase
-         .from('profiles')
-         .insert({
-           id: crypto.randomUUID(), // Manual customer without auth account
-           full_name: newCustomer.full_name,
-           whatsapp: newCustomer.whatsapp,
-           loyalty_points: parseInt(newCustomer.loyalty_points)
-         })
+        const points = parseInt(newCustomer.loyalty_points) || 0;
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: crypto.randomUUID(), // Manual customer without auth account
+            full_name: newCustomer.full_name,
+            whatsapp: newCustomer.whatsapp,
+            loyalty_points: points,
+            points_balance: points
+          })
  
        if (error) throw error
        toast.success('Novo cliente cadastrado!')
@@ -70,13 +72,15 @@
      if (!editingCustomer) return
      setIsSaving(true)
      try {
-       const { error } = await supabase
-         .from('profiles')
-         .update({
-           full_name: editingCustomer.full_name,
-           whatsapp: editingCustomer.whatsapp,
-           loyalty_points: parseInt(editingCustomer.loyalty_points)
-         })
+        const points = parseInt(editingCustomer.loyalty_points) || 0;
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: editingCustomer.full_name,
+            whatsapp: editingCustomer.whatsapp,
+            loyalty_points: points,
+            points_balance: points
+          })
          .eq('id', editingCustomer.id)
  
        if (error) throw error
