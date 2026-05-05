@@ -311,26 +311,43 @@ export function WhatsAppManager() {
                 </select>
               </div>
  
-             <div className="space-y-2">
-               <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
-                 <Filter size={12} /> Segmentar por Cupom
-               </Label>
-               <select 
-                 className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
-                 value={targetCoupon}
-                 onChange={(e) => setTargetCoupon(e.target.value)}
-               >
-                 <option value="all">Todos os Clientes</option>
-                 {availableCoupons.map(cp => (
-                   <option key={cp} value={cp}>Quem usou cupom: {cp}</option>
-                 ))}
-               </select>
-               {targetCoupon !== 'all' && (
-                 <p className="text-[9px] text-zinc-500 font-bold italic">
-                   Filtrando clientes que já finalizaram pedidos usando este código.
-                 </p>
-               )}
-             </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                    <Users size={12} /> Segmento de Público
+                  </Label>
+                  <select 
+                    className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                    value={targetSegment}
+                    onChange={(e) => setTargetSegment(e.target.value)}
+                  >
+                    <option value="all">Todos os Clientes</option>
+                    <option value="new">Novos (30 dias)</option>
+                    <option value="vip">Clientes VIP (+500 pts)</option>
+                    <option value="active">Ativos (Compraram recentemente)</option>
+                    <option value="inactive">Inativos (Sem compras recentes)</option>
+                    <option value="coupon">Por Cupom Específico</option>
+                  </select>
+                </div>
+
+                {targetSegment === 'coupon' && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-left-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                      <Tag size={12} /> Selecione o Cupom
+                    </Label>
+                    <select 
+                      className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-xs font-bold bg-white"
+                      value={targetCoupon}
+                      onChange={(e) => setTargetCoupon(e.target.value)}
+                    >
+                      <option value="">Escolha um cupom...</option>
+                      {availableCoupons.map(cp => (
+                        <option key={cp} value={cp}>{cp}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
  
              <div className="space-y-2">
                <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
