@@ -1,4 +1,4 @@
-  import { Plus, Minus, ShoppingCart, Tag, Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag } from "lucide-react";
+   import { Plus, Minus, ShoppingCart, Tag, Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag, Zap } from "lucide-react";
   const categoryIcons: Record<string, any> = {
     "Hortifruti": Apple,
     "Padaria": Croissant,
