@@ -279,14 +279,27 @@ import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
                            </div>
                          </div>
                        </div>
-                       <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         onClick={() => removeOffer(p)}
-                         className="text-zinc-200 hover:text-red-500 hover:bg-red-50 transition-colors"
-                       >
-                         <Trash2 size={18} />
-                       </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            disabled={isNotifying === p.id}
+                            onClick={() => notifyWhatsApp(p)}
+                            className="text-green-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                            title="Notificar no WhatsApp"
+                          >
+                            {isNotifying === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send size={18} />}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeOffer(p)}
+                            className="text-zinc-200 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title="Remover Oferta"
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </div>
                      </div>
                    )
                  })}
