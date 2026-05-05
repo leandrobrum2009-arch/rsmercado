@@ -4,6 +4,7 @@
  import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map } from 'lucide-react'
  import { Button } from '@/components/ui/button'
  import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
  import { formatCurrency } from '@/lib/whatsapp'
  
  export const Route = createFileRoute('/track/$orderId')({
@@ -36,9 +37,9 @@
          event: 'UPDATE', 
          schema: 'public', 
          table: 'orders', 
-         filter: `id=eq.${orderId}` 
+         filter: `id=eq.${orderId}`
        }, (payload) => {
-         setOrder(prev => ({ ...prev, ...payload.new }))
+         setOrder((prev: any) => ({ ...prev, ...payload.new }))
        })
        .subscribe()
  
