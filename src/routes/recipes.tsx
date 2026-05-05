@@ -98,7 +98,7 @@ function RecipesPage() {
         instructions: `1. Preparação: Reúna todos os itens: ${aiInput}.\n2. Processamento: Comece preparando a base do prato com cuidado.\n3. Cocção: Mantenha o fogo controlado para preservar os nutrientes.\n4. Finalização: Sirva imediatamente com um toque de azeite e ervas frescas.`,
         category: 'Reportagem IA',
         difficulty: 'Média',
-        image_url: `https://source.unsplash.com/800x400/?${encodeURIComponent(mainProduct)},food,recipe`,
+        image_url: `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
         ingredients: products.map(p => ({ name: p, quantity: '1 unidade/porção' }))
       }
 
