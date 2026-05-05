@@ -1,3 +1,5 @@
+    instagram_post_count: string
+    instagram_post_count: '6'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  
