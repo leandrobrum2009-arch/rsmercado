@@ -342,78 +342,88 @@ export function ProductImporter() {
        console.log('Starting product import...', selectedIds.length, 'items');
        const toImport = suggestedProducts.filter(p => selectedIds.includes(p.id))
        
-       // Check if user is admin
-       const { data: isAdmin, error: adminCheckErr } = await supabase.rpc('is_admin');
-       if (adminCheckErr) console.warn('Admin check error:', adminCheckErr);
-       
-       if (isAdmin === false) {
-         toast.error('Você não tem permissão de administrador. Use o Reparador Admin.');
-         setImporting(false);
-         return;
-       }
- 
-       const categoryCache: Record<string, string> = {};
-       let successCount = 0;
-       let errorCount = 0;
-       let lastErrorMessage = '';
- 
-       // Check for duplicates again right before inserting to be absolutely sure
-       const { data: currentProducts } = await supabase.from('products').select('name, brand, size').is('deleted_at', null);
-       const currentSet = new Set((currentProducts || []).map(cp => 
-         `${cp.name.toLowerCase().trim()}|${(cp.brand || '').toLowerCase().trim()}|${(cp.size || '').toLowerCase().trim()}`
-       ));
+        // Check if user is admin - robust check including superadmin email
+        const { data: isAdmin } = await supabase.rpc('is_admin');
+        const { data: { session } } = await supabase.auth.getSession();
+        const isSuperAdmin = session?.user?.email === 'leandrobrum2009@gmail.com';
+        
+        if (isAdmin === false && !isSuperAdmin) {
+          toast.error('Sem permissão de administrador. Use /admin-fix.');
+          setImporting(false);
+          return;
+        }
+  
+        const categoryCache: Record<string, string> = {};
+        let successCount = 0;
+        let errorCount = 0;
+        let lastErrorMessage = '';
+  
+        // Fetch ALL current products to prevent ANY duplication
+        let allCurrent: any[] = [];
+        let f = 0; let t = 999; let hm = true;
+        while(hm) {
+          const { data } = await supabase.from('products').select('name, brand, size').is('deleted_at', null).range(f, t);
+          if (!data || data.length === 0) hm = false;
+          else {
+            allCurrent = [...allCurrent, ...data];
+            if (data.length < 1000) hm = false;
+            else { f += 1000; t += 1000; }
+          }
+        }
 
-       for (const p of toImport) {
-         const pName = p.name.trim();
-         const pBrand = (p.brand || '').trim();
-         const pSize = (p.size || '').trim();
-         const pKey = `${pName.toLowerCase()}|${pBrand.toLowerCase()}|${pSize.toLowerCase()}`;
-
-         if (currentSet.has(pKey)) {
-           console.log('Skipping existing product:', pName);
-           continue;
-         }
-
-         const pCategory = p.category || category || 'Mercearia';
-         let catId = categoryCache[pCategory];
+        const currentSet = new Set(allCurrent.map(cp => 
+          `${(cp.name||'').toLowerCase().trim()}|${(cp.brand || '').toLowerCase().trim()}|${(cp.size || '').toLowerCase().trim()}`
+        ));
  
-         if (!catId) {
-           let { data: existingCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
-           if (existingCat) {
-             catId = existingCat.id;
-           } else {
-             const slug = pCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-').trim();
-             const { data: newCat } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
-             if (newCat) catId = newCat.id;
-             else {
-               const { data: retryCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
-               if (retryCat) catId = retryCat.id;
-             }
-           }
-           if (catId) categoryCache[pCategory] = catId;
-         }
+        for (const p of toImport) {
+          const pName = (p.name || '').trim();
+          const pBrand = (p.brand || '').trim();
+          const pSize = (p.size || '').trim();
+          const pKey = `${pName.toLowerCase()}|${pBrand.toLowerCase()}|${pSize.toLowerCase()}`;
  
-         const priceValue = parseFloat(p.price);
-         const productData = {
-           name: p.name.trim().substring(0, 255),
-           price: isNaN(priceValue) ? 0 : priceValue,
-           category_id: catId || null,
-           brand: (p.brand || '').substring(0, 100),
-           stock: 100,
-           is_approved: true,
-           is_available: true,
-            image_url: p.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(p.name + " " + (p.brand || "") + " fundo branco")}&w=300&h=300&c=7`
+          if (currentSet.has(pKey)) continue;
+ 
+          const pCategory = p.category || category || 'Mercearia';
+          let catId = categoryCache[pCategory.toLowerCase()];
+  
+          if (!catId) {
+            let { data: existingCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+            if (existingCat) {
+              catId = existingCat.id;
+            } else {
+              const slug = pCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-').trim();
+              const { data: newCat } = await supabase.from('categories').insert({ name: pCategory, slug }).select().single();
+              if (newCat) catId = newCat.id;
+              else {
+                const { data: retryCat } = await supabase.from('categories').select('id').eq('name', pCategory).maybeSingle();
+                if (retryCat) catId = retryCat.id;
+              }
+            }
+            if (catId) categoryCache[pCategory.toLowerCase()] = catId;
+          }
+  
+          const priceValue = parseFloat(p.price);
+          const productData = {
+            name: pName.substring(0, 255),
+            price: isNaN(priceValue) ? 0 : priceValue,
+            category_id: catId || null,
+            brand: pBrand.substring(0, 100),
+            size: pSize.substring(0, 50),
+            stock: 100,
+            is_approved: true,
+            is_available: true,
+            image_url: p.image_url || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(pName + " " + pBrand + " fundo branco")}&w=400&h=400&c=7`
           };
- 
-         const { error } = await supabase.from('products').insert(productData);
-         
-         if (!error) successCount++;
-         else {
-           console.error('Failed to import product:', p.name, error);
-           lastErrorMessage = error.message;
-           errorCount++;
-         }
-       }
+  
+          const { error } = await supabase.from('products').insert(productData);
+          if (!error) {
+            successCount++;
+            currentSet.add(pKey); // Add to local set to avoid duplicates within the same import batch
+          } else {
+            lastErrorMessage = error.message;
+            errorCount++;
+          }
+        }
 
        try {
          await supabase.from('import_logs').insert({
