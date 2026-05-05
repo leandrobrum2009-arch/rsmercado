@@ -25,15 +25,15 @@ const getIcon = (cat: any) => {
 };
 
 const fallbackCategories = [
-  { name: "Mercearia", slug: "mercearia" },
-  { name: "Bebidas", slug: "bebidas" },
-  { name: "Hortifruti", slug: "hortifruti" },
-  { name: "Padaria", slug: "padaria" },
-  { name: "Carnes", slug: "acougue" },
-  { name: "Laticínios", slug: "laticinios" },
-  { name: "Limpeza", slug: "limpeza" },
-  { name: "Pet Shop", slug: "pet-shop" },
-  { name: "Higiene", slug: "higiene" },
+  { name: "Hortifruti", slug: "hortifruti", icon_name: "Apple" },
+  { name: "Carnes", slug: "acougue", icon_name: "Beef" },
+  { name: "Padaria", slug: "padaria", icon_name: "Croissant" },
+  { name: "Laticínios", slug: "laticinios", icon_name: "Milk" },
+  { name: "Bebidas", slug: "bebidas", icon_name: "Wine" },
+  { name: "Doces", slug: "doces", icon_name: "Cookie" },
+  { name: "Limpeza", slug: "limpeza", icon_name: "SprayCan" },
+  { name: "Higiene", slug: "higiene", icon_name: "Brush" },
+  { name: "Pet Shop", slug: "pet-shop", icon_name: "Dog" },
 ];
 
 export const CategoryBar = () => {
