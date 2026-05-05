@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key } from 'lucide-react'
+ import { ShieldAlert, Loader2, Zap, UserCheck, RefreshCw, Database, Trash2, Key, Copy, Check } from 'lucide-react'
+ import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/admin-fix')({
   component: AdminFix,
@@ -17,13 +18,15 @@ function AdminFix() {
    const [status, setStatus] = useState('')
    const [confirming, setConfirming] = useState(false)
    const [seeding, setSeeding] = useState(false)
-   const [testing, setTesting] = useState(false)
+    const [testing, setTesting] = useState(false)
+    const [showSql, setShowSql] = useState(false)
+    const [generatedSql, setGeneratedSql] = useState('')
+    const [copied, setCopied] = useState(false)
    const [currentUser, setCurrentUser] = useState<any>(null)
    const [userRole, setUserRole] = useState<string | null>(null)
  
-    const handleRepairDB = async () => {
-      setStatus('Copiando instruções de reparo...');
-      const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
+     const generateRepairSql = () => {
+       const sql = `-- REPARO COMPLETO DO BANCO DE DATOS
 -- 1. Criação de Tabelas e Colunas
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -147,12 +150,18 @@ END $$;
  
  DROP POLICY IF EXISTS "Admin full control" ON storage.objects;
  CREATE POLICY "Admin full control" ON storage.objects FOR ALL TO authenticated USING (bucket_id IN ('products', 'banners'));
- `;
-      
-      navigator.clipboard.writeText(sql);
-      alert('SQL DE REPARO COPIADO!\\n\\n1. Vá ao painel do Supabase > SQL Editor.\\n2. Cole (Ctrl+V) e clique em RUN.');
-      setStatus('SQL copiado para a área de transferência. Cole no Supabase.');
-    }
+       `;
+       setGeneratedSql(sql);
+       setShowSql(true);
+       setStatus('SQL gerado com sucesso! Veja abaixo.');
+     }
+ 
+     const copyToClipboard = () => {
+       navigator.clipboard.writeText(generatedSql);
+       setCopied(true);
+       toast.success('SQL copiado para a área de transferência!');
+       setTimeout(() => setCopied(false), 2000);
+     }
 
    useEffect(() => {
      const fetchUser = async () => {
@@ -424,12 +433,35 @@ END $$;
               <p className="text-[10px] text-blue-800 font-bold leading-tight uppercase">
                 Se as colunas ou tabelas estiverem faltando (Ex: erro de 'size'), clique abaixo.
               </p>
-              <Button 
-                onClick={handleRepairDB}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest"
-              >
-                GERAR SQL DE REPARO
-              </Button>
+               <Button 
+                 onClick={generateRepairSql}
+                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest"
+               >
+                 GERAR SQL DE REPARO
+               </Button>
+ 
+               {showSql && (
+                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4">
+                   <div className="relative">
+                     <textarea 
+                       readOnly 
+                       value={generatedSql}
+                       className="w-full h-48 p-3 bg-zinc-900 text-green-400 font-mono text-[10px] rounded-lg border-2 border-zinc-700"
+                     />
+                     <Button 
+                       size="sm" 
+                       className="absolute top-2 right-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-600"
+                       onClick={copyToClipboard}
+                     >
+                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                     </Button>
+                   </div>
+                   <div className="p-3 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-start gap-3">
+                     <div className="bg-white text-blue-600 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px]">!</div>
+                     <p>IMPORTANTE: Copie todo o código acima e cole no SQL EDITOR do seu painel Supabase, depois clique em RUN.</p>
+                   </div>
+                 </div>
+               )}
             </div>
           </div>
 
