@@ -1,4 +1,4 @@
--- ULTIMATE REPAIR MIGRATION
+-- ULTIMATE REPAIR MIGRATION v2
 -- Ensures all tables, columns, and permissions are correctly set
 
 -- 1. Ensure Products Table has all columns
@@ -47,18 +47,33 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  -- Check if the current user is the master email or has admin role
-  RETURN (
-    (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com' OR
-    EXISTS (
-      SELECT 1 FROM public.user_roles 
-      WHERE user_id = auth.uid() AND role = 'admin'
-    ) OR
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND is_admin = true
-    )
-  );
+  -- Check if there is a session
+  IF auth.uid() IS NULL THEN
+    RETURN FALSE;
+  END IF;
+
+  -- Check master email first
+  IF (auth.jwt() ->> 'email') = 'leandrobrum2009@gmail.com' THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Check user_roles table
+  IF EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_id = auth.uid() AND role = 'admin'
+  ) THEN
+    RETURN TRUE;
+  END IF;
+
+  -- Check profiles table (legacy)
+  IF EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND is_admin = true
+  ) THEN
+    RETURN TRUE;
+  END IF;
+
+  RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
