@@ -54,14 +54,19 @@ import { SmartImage } from "./ui/SmartImage";
        </div>
        
         <div className="p-3 flex-1 flex flex-col">
-           <div className="flex flex-wrap gap-1 mb-1">
+           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
               {product.brand && (
-                <span className="text-[10px] font-black text-white bg-zinc-900 uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
+                <span className="text-[9px] font-black text-white bg-zinc-900 uppercase tracking-tighter px-2 py-0.5 rounded shadow-sm border border-zinc-800">
                   {product.brand}
                 </span>
               )}
+              {product.size && (
+                <span className="text-[9px] font-bold text-zinc-500 bg-zinc-100 uppercase px-1.5 py-0.5 rounded border border-zinc-200">
+                  {product.size}
+                </span>
+              )}
            </div>
-          <h3 className="text-sm font-medium text-gray-800 line-clamp-2 h-10 mb-1 leading-tight">{product.name}</h3>
+           <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 h-10 mb-1 leading-[1.1] tracking-tight">{product.name}</h3>
          
          <div className="mt-auto">
            <div className="flex items-baseline gap-2">
