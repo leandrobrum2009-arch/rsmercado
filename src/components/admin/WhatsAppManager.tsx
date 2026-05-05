@@ -152,7 +152,7 @@ export function WhatsAppManager() {
      setIsBlasting(true)
      try {
         let customers: any[] = []
-        const baseQuery = supabase.from('profiles').select('id, whatsapp').not('whatsapp', 'is', null).eq('accept_marketing', true)
+         const baseQuery = supabase.from('profiles').select('id, whatsapp, full_name').not('whatsapp', 'is', null).eq('accept_marketing', true)
 
         if (targetSegment === 'all') {
           const { data } = await baseQuery
@@ -203,8 +203,9 @@ export function WhatsAppManager() {
        if (campaignError) throw campaignError
  
        let count = 0
-       for (const customer of customers) {
-         const result = await sendWhatsAppMessage(customer.whatsapp, blastMessage)
+        for (const customer of customers) {
+          const personalizedMessage = blastMessage.replace(/{{nome}}/g, customer.full_name?.split(' ')[0] || 'Cliente')
+          const result = await sendWhatsAppMessage(customer.whatsapp, personalizedMessage)
          if (result.success) count++
          await new Promise(resolve => setTimeout(resolve, 800))
        }
