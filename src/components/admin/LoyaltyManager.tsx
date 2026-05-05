@@ -356,7 +356,7 @@ export function LoyaltyManager() {
                             <Input 
                               type="number" 
                               className="h-7 w-20 text-[10px] font-bold" 
-                              value={editingFee.fee} 
+                              value={editingFee?.fee || ''} 
                               onChange={e => setEditingFee(prev => prev ? {...prev, fee: e.target.value} : null)}
                               autoFocus
                             />
