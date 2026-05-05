@@ -90,12 +90,6 @@ export const Route = createFileRoute('/admin')({
 function RouteComponent() {
   const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
    const [activeTab, setActiveTab] = useState('dashboard')
-      {
-        title: 'Visão Geral',
-        items: [
-          { id: 'dashboard', label: 'Início / Dashboard', icon: LayoutTemplate },
-        ]
-      },
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
   const [lastError, setLastError] = useState<string | null>(null)
@@ -120,7 +114,13 @@ function RouteComponent() {
     check()
   }, [])
 
-   const menuGroups = [
+    const menuGroups = [
+      {
+        title: 'Visão Geral',
+        items: [
+          { id: 'dashboard', label: 'Início / Dashboard', icon: LayoutTemplate },
+        ]
+      },
      {
        title: 'Vendas e Pedidos',
        items: [
