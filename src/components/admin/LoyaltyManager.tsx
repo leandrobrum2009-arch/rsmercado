@@ -3,7 +3,35 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins } from 'lucide-react'
+import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload } from 'lucide-react'
+   const importNeighborhoods = async () => {
+     setLoading(true)
+     const list = [
+       { name: 'Acampamento', fee: 15.00, active: true },
+       { name: 'Àgua Quente', fee: 10.00, active: true },
+       { name: 'Barra da Tijuca', fee: 25.00, active: false },
+       { name: 'Batume', fee: 10.00, active: true },
+       { name: 'Botafogo', fee: 25.00, active: true },
+       { name: 'Campinas', fee: 25.00, active: true },
+       { name: 'Canjiquinha', fee: 10.00, active: true },
+       { name: 'Morro agudo', fee: 10.00, active: true },
+       { name: 'Mottas', fee: 15.00, active: true },
+       { name: 'Rua dos mudos', fee: 10.00, active: true },
+       { name: 'Santa rosa', fee: 20.00, active: true },
+       { name: 'São Lourenço', fee: 25.00, active: true },
+       { name: 'Serra do capim', fee: 20.00, active: true },
+       { name: 'Soledade', fee: 0, active: true }
+     ]
+ 
+     const { error } = await supabase.from('delivery_neighborhoods').upsert(list, { onConflict: 'name' })
+     if (error) toast.error('Erro ao importar: ' + error.message)
+     else {
+       toast.success('Bairros importados com sucesso!')
+       fetchData()
+     }
+     setLoading(false)
+   }
+ 
 import { toast } from '@/lib/toast'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -130,9 +158,14 @@ export function LoyaltyManager() {
         <TabsContent value="neighborhoods">
           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
             <CardHeader className="bg-zinc-900 text-white">
-              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <MapPin size={16} /> Bairros de Entrega
-              </CardTitle>
+               <div className="flex justify-between items-center">
+                 <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                   <MapPin size={16} /> Bairros de Entrega
+                 </CardTitle>
+                 <Button onClick={importNeighborhoods} variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase border-zinc-200">
+                   <Upload size={14} className="mr-2" /> Importar Lista
+                 </Button>
+               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
                <div className="flex flex-col md:flex-row gap-4 p-4 bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200">
