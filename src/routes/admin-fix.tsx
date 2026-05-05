@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.recipes (
 
  -- 2. Funções Administrativas e RPCs
  CREATE OR REPLACE FUNCTION public.promote_to_admin(secret_key text)
- RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
  BEGIN
    -- Altere 'CHAVE_MESTRE' para uma chave sua se desejar
    IF secret_key = 'CHAVE_MESTRE' THEN
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS public.recipes (
  $$;
  
  CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm text, secret_key text)
- RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+ RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
  BEGIN
    IF secret_key = 'CHAVE_MESTRE' THEN
      UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = email_to_confirm;
@@ -128,6 +128,24 @@ CREATE TABLE IF NOT EXISTS public.recipes (
    END IF;
    RETURN false;
  END;
+ $$;
+ 
+ CREATE OR REPLACE FUNCTION public.audit_rls_status()
+ RETURNS TABLE (
+     table_name text,
+     rls_enabled boolean,
+     policy_count bigint
+ ) LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+     SELECT 
+         t.relname::text as table_name,
+         t.relrowsecurity as rls_enabled,
+         (SELECT count(*) FROM pg_policy p WHERE p.polrelid = t.oid) as policy_count
+     FROM pg_class t
+     JOIN pg_namespace n ON n.oid = t.relnamespace
+     WHERE n.nspname = 'public' 
+     AND t.relkind = 'r'
+     AND t.relname NOT IN ('pg_stat_statements', 'spatial_ref_sys')
+     ORDER BY t.relname;
  $$;
  
  -- 3. Correção de User Roles e Recursão
