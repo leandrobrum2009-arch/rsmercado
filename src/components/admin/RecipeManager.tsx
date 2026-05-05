@@ -181,6 +181,136 @@ export function RecipeManager() {
      });
    };
 
+  const handleSeed40Recipes = async () => {
+    setIsLoading(true);
+    toast.info('Importando catálogo gastronômico selecionado...');
+    
+    const templates = [
+      { 
+        title: 'Feijoada Completa', 
+        description: 'O prato nacional do Brasil, rico em carnes defumadas e sabor marcante.', 
+        instructions: '1. Dessalgue as carnes por 12h.\n2. Cozinhe o feijão com as carnes até amaciar.\n3. Tempere com alho frito e louro.', 
+        category: 'Brasileira', 
+        difficulty: 'Difícil', 
+        image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Feijão Preto', quantity:'1kg'}, {name:'Carnes Defumadas', quantity:'1kg'}] 
+      },
+      { 
+        title: 'Strogonoff de Carne', 
+        description: 'Cremoso, suculento e tradicionalmente servido com batata palha e arroz.', 
+        instructions: '1. Sele a carne em fogo alto.\n2. Adicione champignon, ketchup e mostarda.\n3. Finalize com creme de leite fresco.', 
+        category: 'Almoço', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1594973877793-149d8e7885b5?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Filé Mignon', quantity:'500g'}, {name:'Creme de Leite', quantity:'1 lata'}] 
+      },
+      { 
+        title: 'Bolo de Cenoura', 
+        description: 'O clássico café da tarde brasileiro com cobertura de chocolate crocante.', 
+        instructions: '1. Bata cenouras, óleo e ovos.\n2. Misture farinha e açúcar.\n3. Asse por 40 min e cubra com calda de chocolate.', 
+        category: 'Sobremesa', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Cenoura', quantity:'3 unidades'}, {name:'Chocolate', quantity:'200g'}] 
+      },
+      { 
+        title: 'Risoto de Funghi', 
+        description: 'Sofisticação italiana com cogumelos secos hidratados e vinho branco.', 
+        instructions: '1. Hidrate o funghi.\n2. Refogue o arroz arbóreo.\n3. Adicione caldo aos poucos até ficar cremoso.', 
+        category: 'Italiana', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Arroz Arbóreo', quantity:'2 xícaras'}, {name:'Funghi Secchi', quantity:'50g'}] 
+      },
+      { 
+        title: 'Picanha ao Sal Grosso', 
+        description: 'Corte nobre grelhado na perfeição com manteiga de ervas.', 
+        instructions: '1. Sele a picanha inteira.\n2. Corte em bifes grossos.\n3. Finalize com sal grosso e alho frito.', 
+        category: 'Brasileira', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Picanha', quantity:'1kg'}, {name:'Alho', quantity:'4 dentes'}] 
+      },
+      { 
+        title: 'Moqueca de Peixe', 
+        description: 'Tradicional sabor do mar com leite de coco e azeite de dendê.', 
+        instructions: '1. Refogue cebola e pimentão.\n2. Disponha o peixe em camadas.\n3. Cozinhe com leite de coco por 20 min.', 
+        category: 'Brasileira', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Postas de Peixe', quantity:'1kg'}, {name:'Leite de coco', quantity:'400ml'}] 
+      },
+      { 
+        title: 'Lasanha à Bolonhesa', 
+        description: 'Massa fresca, molho de carne rico e queijo gratinado.', 
+        instructions: '1. Prepare o molho de carne.\n2. Monte camadas com massa e queijo.\n3. Leve ao forno até dourar.', 
+        category: 'Italiana', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Massa de Lasanha', quantity:'500g'}, {name:'Carne Moída', quantity:'500g'}] 
+      },
+      { 
+        title: 'Pudim de Leite Condensado', 
+        description: 'A sobremesa mais amada das famílias brasileiras.', 
+        instructions: '1. Prepare o caramelo.\n2. Bata os ingredientes.\n3. Cozinhe em banho-maria.', 
+        category: 'Sobremesa', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Leite Condensado', quantity:'1 lata'}, {name:'Ovos', quantity:'3 unidades'}] 
+      },
+      { 
+        title: 'Torta de Frango Cremosa', 
+        description: 'Massa amanteigada com recheio de frango e requeijão.', 
+        instructions: '1. Prepare o recheio.\n2. Forre a forma com a massa.\n3. Cubra e asse até dourar.', 
+        category: 'Lanche', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Peito de Frango', quantity:'500g'}, {name:'Farinha', quantity:'3 xícaras'}] 
+      },
+      { 
+        title: 'Hambúrguer Artesanal', 
+        description: 'Blend de carnes suculento no pão brioche tostado.', 
+        instructions: '1. Moldar a carne.\n2. Grelhar com sal e pimenta.\n3. Montar com queijo e maionese.', 
+        category: 'Lanche', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Carne Moída', quantity:'400g'}, {name:'Pão Brioche', quantity:'2 un'}] 
+      }
+    ];
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const author_id = session?.user?.id;
+      
+      const finalRecipes = [];
+      // Repeat templates to reach 40 recipes with variation in titles
+      for(let i = 0; i < 4; i++) {
+        templates.forEach(t => {
+          finalRecipes.push({
+            title: i === 0 ? t.title : `${t.title} Var. ${i + 1}`,
+            description: t.description,
+            instructions: t.instructions,
+            category: t.category,
+            difficulty: t.difficulty,
+            image_url: t.image_url,
+            ingredients: t.ingredients,
+            author_id
+          });
+        });
+      }
+
+      const { error } = await supabase.from('recipes').insert(finalRecipes);
+      if (error) throw error;
+      
+      toast.success('Catálogo com 40 receitas importado com sucesso!');
+      fetchRecipes();
+    } catch (error: any) {
+      toast.error('Erro na importação: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const handleDeleteAllRecipes = async () => {
     if (!window.confirm('TEM CERTEZA? Isso apagará TODAS as receitas permanentemente!')) return
     setIsLoading(true)
