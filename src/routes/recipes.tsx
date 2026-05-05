@@ -183,9 +183,9 @@ function RecipesPage() {
            if (pName.includes(ingName) || ingName.includes(pName)) return true
            
            // Split by spaces and check if any significant word matches
-           const ingWords = ingName.split(' ').filter(w => w.length > 3)
-           const pWords = pName.split(' ').filter(w => w.length > 3)
-           return ingWords.some(iw => pWords.includes(iw))
+           const ingWords = ingName.split(' ').filter((w: string) => w.length > 3)
+           const pWords = pName.split(' ').filter((w: string) => w.length > 3)
+           return ingWords.some((iw: string) => pWords.includes(iw))
          })
          
          status[ing.name] = match || null
