@@ -1,3 +1,14 @@
+   useEffect(() => {
+     const trackVisit = async () => {
+       const { data: { user } } = await supabase.auth.getUser();
+       await supabase.from('site_visits').insert({
+         user_id: user?.id || null,
+         path: window.location.pathname,
+         user_agent: navigator.userAgent
+       });
+     };
+     trackVisit();
+   }, [location.pathname]);
    import { registerServiceWorker } from "../lib/webpush";
      registerServiceWorker();
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
