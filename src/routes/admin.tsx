@@ -1,3 +1,4 @@
+ import { AlertManager } from '@/components/admin/AlertManager'
  import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
 import { 
@@ -136,9 +137,13 @@ function RouteComponent() {
          title: 'Marketing e Conteúdo',
          items: [
            { id: 'banners', label: 'Banners', icon: ImageIcon },
-           { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
-           { id: 'recipes', label: 'Receitas', icon: ChefHat },
-           { id: 'notifications', label: 'Notificações', icon: Bell },
+            { id: 'flyers', label: 'Encartes', icon: LayoutTemplate },
+            { id: 'recipes', label: 'Receitas', icon: ChefHat },
+            { id: 'notifications', label: 'Notificações', icon: Bell },
+            { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
+                <TabsContent value="alerts" className="mt-0 focus-visible:ring-0">
+                  <AlertManager />
+                </TabsContent>
          ]
        },
        {
