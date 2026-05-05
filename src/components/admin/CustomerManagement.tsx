@@ -2,10 +2,10 @@
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-  import { Users, Loader2, Search, Edit, Save, X } from 'lucide-react'
+  import { Users, Loader2, Search, Edit, Save, X, Plus } from 'lucide-react'
   import { Input } from '@/components/ui/input'
   import { Button } from '@/components/ui/button'
-  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
   import { toast } from '@/lib/toast'
  
  export function CustomerManagement() {
