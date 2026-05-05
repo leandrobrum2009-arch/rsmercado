@@ -279,9 +279,12 @@ Função audit_rls: ${lastError?.includes('audit_rls_status') ? 'FALTANDO' : 'OK
               <TabsContent value="orders" className="mt-0 focus-visible:ring-0">
                 <OrderManagement />
               </TabsContent>
-              <TabsContent value="customers" className="mt-0 focus-visible:ring-0">
-                <CustomerManagement />
-              </TabsContent>
+               <TabsContent value="customers" className="mt-0 focus-visible:ring-0">
+                 <CustomerManagement />
+               </TabsContent>
+               <TabsContent value="loyalty" className="mt-0 focus-visible:ring-0">
+                 <LoyaltyManager />
+               </TabsContent>
               <TabsContent value="whatsapp" className="mt-0 focus-visible:ring-0">
                 <WhatsAppManager />
               </TabsContent>
