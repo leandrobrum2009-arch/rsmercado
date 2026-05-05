@@ -53,8 +53,15 @@ export function LoyaltyManager() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: settingsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle()
-      if (settingsData) setSettings(settingsData.value)
+      const { data: settingsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+      if (settingsData) {
+        const val = settingsData.value;
+        if (typeof val === 'object' && val !== null) {
+          setSettings(val);
+        } else {
+          setSettings({ points_per_real: parseFloat(val) || 0.5 });
+        }
+      }
 
       const { data: nData } = await supabase.from('delivery_neighborhoods').select('*').order('name')
       setNeighborhoods(nData || [])
