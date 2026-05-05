@@ -1,7 +1,17 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { subscribeToPush } from '@/lib/webpush'
- import { Bell, BellDot, X, Check } from 'lucide-react'
+ import { Bell, BellDot, X, Check, ShoppingBag, Trophy, Tag, Megaphone, Smartphone } from 'lucide-react'
+   const getTypeIcon = (type: string) => {
+     switch (type) {
+       case 'order_status': return <ShoppingBag className="h-4 w-4 text-blue-500" />
+       case 'loyalty': return <Trophy className="h-4 w-4 text-yellow-500" />
+       case 'promo': return <Tag className="h-4 w-4 text-green-500" />
+       case 'admin_msg': return <Megaphone className="h-4 w-4 text-purple-500" />
+       default: return <Bell className="h-4 w-4 text-gray-500" />
+     }
+   }
+ 
  import { Button } from '@/components/ui/button'
  import {
    Popover,
@@ -132,9 +142,9 @@
          <div className="flex items-center justify-between p-4 border-b">
            <h4 className="font-semibold">Notificações</h4>
            <div className="flex gap-2">
-             <Button variant="ghost" size="sm" onClick={handleSubscribe} className="text-[10px] h-7 px-2 border">
-               Ativar Push
-             </Button>
+               <Button variant="outline" size="sm" onClick={handleSubscribe} className="text-[10px] h-7 px-2 border-primary/50 bg-primary/5 hover:bg-primary/10">
+                 <Smartphone className="h-3 w-3 mr-1" /> Ativar Push
+               </Button>
              {unreadCount > 0 && (
                <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-[10px] h-7 px-2">
                  Limpar
@@ -156,9 +166,12 @@
                    className={`p-4 transition-colors ${!notification.is_read ? 'bg-muted/50' : ''}`}
                  >
                    <div className="flex justify-between gap-2">
-                     <p className={`text-sm font-medium ${!notification.is_read ? 'text-primary' : ''}`}>
-                       {notification.title}
-                     </p>
+                     <div className="flex items-center gap-2">
+                       {getTypeIcon(notification.type)}
+                       <p className={`text-sm font-medium ${!notification.is_read ? 'text-primary' : ''}`}>
+                         {notification.title}
+                       </p>
+                     </div>
                      {!notification.is_read && (
                        <Button 
                          variant="ghost" 
