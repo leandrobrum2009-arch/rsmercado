@@ -59,11 +59,12 @@ export const Route = createFileRoute("/")({
          </div>
        </div>
  
-          <div className="px-4 pt-4">
-            <BannerCarousel />
-          </div>
-
-           <HomeBanners />
+           <div className="px-4 pt-4">
+             <DailyFlyer />
+             <BannerCarousel />
+           </div>
+ 
+            <HomeBanners />
   
           <CategoryBar />
  
