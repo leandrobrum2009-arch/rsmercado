@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle } from 'lucide-react'
+ import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -21,9 +21,58 @@ export function WhatsAppManager() {
    const [testPhone, setTestPhone] = useState('')
    const [blastMessage, setBlastMessage] = useState('')
    const [isBlasting, setIsBlasting] = useState(false)
+   const [scheduledDate, setScheduledDate] = useState('')
+   const [campaigns, setCampaigns] = useState<any[]>([])
+   const [loadingCampaigns, setLoadingCampaigns] = useState(true)
+ 
+   const fetchCampaigns = async () => {
+     setLoadingCampaigns(true)
+     try {
+       const { data } = await supabase
+         .from('whatsapp_campaigns')
+         .select('*')
+         .order('created_at', { ascending: false })
+       setCampaigns(data || [])
+     } catch (e) {
+       console.error('Error fetching campaigns:', e)
+     } finally {
+       setLoadingCampaigns(false)
+     }
+   }
+ 
+   const deleteCampaign = async (id: string) => {
+     const { error } = await supabase.from('whatsapp_campaigns').delete().eq('id', id)
+     if (error) toast.error('Erro ao excluir campanha')
+     else {
+       toast.success('Campanha excluída')
+       fetchCampaigns()
+     }
+   }
+ 
    const handleBlast = async () => {
      if (!blastMessage) return toast.error('Digite a mensagem para o envio em massa')
-     if (!confirm('Deseja enviar esta mensagem para TODOS os clientes cadastrados?')) return
+     
+     if (scheduledDate) {
+       setIsBlasting(true)
+       const { error } = await supabase.from('whatsapp_campaigns').insert({
+         message: blastMessage,
+         status: 'scheduled',
+         scheduled_for: new Date(scheduledDate).toISOString(),
+         target_audience: 'all'
+       })
+       
+       if (error) toast.error('Erro ao agendar envio: ' + error.message)
+       else {
+         toast.success('Envio agendado com sucesso!')
+         setBlastMessage('')
+         setScheduledDate('')
+         fetchCampaigns()
+       }
+       setIsBlasting(false)
+       return
+     }
+ 
+     if (!confirm('Deseja enviar esta mensagem para TODOS os clientes cadastrados AGORA?')) return
      
      setIsBlasting(true)
      try {
@@ -34,57 +83,40 @@ export function WhatsAppManager() {
          return
        }
  
+       const { data: campaign, error: campaignError } = await supabase.from('whatsapp_campaigns').insert({
+         message: blastMessage,
+         status: 'processing',
+         total_recipients: customers.length
+       }).select().single()
+ 
+       if (campaignError) throw campaignError
+ 
        let count = 0
        for (const customer of customers) {
          const result = await sendWhatsAppMessage(customer.whatsapp, blastMessage)
          if (result.success) count++
-         // Small delay to avoid rate limits
-         await new Promise(resolve => setTimeout(resolve, 1000))
+         await new Promise(resolve => setTimeout(resolve, 800))
        }
        
+       await supabase.from('whatsapp_campaigns').update({
+         status: 'sent',
+         sent_count: count
+       }).eq('id', campaign.id)
+ 
        toast.success(`${count} mensagens enviadas com sucesso!`)
        setBlastMessage('')
-     } catch (error) {
-       toast.error('Erro no envio em massa')
+       fetchCampaigns()
+     } catch (error: any) {
+       toast.error('Erro no envio em massa: ' + error.message)
      } finally {
        setIsBlasting(false)
      }
    }
- 
-       <Card className="border-green-200 shadow-lg overflow-hidden">
-         <CardHeader className="bg-green-600 text-white">
-           <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-             <Send size={16} /> Mala Direta (Envio em Massa)
-           </CardTitle>
-         </CardHeader>
-         <CardContent className="p-6 space-y-4">
-           <div className="space-y-2">
-             <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
-             <textarea 
-               className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
-               placeholder="Ex: 🚀 Super Oferta de hoje: Arroz Tio João 5kg por apenas R$ 24,90! Venha conferir no site: https://sualoja.com"
-               value={blastMessage}
-               onChange={(e) => setBlastMessage(e.target.value)}
-             />
-           </div>
-           <Button 
-             onClick={handleBlast} 
-             disabled={isBlasting || !config.enabled} 
-             className="w-full bg-green-600 hover:bg-green-700 font-black uppercase italic h-12 rounded-2xl shadow-xl shadow-green-100"
-           >
-             {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
-             {config.enabled ? 'Disparar para todos os clientes' : 'Ative a API para usar Mala Direta'}
-           </Button>
-           {!config.enabled && (
-             <p className="text-[9px] text-center text-zinc-400 font-bold uppercase italic">O envio em massa requer uma API conectada.</p>
-           )}
-         </CardContent>
-       </Card>
- 
 
-  useEffect(() => {
-    fetchConfig()
-  }, [])
+   useEffect(() => {
+     fetchConfig()
+     fetchCampaigns()
+   }, [])
 
   const fetchConfig = async () => {
     const data = await getWhatsAppConfig()
@@ -121,8 +153,101 @@ export function WhatsAppManager() {
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
-  return (
-    <div className="space-y-6">
+   return (
+     <div className="space-y-8">
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <Card className="border-green-200 shadow-lg overflow-hidden flex flex-col">
+           <CardHeader className="bg-green-600 text-white">
+             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+               <Send size={16} /> Mala Direta (Envio em Massa)
+             </CardTitle>
+           </CardHeader>
+           <CardContent className="p-6 space-y-4 flex-1">
+             <div className="space-y-2">
+               <Label className="text-[10px] font-black uppercase text-zinc-500">Mensagem para todos os clientes</Label>
+               <textarea 
+                 className="w-full h-32 p-4 rounded-2xl border border-zinc-200 text-sm focus:ring-green-500 outline-none"
+                 placeholder="Ex: 🚀 Super Oferta de hoje: Arroz Tio João 5kg por apenas R$ 24,90! Venha conferir no site: https://sualoja.com"
+                 value={blastMessage}
+                 onChange={(e) => setBlastMessage(e.target.value)}
+               />
+             </div>
+ 
+             <div className="space-y-2">
+               <Label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                 <Calendar size={12} /> Agendar Envio (Opcional)
+               </Label>
+               <Input 
+                 type="datetime-local" 
+                 className="rounded-xl"
+                 value={scheduledDate}
+                 onChange={(e) => setScheduledDate(e.target.value)}
+               />
+             </div>
+ 
+             <Button 
+               onClick={handleBlast} 
+               disabled={isBlasting || !config.enabled} 
+               className="w-full bg-green-600 hover:bg-green-700 font-black uppercase italic h-12 rounded-2xl shadow-xl shadow-green-100 mt-2"
+             >
+               {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
+               {!config.enabled 
+                 ? 'Ative a API para usar Mala Direta' 
+                 : scheduledDate 
+                   ? 'Agendar Envio em Massa' 
+                   : 'Disparar para todos agora'}
+             </Button>
+           </CardContent>
+         </Card>
+ 
+         <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
+           <CardHeader className="bg-zinc-100 border-b">
+             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-zinc-800">
+               <Clock size={16} /> Campanhas e Agendamentos
+             </CardTitle>
+           </CardHeader>
+           <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
+             {loadingCampaigns ? (
+               <div className="flex justify-center p-8"><Loader2 className="animate-spin text-zinc-300" /></div>
+             ) : campaigns.length === 0 ? (
+               <div className="p-12 text-center text-zinc-400">
+                 <Send className="mx-auto mb-2 opacity-20" size={48} />
+                 <p className="text-xs font-bold uppercase">Nenhuma campanha enviada</p>
+               </div>
+             ) : (
+               <div className="divide-y">
+                 {campaigns.map(c => (
+                   <div key={c.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                     <div className="flex justify-between items-start mb-2">
+                       <div className="flex items-center gap-2">
+                         {c.status === 'sent' && <CheckCircle size={14} className="text-green-600" />}
+                         {c.status === 'scheduled' && <Calendar size={14} className="text-blue-600" />}
+                         {c.status === 'processing' && <Loader2 size={14} className="text-amber-500 animate-spin" />}
+                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                           c.status === 'sent' ? 'bg-green-100 text-green-700' : 
+                           c.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 
+                           'bg-amber-100 text-amber-700'
+                         }`}>
+                           {c.status === 'sent' ? 'Enviado' : c.status === 'scheduled' ? 'Agendado' : 'Processando'}
+                         </span>
+                       </div>
+                       <Button variant="ghost" size="icon" className="h-6 w-6 text-zinc-300 hover:text-red-500" onClick={() => deleteCampaign(c.id)}>
+                         <Trash2 size={14} />
+                       </Button>
+                     </div>
+                     <p className="text-xs text-zinc-700 font-medium line-clamp-2 mb-2 italic">"{c.message}"</p>
+                     <div className="flex justify-between items-center text-[9px] font-bold text-zinc-400 uppercase">
+                       <span>{new Date(c.created_at).toLocaleDateString()} {new Date(c.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                       {c.status === 'sent' && <span>{c.sent_count}/{c.total_recipients} envios</span>}
+                       {c.status === 'scheduled' && <span className="text-blue-600 flex items-center gap-1"><Clock size={10} /> {new Date(c.scheduled_for).toLocaleDateString()} {new Date(c.scheduled_for).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>}
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
+           </CardContent>
+         </Card>
+       </div>
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
