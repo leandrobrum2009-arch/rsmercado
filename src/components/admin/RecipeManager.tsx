@@ -36,16 +36,29 @@ export function RecipeManager() {
         .select('*')
         .order('created_at', { ascending: false })
 
-       if (error) {
-         if (error.message.includes('relation "recipes" does not exist')) {
-           toast.error('Tabela de receitas não encontrada. Use o Reparador Admin.')
-         } else {
-           toast.error('Erro ao carregar receitas')
-         }
-         setRecipes([])
-       } else {
-         setRecipes(data || [])
-       }
+        if (error) {
+          console.error('Recipes fetch error:', error);
+          const isMissingTable = error.message?.includes('relation "recipes" does not exist') || 
+                               error.message?.includes('schema cache') || 
+                               error.message?.includes('404');
+
+          if (isMissingTable) {
+            toast.error(
+              <div className="flex flex-col gap-2">
+                <p>A tabela de receitas não foi encontrada.</p>
+                <Button size="sm" onClick={() => window.location.href = '/admin-fix'} className="bg-red-600 text-[10px] font-black uppercase">
+                  Reparar Banco de Dados
+                </Button>
+              </div>,
+              { duration: 10000 }
+            );
+          } else {
+            toast.error('Erro ao carregar receitas: ' + error.message);
+          }
+          setRecipes([]);
+        } else {
+          setRecipes(data || []);
+        }
      } catch (error: any) {
        console.error('Fetch recipes error:', error)
        toast.error('Erro de conexão ao carregar receitas')
