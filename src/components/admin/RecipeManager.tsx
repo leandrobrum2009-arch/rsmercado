@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles, AlertCircle } from 'lucide-react'
+  import { Loader2, Plus, Trash2, Zap, BrainCircuit, Save, Sparkles, AlertCircle, ChefHat } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export function RecipeManager() {
   const [recipes, setRecipes] = useState<any[]>([])
@@ -15,7 +17,17 @@ export function RecipeManager() {
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
   const [aiInput, setAiInput] = useState('')
-  const [isAiGenerating, setIsAiGenerating] = useState(false)
+   const [isAiGenerating, setIsAiGenerating] = useState(false)
+   const [isManualModalOpen, setIsManualModalOpen] = useState(false)
+   const [manualRecipe, setManualRecipe] = useState({
+     title: '',
+     description: '',
+     instructions: '',
+     category: 'Brasileira',
+     difficulty: 'Média',
+     image_url: '',
+     ingredients: [{ name: '', quantity: '' }]
+   })
 
    useEffect(() => {
      const check = async () => {
@@ -100,11 +112,10 @@ export function RecipeManager() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       
        // Use multiple sources for images as requested
-       const sources = [
-         `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(mainProduct.toLowerCase())}`,
-         `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`,
-         `https://picsum.photos/800/400?random=${Date.now()}`
-       ];
+        const sources = [
+          `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`, // Default generic food
+          `https://loremflickr.com/800/400/meal,cooking,food?random=${Date.now()}`
+        ];
        
        let image_url = '';
        for (const src of sources) {
@@ -169,290 +180,133 @@ export function RecipeManager() {
      });
    };
 
-   const handleSeed40Recipes = async () => {
-     setIsLoading(true);
-     toast.info('Iniciando cadastro em massa de 40 receitas...');
-     
-     const detailedTemplates = [
+  const handleSeed40Recipes = async () => {
+    setIsLoading(true);
+    toast.info('Importando catálogo gastronômico selecionado...');
+    
+    const templates = [
       { 
-        title: 'Feijoada Completa Tradicional', 
-        description: 'A clássica feijoada brasileira, rica em sabores e tradição. Um prato completo que reúne o melhor das carnes defumadas com feijão preto selecionado.', 
-        instructions: '1. Deixe o feijão de molho por 12 horas.\n2. Cozinhe o feijão com as carnes salgadas (previamente dessalgadas).\n3. Adicione o paio e a linguiça calabresa após 40 minutos.\n4. Faça um refogado com alho, cebola e uma concha do caldo do feijão amassado.\n5. Junte o refogado à panela e deixe engrossar o caldo.', 
+        title: 'Feijoada Completa', 
+        description: 'O prato nacional do Brasil, rico em carnes defumadas e sabor marcante.', 
+        instructions: '1. Dessalgue as carnes por 12h.\n2. Cozinhe o feijão com as carnes até amaciar.\n3. Tempere com alho frito e louro.', 
         category: 'Brasileira', 
         difficulty: 'Difícil', 
-        image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Feijão Preto', quantity:'1kg'},
-          {name:'Carne Seca', quantity:'500g'},
-          {name:'Lombo Salgado', quantity:'500g'},
-          {name:'Linguiça Calabresa', quantity:'2 unidades'},
-          {name:'Paio', quantity:'2 unidades'},
-          {name:'Bacon', quantity:'200g'},
-          {name:'Cebola', quantity:'2 unidades'},
-          {name:'Alho', quantity:'4 dentes'},
-          {name:'Louro', quantity:'3 folhas'}
-        ] 
+        image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Feijão Preto', quantity:'1kg'}, {name:'Carnes Defumadas', quantity:'1kg'}] 
       },
       { 
-        title: 'Strogonoff de Frango Cremoso', 
-        description: 'Um prato rápido, prático e que agrada a todos. O segredo está no equilíbrio entre o molho de tomate e o creme de leite.', 
-        instructions: '1. Corte o frango em cubos e tempere.\n2. Doure a cebola e o alho, depois acrescente o frango.\n3. Quando o frango estiver cozido, adicione o ketchup, a mostarda e os cogumelos.\n4. Desligue o fogo e misture o creme de leite suavemente.\n5. Sirva com arroz branco e batata palha.', 
+        title: 'Strogonoff de Carne', 
+        description: 'Cremoso, suculento e tradicionalmente servido com batata palha e arroz.', 
+        instructions: '1. Sele a carne em fogo alto.\n2. Adicione champignon, ketchup e mostarda.\n3. Finalize com creme de leite fresco.', 
         category: 'Almoço', 
         difficulty: 'Fácil', 
-        image_url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Peito de Frango', quantity:'500g'},
-          {name:'Creme de Leite', quantity:'1 lata'},
-          {name:'Ketchup', quantity:'3 colheres'},
-          {name:'Mostarda', quantity:'1 colher'},
-          {name:'Cogumelos em conserva', quantity:'100g'},
-          {name:'Cebola', quantity:'1 unidade'},
-          {name:'Alho', quantity:'2 dentes'}
-        ] 
+        image_url: 'https://images.unsplash.com/photo-1594973877793-149d8e7885b5?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Filé Mignon', quantity:'500g'}, {name:'Creme de Leite', quantity:'1 lata'}] 
       },
       { 
-        title: 'Bolo de Cenoura com Chocolate', 
-        description: 'O lanche perfeito para a tarde. Massa fofinha de cenoura com uma cobertura de chocolate crocante que todo mundo ama.', 
-        instructions: '1. Bata no liquidificador as cenouras, os ovos e o óleo.\n2. Em uma tigela, misture o açúcar e a farinha, depois adicione a mistura do liquidificador.\n3. Por último, adicione o fermento.\n4. Asse por 40 minutos a 180°C.\n5. Para a calda: misture chocolate, açúcar e leite no fogo até engrossar.', 
+        title: 'Bolo de Cenoura', 
+        description: 'O clássico café da tarde brasileiro com cobertura de chocolate crocante.', 
+        instructions: '1. Bata cenouras, óleo e ovos.\n2. Misture farinha e açúcar.\n3. Asse por 40 min e cubra com calda de chocolate.', 
         category: 'Sobremesa', 
         difficulty: 'Média', 
         image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Cenoura média', quantity:'3 unidades'},
-          {name:'Ovo', quantity:'4 unidades'},
-          {name:'Óleo', quantity:'1 xícara'},
-          {name:'Açúcar', quantity:'2 xícaras'},
-          {name:'Farinha de Trigo', quantity:'2 xícaras'},
-          {name:'Fermento em pó', quantity:'1 colher'},
-          {name:'Chocolate em pó', quantity:'1 xícara'}
-        ] 
+        ingredients: [{name:'Cenoura', quantity:'3 unidades'}, {name:'Chocolate', quantity:'200g'}] 
       },
       { 
-        title: 'Moqueca de Peixe Capixaba', 
-        description: 'O verdadeiro sabor do mar em uma panela de barro. Peixe fresco cozido lentamente com tomate, coentro e urucum.', 
-        instructions: '1. Tempere o peixe com sal e limão.\n2. Em uma panela, faça camadas de cebola, tomate e peixe.\n3. Regue com azeite e adicione o urucum dissolvido.\n4. Cozinhe com a panela tampada por 20 minutos.\n5. Finalize com muito coentro e cebolinha.', 
+        title: 'Risoto de Funghi', 
+        description: 'Sofisticação italiana com cogumelos secos hidratados e vinho branco.', 
+        instructions: '1. Hidrate o funghi.\n2. Refogue o arroz arbóreo.\n3. Adicione caldo aos poucos até ficar cremoso.', 
+        category: 'Italiana', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Arroz Arbóreo', quantity:'2 xícaras'}, {name:'Funghi Secchi', quantity:'50g'}] 
+      },
+      { 
+        title: 'Picanha ao Sal Grosso', 
+        description: 'Corte nobre grelhado na perfeição com manteiga de ervas.', 
+        instructions: '1. Sele a picanha inteira.\n2. Corte em bifes grossos.\n3. Finalize com sal grosso e alho frito.', 
+        category: 'Brasileira', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Picanha', quantity:'1kg'}, {name:'Alho', quantity:'4 dentes'}] 
+      },
+      { 
+        title: 'Moqueca de Peixe', 
+        description: 'Tradicional sabor do mar com leite de coco e azeite de dendê.', 
+        instructions: '1. Refogue cebola e pimentão.\n2. Disponha o peixe em camadas.\n3. Cozinhe com leite de coco por 20 min.', 
         category: 'Brasileira', 
         difficulty: 'Média', 
         image_url: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Postas de Peixe (Badejo ou Robalo)', quantity:'1kg'},
-          {name:'Tomate maduro', quantity:'4 unidades'},
-          {name:'Cebola branca', quantity:'2 unidades'},
-          {name:'Coentro fresco', quantity:'1 maço'},
-          {name:'Urucum ou Colorau', quantity:'2 colheres'},
-          {name:'Limão', quantity:'2 unidades'},
-          {name:'Azeite de Oliva', quantity:'100ml'}
-        ] 
+        ingredients: [{name:'Postas de Peixe', quantity:'1kg'}, {name:'Leite de coco', quantity:'400ml'}] 
       },
       { 
         title: 'Lasanha à Bolonhesa', 
-        description: 'Massa clássica italiana montada em camadas com molho de carne rico em sabor e queijo derretido.', 
-        instructions: '1. Prepare o molho bolonhesa refogando a carne com temperos e extrato de tomate.\n2. Faça um molho branco (bechamel) com leite e farinha.\n3. Monte a lasanha: molho, massa, presunto, queijo, repetindo as camadas.\n4. Finalize com parmesão ralado por cima.\n5. Gratine no forno por 30 minutos.', 
+        description: 'Massa fresca, molho de carne rico e queijo gratinado.', 
+        instructions: '1. Prepare o molho de carne.\n2. Monte camadas com massa e queijo.\n3. Leve ao forno até dourar.', 
         category: 'Italiana', 
         difficulty: 'Média', 
         image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Massa de Lasanha', quantity:'500g'},
-          {name:'Carne Moída', quantity:'500g'},
-          {name:'Queijo Mussarela', quantity:'400g'},
-          {name:'Presunto', quantity:'300g'},
-          {name:'Molho de Tomate', quantity:'2 sachês'},
-          {name:'Leite', quantity:'500ml'},
-          {name:'Farinha de Trigo', quantity:'2 colheres'}
-        ] 
+        ingredients: [{name:'Massa de Lasanha', quantity:'500g'}, {name:'Carne Moída', quantity:'500g'}] 
       },
       { 
         title: 'Pudim de Leite Condensado', 
-        description: 'A sobremesa mais amada das famílias brasileiras. Textura aveludada e calda de caramelo perfeita.', 
-        instructions: '1. Derreta o açúcar na forma para fazer a calda.\n2. Bata no liquidificador o leite condensado, o leite e os ovos.\n3. Despeje na forma caramelizada.\n4. Asse em banho-maria por cerca de 1 hora e 30 minutos.\n5. Deixe esfriar e leve à geladeira por 6 horas antes de desenformar.', 
+        description: 'A sobremesa mais amada das famílias brasileiras.', 
+        instructions: '1. Prepare o caramelo.\n2. Bata os ingredientes.\n3. Cozinhe em banho-maria.', 
         category: 'Sobremesa', 
         difficulty: 'Média', 
         image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=800&h=400&fit=crop', 
-        ingredients: [
-          {name:'Leite Condensado', quantity:'1 lata'},
-          {name:'Leite Integral', quantity:'1 lata (medida)'},
-          {name:'Ovo', quantity:'3 unidades'},
-          {name:'Açúcar (para a calda)', quantity:'1 xícara'}
-        ] 
+        ingredients: [{name:'Leite Condensado', quantity:'1 lata'}, {name:'Ovos', quantity:'3 unidades'}] 
       },
-      {
-        title: 'Arroz Carreteiro Gaúcho',
-        description: 'Um clássico do Rio Grande do Sul, feito com sobras de churrasco ou charque, arroz e muitos temperos.',
-        instructions: '1. Preparação: Comece fritando o charque em cubos em fogo médio até que esteja bem dourado e crocante.\n2. Refogado: Adicione cebola picada, alho esmagado e pimentão vermelho, refogando até os vegetais murcharem.\n3. Arroz: Acrescente o arroz agulhinha e frite por 2 minutos para absorver a gordura e os sabores das carnes.\n4. Cozimento: Adicione água quente suficiente para cobrir (proporção 2:1) e deixe cozinhar com a panela semi-tampada.\n5. Finalização: Quando a água secar, desligue o fogo, tampe totalmente e deixe descansar por 5 minutos. Sirva com salsinha fresca por cima.',
-        category: 'Brasileira',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1512058560366-cd2429555614?w=800&h=400&fit=crop',
-        ingredients: [
-          {name: 'Arroz Agulhinha', quantity: '2 xícaras'},
-          {name: 'Charque picado', quantity: '500g'},
-          {name: 'Cebola média', quantity: '1 unidade'},
-          {name: 'Alho', quantity: '3 dentes'},
-          {name: 'Pimentão Vermelho', quantity: '1/2 unidade'},
-          {name: 'Salsinha e Cebolinha', quantity: 'a gosto'}
-        ]
+      { 
+        title: 'Torta de Frango Cremosa', 
+        description: 'Massa amanteigada com recheio de frango e requeijão.', 
+        instructions: '1. Prepare o recheio.\n2. Forre a forma com a massa.\n3. Cubra e asse até dourar.', 
+        category: 'Lanche', 
+        difficulty: 'Média', 
+        image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Peito de Frango', quantity:'500g'}, {name:'Farinha', quantity:'3 xícaras'}] 
       },
-      {
-        title: 'Torta de Frango com Requeijão',
-        description: 'Torta salgada de liquidificador, super prática e com recheio cremoso de frango desfiado. Ideal para lanches rápidos ou jantares leves.',
-        instructions: '1. Recheio: Refogue o frango desfiado com cebola, alho, milho verde e molho de tomate até ficar suculento.\n2. Massa: No liquidificador, bata o leite, o óleo, os ovos e o sal. Adicione a farinha aos poucos e por último o fermento.\n3. Montagem: Em uma forma untada, despeje metade da massa.\n4. Camadas: Distribua o recheio de frango e coloque colheradas generosas de requeijão por cima.\n5. Forno: Cubra com o restante da massa e leve ao forno pré-aquecido a 200°C por cerca de 35 a 40 minutos.',
-        category: 'Lanche',
-        difficulty: 'Fácil',
-        image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop',
-        ingredients: [
-          {name: 'Peito de Frango cozido e desfiado', quantity: '500g'},
-          {name: 'Requeijão Cremoso', quantity: '200g'},
-          {name: 'Farinha de Trigo', quantity: '3 xícaras'},
-          {name: 'Leite Integral', quantity: '2 xícaras'},
-          {name: 'Ovo', quantity: '3 unidades'},
-          {name: 'Óleo de Soja', quantity: '1/2 xícara'},
-          {name: 'Fermento Químico', quantity: '1 colher'}
-        ]
-      },
-      {
-        title: 'Escondidinho de Carne Seca',
-        description: 'Um prato reconfortante que combina o purê de mandioca cremoso com o sabor intenso da carne seca bem temperada.',
-        instructions: '1. Purê: Cozinhe a mandioca até ficar bem macia. Amasse e misture com leite e manteiga até formar um purê liso.\n2. Carne: Refogue a carne seca desfiada com cebola roxa e manteiga de garrafa.\n3. Montagem: Em um refratário, faça uma camada de purê, depois a carne seca e finalize com mais purê.\n4. Cobertura: Cubra com queijo coalho ralado ou mussarela.\n5. Gratinar: Leve ao forno alto apenas para dourar o queijo por cima.',
-        category: 'Nordestina',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1551462147-37885acc3c41?w=800&h=400&fit=crop',
-        ingredients: [
-          {name: 'Mandioca cozida', quantity: '1kg'},
-          {name: 'Carne Seca desfiada', quantity: '500g'},
-          {name: 'Manteiga de Garrafa', quantity: '3 colheres'},
-          {name: 'Leite Integral', quantity: '200ml'},
-          {name: 'Queijo Coalho', quantity: '200g'},
-          {name: 'Cebola Roxa', quantity: '1 unidade'}
-        ]
-      },
-      {
-        title: 'Risoto de Funghi Secchi',
-        description: 'Um clássico da culinária italiana, cremoso e com o sabor profundo e amadeirado dos cogumelos secos. Perfeito para um jantar especial.',
-        instructions: '1. Preparo do Funghi: Hidrate o funghi secchi em água morna por 30 minutos. Coe e reserve o líquido.\n2. Refogado: Doure a cebola e o alho em manteiga e azeite. Adicione o arroz arbóreo e refogue.\n3. Vinho: Adicione o vinho branco seco e mexa até evaporar.\n4. Caldo: Vá adicionando o líquido do funghi e caldo de legumes quente, concha por concha, mexendo sempre.\n5. Finalização: Quando o arroz estiver al dente, adicione o funghi picado, queijo parmesão ralado e uma colher de manteiga gelada para dar brilho.',
-        category: 'Italiana',
-        difficulty: 'Média',
-        image_url: 'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&h=400&fit=crop',
-        ingredients: [
-          {name: 'Arroz Arbóreo', quantity: '2 xícaras'},
-          {name: 'Funghi Secchi', quantity: '50g'},
-          {name: 'Vinho Branco Seco', quantity: '150ml'},
-          {name: 'Caldo de Legumes', quantity: '1.5L'},
-          {name: 'Queijo Parmesão', quantity: '100g'},
-          {name: 'Manteiga', quantity: '2 colheres'}
-        ]
-      },
-       { title: 'Moqueca de Camarão', category: 'Baiana', keywords: 'shrimp,moqueca' },
-       { title: 'Filé Mignon ao Poivre', category: 'Francesa', keywords: 'steak,pepper' },
-       { title: 'Risoto de Cogumelos', category: 'Italiana', keywords: 'risotto,mushroom' },
-       { title: 'Salmão com Alcaparras', category: 'Saudável', keywords: 'salmon,caper' },
-       { title: 'Picanha ao Alho', category: 'Churrasco', keywords: 'picanha,garlic' },
-       { title: 'Bacalhau à Gomes de Sá', category: 'Portuguesa', keywords: 'codfish,potato' },
-       { title: 'Nhoque de Batata Doce', category: 'Massa', keywords: 'gnocchi,sweetpotato' },
-       { title: 'Quiche de Alho Poró', category: 'Francesa', keywords: 'quiche,leek' },
-       { title: 'Ceviche Clássico', category: 'Peruana', keywords: 'ceviche,fish' },
-       { title: 'Paella Valeciana', category: 'Espanhola', keywords: 'paella,seafood' },
-       { title: 'Ratatouille Tradicional', category: 'Vegana', keywords: 'vegetables,stew' },
-       { title: 'Hambúrguer de Grão de Bico', category: 'Vegetariana', keywords: 'burger,chickpea' },
-       { title: 'Sushi Variado', category: 'Japonesa', keywords: 'sushi,fish' },
-       { title: 'Pad Thai de Frango', category: 'Tailandesa', keywords: 'noodles,chicken' },
-       { title: 'Guacamole com Nachos', category: 'Mexicana', keywords: 'avocado,nacho' },
-       { title: 'Mousse de Maracujá', category: 'Sobremesa', keywords: 'passionfruit,mousse' },
-       { title: 'Petit Gâteau', category: 'Sobremesa', keywords: 'chocolate,lava' },
-       { title: 'Torta de Maçã', category: 'Sobremesa', keywords: 'apple,pie' },
-       { title: 'Cheesecake de Frutas Vermelhas', category: 'Sobremesa', keywords: 'cheesecake,berry' },
-       { title: 'Panqueca Americana', category: 'Café', keywords: 'pancake,syrup' },
-       { title: 'Carne de Panela com Batata', category: 'Caseira', keywords: 'meat,potato' },
-       { title: 'Frango Assado com Ervas', category: 'Assado', keywords: 'chicken,herb' },
-       { title: 'Lasanha de Berinjela', category: 'Vegetariana', keywords: 'eggplant,lasagna' },
-       { title: 'Espaguete à Carbonara', category: 'Italiana', keywords: 'pasta,bacon' },
-       { title: 'Arroz de Marisco', category: 'Portuguesa', keywords: 'rice,seafood' },
-       { title: ' Yakisoba de Carne', category: 'Chinesa', keywords: 'noodles,meat' },
-       { title: 'Tacos de Carne Asada', category: 'Mexicana', keywords: 'meat,taco' },
-       { title: 'Falafel com Hummus', category: 'Árabe', keywords: 'chickpea,dip' },
-       { title: 'Kibe Assado Recheado', category: 'Árabe', keywords: 'meat,wheat' },
-       { title: 'Tabule Refrescante', category: 'Árabe', keywords: 'salad,parsley' },
-       { title: 'Bobó de Camarão', category: 'Baiana', keywords: 'shrimp,cassava' },
-       { title: 'Arroz com Frango e Pequi', category: 'Goiana', keywords: 'chicken,rice,pequi' },
-       { title: 'Feijão Tropeiro Mineiro', category: 'Mineira', keywords: 'beans,bacon' },
-       { title: 'Galinhada com Guariroba', category: 'Regional', keywords: 'chicken,rice' },
-       { title: 'Pão de Ló de Laranja', category: 'Bolo', keywords: 'cake,orange' },
-       { title: 'Torta Holandesa', category: 'Sobremesa', keywords: 'pie,cookie' },
-       { title: 'Pudim de Chia com Coco', category: 'Fitness', keywords: 'chia,coconut' },
-       { title: 'Salada Caesar com Frango', category: 'Salada', keywords: 'salad,chicken' },
-       { title: 'Sopa de Cebola Francesa', category: 'Sopa', keywords: 'onion,soup' },
-       { title: 'Bruschetta de Tomate', category: 'Entrada', keywords: 'bread,tomato' }
-     ];
- 
-     try {
-       const { data: existingRecipes } = await supabase.from('recipes').select('title');
-       const existingSet = new Set((existingRecipes || []).map(r => normalize(r.title)));
- 
-       const finalRecipes = [];
-       let addedCount = 0;
- 
-       const imageSources = [
-         (k: string) => `https://loremflickr.com/800/400/food,recipe,${k}`,
-         (k: string) => `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop&q=${k}`,
-         (k: string) => `https://picsum.photos/seed/${k}/800/400`
-       ];
-
-       for(let i = 0; i < 40; i++) {
-         const base = detailedTemplates[i % detailedTemplates.length];
-         const variant = i >= detailedTemplates.length ? ` ${Math.floor(i / detailedTemplates.length) + 1}` : '';
-         const title = base.title + variant;
-         const nTitle = normalize(title);
-         
-         if (!existingSet.has(nTitle)) {
-           const keywords = (base as any).keywords || normalize(base.title);
-           const sources = [
-             `https://loremflickr.com/800/400/food,recipe,${encodeURIComponent(keywords.split(',')[0])}?random=${i}`,
-             `https://picsum.photos/seed/${encodeURIComponent(keywords)}${i}/800/400`,
-             `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop`
-           ];
-           
-           let chosenUrl = '';
-           for (const url of sources) {
-             if (await checkImageExists(url)) {
-               chosenUrl = url;
-               break;
-             }
-           }
- 
-           if (chosenUrl) {
-             finalRecipes.push({ 
-               title,
-               description: (base as any).description || `Uma deliciosa receita de ${title.toLowerCase()}.`,
-               instructions: (base as any).instructions || `1. Preparar ingredientes.\n2. Cozinhar bem.\n3. Servir quente.`,
-               category: base.category,
-               difficulty: (base as any).difficulty || 'Média',
-               image_url: chosenUrl,
-               ingredients: (base as any).ingredients || [{name: 'Ingrediente Base', quantity: '1 unidade'}]
-             });
-             existingSet.add(nTitle);
-             addedCount++;
-           }
-         }
-       }
-
-      if (finalRecipes.length > 0) {
-        const { data: { session } } = await supabase.auth.getSession()
-        const recipesWithAuthor = finalRecipes.map(r => ({
-          ...r,
-          author_id: session?.user?.id
-        }))
-        
-        const { error } = await supabase.from('recipes').insert(recipesWithAuthor)
-        if (error) throw error
-        toast.success(`${addedCount} novas receitas brasileiras cadastradas!`);
-      } else {
-        toast.info('Todas as receitas já existem no banco de dados.');
+      { 
+        title: 'Hambúrguer Artesanal', 
+        description: 'Blend de carnes suculento no pão brioche tostado.', 
+        instructions: '1. Moldar a carne.\n2. Grelhar com sal e pimenta.\n3. Montar com queijo e maionese.', 
+        category: 'Lanche', 
+        difficulty: 'Fácil', 
+        image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=400&fit=crop', 
+        ingredients: [{name:'Carne Moída', quantity:'400g'}, {name:'Pão Brioche', quantity:'2 un'}] 
       }
+    ];
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const author_id = session?.user?.id;
       
-      fetchRecipes()
+      const finalRecipes: any[] = [];
+      // Repeat templates to reach 40 recipes with variation in titles
+      for(let i = 0; i < 4; i++) {
+        templates.forEach(t => {
+          finalRecipes.push({
+            title: i === 0 ? t.title : `${t.title} Var. ${i + 1}`,
+            description: t.description,
+            instructions: t.instructions,
+            category: t.category,
+            difficulty: t.difficulty,
+            image_url: t.image_url,
+            ingredients: t.ingredients,
+            author_id
+          });
+        });
+      }
+
+      const { error } = await supabase.from('recipes').insert(finalRecipes);
+      if (error) throw error;
+      
+      toast.success('Catálogo com 40 receitas importado com sucesso!');
+      fetchRecipes();
     } catch (error: any) {
-      console.error('Import error:', error);
-      toast.error('Erro na importação: ' + (error.message || 'Erro desconhecido'))
+      toast.error('Erro na importação: ' + error.message);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -467,6 +321,38 @@ export function RecipeManager() {
       fetchRecipes()
     } catch (error: any) {
       toast.error('Erro ao apagar: ' + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateManualRecipe = async () => {
+    if (!manualRecipe.title || !manualRecipe.image_url) {
+      return toast.error('Título e URL da imagem são obrigatórios')
+    }
+    setIsLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const { error } = await supabase.from('recipes').insert([{
+        ...manualRecipe,
+        author_id: session?.user?.id,
+        ingredients: manualRecipe.ingredients.filter(i => i.name)
+      }])
+      if (error) throw error
+      toast.success('Receita cadastrada com sucesso!')
+      setIsManualModalOpen(false)
+      setManualRecipe({
+        title: '',
+        description: '',
+        instructions: '',
+        category: 'Brasileira',
+        difficulty: 'Média',
+        image_url: '',
+        ingredients: [{ name: '', quantity: '' }]
+      })
+      fetchRecipes()
+    } catch (error) {
+      toast.error('Erro ao cadastrar receita')
     } finally {
       setIsLoading(false)
     }
@@ -549,9 +435,12 @@ export function RecipeManager() {
               <Button variant="outline" onClick={handleSeed40Recipes} disabled={isLoading} className="border-2 font-black uppercase text-[10px] h-10 px-6 hover:bg-zinc-50 shadow-sm transition-all active:scale-95">
                 <Zap className="mr-2 h-4 w-4 text-amber-500 fill-amber-500" /> Semear Receitas
               </Button>
-              <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
-                <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
-              </Button>
+           <Button onClick={() => setIsManualModalOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-emerald-100 transition-all active:scale-95">
+             <Plus className="mr-2 h-4 w-4" /> Nova Receita
+           </Button>
+           <Button onClick={() => setIsAiModalOpen(true)} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-black uppercase text-[10px] h-10 px-6 shadow-lg shadow-purple-100 transition-all active:scale-95">
+             <BrainCircuit className="mr-2 h-4 w-4" /> Criar com IA
+           </Button>
             </>
           )}
         </div>
@@ -624,6 +513,80 @@ export function RecipeManager() {
             >
               {isAiGenerating ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
               Gerar Gastronomia
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
+        <DialogContent className="max-w-md rounded-3xl border-4 border-emerald-100">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-2">
+              <ChefHat className="text-emerald-600" size={24} />
+            </div>
+            <DialogTitle className="font-black uppercase italic tracking-tighter text-2xl">Nova Receita</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400">
+              Cadastre manualmente uma receita no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Título</Label>
+              <Input value={manualRecipe.title} onChange={(e) => setManualRecipe({...manualRecipe, title: e.target.value})} className="rounded-xl border-2" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Categoria</Label>
+              <Select value={manualRecipe.category} onValueChange={(v) => setManualRecipe({...manualRecipe, category: v})}>
+                <SelectTrigger className="rounded-xl border-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Brasileira">Brasileira</SelectItem>
+                  <SelectItem value="Italiana">Italiana</SelectItem>
+                  <SelectItem value="Sobremesa">Sobremesa</SelectItem>
+                  <SelectItem value="Lanche">Lanche</SelectItem>
+                  <SelectItem value="Saudável">Saudável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Descrição Curta</Label>
+              <Input value={manualRecipe.description} onChange={(e) => setManualRecipe({...manualRecipe, description: e.target.value})} className="rounded-xl border-2" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Modo de Preparo</Label>
+              <Textarea value={manualRecipe.instructions} onChange={(e) => setManualRecipe({...manualRecipe, instructions: e.target.value})} className="rounded-xl border-2 min-h-[100px]" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">Ingredientes (Nome, Quantidade)</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+                {manualRecipe.ingredients.map((ing: any, idx: number) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input placeholder="Nome" value={ing.name} onChange={(e) => {
+                      const newIngs = [...manualRecipe.ingredients]
+                      newIngs[idx].name = e.target.value
+                      setManualRecipe({...manualRecipe, ingredients: newIngs})
+                    }} className="h-8 text-xs rounded-lg" />
+                    <Input placeholder="Qtd" value={ing.quantity} onChange={(e) => {
+                      const newIngs = [...manualRecipe.ingredients]
+                      newIngs[idx].quantity = e.target.value
+                      setManualRecipe({...manualRecipe, ingredients: newIngs})
+                    }} className="h-8 text-xs rounded-lg w-20" />
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setManualRecipe({...manualRecipe, ingredients: [...manualRecipe.ingredients, {name: '', quantity: ''}]})} className="h-6 text-[9px] uppercase font-bold">
+                + Adicionar Ingrediente
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase">URL da Imagem</Label>
+              <Input value={manualRecipe.image_url} placeholder="https://exemplo.com/foto.jpg" onChange={(e) => setManualRecipe({...manualRecipe, image_url: e.target.value})} className="rounded-xl border-2" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCreateManualRecipe} disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-[10px] w-full">
+              {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Salvar Receita'}
             </Button>
           </DialogFooter>
         </DialogContent>
