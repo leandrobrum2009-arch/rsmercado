@@ -331,30 +331,39 @@
        <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
          <div 
            id="flyer-content"
-           className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden"
-           style={{ 
-             backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
-             backgroundSize: '100% 100%',
-             backgroundPosition: 'center',
-             backgroundRepeat: 'no-repeat'
-           }}
-         >
-           {/* Top Reserved Zone (25%) */}
-           <div className="h-[25%] w-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-             <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-               Topo Reservado (Arte de Fundo)
+             className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300"
+             style={{ 
+               background: backgroundType === 'image' 
+                 ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : 'white')
+                 : backgroundType === 'gradient'
+                   ? backgroundGradient
+                   : backgroundColor
+             }}
+           >
+             {/* Top Reserved Zone (25%) */}
+             <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
+               {showLogo && storeSettings?.logo_url && (
+                 <img src={storeSettings.logo_url} className="h-24 object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" alt="Logo" />
+               )}
+               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                   Topo Reservado (25%)
+                 </div>
+               </div>
              </div>
-           </div>
- 
-           {/* Content Middle Zone (60%) */}
-           <div className="flex-1 px-8 py-4 flex flex-col justify-center">
-             <div className={cn(
-               "grid gap-6 h-full",
-               layout === 'grid-8' && "grid-cols-2 grid-rows-4",
-               layout === 'featured-side' && "grid-cols-4 grid-rows-3",
-               layout === 'featured-top' && "grid-cols-2 grid-rows-5",
-               layout === 'single' && "grid-cols-1 grid-rows-1"
-             )}>
+   
+             {/* Content Middle Zone (60%) */}
+             <div className="flex-1 px-8 py-4 flex flex-col justify-center overflow-hidden">
+               <div 
+                 className={cn(
+                   "grid h-full transition-all duration-300",
+                   layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
+                   layout === 'featured-side' && "grid-cols-4 grid-rows-3",
+                   layout === 'featured-top' && "grid-cols-2 grid-rows-5",
+                   layout === 'single' && "grid-cols-1 grid-rows-1"
+                 )}
+                 style={{ gap: `${gridGap}px` }}
+               >
                {selectedProducts.map((p, i) => {
                  let spanClass = ""
                  if (layout === 'featured-side') {
