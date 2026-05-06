@@ -1,15 +1,14 @@
-   import { Plus, Minus, ShoppingCart, Tag, Apple, Croissant, Beef, Wine, Milk, SprayCan, Dog, Brush, ShoppingBag, Zap } from "lucide-react";
-  const categoryIcons: Record<string, any> = {
-    "Hortifruti": Apple,
-    "Padaria": Croissant,
-    "Açougue": Beef,
-    "Carnes": Beef,
-    "Bebidas": Wine,
-    "Laticínios": Milk,
-    "Limpeza": SprayCan,
-    "Pet Shop": Dog,
-    "Higiene": Brush,
-  };
+    import { Plus, Minus, ShoppingCart, Tag, ShoppingBag, Zap } from "lucide-react";
+    import * as LucideIcons from "lucide-react";
+    const getCategoryIcon = (category: any) => {
+      if (!category) return ShoppingBag;
+      if (category.icon_url) return null; // Using image instead
+      
+      const [name] = (category.icon_name || "").split(":");
+      // @ts-ignore
+      return LucideIcons[name] || LucideIcons[category.name] || ShoppingBag;
+    };
+
 
  import { useCart } from "../contexts/CartContext";
  import { toast } from "@/lib/toast";
@@ -33,13 +32,25 @@ import { SmartImage } from "./ui/SmartImage";
    return (
      <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col group">
        <div className="relative aspect-square overflow-hidden bg-gray-100">
-          <SmartImage 
-            src={product.image_url} 
-            tableName="products" 
-            itemId={product.id} 
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
+           {product.image_url ? (
+             <SmartImage 
+               src={product.image_url} 
+               tableName="products" 
+               itemId={product.id} 
+               alt={product.name}
+               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+             />
+           ) : (
+             <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-50 border-b border-zinc-100 group-hover:bg-primary/5 transition-colors p-4">
+               {product.categories?.icon_url ? (
+                 <img src={product.categories.icon_url} className="w-16 h-16 object-contain opacity-50 group-hover:opacity-100 transition-all group-hover:scale-110" alt={product.categories.name} />
+               ) : (() => {
+                 const Icon = getCategoryIcon(product.categories);
+                 return <Icon size={48} className="text-zinc-200 group-hover:text-primary/30 transition-colors" strokeWidth={1.5} />;
+               })()}
+               <span className="text-[8px] font-black uppercase text-zinc-300 mt-2 tracking-widest">{product.categories?.name || 'Geral'}</span>
+             </div>
+           )}
           {isOutOfStock && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
               <span className="bg-red-600 text-white font-black uppercase text-[10px] px-3 py-1 rounded-full animate-pulse shadow-lg">Sem Estoque</span>
