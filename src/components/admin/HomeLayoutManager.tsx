@@ -25,7 +25,8 @@
      { id: 'digital_flyers', label: 'Encartes Digitais', visible: true },
      { id: 'prod_bebidas', label: 'Grade: Bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
      { id: 'coupon', label: 'Banner Cupom Primeira Compra', visible: true },
-     { id: 'prod_limpeza', label: 'Grade: Limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
+      { id: 'prod_limpeza', label: 'Grade: Limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' },
+      { id: 'category_banners', label: 'Banners de Categorias (Imagem Fundo)', visible: true }
    ])
  
    useEffect(() => {

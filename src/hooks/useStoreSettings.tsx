@@ -12,6 +12,7 @@
    facebook_url: string
     store_description: string
     instagram_post_count: string
+    instagram_items?: any[]
   }
  
  const defaultSettings: StoreSettings = {
@@ -24,7 +25,8 @@
    instagram_url: '',
    facebook_url: '',
     store_description: '',
-    instagram_post_count: '6'
+    instagram_post_count: '6',
+    instagram_items: []
   }
  
  export function useStoreSettings() {

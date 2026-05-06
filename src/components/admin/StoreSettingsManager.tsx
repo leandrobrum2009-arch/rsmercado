@@ -3,7 +3,7 @@
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload } from 'lucide-react'
+import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function StoreSettingsManager() {
@@ -19,6 +19,7 @@
       store_description: '',
       points_ratio: '1',
       instagram_post_count: '6',
+      instagram_items: [],
       admin_whatsapp: ''
     })
    const [isLoading, setIsLoading] = useState(true)
@@ -71,6 +72,7 @@
               newSettings.points_ratio = typeof val === 'object' ? (val.points_per_real || val.multiplier) : val;
             }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
+             if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
            });
          setSettings(newSettings);
@@ -121,7 +123,25 @@
       }
     }
 
-   const handleSave = async () => {
+    const addInstagramItem = () => {
+      const newItem = { id: Date.now(), type: 'post', url: '', thumbnail: '', likes: '0', comments: '0' };
+      setSettings({ ...settings, instagram_items: [...(settings.instagram_items || []), newItem] });
+    };
+  
+    const removeInstagramItem = (id: number) => {
+      setSettings({ ...settings, instagram_items: (settings.instagram_items || []).filter((item: any) => item.id !== id) });
+    };
+  
+    const updateInstagramItem = (id: number, field: string, value: string) => {
+      setSettings({ 
+        ...settings, 
+        instagram_items: (settings.instagram_items || []).map((item: any) => 
+          item.id === id ? { ...item, [field]: value } : item
+        ) 
+      });
+    };
+  
+    const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
      setIsSaving(true)
@@ -144,6 +164,7 @@
           { key: 'store_description', value: settings.store_description },
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
+           { key: 'instagram_items', value: settings.instagram_items || [] },
           { key: 'admin_whatsapp', value: settings.admin_whatsapp }
         ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
@@ -427,8 +448,102 @@
                  </div>
                </div>
              </CardContent>
-           </Card>
-         </div>
+            </Card>
+
+            {/* Instagram Feed Content */}
+            <Card className="border-zinc-200 shadow-sm">
+              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                <CardTitle className="flex items-center gap-2 text-zinc-800">
+                  <Instagram className="h-5 w-5 text-pink-600" />
+                  Conteúdo do Feed Instagram
+                </CardTitle>
+                <CardDescription>Adicione Posts, Reels e Stories para aparecer no seu feed (use links do Unsplash ou links diretos de imagens)</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(settings.instagram_items || []).map((item: any) => (
+                    <div key={item.id} className="p-4 border border-zinc-100 rounded-[24px] bg-white shadow-sm space-y-3 relative group">
+                      <button 
+                        onClick={() => removeInstagramItem(item.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                      
+                      <div className="aspect-[9/16] bg-zinc-100 rounded-2xl overflow-hidden relative">
+                        {item.thumbnail ? (
+                          <img src={item.thumbnail} className="w-full h-full object-cover" alt="Preview" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 gap-2">
+                            <ImageIcon size={32} />
+                            <span className="text-[10px] font-black uppercase">Sem Imagem</span>
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm p-1.5 rounded-lg">
+                          {item.type === 'reel' ? <Play size={12} className="text-pink-600" /> : 
+                           item.type === 'story' ? <Type size={12} className="text-pink-600" /> :
+                           <Instagram size={12} className="text-pink-600" />}
+                        </div>
+                      </div>
+  
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Tipo</label>
+                            <select 
+                              value={item.type}
+                              onChange={(e) => updateInstagramItem(item.id, 'type', e.target.value)}
+                              className="w-full text-[10px] font-bold h-8 border rounded-lg px-2 bg-zinc-50 outline-none focus:ring-1 focus:ring-pink-500"
+                            >
+                              <option value="post">Post</option>
+                              <option value="reel">Reel</option>
+                              <option value="story">Story</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Curtidas</label>
+                            <Input 
+                              value={item.likes}
+                              onChange={(e) => updateInstagramItem(item.id, 'likes', e.target.value)}
+                              className="h-8 text-[10px] font-bold"
+                              placeholder="Ex: 1.2k"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Link da Imagem (Thumbnail)</label>
+                          <Input 
+                            value={item.thumbnail}
+                            onChange={(e) => updateInstagramItem(item.id, 'thumbnail', e.target.value)}
+                            className="h-8 text-[10px]"
+                            placeholder="https://images.unsplash.com/..."
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">URL do Destino</label>
+                          <Input 
+                            value={item.url}
+                            onChange={(e) => updateInstagramItem(item.id, 'url', e.target.value)}
+                            className="h-8 text-[10px]"
+                            placeholder="https://instagram.com/p/..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={addInstagramItem}
+                    className="aspect-[9/16] border-4 border-dashed border-zinc-100 rounded-[32px] flex flex-col items-center justify-center gap-3 text-zinc-400 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600 transition-all group"
+                  >
+                    <div className="bg-zinc-50 p-4 rounded-full group-hover:bg-white shadow-inner group-hover:shadow-md transition-all">
+                      <Plus size={32} />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest">Novo Item</span>
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
    
          <div className="flex justify-end sticky bottom-4 z-10">
            <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full md:w-auto rounded-2xl shadow-xl shadow-primary/20 font-black uppercase tracking-tighter">

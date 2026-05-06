@@ -2,7 +2,8 @@
  import { createFileRoute } from "@tanstack/react-router";
   import { BannerCarousel } from "@/components/home/BannerCarousel";
    import { HomeBanners } from "@/components/home/HomeBanners";
-  import { CategoryBar } from "@/components/home/CategoryBar";
+   import { CategoryBar } from "@/components/home/CategoryBar";
+   import { CategoryBanners } from "@/components/home/CategoryBanners";
  import { ProductGrid } from "@/components/home/ProductGrid";
   import { RecipeFeed } from "@/components/home/RecipeFeed";
   import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
@@ -60,7 +61,8 @@ export const Route = createFileRoute("/")({
       { id: 'digital_flyers', visible: true },
       { id: 'prod_bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
       { id: 'coupon', visible: true },
-      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
+      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' },
+      { id: 'category_banners', visible: true }
     ]);
 
     useEffect(() => {
@@ -128,6 +130,8 @@ export const Route = createFileRoute("/")({
           return <AiRecipeBanner key="ai_recipes" />;
         case 'instagram':
           return <InstagramFeed key="instagram" />;
+        case 'category_banners':
+          return <CategoryBanners key="category_banners" />;
         case 'pwa':
           return (
             <div key="pwa" className="px-4 py-2">
