@@ -37,6 +37,13 @@
  
    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
  
+   const renderDynamic = (text: string) => {
+     return text
+       .replace(/{{nome}}/g, 'Leandro')
+       .replace(/{{empresa}}/g, 'Supermercado RS')
+       .replace(/{{data}}/g, new Date().toLocaleDateString())
+   }
+ 
    const sendNotification = async () => {
      if (!title || !message) {
        toast.error('Preencha o título e a mensagem')
@@ -220,8 +227,12 @@
                                  <p className="text-[10px] font-black uppercase text-zinc-500">Supermercado</p>
                                  <p className="text-[10px] text-zinc-400">agora</p>
                                </div>
-                               <h4 className="text-xs font-bold text-zinc-900 truncate leading-tight">{title || 'Título da Notificação'}</h4>
-                               <p className="text-[11px] text-zinc-600 line-clamp-2 leading-tight mt-0.5">{message || 'Sua mensagem aparecerá aqui...'}</p>
+                               <h4 className="text-xs font-bold text-zinc-900 truncate leading-tight">
+                                 {title ? renderDynamic(title) : 'Título da Notificação'}
+                               </h4>
+                               <p className="text-[11px] text-zinc-600 line-clamp-2 leading-tight mt-0.5">
+                                 {message ? renderDynamic(message) : 'Sua mensagem aparecerá aqui...'}
+                               </p>
                              </div>
                            </div>
                          </div>
