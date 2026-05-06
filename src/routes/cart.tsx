@@ -206,11 +206,22 @@ function CartPage() {
        // Notify Admin if enabled
        const waConfig = await getWhatsAppConfig();
        if (waConfig?.notify_new_order_admin !== false) {
-         const { data: storeData } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
-         if (storeData && storeData.value) {
-           const adminMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n👤 Cliente: *${profile.full_name}*\n💰 Valor: *R$ ${total.toFixed(2)}*\n📍 Bairro: *${selectedAddress.neighborhood}*\n💳 Pagamento: *${paymentMethod.toUpperCase()}*\n\n👉 Acesse o painel para gerenciar: ${window.location.origin}/admin`;
-           await sendWhatsAppMessage(storeData.value, adminMessage);
-         }
+        const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+        if (adminSettings && adminSettings.value) {
+          const adminSummary = formatWhatsAppMessage('order_summary', {
+            id: order.id,
+            customer_name: profile.full_name,
+            address: `${selectedAddress.street}, ${selectedAddress.number} - ${selectedAddress.neighborhood}`,
+            payment_method: paymentMethod,
+            items: items, // use cart items
+            subtotal: total,
+            delivery_fee: deliveryFee,
+            total_amount: total + deliveryFee
+          });
+          
+          const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
+          await sendWhatsAppMessage(adminSettings.value, adminFullMessage);
+        }
        }
 
        toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
