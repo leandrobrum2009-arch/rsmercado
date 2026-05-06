@@ -273,46 +273,6 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
     }
   }
 
-  const oldHandleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'icon' | 'banner') => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(type)
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `categories/${type}/${fileName}`
-
-      // Try categories bucket, fallback to products
-      let bucketName = 'categories';
-      let uploadError = null;
-      
-      const { data: uploadData, error: firstError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file);
-      
-      if (firstError) {
-        bucketName = 'products';
-        const { data: retryData, error: retryError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file);
-        uploadError = retryError;
-      }
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath)
-
-      setCurrentCategory({ ...currentCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
-      toast.success(`${type === 'icon' ? 'Ícone' : 'Banner'} carregado!`)
-    } catch (error: any) {
-      toast.error('Erro no upload: ' + error.message)
-    } finally {
-      setUploading(null)
-    }
-  }
 
   const handleSaveCategory = async () => {
     if (!currentCategory.name || !currentCategory.slug) return toast.error('Nome e Slug são obrigatórios')
