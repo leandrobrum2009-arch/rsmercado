@@ -295,7 +295,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
                  ) : null}
                </Link>
              ))}
-             <Link to="/admin" search={{ tab: 'dashboard' }} className="text-gray-600 hover:text-green-600">
+             <Link to="/admin" search={{ tab: 'dashboard', edit: undefined }} className="text-gray-600 hover:text-green-600">
                <Settings size={20} />
              </Link>
            </div>
