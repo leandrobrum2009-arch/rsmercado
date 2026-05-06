@@ -415,14 +415,17 @@
        <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
          <div 
            id="flyer-content"
-             className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300"
-             style={{ 
-               background: backgroundType === 'image' 
-                 ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : 'white')
-                 : backgroundType === 'gradient'
-                   ? backgroundGradient
-                   : backgroundColor
-             }}
+               className={cn(
+                 "relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300",
+                 removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl"
+               )}
+               style={{ 
+                 background: backgroundType === 'image' 
+                   ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
+                   : backgroundType === 'gradient'
+                     ? backgroundGradient
+                     : backgroundColor
+               }}
            >
              {/* Top Reserved Zone (25%) */}
              <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
