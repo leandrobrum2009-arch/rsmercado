@@ -1,6 +1,6 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Users, User, Eye, Smartphone, Search, Check } from 'lucide-react'
+ import { Bell, Send, Users, User, Eye, Smartphone, Search, Check, Calendar, Clock, Loader2 } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@
    const [title, setTitle] = useState('')
    const [message, setMessage] = useState('')
    const [type, setType] = useState('promo')
+   const [scheduledAt, setScheduledAt] = useState('')
    const [loading, setLoading] = useState(false)
    const [users, setUsers] = useState<any[]>([])
    const [userSearch, setUserSearch] = useState('')
@@ -52,35 +53,38 @@
  
      setLoading(true)
      try {
-       if (target === 'all') {
-         // Call the postgres function we created earlier
-         const { error } = await supabase.rpc('notify_all_users', {
-           title,
-           message,
-           type
-         })
-         
-         if (error) throw error
-         toast.success('Notificação enviada para todos os usuários!')
-       } else {
-         if (!userId) {
-           toast.error('Selecione um usuário')
-           setLoading(false)
-           return
-         }
+         const scheduledDate = scheduledAt ? new Date(scheduledAt).toISOString() : null;
  
-         const { error } = await supabase
-           .from('notifications')
-           .insert({
-             user_id: userId,
+         if (target === 'all') {
+           const { error } = await supabase.rpc('notify_all_users', {
              title,
              message,
-             type
+             type,
+             scheduled_at: scheduledDate
            })
+           
+           if (error) throw error
+           toast.success(scheduledDate ? 'Notificação agendada para todos!' : 'Notificação enviada para todos!');
+         } else {
+           if (!userId) {
+             toast.error('Selecione um usuário')
+             setLoading(false)
+             return
+           }
  
-         if (error) throw error
-         toast.success('Notificação enviada para o usuário!')
-       }
+           const { error } = await supabase
+             .from('notifications')
+             .insert({
+               user_id: userId,
+               title,
+               message,
+               type,
+               scheduled_at: scheduledDate
+             })
+ 
+           if (error) throw error
+           toast.success(scheduledDate ? 'Notificação agendada!' : 'Notificação enviada!');
+         }
  
        setTitle('')
        setMessage('')
@@ -168,14 +172,26 @@
                  <SelectTrigger>
                    <SelectValue placeholder="Selecione o tipo" />
                  </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="promo">Promoção / Encarte</SelectItem>
-                   <SelectItem value="loyalty">Fidelidade / Pontos</SelectItem>
-                   <SelectItem value="order_status">Status de Pedido</SelectItem>
-                   <SelectItem value="admin_msg">Aviso Geral</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
+                   <SelectContent>
+                     <SelectItem value="promo">Promoção / Encarte</SelectItem>
+                     <SelectItem value="loyalty">Fidelidade / Pontos</SelectItem>
+                     <SelectItem value="order_status">Status de Pedido</SelectItem>
+                     <SelectItem value="admin_msg">Aviso Geral</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+ 
+               <div className="space-y-2">
+                 <label className="text-xs font-black uppercase text-zinc-500 flex items-center gap-2">
+                   <Calendar className="h-3 w-3" /> Agendar (Opcional)
+                 </label>
+                 <Input 
+                   type="datetime-local" 
+                   value={scheduledAt}
+                   onChange={(e) => setScheduledAt(e.target.value)}
+                   className="text-xs rounded-xl h-10"
+                 />
+               </div>
            </div>
  
            <div className="space-y-4">
@@ -251,7 +267,18 @@
                          className="w-full gap-2 uppercase font-black italic"
                          disabled={loading}
                        >
-                         <Send className="h-4 w-4" /> {loading ? 'Enviando...' : 'Confirmar e Enviar'}
+                         {loading ? (
+                           <Loader2 className="h-4 w-4 animate-spin" />
+                         ) : scheduledAt ? (
+                           <Clock className="h-4 w-4" />
+                         ) : (
+                           <Send className="h-4 w-4" />
+                         )}
+                         {loading 
+                           ? 'Processando...' 
+                           : scheduledAt 
+                             ? `Confirmar Agendamento (${new Date(scheduledAt).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})})` 
+                             : 'Confirmar e Enviar Agora'}
                        </Button>
                      </DialogFooter>
                    </DialogContent>
