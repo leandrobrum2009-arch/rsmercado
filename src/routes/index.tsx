@@ -174,7 +174,7 @@ export const Route = createFileRoute("/")({
         case 'coupon':
           return (
             <div key="coupon" className="px-4 py-6">
-              <div className="bg-amber-500 rounded-3xl p-6 text-white flex items-center justify-between overflow-hidden relative">
+              <div className="bg-[#1b5719] rounded-3xl p-6 text-white flex items-center justify-between overflow-hidden relative">
                 <div className="relative z-10">
                   <h3 className="text-lg font-bold">Primeira Compra?</h3>
                   <p className="text-sm opacity-90">Use o cupom <span className="font-bold underline">BEMVINDO</span></p>
