@@ -1,11 +1,12 @@
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Users, User } from 'lucide-react'
+ import { Bell, Send, Users, User, Eye, Smartphone } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Textarea } from '@/components/ui/textarea'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
  import { toast } from '@/lib/toast'
  
  export function NotificationManager() {
@@ -15,6 +16,7 @@
    const [message, setMessage] = useState('')
    const [type, setType] = useState('promo')
    const [loading, setLoading] = useState(false)
+   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
  
    const sendNotification = async () => {
      if (!title || !message) {
@@ -149,13 +151,68 @@
                />
              </div>
  
-             <Button 
-               onClick={sendNotification} 
-               disabled={loading}
-               className="w-full gap-2 uppercase font-black italic shadow-lg shadow-primary/20"
-             >
-               <Send className="h-4 w-4" /> {loading ? 'Enviando...' : 'Enviar Agora'}
-             </Button>
+               <div className="flex gap-2">
+                 <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                   <DialogTrigger asChild>
+                     <Button 
+                       variant="outline"
+                       className="flex-1 gap-2 uppercase font-black italic"
+                       disabled={!title || !message}
+                     >
+                       <Eye className="h-4 w-4" /> Preview
+                     </Button>
+                   </DialogTrigger>
+                   <DialogContent className="sm:max-w-md">
+                     <DialogHeader>
+                       <DialogTitle className="uppercase font-black italic">Preview da Notificação</DialogTitle>
+                     </DialogHeader>
+                     <div className="flex flex-col items-center justify-center py-8 bg-zinc-100 rounded-xl border-2 border-dashed border-zinc-300">
+                       <div className="relative w-64 h-[450px] bg-zinc-900 rounded-[3rem] border-4 border-zinc-800 shadow-2xl overflow-hidden flex flex-col">
+                         <div className="h-6 w-24 bg-zinc-800 mx-auto mt-2 rounded-full mb-8" />
+                         <div className="px-4">
+                           <div className="bg-white/90 backdrop-blur shadow-lg rounded-2xl p-3 flex gap-3 animate-bounce">
+                             <div className="bg-primary/20 p-2 rounded-lg h-10 w-10 flex items-center justify-center shrink-0">
+                               <Bell className="h-5 w-5 text-primary" />
+                             </div>
+                             <div className="min-w-0">
+                               <div className="flex justify-between items-start mb-0.5">
+                                 <p className="text-[10px] font-black uppercase text-zinc-500">Supermercado</p>
+                                 <p className="text-[10px] text-zinc-400">agora</p>
+                               </div>
+                               <h4 className="text-xs font-bold text-zinc-900 truncate leading-tight">{title || 'Título da Notificação'}</h4>
+                               <p className="text-[11px] text-zinc-600 line-clamp-2 leading-tight mt-0.5">{message || 'Sua mensagem aparecerá aqui...'}</p>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="mt-auto mb-8 mx-auto h-1 w-20 bg-white/20 rounded-full" />
+                       </div>
+                       <p className="text-[10px] font-bold uppercase text-zinc-500 mt-4 flex items-center gap-1">
+                         <Smartphone className="h-3 w-3" /> Simulação em dispositivo móvel
+                       </p>
+                     </div>
+                     <DialogFooter>
+                       <Button 
+                         onClick={() => {
+                           setIsPreviewOpen(false)
+                           sendNotification()
+                         }}
+                         className="w-full gap-2 uppercase font-black italic"
+                         disabled={loading}
+                       >
+                         <Send className="h-4 w-4" /> {loading ? 'Enviando...' : 'Confirmar e Enviar'}
+                       </Button>
+                     </DialogFooter>
+                   </DialogContent>
+                 </Dialog>
+
+                 <Button 
+                   onClick={sendNotification} 
+                   disabled={loading}
+                   className="flex-[2] gap-2 uppercase font-black italic shadow-lg shadow-primary/20"
+                 >
+                   <Send className="h-4 w-4" /> {loading ? 'Enviando...' : 'Enviar Agora'}
+                 </Button>
+               </div>
            </div>
          </div>
  
