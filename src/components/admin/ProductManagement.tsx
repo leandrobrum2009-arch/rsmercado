@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
@@ -223,6 +223,26 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     }
     setIsLoading(false)
   }
+
+  const importFromInstagram = (url: string) => {
+    if (!url.includes('instagram.com/')) {
+      return toast.error('URL do Instagram inválida');
+    }
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      if (pathParts.length >= 2 && (pathParts[0] === 'p' || pathParts[0] === 'reels' || pathParts[0] === 'reel' || pathParts[0] === 'stories')) {
+        const postId = pathParts[1];
+        const imageUrl = `https://www.instagram.com/p/${postId}/media/?size=l`;
+        setNewProduct({ ...newProduct, image_url: imageUrl });
+        toast.success('Imagem do Instagram capturada!');
+      } else {
+        toast.error('Não foi possível identificar o ID da postagem.');
+      }
+    } catch (e) {
+      toast.error('Erro ao processar URL.');
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -513,10 +533,23 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                   <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
                   <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                 </div>
-                <div className="space-y-2 col-span-2 md:col-span-1">
-                  <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>
-                  <Input type="number" value={newProduct.points_value} onChange={(e) => setNewProduct({...newProduct, points_value: e.target.value})} />
-                </div>
+                 <div className="space-y-2 col-span-2 md:col-span-1">
+                   <Label className="text-[10px] uppercase font-bold flex justify-between items-center">
+                     Link da Imagem
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
+                       onClick={() => {
+                         const url = prompt('Cole o link da postagem do Instagram:');
+                         if (url) importFromInstagram(url);
+                       }}
+                     >
+                       <Instagram size={10} className="mr-1" /> Importar do Insta
+                     </Button>
+                   </Label>
+                   <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold">Categoria</Label>
                   <Select 
