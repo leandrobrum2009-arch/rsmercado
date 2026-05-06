@@ -125,7 +125,7 @@ const CATEGORY_ICONS = [
   { name: 'Moon', label: 'Noite' }
 ];
 
-export function CategoryManagement() {
+export function CategoryManagement({ editCategoryName }: { editCategoryName?: string }) {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -156,6 +156,18 @@ export function CategoryManagement() {
   useEffect(() => {
     fetchCategories()
   }, [])
+
+  useEffect(() => {
+    if (editCategoryName && categories.length > 0) {
+      const categoryToEdit = categories.find(c => 
+        c.name.toLowerCase() === editCategoryName.toLowerCase() || 
+        c.slug.toLowerCase() === editCategoryName.toLowerCase()
+      )
+      if (categoryToEdit) {
+        handleEdit(categoryToEdit)
+      }
+    }
+  }, [editCategoryName, categories])
 
   const fetchCategories = async () => {
     setIsLoading(true)
