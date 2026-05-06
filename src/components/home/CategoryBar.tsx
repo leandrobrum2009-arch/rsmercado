@@ -88,11 +88,12 @@ export const CategoryBar = () => {
              {categories.map((cat) => {
                    const { IconComponent, strokeWidth } = getIconConfig(cat);
                  return (
-                   <button
-                     key={cat.slug}
-                     onClick={() => window.location.href = `/search?q=${cat.name}`}
-                     className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20"
-                   >
+                    <Link
+                      key={cat.id || cat.slug}
+                      to="/search"
+                      search={{ category: cat.slug }}
+                      className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20 no-underline"
+                    >
                       <div className="w-16 h-16 rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         {cat.icon_url ? (
@@ -108,7 +109,7 @@ export const CategoryBar = () => {
                      <span className="text-[10px] font-black uppercase tracking-tight text-zinc-500 group-hover:text-zinc-900 text-center transition-colors">
                        {cat.name}
                      </span>
-                   </button>
+                    </Link>
                  );
              })}
           </div>
