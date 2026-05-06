@@ -713,52 +713,69 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                          <Edit className="h-4 w-4" />
                        </Button>
                      </DialogTrigger>
-                     <DialogContent className="max-w-2xl">
-                       <DialogHeader><DialogTitle className="font-black uppercase">Editar Produto</DialogTitle></DialogHeader>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Marca</Label>
-                           <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
-                           <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
-                           <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>
-                           <Input type="number" value={newProduct.points_value} onChange={(e) => setNewProduct({...newProduct, points_value: e.target.value})} />
-                         </div>
-                         <div className="space-y-2">
-                           <Label className="text-[10px] uppercase font-bold">Categoria</Label>
-                           <Select 
-                             value={newProduct.category_id} 
-                             onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
-                           >
-                             <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                             <SelectContent className="max-h-[300px]">
-                               {categories.map(c => (
-                                 <SelectItem key={c.id} value={c.id}>
-                                   <div className="flex items-center gap-2">
-                                     <CategoryIcon category={c} size={14} />
-                                     <span>{c.name}</span>
-                                   </div>
-                                 </SelectItem>
-                               ))}
-                             </SelectContent>
-                           </Select>
-                         </div>
-                         <div className="flex items-center gap-2 col-span-2 py-2">
-                           <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
-                           <Label className="font-bold">Disponível para venda na loja</Label>
-                         </div>
-                         <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
-                           {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Atualizar Produto'}
-                         </Button>
-                       </div>
-                     </DialogContent>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader><DialogTitle className="font-black uppercase">Editar Produto</DialogTitle></DialogHeader>
+                        <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
+                            <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Marca</Label>
+                            <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
+                            <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
+                            <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
+                            <div className="flex gap-2">
+                              <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} className="flex-1" />
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 bg-zinc-900 text-white border-none hover:bg-zinc-800"
+                                title="Buscar Foto na Internet"
+                                onClick={openImageSearch}
+                              >
+                                <Search size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] uppercase font-bold">Categoria</Label>
+                            <Select 
+                              value={newProduct.category_id} 
+                              onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              <SelectContent className="max-h-[300px]">
+                                {categories.map(c => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    <div className="flex items-center gap-2">
+                                      <CategoryIcon category={c} size={14} />
+                                      <span>{c.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center gap-2 col-span-2 py-2">
+                            <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                            <Label className="font-bold">Disponível para venda na loja</Label>
+                          </div>
+                          <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
+                            {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Atualizar Produto'}
+                          </Button>
+                        </div>
+                      </DialogContent>
                    </Dialog>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-red-500">
                     <Trash2 className="h-4 w-4" />
