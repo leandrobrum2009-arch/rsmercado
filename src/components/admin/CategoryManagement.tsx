@@ -1,3 +1,18 @@
+const SUGGESTED_COLORED_ICONS = [
+  { name: 'Hortifruti', url: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png' },
+  { name: 'Açougue', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046769.png' },
+  { name: 'Padaria', url: 'https://cdn-icons-png.flaticon.com/512/992/992743.png' },
+  { name: 'Bebidas', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' },
+  { name: 'Mercearia', url: 'https://cdn-icons-png.flaticon.com/512/3081/3081840.png' },
+  { name: 'Higiene', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553642.png' },
+  { name: 'Limpeza', url: 'https://cdn-icons-png.flaticon.com/512/995/995016.png' },
+  { name: 'Pet Shop', url: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' },
+  { name: 'Doces', url: 'https://cdn-icons-png.flaticon.com/512/1904/1904425.png' },
+  { name: 'Laticínios', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
+  { name: 'Frios', url: 'https://cdn-icons-png.flaticon.com/512/1154/1154625.png' },
+  { name: 'Congelados', url: 'https://cdn-icons-png.flaticon.com/512/2210/2210565.png' }
+];
+
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -261,18 +276,40 @@ export function CategoryManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold">Imagem Personalizada (Opcional)</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="URL ou Upload ->" 
-                      value={currentCategory.icon_url} 
-                      onChange={(e) => setCurrentCategory({...currentCategory, icon_url: e.target.value})} 
-                    />
-                    <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
-                      {uploading === 'icon' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
-                      <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'icon')} accept="image/*" />
-                    </label>
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Ícone Ilustrado (Recomendado)</Label>
+                  <div className="grid grid-cols-4 md:grid-cols-6 gap-2 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    {SUGGESTED_COLORED_ICONS.map((icon) => (
+                      <button
+                        key={icon.url}
+                        type="button"
+                        onClick={() => setCurrentCategory({...currentCategory, icon_url: icon.url})}
+                        className={`p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2 ${currentCategory.icon_url === icon.url ? 'bg-white border-primary shadow-md scale-105' : 'bg-white border-zinc-100 hover:border-primary/30'}`}
+                      >
+                        <img src={icon.url} className="w-8 h-8 object-contain" alt={icon.name} />
+                        <span className="text-[8px] font-bold uppercase truncate w-full text-center">{icon.name}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold">Imagem Personalizada (URL ou Upload)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="URL da imagem..." 
+                        value={currentCategory.icon_url} 
+                        onChange={(e) => setCurrentCategory({...currentCategory, icon_url: e.target.value})} 
+                      />
+                      <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors shrink-0">
+                        {uploading === 'icon' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                        <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'icon')} accept="image/*" />
+                      </label>
+                      {currentCategory.icon_url && (
+                        <Button variant="outline" size="icon" onClick={() => setCurrentCategory({...currentCategory, icon_url: ''})} className="shrink-0">
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
