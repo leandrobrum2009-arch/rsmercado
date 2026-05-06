@@ -132,12 +132,22 @@ function RootShell({ children }: { children: React.ReactNode }) {
               if (theme.colors.secondary) root.style.setProperty('--secondary', theme.colors.secondary);
               if (theme.colors.background) root.style.setProperty('--background', theme.colors.background);
               if (theme.colors.foreground) root.style.setProperty('--foreground', theme.colors.foreground);
+              if (theme.colors.muted) root.style.setProperty('--muted-foreground', theme.colors.muted);
               if (theme.colors.card) root.style.setProperty('--card', theme.colors.card);
               if (theme.colors.border) root.style.setProperty('--border', theme.colors.border);
+              if (theme.colors.accent) root.style.setProperty('--accent', theme.colors.accent);
             }
             if (theme.radius !== undefined) root.style.setProperty('--radius', `${theme.radius}rem`);
+            if (theme.fontSize) root.style.setProperty('--base-font-size', `${theme.fontSize}px`);
             if (theme.fontFamily) {
-              const fontVal = theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'ui-sans-serif, system-ui, sans-serif';
+              const fontMap: Record<string, string> = {
+                'sans': 'Inter, ui-sans-serif, system-ui',
+                'serif': 'serif',
+                'mono': 'monospace',
+                'inter': 'Inter, sans-serif',
+                'montserrat': 'Montserrat, sans-serif'
+              };
+              const fontVal = fontMap[theme.fontFamily] || fontMap['sans'];
               root.style.setProperty('--font-family', fontVal);
               document.body.style.fontFamily = fontVal;
             }
