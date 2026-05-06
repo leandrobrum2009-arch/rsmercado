@@ -15,13 +15,30 @@
  
    const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
-  UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+   -- Use email_confirmed_at to avoid "generated column" errors with confirmed_at
+   UPDATE auth.users SET email_confirmed_at = NOW(), confirmed_at = NULL WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
- CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $$
- BEGIN
-   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
- END; $$;
+  -- Optimized is_admin function to avoid recursion
+  CREATE OR REPLACE FUNCTION public.is_admin() 
+  RETURNS BOOLEAN 
+  LANGUAGE plpgsql 
+  SECURITY DEFINER 
+  SET search_path = public, auth 
+  AS $$
+  BEGIN
+    -- Master bypass by email
+    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+      RETURN TRUE;
+    END IF;
+
+    -- Check user_roles table (SECURITY DEFINER bypasses RLS if owned by postgres)
+    RETURN EXISTS (
+      SELECT 1 FROM public.user_roles 
+      WHERE user_id = auth.uid() 
+      AND role = 'admin'
+    );
+  END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
@@ -188,8 +205,12 @@ BEGIN
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
   CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
   
+  -- Use a non-recursive policy for user_roles
   DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
-  CREATE POLICY "Admins manage roles" ON public.user_roles FOR ALL USING (public.is_admin());
+  CREATE POLICY "Admins manage roles" ON public.user_roles 
+  FOR ALL USING (
+    (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com')
+  );
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
