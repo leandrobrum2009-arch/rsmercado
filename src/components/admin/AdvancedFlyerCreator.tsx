@@ -470,11 +470,19 @@
                        fontFamily
                      )}
                    >
-                       <div className={cn(
-                         "relative bg-white/60 backdrop-blur-[2px] rounded-xl p-3 w-full h-full flex flex-col items-center justify-center border border-white/30 shadow-sm hover:shadow-md transition-shadow",
-                         layout === 'single' ? 'p-12' : '',
-                         columns === 4 ? 'p-1.5' : ''
-                       )}>
+                        <div 
+                          className={cn(
+                            "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
+                            layout === 'single' ? 'p-12' : '',
+                            columns === 4 ? 'p-1.5' : '',
+                            showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
+                            productBlockHeight === 0 ? "h-full" : ""
+                          )}
+                          style={{ 
+                            backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                            height: productBlockHeight > 0 ? `${productBlockHeight}px` : '100%'
+                          }}
+                        >
                          <img 
                            src={p.image_url} 
                            className={cn(
