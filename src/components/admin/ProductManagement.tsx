@@ -564,14 +564,46 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                    <Label className="text-[10px] uppercase font-bold">Marca</Label>
                    <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
                  </div>
-                <div className="space-y-2 col-span-2 md:col-span-1">
-                  <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
-                  <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                </div>
-                <div className="space-y-2 col-span-2 md:col-span-1">
-                  <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
-                  <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
-                </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
+                    <Input type="number" step="0.01" placeholder="0.00" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
+                    <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {productBadges.map(badge => {
+                        const currentTags = newProduct.tags ? (typeof newProduct.tags === 'string' ? newProduct.tags.split(',').map(t => t.trim()) : newProduct.tags) : [];
+                        const isActive = currentTags.includes(badge.id);
+                        return (
+                          <Button
+                            key={badge.id}
+                            type="button"
+                            variant={isActive ? 'default' : 'outline'}
+                            size="sm"
+                            className={`text-[10px] font-black uppercase h-8 ${isActive ? badge.color + ' text-white border-none' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                            onClick={() => {
+                              let newTags = [...currentTags];
+                              if (isActive) {
+                                newTags = newTags.filter(t => t !== badge.id);
+                              } else {
+                                // If it's a badge from the list, maybe we want to allow only one or multiple?
+                                // The user's request says "escolher dentro dos bags", usually means selection.
+                                // Let's allow multiple as it was before but make it easier.
+                                newTags.push(badge.id);
+                              }
+                              setNewProduct({...newProduct, tags: newTags.join(', ')});
+                            }}
+                          >
+                            {badge.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
                  <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
                     <div className="flex gap-2">
@@ -586,6 +618,10 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                       >
                         <Search size={16} />
                       </Button>
+                      <Label className="h-9 w-9 bg-zinc-100 flex items-center justify-center rounded-md cursor-pointer hover:bg-zinc-200 border border-zinc-200 shrink-0">
+                        {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload size={16} />}
+                        <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                      </Label>
                     </div>
                     <div className="flex gap-2">
                       <Button 
@@ -725,12 +761,41 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                             <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
                           </div>
                           <div className="space-y-2 col-span-2 md:col-span-1">
-                            <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
-                            <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                            <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
+                            <Input type="number" step="0.01" placeholder="0.00" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
                           </div>
                           <div className="space-y-2 col-span-2 md:col-span-1">
-                            <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
-                            <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                            <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
+                            <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2">
+                            <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {productBadges.map(badge => {
+                                const currentTags = newProduct.tags ? (typeof newProduct.tags === 'string' ? newProduct.tags.split(',').map(t => t.trim()) : newProduct.tags) : [];
+                                const isActive = currentTags.includes(badge.id);
+                                return (
+                                  <Button
+                                    key={badge.id}
+                                    type="button"
+                                    variant={isActive ? 'default' : 'outline'}
+                                    size="sm"
+                                    className={`text-[10px] font-black uppercase h-8 ${isActive ? badge.color + ' text-white border-none' : 'text-zinc-500 hover:bg-zinc-100'}`}
+                                    onClick={() => {
+                                      let newTags = [...currentTags];
+                                      if (isActive) {
+                                        newTags = newTags.filter(t => t !== badge.id);
+                                      } else {
+                                        newTags.push(badge.id);
+                                      }
+                                      setNewProduct({...newProduct, tags: newTags.join(', ')});
+                                    }}
+                                  >
+                                    {badge.label}
+                                  </Button>
+                                );
+                              })}
+                            </div>
                           </div>
                           <div className="space-y-2 col-span-2 md:col-span-1">
                             <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
@@ -746,6 +811,10 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                               >
                                 <Search size={16} />
                               </Button>
+                              <Label className="h-9 w-9 bg-zinc-100 flex items-center justify-center rounded-md cursor-pointer hover:bg-zinc-200 border border-zinc-200 shrink-0">
+                                {uploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Upload size={16} />}
+                                <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
+                              </Label>
                             </div>
                           </div>
                           <div className="space-y-2">
