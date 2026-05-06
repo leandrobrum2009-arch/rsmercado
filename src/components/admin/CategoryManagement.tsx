@@ -306,7 +306,7 @@ export function CategoryManagement() {
 
                 <div className="space-y-4 pt-4 border-t">
                   <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Ícone Ilustrado (Recomendado)</Label>
-                  <div className="grid grid-cols-4 md:grid-cols-6 gap-2 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                  <div className={`grid grid-cols-4 md:grid-cols-6 gap-2 p-3 rounded-2xl border-2 transition-all ${currentCategory.icon_url ? 'bg-primary/5 border-primary shadow-sm' : 'bg-zinc-50 border-zinc-100 opacity-80'}`}>
                     {SUGGESTED_COLORED_ICONS.map((icon) => (
                       <button
                         key={icon.url}
