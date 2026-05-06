@@ -209,13 +209,13 @@ BEGIN
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
   CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
   
-   -- Use a non-recursive policy for user_roles to prevent infinite loops
-   DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
-   CREATE POLICY "Admins manage roles" ON public.user_roles 
-   FOR ALL USING (
-     (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR
-     (EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin'))
-   );
+    -- Use a non-recursive policy for user_roles to prevent infinite loops
+    -- We only allow the master email to manage roles to break recursion
+    DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+    CREATE POLICY "Admins manage roles" ON public.user_roles 
+    FOR ALL USING (
+      (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com')
+    );
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
@@ -261,10 +261,18 @@ BEGIN
      END IF;
  END $$;
  
-  -- FINALIZAR POLÍTICAS
-  GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
-  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;`
+   -- FINALIZAR PERMISSÕES
+   GRANT SELECT ON public.store_settings TO anon, authenticated;
+   GRANT SELECT ON public.categories TO anon, authenticated;
+   GRANT SELECT ON public.products TO anon, authenticated;
+   GRANT SELECT ON public.banners TO anon, authenticated;
+   GRANT SELECT ON public.store_alerts TO anon, authenticated;
+   GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
+   
+   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+   GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+   GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
