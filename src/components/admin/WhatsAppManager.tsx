@@ -446,17 +446,25 @@ export function WhatsAppManager() {
                       </div>
                     </div>
                     <div className="p-4 bg-white/50 backdrop-blur-sm border-t border-zinc-200">
-                      <Button 
-                        onClick={() => {
-                          setIsPreviewOpen(false)
-                          handleBlast()
-                        }}
-                        className="w-full bg-[#25d366] hover:bg-[#128c7e] text-white font-black uppercase rounded-xl h-12"
-                        disabled={isBlasting}
-                      >
-                        {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
-                        Confirmar e Enviar
-                      </Button>
+                       <Button 
+                         onClick={() => {
+                           setIsPreviewOpen(false)
+                           handleBlast()
+                         }}
+                         className="w-full bg-[#25d366] hover:bg-[#128c7e] text-white font-black uppercase rounded-xl h-12"
+                         disabled={isBlasting}
+                       >
+                         {isBlasting ? (
+                           <Loader2 className="animate-spin mr-2" />
+                         ) : scheduledDate ? (
+                           <Calendar className="mr-2 h-4 w-4" />
+                         ) : (
+                           <Send className="mr-2 h-4 w-4" />
+                         )}
+                         {scheduledDate 
+                           ? `Confirmar Agendamento (${new Date(scheduledDate).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})})` 
+                           : 'Confirmar e Enviar Agora'}
+                       </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
