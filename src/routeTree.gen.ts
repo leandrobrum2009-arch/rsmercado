@@ -15,6 +15,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as InstallRouteImport } from './routes/install'
+import { Route as HighlightsRouteImport } from './routes/highlights'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminFixRouteImport } from './routes/admin-fix'
@@ -50,6 +51,11 @@ const LoyaltyRoute = LoyaltyRouteImport.update({
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
   path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HighlightsRoute = HighlightsRouteImport.update({
+  id: '/highlights',
+  path: '/highlights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeliveryRoute = DeliveryRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/delivery': typeof DeliveryRoute
+  '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/delivery': typeof DeliveryRoute
+  '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
   '/delivery': typeof DeliveryRoute
+  '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/delivery'
+    | '/highlights'
     | '/install'
     | '/loyalty'
     | '/offers'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/delivery'
+    | '/highlights'
     | '/install'
     | '/loyalty'
     | '/offers'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/admin-fix'
     | '/cart'
     | '/delivery'
+    | '/highlights'
     | '/install'
     | '/loyalty'
     | '/offers'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
   DeliveryRoute: typeof DeliveryRoute
+  HighlightsRoute: typeof HighlightsRoute
   InstallRoute: typeof InstallRoute
   LoyaltyRoute: typeof LoyaltyRoute
   OffersRoute: typeof OffersRoute
@@ -230,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstallRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/highlights': {
+      id: '/highlights'
+      path: '/highlights'
+      fullPath: '/highlights'
+      preLoaderRoute: typeof HighlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/delivery': {
       id: '/delivery'
       path: '/delivery'
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
   DeliveryRoute: DeliveryRoute,
+  HighlightsRoute: HighlightsRoute,
   InstallRoute: InstallRoute,
   LoyaltyRoute: LoyaltyRoute,
   OffersRoute: OffersRoute,
@@ -292,3 +313,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
