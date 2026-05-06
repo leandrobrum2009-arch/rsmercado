@@ -1,10 +1,11 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Trash2, AlertCircle } from 'lucide-react'
+ import { Bell, Send, Trash2, AlertCircle, Eye } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
  import { toast } from '@/lib/toast'
  import { Badge } from '@/components/ui/badge'
  
@@ -13,6 +14,7 @@
    const [message, setMessage] = useState('')
    const [type, setType] = useState('info')
    const [loading, setLoading] = useState(false)
+   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
  
    useEffect(() => {
      fetchAlerts()
@@ -92,13 +94,73 @@
                </SelectContent>
              </Select>
            </div>
-           <Button 
-             onClick={createAlert} 
-             disabled={loading} 
-             className="mt-auto bg-zinc-900 font-black uppercase text-[10px] h-10 px-6"
-           >
-             <Send className="mr-2 h-4 w-4" /> Enviar
-           </Button>
+             <div className="mt-auto flex gap-2">
+               <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                 <DialogTrigger asChild>
+                   <Button 
+                     variant="outline"
+                     className="font-black uppercase text-[10px] h-10 px-4"
+                     disabled={!message}
+                   >
+                     <Eye className="mr-2 h-4 w-4" /> Preview
+                   </Button>
+                 </DialogTrigger>
+                 <DialogContent className="sm:max-w-xl">
+                   <DialogHeader>
+                     <DialogTitle className="uppercase font-black italic">Preview do Alerta</DialogTitle>
+                   </DialogHeader>
+                   <div className="py-12 bg-zinc-100 rounded-xl border-2 border-dashed border-zinc-300 flex flex-col items-center gap-6">
+                     <div className="w-full px-4">
+                       <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 text-center">Como aparecerá no topo da loja:</p>
+                       <div className={`w-full p-3 rounded-lg flex items-center justify-center gap-2 shadow-lg animate-in slide-in-from-top duration-500 ${
+                         type === 'danger' ? 'bg-red-600 text-white' :
+                         type === 'warning' ? 'bg-yellow-400 text-yellow-900' :
+                         type === 'success' ? 'bg-green-500 text-white' :
+                         'bg-blue-600 text-white'
+                       }`}>
+                         <AlertCircle className="h-4 w-4 shrink-0" />
+                         <span className="text-xs font-black uppercase tracking-wider">{message || 'Sua mensagem de alerta aparecerá aqui!'}</span>
+                       </div>
+                     </div>
+                     
+                     <div className="w-48 h-24 bg-white rounded-lg shadow-inner border border-zinc-200 relative overflow-hidden flex flex-col items-center p-2">
+                        <div className={`w-full h-2 rounded-t ${
+                          type === 'danger' ? 'bg-red-600' :
+                          type === 'warning' ? 'bg-yellow-400' :
+                          type === 'success' ? 'bg-green-500' :
+                          'bg-blue-600'
+                        }`} />
+                        <div className="w-full flex-1 flex flex-col gap-1 pt-2">
+                           <div className="w-full h-1 bg-zinc-100 rounded" />
+                           <div className="w-3/4 h-1 bg-zinc-100 rounded" />
+                           <div className="w-1/2 h-1 bg-zinc-100 rounded" />
+                        </div>
+                        <p className="absolute bottom-1 text-[8px] font-bold text-zinc-400">Contexto na Loja</p>
+                     </div>
+                   </div>
+                   <DialogFooter>
+                     <Button 
+                       onClick={() => {
+                         setIsPreviewOpen(false)
+                         createAlert()
+                       }}
+                       className="w-full gap-2 bg-zinc-900 font-black uppercase text-xs"
+                       disabled={loading}
+                     >
+                       <Send className="h-4 w-4" /> {loading ? 'Enviando...' : 'Confirmar e Publicar'}
+                     </Button>
+                   </DialogFooter>
+                 </DialogContent>
+               </Dialog>
+
+               <Button 
+                 onClick={createAlert} 
+                 disabled={loading} 
+                 className="bg-zinc-900 font-black uppercase text-[10px] h-10 px-6"
+               >
+                 <Send className="mr-2 h-4 w-4" /> Enviar
+               </Button>
+             </div>
          </div>
  
          <div className="space-y-3">
