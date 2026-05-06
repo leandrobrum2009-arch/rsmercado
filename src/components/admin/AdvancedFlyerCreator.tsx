@@ -265,19 +265,88 @@
                  <Slider value={[priceSize]} min={16} max={80} step={1} onValueChange={([val]) => setPriceSize(val)} />
                </div>
  
-               <div className="space-y-2">
-                 <Label className="text-[10px] font-bold uppercase">Fonte</Label>
-                 <Select value={fontFamily} onValueChange={setFontFamily}>
-                   <SelectTrigger className="h-8 text-[10px] font-bold">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="font-sans">Sans (Moderna)</SelectItem>
-                     <SelectItem value="font-serif">Serif (Clássica)</SelectItem>
-                     <SelectItem value="font-mono">Mono (Digital)</SelectItem>
-                     <SelectItem value="font-black">Black (Pesada)</SelectItem>
-                   </SelectContent>
-                 </Select>
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Fonte</Label>
+                   <Select value={fontFamily} onValueChange={setFontFamily}>
+                     <SelectTrigger className="h-8 text-[10px] font-bold">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="font-sans">Sans</SelectItem>
+                       <SelectItem value="font-serif">Serif</SelectItem>
+                       <SelectItem value="font-mono">Mono</SelectItem>
+                       <SelectItem value="font-black">Black</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Preço</Label>
+                   <Select value={priceLayout} onValueChange={(val: any) => setPriceLayout(val)}>
+                     <SelectTrigger className="h-8 text-[10px] font-bold">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="traditional">Tradicional</SelectItem>
+                       <SelectItem value="inline">Linha</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+ 
+               <div className="pt-4 border-t border-zinc-200 mt-4 space-y-4">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Configurações de Bloco</Label>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Cor Fundo Bloco</Label>
+                     <div className="flex gap-2">
+                       <Input type="color" value={productBgColor} onChange={(e) => setProductBgColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
+                       <Input value={productBgColor} onChange={(e) => setProductBgColor(e.target.value)} className="h-8 text-[10px]" />
+                     </div>
+                   </div>
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Opacidade ({productBgOpacity}%)</Label>
+                     <Slider value={[productBgOpacity]} min={0} max={100} step={1} onValueChange={([val]) => setProductBgOpacity(val)} />
+                   </div>
+                 </div>
+ 
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                   <Slider value={[productBlockHeight]} min={0} max={400} step={10} onValueChange={([val]) => setProductBlockHeight(val)} />
+                 </div>
+ 
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="flex items-center gap-2">
+                     <Button 
+                       variant={showPriceBg ? 'default' : 'outline'} 
+                       size="sm" className="w-full h-8 text-[10px]"
+                       onClick={() => setShowPriceBg(!showPriceBg)}
+                     >
+                       Fundo Preço
+                     </Button>
+                   </div>
+                   {showPriceBg && (
+                     <Input type="color" value={priceBgColor} onChange={(e) => setPriceBgColor(e.target.value)} className="w-full h-8 p-0 border-none" />
+                   )}
+                 </div>
+ 
+                 <div className="grid grid-cols-2 gap-4">
+                   <Button 
+                     variant={showShadows ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setShowShadows(!showShadows)}
+                   >
+                     Sombras: {showShadows ? 'Sim' : 'Não'}
+                   </Button>
+                   <Button 
+                     variant={removeFlyerBg ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setRemoveFlyerBg(!removeFlyerBg)}
+                   >
+                     Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
+                   </Button>
+                 </div>
                </div>
              </div>
  
