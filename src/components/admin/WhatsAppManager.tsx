@@ -379,13 +379,22 @@ export function WhatsAppManager() {
                     value={blastMessage}
                     onChange={(e) => setBlastMessage(e.target.value)}
                   />
-                  <button 
-                    type="button"
-                    onClick={() => setBlastMessage(prev => prev + ' {{nome}} ')}
-                    className="absolute bottom-4 right-4 bg-zinc-100 hover:bg-zinc-200 text-[9px] font-black uppercase px-2 py-1 rounded-lg border border-zinc-200 transition-colors"
-                  >
-                    {'{'} Nome {'}'}
-                  </button>
+                   <div className="absolute bottom-4 right-4 flex gap-1">
+                     <button 
+                       type="button"
+                       onClick={() => setBlastMessage(prev => prev + ' {{nome}} ')}
+                       className="bg-zinc-100 hover:bg-zinc-200 text-[9px] font-black uppercase px-2 py-1 rounded-lg border border-zinc-200 transition-colors"
+                     >
+                       + Nome
+                     </button>
+                     <button 
+                       type="button"
+                       onClick={() => setBlastMessage(prev => prev + ' {{data}} ')}
+                       className="bg-zinc-100 hover:bg-zinc-200 text-[9px] font-black uppercase px-2 py-1 rounded-lg border border-zinc-200 transition-colors"
+                     >
+                       + Data
+                     </button>
+                   </div>
                 </div>
              </div>
  
@@ -423,9 +432,14 @@ export function WhatsAppManager() {
                     <div className="p-4 min-h-[300px] flex flex-col gap-4">
                       <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] self-start relative">
                         <div className="absolute top-0 -left-2 w-0 h-0 border-t-[10px] border-t-white border-l-[10px] border-l-transparent" />
-                        <div className="text-sm whitespace-pre-wrap">
-                          {blastMessage.replace(/{{nome}}/g, 'Leandro') || 'Sua mensagem aparecerá aqui...'}
-                        </div>
+                         <div className="text-sm whitespace-pre-wrap">
+                           {blastMessage
+                             ? blastMessage
+                                 .replace(/{{nome}}/g, 'Leandro')
+                                 .replace(/{{empresa}}/g, 'Supermercado RS')
+                                 .replace(/{{data}}/g, new Date().toLocaleDateString())
+                             : 'Sua mensagem aparecerá aqui...'}
+                         </div>
                         <p className="text-[9px] text-zinc-400 text-right mt-1">
                           {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
