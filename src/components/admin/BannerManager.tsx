@@ -419,8 +419,18 @@ export function BannerManager() {
                       onClick={() => {
                         const url = prompt('Cole o link do Instagram para o banner de ' + cat.name + ':');
                         if (url) {
-                          const pathParts = new URL(url).pathname.split('/').filter(Boolean);
-                          if (pathParts[1]) updateCategoryBanner(cat.id, `https://www.instagram.com/p/${pathParts[1]}/media/?size=l`);
+                          try {
+                            const urlObj = new URL(url);
+                            const pathParts = urlObj.pathname.split('/').filter(Boolean);
+                            const postId = pathParts.find((part, i) => part === 'p' || part === 'reels' || part === 'reel') ? pathParts[pathParts.indexOf(pathParts.find(p => p === 'p' || p === 'reels' || p === 'reel')!) + 1] : pathParts[0];
+                            if (postId) {
+                              updateCategoryBanner(cat.id, `https://www.instagram.com/p/${postId}/media/?size=l`);
+                            } else {
+                              toast.error('Não foi possível identificar o ID da postagem.');
+                            }
+                          } catch (e) {
+                            toast.error('URL inválida.');
+                          }
                         }
                       }}
                     >
