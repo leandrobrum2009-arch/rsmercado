@@ -1,6 +1,6 @@
- import { useState } from 'react'
+ import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Users, User, Eye, Smartphone } from 'lucide-react'
+ import { Bell, Send, Users, User, Eye, Smartphone, Search, Check } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
@@ -16,6 +16,25 @@
    const [message, setMessage] = useState('')
    const [type, setType] = useState('promo')
    const [loading, setLoading] = useState(false)
+   const [users, setUsers] = useState<any[]>([])
+   const [userSearch, setUserSearch] = useState('')
+   useEffect(() => {
+     const fetchUsers = async () => {
+       const { data } = await supabase
+         .from('profiles')
+         .select('id, full_name, email')
+         .order('full_name')
+         .limit(10)
+       setUsers(data || [])
+     }
+     fetchUsers()
+   }, [])
+ 
+   const filteredUsers = users.filter(u => 
+     u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || 
+     u.email?.toLowerCase().includes(userSearch.toLowerCase())
+   )
+ 
    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
  
    const sendNotification = async () => {
@@ -102,17 +121,39 @@
                </div>
              </div>
  
-             {target === 'specific' && (
-               <div>
-                 <label className="text-xs font-black uppercase text-zinc-500 mb-2 block">ID do Usuário</label>
-                 <Input 
-                   placeholder="UUID do usuário" 
-                   value={userId}
-                   onChange={(e) => setUserId(e.target.value)}
-                   className="font-mono text-xs"
-                 />
-               </div>
-             )}
+               {target === 'specific' && (
+                 <div className="space-y-2">
+                   <label className="text-xs font-black uppercase text-zinc-500 block">Buscar Usuário</label>
+                   <div className="relative">
+                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                     <Input 
+                       placeholder="Nome ou e-mail..." 
+                       value={userSearch}
+                       onChange={(e) => setUserSearch(e.target.value)}
+                       className="pl-10 text-xs"
+                     />
+                   </div>
+                   
+                   <div className="max-h-32 overflow-y-auto border rounded-lg bg-zinc-50 divide-y">
+                     {filteredUsers.map(user => (
+                       <button
+                         key={user.id}
+                         onClick={() => {
+                           setUserId(user.id)
+                           setUserSearch(user.full_name)
+                         }}
+                         className={`w-full p-2 text-left text-[10px] flex items-center justify-between hover:bg-zinc-100 transition-colors ${userId === user.id ? 'bg-primary/10 font-bold' : ''}`}
+                       >
+                         <div>
+                           <p className="uppercase">{user.full_name}</p>
+                           <p className="text-zinc-400">{user.email}</p>
+                         </div>
+                         {userId === user.id && <Check className="h-3 w-3 text-primary" />}
+                       </button>
+                     ))}
+                   </div>
+                 </div>
+               )}
  
              <div>
                <label className="text-xs font-black uppercase text-zinc-500 mb-2 block">Tipo de Mensagem</label>
