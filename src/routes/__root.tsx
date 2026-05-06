@@ -1,7 +1,7 @@
    import { StoreAlertBanner } from "../components/StoreAlertBanner";
    import { registerServiceWorker } from "../lib/webpush";
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
-    import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell, Trophy } from "lucide-react";
+     import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell, Trophy, ShoppingBag } from "lucide-react";
    import { NotificationCenter } from "../components/NotificationCenter";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
