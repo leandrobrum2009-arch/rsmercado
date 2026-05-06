@@ -149,6 +149,7 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [lastEditedName, setLastEditedName] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   
   const [currentCategory, setCurrentCategory] = useState({ 
@@ -176,16 +177,17 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
   }, [])
 
   useEffect(() => {
-    if (editCategoryName && categories.length > 0) {
+    if (editCategoryName && categories.length > 0 && editCategoryName !== lastEditedName) {
       const categoryToEdit = categories.find(c => 
         c.name.toLowerCase() === editCategoryName.toLowerCase() || 
         c.slug.toLowerCase() === editCategoryName.toLowerCase()
       )
       if (categoryToEdit) {
+        setLastEditedName(editCategoryName)
         handleEdit(categoryToEdit)
       }
     }
-  }, [editCategoryName, categories])
+  }, [editCategoryName, categories, lastEditedName])
 
   const fetchCategories = async () => {
     setIsLoading(true)
