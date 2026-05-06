@@ -140,7 +140,7 @@ import { toast } from '@/lib/toast'
           {selectedReel && (
             <div className="relative aspect-[9/16] w-full">
               <iframe
-                src={`${selectedReel.url.split('?')[0]}embed`}
+                src={`${(selectedReel.url || "").split('?')[0]}embed`}
                 className="w-full h-full border-0"
                 allowFullScreen
                 scrolling="no"
