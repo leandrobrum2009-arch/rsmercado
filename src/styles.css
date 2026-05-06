@@ -146,6 +146,14 @@ aside:has(a[href*="lovable.dev"]) {
     border-color: var(--color-border);
   }
 
+  :root {
+    --base-font-size: 16px;
+  }
+
+  html {
+    font-size: var(--base-font-size);
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
