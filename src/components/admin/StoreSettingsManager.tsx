@@ -19,6 +19,7 @@
       store_description: '',
       points_ratio: '1',
       instagram_post_count: '6',
+      instagram_items: [],
       admin_whatsapp: ''
     })
    const [isLoading, setIsLoading] = useState(true)
@@ -71,6 +72,7 @@
               newSettings.points_ratio = typeof val === 'object' ? (val.points_per_real || val.multiplier) : val;
             }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
+             if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
            });
          setSettings(newSettings);
@@ -144,6 +146,7 @@
           { key: 'store_description', value: settings.store_description },
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
+           { key: 'instagram_items', value: settings.instagram_items || [] },
           { key: 'admin_whatsapp', value: settings.admin_whatsapp }
         ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
