@@ -185,10 +185,7 @@ export const Route = createFileRoute('/admin')({
         items: [
               { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
               { id: 'theme', label: 'Tema Visual', icon: Palette },
-                <TabsContent value="theme" className="mt-0 focus-visible:ring-0">
-                  <ThemeSettingsManager />
-                </TabsContent>
-            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+              { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
             { id: 'webhooks', label: 'Webhooks', icon: Webhook }
           ]
         },
