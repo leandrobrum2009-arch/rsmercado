@@ -13,33 +13,52 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO COMPLETA - RS SUPERMERCADO
--- Copie tudo e cole no SQL Editor do Supabase (clique em RUN)
-
--- 1. TABELAS BASE E EXTENSÕES
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 2. TABELA DE ROLES (ESSENCIAL PARA ADMIN)
-CREATE TABLE IF NOT EXISTS public.user_roles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
-    role TEXT NOT NULL DEFAULT 'user',
-    permissions TEXT[] DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
-
--- 3. FUNÇÃO IS_ADMIN (RESTAURAÇÃO)
+   const sqlToRun = `-- 🛠️ REPARAÇÃO MASTER - RS SUPERMERCADO
+ -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
+ UPDATE auth.users 
+ SET email_confirmed_at = NOW(), 
+     confirmed_at = NOW()
+ WHERE email = 'leandrobrum2009@gmail.com';
+ 
+ -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
  CREATE OR REPLACE FUNCTION public.is_admin() 
- RETURNS BOOLEAN AS $$
+ RETURNS BOOLEAN 
+ LANGUAGE plpgsql 
+ SECURITY DEFINER
+ SET search_path = public, auth
+ AS $$
  BEGIN
    RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
-          EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin') OR
-          EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true);
+          EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
  END;
- $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 4. TABELA DE ENDEREÇOS (CORREÇÃO DO ERRO ATUAL)
+ $$;
+ 
+ -- 3. PROMOVER USUÁRIO A ADMIN
+ INSERT INTO public.user_roles (user_id, role)
+ SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
+ ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+ 
+ -- 4. CRIAR TABELA DE SITE VISITS SE NÃO EXISTIR (EVITA CRASH NO DASHBOARD)
+ CREATE TABLE IF NOT EXISTS public.site_visits (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID,
+     path TEXT,
+     user_agent TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+ DO $$ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Public insert visits') THEN
+         CREATE POLICY "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
+     END IF;
+ END $$;
+ 
+ -- 5. GARANTIR QUE ADMIN PODE VER TUDO
+ GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+ 
+ -- 6. TABELA DE ENDEREÇOS
 CREATE TABLE IF NOT EXISTS public.user_addresses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,

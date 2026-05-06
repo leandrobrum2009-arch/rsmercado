@@ -1,6 +1,7 @@
+ import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
- import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle } from "lucide-react";
+  import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle, Phone, Search, ShoppingBag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
@@ -15,7 +16,34 @@ function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix");
-  const [isProcessing, setIsProcessing] = useState(false);
+   const [isProcessing, setIsProcessing] = useState(false);
+   const [lookupPhone, setLookupPhone] = useState('');
+   const [guestOrders, setGuestOrders] = useState<any[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
+ 
+   const handleOrderLookup = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!lookupPhone) return;
+     setIsSearching(true);
+     try {
+       const { data, error } = await supabase
+         .from('orders')
+         .select('*')
+         .eq('customer_phone', lookupPhone)
+         .order('created_at', { ascending: false });
+       if (error) throw error;
+       setGuestOrders(data || []);
+       if (data && data.length > 0) {
+         toast.success(`${data.length} pedidos encontrados!`);
+       } else {
+         toast.info('Nenhum pedido encontrado para este WhatsApp.');
+       }
+     } catch (err: any) {
+       toast.error('Erro ao buscar pedidos: ' + err.message);
+     } finally {
+       setIsSearching(false);
+     }
+   };
    const [profile, setProfile] = useState<any>(null);
    const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '' });
    const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
@@ -266,40 +294,95 @@ function CartPage() {
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
 
-        {/* Customer Info (Quick Checkout) */}
-        {!profile && (
-          <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
-            <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
-              <div className="w-2 h-6 bg-green-600 rounded-full" />
-              Dados para Entrega Rápida
-            </h3>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-zinc-400">Seu Nome</label>
-                <input 
-                  type="text" 
-                  value={guestInfo.name}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
-                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                  placeholder="Como devemos te chamar?"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-zinc-400">Seu WhatsApp</label>
-                <input 
-                  type="tel" 
-                  value={guestInfo.whatsapp}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, whatsapp: e.target.value })}
-                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-            </div>
-            <p className="text-[10px] text-zinc-400 font-medium italic">
-              * Não precisa de cadastro! Preencha apenas o básico para pedir.
-            </p>
-          </div>
-        )}
+         {/* Guest Info & Order Lookup */}
+         {!profile && (
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+               <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
+                 <div className="w-2 h-6 bg-green-600 rounded-full" />
+                 Dados para Entrega Rápida
+               </h3>
+               <div className="space-y-3">
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu Nome</label>
+                   <input 
+                     type="text" 
+                     value={guestInfo.name}
+                     onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
+                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
+                     placeholder="Como devemos te chamar?"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu WhatsApp</label>
+                   <input 
+                     type="tel" 
+                     value={guestInfo.whatsapp}
+                     onChange={(e) => setGuestInfo({ ...guestInfo, whatsapp: e.target.value })}
+                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
+                     placeholder="(00) 00000-0000"
+                   />
+                 </div>
+               </div>
+               <p className="text-[10px] text-zinc-400 font-medium italic">
+                 * Não precisa de cadastro! Preencha apenas o básico para pedir.
+               </p>
+             </div>
+ 
+             <div className="bg-white rounded-3xl shadow-sm border overflow-hidden flex flex-col">
+               <div className="bg-zinc-900 text-white p-4">
+                 <h3 className="text-sm font-black uppercase italic tracking-tighter flex items-center gap-2">
+                   <ShoppingBag className="text-primary" size={18} /> Já comprou antes?
+                 </h3>
+                 <p className="text-[10px] font-bold uppercase opacity-60">Consulte seus pedidos pelo WhatsApp</p>
+               </div>
+               <div className="p-6 space-y-4">
+                 <form onSubmit={handleOrderLookup} className="space-y-3">
+                   <div className="relative">
+                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                     <input 
+                       type="tel" 
+                       placeholder="Seu WhatsApp" 
+                       value={lookupPhone}
+                       onChange={(e) => setLookupPhone(e.target.value)}
+                       className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl pl-12 pr-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
+                     />
+                   </div>
+                   <Button 
+                    type="submit" 
+                    disabled={isSearching}
+                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 text-white"
+                   >
+                     {isSearching ? <Loader2 className="animate-spin mr-2" size={14} /> : <Search className="mr-2" size={14} />}
+                     VER MEUS PEDIDOS
+                   </Button>
+                 </form>
+ 
+                 {guestOrders.length > 0 && (
+                   <div className="space-y-2 pt-4 border-t max-h-[200px] overflow-y-auto pr-2">
+                     {guestOrders.map(order => (
+                       <Link 
+                        key={order.id} 
+                        to="/track/$orderId" 
+                        params={{ orderId: order.id }}
+                        className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 hover:border-primary transition-colors group"
+                       >
+                         <div>
+                           <p className="font-black text-[9px] uppercase text-zinc-400">#{order.id.substring(0, 8)}</p>
+                           <p className="font-bold text-[10px] text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
+                           <ArrowRight size={12} className="text-zinc-300 group-hover:text-primary" />
+                         </div>
+                       </Link>
+                     ))}
+                   </div>
+                 )}
+               </div>
+             </div>
+           </div>
+         )}
 
         {/* Address Selection or Quick Address */}
         <div className="space-y-3">
