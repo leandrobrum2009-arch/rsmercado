@@ -1,3 +1,11 @@
+-- 7. Fix user_roles recursion
+DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
+CREATE POLICY "Admins can manage roles" ON public.user_roles 
+FOR ALL USING (public.is_admin());
+
+DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
+CREATE POLICY "Users can view own role" ON public.user_roles 
+FOR SELECT USING (auth.uid() = user_id);
 -- 🛡️ SECURITY HARDENING V3 - RS SUPERMERCADO
 
 -- 1. Fix SECURITY DEFINER functions with search_path (Prevents Search Path Hijacking)
