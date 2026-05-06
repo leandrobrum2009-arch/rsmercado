@@ -144,7 +144,7 @@ const CATEGORY_ICONS = [
 ];
 
 export function CategoryManagement({ editCategoryName }: { editCategoryName?: string }) {
-  const [categories, setCategories] = useState<any[]>([])
+  const [categories, setCategories] = useState<(any & { product_count?: number })[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -191,8 +191,24 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
 
   const fetchCategories = async () => {
     setIsLoading(true)
-    const { data } = await supabase.from('categories').select('*').order('name')
-    setCategories(data || [])
+    const { data: catData } = await supabase.from('categories').select('*').order('name')
+    
+    if (catData) {
+      // Fetch product counts for each category
+      const { data: countData } = await supabase
+        .from('products')
+        .select('category_id')
+      
+      const counts: Record<string, number> = {}
+      countData?.forEach(p => {
+        if (p.category_id) counts[p.category_id] = (counts[p.category_id] || 0) + 1
+      })
+      
+      setCategories(catData.map(c => ({
+        ...c,
+        product_count: counts[c.id] || 0
+      })))
+    }
     setIsLoading(false)
   }
 
@@ -524,7 +540,14 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <h3 className="font-black uppercase text-sm tracking-tight text-zinc-800">{cat.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black uppercase text-sm tracking-tight text-zinc-800">{cat.name}</h3>
+                          {cat.product_count !== undefined && (
+                            <span className="bg-zinc-100 text-zinc-500 text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                              {cat.product_count}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-zinc-400 font-medium italic">/{cat.slug}</span>
                       </div>
                     </div>
