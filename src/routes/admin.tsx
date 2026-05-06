@@ -123,9 +123,9 @@ export const Route = createFileRoute('/admin')({
            
            if (roleData?.permissions) {
              setUserPermissions(roleData.permissions)
-           } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
-             setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "whatsapp", "webhooks", "admin_roles"])
-           }
+            } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+              setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "theme", "whatsapp", "webhooks", "admin_roles"])
+            }
          }
  
          const { data, error } = await supabase.rpc('is_admin')
