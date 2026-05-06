@@ -1,3 +1,18 @@
+const SUGGESTED_COLORED_ICONS = [
+  { name: 'Hortifruti', url: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png' },
+  { name: 'Açougue', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046769.png' },
+  { name: 'Padaria', url: 'https://cdn-icons-png.flaticon.com/512/992/992743.png' },
+  { name: 'Bebidas', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' },
+  { name: 'Mercearia', url: 'https://cdn-icons-png.flaticon.com/512/3081/3081840.png' },
+  { name: 'Higiene', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553642.png' },
+  { name: 'Limpeza', url: 'https://cdn-icons-png.flaticon.com/512/995/995016.png' },
+  { name: 'Pet Shop', url: 'https://cdn-icons-png.flaticon.com/512/616/616408.png' },
+  { name: 'Doces', url: 'https://cdn-icons-png.flaticon.com/512/1904/1904425.png' },
+  { name: 'Laticínios', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
+  { name: 'Frios', url: 'https://cdn-icons-png.flaticon.com/512/1154/1154625.png' },
+  { name: 'Congelados', url: 'https://cdn-icons-png.flaticon.com/512/2210/2210565.png' }
+];
+
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
