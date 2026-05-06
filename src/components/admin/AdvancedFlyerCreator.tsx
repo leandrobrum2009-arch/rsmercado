@@ -77,7 +77,12 @@
    }
  
    const addProductToFlyer = (product: any) => {
-     const max = layout === 'single' ? 1 : 8
+     let max = 12
+     if (layout === 'single') max = 1
+     if (layout === 'grid') max = columns * 4 
+     if (layout === 'featured-side') max = 8
+     if (layout === 'featured-top') max = 10
+ 
      if (selectedProducts.length >= max) {
        toast.error(`Limite de ${max} produtos para este layout`)
        return
@@ -120,7 +125,7 @@
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
                <div className="grid grid-cols-2 gap-2">
                  {[
-                   { id: 'grid-8', label: '8 Produtos (Grade)', icon: Layout },
+                   { id: 'grid', label: 'Grade Flexível', icon: Layout },
                    { id: 'featured-side', label: 'Destaque Lateral', icon: Layout },
                    { id: 'featured-top', label: 'Destaque Topo', icon: Layout },
                    { id: 'single', label: 'Produto Único', icon: Layout },
