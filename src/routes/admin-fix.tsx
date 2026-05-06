@@ -58,6 +58,36 @@
  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
  
+ -- 9. TABELAS DE WHATSAPP (MALA DIRETA)
+ CREATE TABLE IF NOT EXISTS public.whatsapp_campaigns (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     message TEXT NOT NULL,
+     status TEXT DEFAULT 'pending',
+     total_recipients INTEGER DEFAULT 0,
+     sent_count INTEGER DEFAULT 0,
+     target_audience TEXT,
+     scheduled_for TIMESTAMP WITH TIME ZONE,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
+ 
+ CREATE TABLE IF NOT EXISTS public.whatsapp_logs (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     phone TEXT NOT NULL,
+     message_text TEXT,
+     sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+ );
+ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
+ 
+ DO $$ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_campaigns' AND policyname='Admin manage campaigns') THEN
+         CREATE POLICY "Admin manage campaigns" ON public.whatsapp_campaigns FOR ALL USING (public.is_admin());
+     END IF;
+     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_logs' AND policyname='Admin view logs') THEN
+         CREATE POLICY "Admin view logs" ON public.whatsapp_logs FOR SELECT USING (public.is_admin());
+     END IF;
+ END $$;`
+ 
  -- 6. TABELA DE ENDEREÇOS
 CREATE TABLE IF NOT EXISTS public.user_addresses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
