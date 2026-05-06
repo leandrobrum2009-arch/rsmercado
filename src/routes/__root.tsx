@@ -206,6 +206,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
    const navItems = [
      { name: "Início", path: "/", icon: Home },
+     { name: "Ofertas", path: "/search", icon: ShoppingBag, search: { tag: 'OFERTA' }, className: "text-red-600 animate-pulse font-black" },
      { name: "Buscar", path: "/search", icon: Search },
      { name: "Carrinho", path: "/cart", icon: ShoppingCart, badge: cartCount },
       { name: "Receitas", path: "/recipes", icon: ChefHat },
@@ -278,23 +279,31 @@ function RootShell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="flex items-center space-x-4">
               <NotificationCenter />
-             {navItems.map((item) => (
-               <Link
-                 key={item.path}
-                 to={item.path}
-                 className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
-                   location.pathname === item.path ? "text-green-600" : "text-gray-600"
-                 }`}
-               >
-                 <item.icon size={20} />
-                 <span>{item.name}</span>
-                 {item.badge ? (
-                   <span className="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                     {item.badge}
-                   </span>
-                 ) : null}
-               </Link>
-             ))}
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                // @ts-ignore
+                const isOferta = item.name === 'Ofertas';
+                
+                return (
+                  <Link
+                    key={item.path + (isOferta ? 'oferta' : '')}
+                    to={item.path}
+                    // @ts-ignore
+                    search={item.search}
+                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
+                      isActive ? "text-green-600" : isOferta ? "text-red-600 animate-pulse font-black bg-red-50 px-2 py-1 rounded-lg" : "text-gray-600"
+                    }`}
+                  >
+                    <item.icon size={20} />
+                    <span>{item.name}</span>
+                    {item.badge ? (
+                      <span className="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                        {item.badge}
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
              <Link to="/admin" search={{ tab: 'dashboard', edit: undefined }} className="text-gray-600 hover:text-green-600">
                <Settings size={20} />
              </Link>
@@ -317,14 +326,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
              <Link to="/search" search={{}} className="p-2 text-gray-600">
                <Search size={20} />
              </Link>
-             <Link to="/cart" className="relative p-2 text-gray-600">
-               <ShoppingCart size={20} />
-               {cartCount > 0 && (
-                 <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                   {cartCount}
-                 </span>
-               )}
-             </Link>
+              <Link to="/search" search={{ tag: 'OFERTA' }} className="p-2 text-red-600 animate-pulse bg-red-50 rounded-full">
+                <ShoppingBag size={20} />
+              </Link>
+              <Link to="/cart" className="relative p-2 text-gray-600">
+                <ShoppingCart size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
            </div>
          </div>
        </header>
