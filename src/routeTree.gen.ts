@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as DeliveryRouteImport } from './routes/delivery'
@@ -34,6 +35,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoyaltyRoute = LoyaltyRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
+  '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
+  '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/delivery': typeof DeliveryRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
+  '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/search': typeof SearchRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/install'
     | '/loyalty'
+    | '/offers'
     | '/profile'
     | '/recipes'
     | '/search'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/install'
     | '/loyalty'
+    | '/offers'
     | '/profile'
     | '/recipes'
     | '/search'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/install'
     | '/loyalty'
+    | '/offers'
     | '/profile'
     | '/recipes'
     | '/search'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   DeliveryRoute: typeof DeliveryRoute
   InstallRoute: typeof InstallRoute
   LoyaltyRoute: typeof LoyaltyRoute
+  OffersRoute: typeof OffersRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   SearchRoute: typeof SearchRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loyalty': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeliveryRoute: DeliveryRoute,
   InstallRoute: InstallRoute,
   LoyaltyRoute: LoyaltyRoute,
+  OffersRoute: OffersRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   SearchRoute: SearchRoute,
