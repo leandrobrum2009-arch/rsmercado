@@ -187,15 +187,6 @@ export function ProductImporter() {
     }
 
     // Robust normalization for duplicate checking
-const parsePrice = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (!value) return 0;
-  // Replace comma with dot for Brazilian format
-  const sanitized = value.toString().replace(',', '.');
-  const parsed = parseFloat(sanitized);
-  return isNaN(parsed) ? 0 : parsed;
-};
-
 const normalize = (str: string) => {
        if (!str) return '';
        return str
