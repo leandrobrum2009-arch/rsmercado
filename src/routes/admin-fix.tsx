@@ -261,18 +261,35 @@ BEGIN
      END IF;
  END $$;
  
-   -- FINALIZAR PERMISSÕES
-   GRANT SELECT ON public.store_settings TO anon, authenticated;
-   GRANT SELECT ON public.categories TO anon, authenticated;
-   GRANT SELECT ON public.products TO anon, authenticated;
-   GRANT SELECT ON public.banners TO anon, authenticated;
-   GRANT SELECT ON public.store_alerts TO anon, authenticated;
-   GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
-   
-   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
-   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-   GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
-   GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;`
+  -- 4. HARDENING E PERMISSÕES GERAIS
+  -- Enable RLS on all sensitive tables
+  DO $$ 
+  DECLARE 
+    t TEXT;
+  BEGIN
+    FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+      EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
+    END LOOP;
+  END $$;
+
+  -- Secure store_settings (Protect secrets)
+  DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
+  CREATE POLICY "Public read settings" ON public.store_settings 
+  FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config', 'admin_setup_secret', 'webhook_secrets'));
+
+  -- FINALIZAR PERMISSÕES
+  GRANT USAGE ON SCHEMA public TO anon, authenticated;
+  GRANT SELECT ON public.store_settings TO anon, authenticated;
+  GRANT SELECT ON public.categories TO anon, authenticated;
+  GRANT SELECT ON public.products TO anon, authenticated;
+  GRANT SELECT ON public.banners TO anon, authenticated;
+  GRANT SELECT ON public.store_alerts TO anon, authenticated;
+  GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
+  
+  GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+  GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
