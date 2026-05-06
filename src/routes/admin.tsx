@@ -98,6 +98,7 @@ export const Route = createFileRoute('/admin')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
       tab: (search.tab as string) || 'dashboard',
+      edit: (search.edit as string) || undefined,
     }
   },
 })
