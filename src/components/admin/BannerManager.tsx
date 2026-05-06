@@ -7,10 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram, LayoutGrid, Layers, ArrowUp, ArrowDown, ChevronUp } from 'lucide-react'
-  const [activeTab, setActiveTab] = useState<'home' | 'categories'>('home')
 import { toast } from '@/lib/toast'
 
 export function BannerManager() {
+  const [activeTab, setActiveTab] = useState<'home' | 'categories'>('home')
   const [banners, setBanners] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
