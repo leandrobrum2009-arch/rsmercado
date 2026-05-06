@@ -44,6 +44,14 @@
    const [fontSize, setFontSize] = useState(14)
    const [priceSize, setPriceSize] = useState(24)
    const [fontFamily, setFontFamily] = useState('font-sans')
+   const [productBgColor, setProductBgColor] = useState('#ffffff')
+   const [productBgOpacity, setProductBgOpacity] = useState(60)
+   const [productBlockHeight, setProductBlockHeight] = useState(0) // 0 means auto
+   const [showPriceBg, setShowPriceBg] = useState(false)
+   const [priceBgColor, setPriceBgColor] = useState('#ffff00')
+   const [showShadows, setShowShadows] = useState(true)
+   const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
+   const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
  
    useEffect(() => {
      fetchProducts()
@@ -107,6 +115,13 @@
  
    const handlePrint = () => {
      window.print()
+   }
+ 
+   const hexToRgba = (hex: string, opacity: number) => {
+     const r = parseInt(hex.slice(1, 3), 16)
+     const g = parseInt(hex.slice(3, 5), 16)
+     const b = parseInt(hex.slice(5, 7), 16)
+     return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
    return (
@@ -257,19 +272,88 @@
                  <Slider value={[priceSize]} min={16} max={80} step={1} onValueChange={([val]) => setPriceSize(val)} />
                </div>
  
-               <div className="space-y-2">
-                 <Label className="text-[10px] font-bold uppercase">Fonte</Label>
-                 <Select value={fontFamily} onValueChange={setFontFamily}>
-                   <SelectTrigger className="h-8 text-[10px] font-bold">
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="font-sans">Sans (Moderna)</SelectItem>
-                     <SelectItem value="font-serif">Serif (Clássica)</SelectItem>
-                     <SelectItem value="font-mono">Mono (Digital)</SelectItem>
-                     <SelectItem value="font-black">Black (Pesada)</SelectItem>
-                   </SelectContent>
-                 </Select>
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Fonte</Label>
+                   <Select value={fontFamily} onValueChange={setFontFamily}>
+                     <SelectTrigger className="h-8 text-[10px] font-bold">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="font-sans">Sans</SelectItem>
+                       <SelectItem value="font-serif">Serif</SelectItem>
+                       <SelectItem value="font-mono">Mono</SelectItem>
+                       <SelectItem value="font-black">Black</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Preço</Label>
+                   <Select value={priceLayout} onValueChange={(val: any) => setPriceLayout(val)}>
+                     <SelectTrigger className="h-8 text-[10px] font-bold">
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="traditional">Tradicional</SelectItem>
+                       <SelectItem value="inline">Linha</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+ 
+               <div className="pt-4 border-t border-zinc-200 mt-4 space-y-4">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Configurações de Bloco</Label>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Cor Fundo Bloco</Label>
+                     <div className="flex gap-2">
+                       <Input type="color" value={productBgColor} onChange={(e) => setProductBgColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
+                       <Input value={productBgColor} onChange={(e) => setProductBgColor(e.target.value)} className="h-8 text-[10px]" />
+                     </div>
+                   </div>
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Opacidade ({productBgOpacity}%)</Label>
+                     <Slider value={[productBgOpacity]} min={0} max={100} step={1} onValueChange={([val]) => setProductBgOpacity(val)} />
+                   </div>
+                 </div>
+ 
+                 <div className="space-y-2">
+                   <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                   <Slider value={[productBlockHeight]} min={0} max={400} step={10} onValueChange={([val]) => setProductBlockHeight(val)} />
+                 </div>
+ 
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="flex items-center gap-2">
+                     <Button 
+                       variant={showPriceBg ? 'default' : 'outline'} 
+                       size="sm" className="w-full h-8 text-[10px]"
+                       onClick={() => setShowPriceBg(!showPriceBg)}
+                     >
+                       Fundo Preço
+                     </Button>
+                   </div>
+                   {showPriceBg && (
+                     <Input type="color" value={priceBgColor} onChange={(e) => setPriceBgColor(e.target.value)} className="w-full h-8 p-0 border-none" />
+                   )}
+                 </div>
+ 
+                 <div className="grid grid-cols-2 gap-4">
+                   <Button 
+                     variant={showShadows ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setShowShadows(!showShadows)}
+                   >
+                     Sombras: {showShadows ? 'Sim' : 'Não'}
+                   </Button>
+                   <Button 
+                     variant={removeFlyerBg ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setRemoveFlyerBg(!removeFlyerBg)}
+                   >
+                     Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
+                   </Button>
+                 </div>
                </div>
              </div>
  
@@ -331,14 +415,17 @@
        <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
          <div 
            id="flyer-content"
-             className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300"
-             style={{ 
-               background: backgroundType === 'image' 
-                 ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : 'white')
-                 : backgroundType === 'gradient'
-                   ? backgroundGradient
-                   : backgroundColor
-             }}
+               className={cn(
+                 "relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300",
+                 removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl"
+               )}
+               style={{ 
+                 background: backgroundType === 'image' 
+                   ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
+                   : backgroundType === 'gradient'
+                     ? backgroundGradient
+                     : backgroundColor
+               }}
            >
              {/* Top Reserved Zone (25%) */}
              <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
@@ -383,11 +470,19 @@
                        fontFamily
                      )}
                    >
-                       <div className={cn(
-                         "relative bg-white/60 backdrop-blur-[2px] rounded-xl p-3 w-full h-full flex flex-col items-center justify-center border border-white/30 shadow-sm hover:shadow-md transition-shadow",
-                         layout === 'single' ? 'p-12' : '',
-                         columns === 4 ? 'p-1.5' : ''
-                       )}>
+                        <div 
+                          className={cn(
+                            "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
+                            layout === 'single' ? 'p-12' : '',
+                            columns === 4 ? 'p-1.5' : '',
+                            showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
+                            productBlockHeight === 0 ? "h-full" : ""
+                          )}
+                          style={{ 
+                            backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                            height: productBlockHeight > 0 ? `${productBlockHeight}px` : '100%'
+                          }}
+                        >
                          <img 
                            src={p.image_url} 
                            className={cn(
@@ -404,20 +499,39 @@
                          >
                            {p.name}
                          </h3>
-                         <div className="flex flex-col items-center">
-                           {p.original_price && (
-                             <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
-                           )}
-                           <div 
-                             className="font-black italic flex items-start drop-shadow-sm"
-                             style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
-                           >
-                             <span className="text-[0.5em] mt-1 mr-0.5">R$</span>
-                             <span>{p.price.toFixed(2).split('.')[0]}</span>
-                             <span className="text-[0.5em] mt-1">,{p.price.toFixed(2).split('.')[1]}</span>
-                             {p.unit && <span className="text-[0.3em] self-end mb-1 ml-1">{p.unit}</span>}
-                           </div>
-                         </div>
+                          <div className={cn(
+                            "flex flex-col items-center mt-auto",
+                            showPriceBg ? "px-3 py-1 rounded-lg" : ""
+                          )}
+                          style={{ backgroundColor: showPriceBg ? priceBgColor : 'transparent' }}
+                          >
+                            {p.original_price && (
+                              <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
+                            )}
+                            
+                            {priceLayout === 'traditional' ? (
+                              <div 
+                                className="font-black italic flex items-baseline drop-shadow-sm"
+                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                              >
+                                <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
+                                <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
+                                <div className="flex flex-col items-start ml-0.5">
+                                  <span className="text-[0.4em] leading-none border-b-2 border-current">,{p.price.toFixed(2).split('.')[1]}</span>
+                                  {p.unit && <span className="text-[0.25em] leading-none mt-0.5">{p.unit}</span>}
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                className="font-black italic flex items-center drop-shadow-sm"
+                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                              >
+                                <span className="text-[0.5em] mr-1">R$</span>
+                                <span>{p.price.toFixed(2).replace('.', ',')}</span>
+                                {p.unit && <span className="text-[0.3em] ml-1">{p.unit}</span>}
+                              </div>
+                            )}
+                          </div>
                        </div>
                      </div>
                    </div>
