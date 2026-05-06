@@ -146,22 +146,85 @@
                </div>
              </div>
  
-             {/* Background Image */}
-             <div className="space-y-3">
-               <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Imagem de Fundo (A4)</Label>
-               <div className="flex gap-4 items-center">
-                 {backgroundUrl && (
-                   <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
-                 )}
-                 <div className="flex-1">
-                   <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                   <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                     {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                     <span className="text-xs font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
-                   </label>
+               {layout === 'grid' && (
+                 <div className="space-y-3">
+                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Colunas na Grade</Label>
+                   <div className="flex gap-2">
+                     {[2, 3, 4].map(c => (
+                       <Button
+                         key={c}
+                         variant={columns === c ? 'default' : 'outline'}
+                         className="flex-1 h-8 text-[10px] font-bold"
+                         onClick={() => setColumns(c)}
+                       >
+                         {c} Colunas
+                       </Button>
+                     ))}
+                   </div>
                  </div>
+               )}
+ 
+               <div className="space-y-3">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento entre Blocos ({gridGap}px)</Label>
+                 <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
                </div>
-             </div>
+ 
+               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Logotipo no Topo</Label>
+                 <Button 
+                   variant={showLogo ? 'default' : 'outline'} 
+                   size="sm" 
+                   className="h-8 text-[10px]"
+                   onClick={() => setShowLogo(!showLogo)}
+                 >
+                   {showLogo ? 'Sim' : 'Não'}
+                 </Button>
+               </div>
+ 
+               {/* Background Settings */}
+               <div className="space-y-3">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
+                 <div className="flex gap-2 mb-2">
+                   {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
+                     <Button
+                       key={type}
+                       variant={backgroundType === type ? 'default' : 'outline'}
+                       className="flex-1 h-8 text-[10px] font-bold capitalize"
+                       onClick={() => setBackgroundType(type)}
+                     >
+                       {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
+                     </Button>
+                   ))}
+                 </div>
+ 
+                 {backgroundType === 'image' && (
+                   <div className="flex gap-4 items-center">
+                     {backgroundUrl && (
+                       <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
+                     )}
+                     <div className="flex-1">
+                       <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
+                       <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
+                         {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                         <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
+                       </label>
+                     </div>
+                   </div>
+                 )}
+ 
+                 {backgroundType === 'color' && (
+                   <div className="flex gap-2">
+                     <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-10 p-0 border-none" />
+                     <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="h-10 text-xs" />
+                   </div>
+                 )}
+ 
+                 {backgroundType === 'gradient' && (
+                   <div className="space-y-2">
+                     <Input value={backgroundGradient} onChange={(e) => setBackgroundGradient(e.target.value)} className="h-10 text-xs font-mono" />
+                   </div>
+                 )}
+               </div>
  
              {/* Styling */}
              <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
