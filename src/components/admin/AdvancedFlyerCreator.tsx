@@ -426,12 +426,14 @@
              </div>
            </div>
  
-           {/* Bottom Reserved Zone (15%) */}
-           <div className="h-[15%] w-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-             <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-               Rodapé Reservado (Arte de Fundo)
+             {/* Bottom Reserved Zone (15%) */}
+             <div className="h-[15%] w-full flex items-center justify-center relative">
+               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                   Rodapé Reservado (15%)
+                 </div>
+               </div>
              </div>
-           </div>
          </div>
        </div>
  
