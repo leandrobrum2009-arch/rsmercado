@@ -10,24 +10,19 @@
     const { settings } = useStoreSettings()
     const [selectedReel, setSelectedReel] = useState<any>(null)
    
-   if (!settings.instagram_url) return null
+   if (!settings.instagram_url && (!settings.instagram_items || settings.instagram_items.length === 0)) return null
  
    const postCount = parseInt(settings.instagram_post_count || '6')
  
-   const allReels = [
-     { id: 1, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=300', likes: '1.2k', comments: '45' },
-     { id: 2, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1506484334402-40ff22e05a6d?q=80&w=300', likes: '850', comments: '12' },
-     { id: 3, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1607623273562-6338d8503cb6?q=80&w=300', likes: '2.1k', comments: '89' },
-     { id: 4, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300', likes: '940', comments: '23' },
-     { id: 5, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=300', likes: '3.4k', comments: '156' },
-     { id: 6, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?q=80&w=300', likes: '1.5k', comments: '67' },
-     { id: 7, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300', likes: '2.8k', comments: '112' },
-     { id: 8, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300', likes: '4.2k', comments: '203' },
-     { id: 9, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300', likes: '1.9k', comments: '54' },
-     { id: 10, url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=300', likes: '3.1k', comments: '142' },
+   const defaultItems = [
+     { id: 1, type: 'reel', url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=300', likes: '1.2k', comments: '45' },
+     { id: 2, type: 'post', url: 'https://www.instagram.com/p/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1506484334402-40ff22e05a6d?q=80&w=300', likes: '850', comments: '12' },
+     { id: 3, type: 'reel', url: 'https://www.instagram.com/reels/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1607623273562-6338d8503cb6?q=80&w=300', likes: '2.1k', comments: '89' },
+     { id: 4, type: 'story', url: 'https://www.instagram.com/stories/highlights/C5oXn8huk3T/', thumbnail: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300', likes: '940', comments: '23' },
    ]
- 
-   const reels = allReels.slice(0, postCount)
+
+   const instagramItems = settings.instagram_items || defaultItems;
+   const reels = instagramItems.slice(0, postCount);
  
    const handleFollow = async () => {
      const { data: { user } } = await supabase.auth.getUser();
@@ -76,7 +71,9 @@
                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
                
                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full">
-                 <Play size={16} className="text-white fill-white" />
+               {reel.type === 'reel' ? <Play size={16} className="text-white fill-white" /> : 
+                reel.type === 'story' ? <div className="w-4 h-4 rounded-full border-2 border-white" /> :
+                <Instagram size={16} className="text-white" />}
                </div>
  
                <div className="absolute bottom-6 left-0 right-0 px-6 flex justify-between items-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
