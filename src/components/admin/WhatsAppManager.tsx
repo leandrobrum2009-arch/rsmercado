@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-    import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag } from 'lucide-react'
-import { toast } from '@/lib/toast'
+ import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag, Eye } from 'lucide-react'
+ import { toast } from '@/lib/toast'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
 export function WhatsAppManager() {
@@ -32,7 +33,8 @@ export function WhatsAppManager() {
   const [activeHistoryTab, setActiveHistoryTab] = useState<'campaigns' | 'logs'>('campaigns')
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
-   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+    const [isSavingTemplate, setIsSavingTemplate] = useState(false)
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   const suggestedTemplates = [
     { 
@@ -381,18 +383,65 @@ export function WhatsAppManager() {
                />
              </div>
  
-             <Button 
-               onClick={handleBlast} 
-               disabled={isBlasting || !config.enabled} 
-               className="w-full bg-green-600 hover:bg-green-700 font-black uppercase italic h-12 rounded-2xl shadow-xl shadow-green-100 mt-2"
-             >
-               {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
-               {!config.enabled 
-                 ? 'Ative a API para usar Mala Direta' 
-                 : scheduledDate 
-                   ? 'Agendar Envio em Massa' 
-                   : 'Disparar para todos agora'}
-             </Button>
+              <div className="flex gap-2 mt-2">
+                <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline"
+                      className="flex-1 h-12 rounded-2xl border-2 border-green-200 font-black uppercase italic"
+                      disabled={!blastMessage || !config.enabled}
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Preview
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-[#e5ddd5] border-none p-0 overflow-hidden rounded-[2rem]">
+                    <div className="bg-[#075e54] p-4 text-white flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-zinc-300 shrink-0" />
+                      <div>
+                        <h3 className="font-bold text-sm">RS Supermercado</h3>
+                        <p className="text-[10px] opacity-80">Online</p>
+                      </div>
+                    </div>
+                    <div className="p-4 min-h-[300px] flex flex-col gap-4">
+                      <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] self-start relative">
+                        <div className="absolute top-0 -left-2 w-0 h-0 border-t-[10px] border-t-white border-l-[10px] border-l-transparent" />
+                        <div className="text-sm whitespace-pre-wrap">
+                          {blastMessage.replace(/{{nome}}/g, 'Leandro') || 'Sua mensagem aparecerá aqui...'}
+                        </div>
+                        <p className="text-[9px] text-zinc-400 text-right mt-1">
+                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-white/50 backdrop-blur-sm border-t border-zinc-200">
+                      <Button 
+                        onClick={() => {
+                          setIsPreviewOpen(false)
+                          handleBlast()
+                        }}
+                        className="w-full bg-[#25d366] hover:bg-[#128c7e] text-white font-black uppercase rounded-xl h-12"
+                        disabled={isBlasting}
+                      >
+                        {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
+                        Confirmar e Enviar
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Button 
+                  onClick={handleBlast} 
+                  disabled={isBlasting || !config.enabled} 
+                  className="flex-[2] bg-green-600 hover:bg-green-700 font-black uppercase italic h-12 rounded-2xl shadow-xl shadow-green-100"
+                >
+                  {isBlasting ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
+                  {!config.enabled 
+                    ? 'Ative a API' 
+                    : scheduledDate 
+                      ? 'Agendar' 
+                      : 'Enviar Agora'}
+                </Button>
+              </div>
            </CardContent>
          </Card>
  
