@@ -40,7 +40,6 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
   { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' }
 ];
-];
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
