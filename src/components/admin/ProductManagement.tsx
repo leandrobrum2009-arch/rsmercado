@@ -170,24 +170,24 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [imageSearchQuery, setImageSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<string[]>([])
   const [searching, setSearching] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
  
   const performSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!imageSearchQuery.trim()) return;
     setSearching(true);
     try {
-      const query = encodeURIComponent(searchQuery + " fundo branco profissional oficial");
+      const query = encodeURIComponent(imageSearchQuery + " fundo branco profissional oficial");
       const results = [
         `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
         `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
         `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
         `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
-        `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem")}&w=600&h=600&c=7&rs=1`,
-        `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " produto")}&w=600&h=600&c=7&rs=1`
+        `https://tse1.mm.bing.net/th?q=${encodeURIComponent(imageSearchQuery + " embalagem")}&w=600&h=600&c=7&rs=1`,
+        `https://tse2.mm.bing.net/th?q=${encodeURIComponent(imageSearchQuery + " produto")}&w=600&h=600&c=7&rs=1`
       ];
       await new Promise(resolve => setTimeout(resolve, 800));
       setSearchResults(results);
@@ -200,9 +200,15 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
 
   const openImageSearch = () => {
     const brandPrefix = newProduct.brand ? `${newProduct.brand} ` : '';
-    setSearchQuery(`${brandPrefix}${newProduct.name}`);
+    setImageSearchQuery(`${brandPrefix}${newProduct.name}`);
     setSearchDialogOpen(true);
     setSearchResults([]);
+  };
+
+  const selectImage = (url: string) => {
+    setNewProduct({ ...newProduct, image_url: url });
+    setSearchDialogOpen(false);
+    toast.success('Imagem selecionada!');
   };
 
    useEffect(() => {
@@ -854,6 +860,71 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="max-w-2xl border-4 border-zinc-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase italic text-2xl tracking-tighter">Buscador de Fotos</DialogTitle>
+            <DialogDescription className="font-bold uppercase text-[10px]">Encontre a melhor imagem para {newProduct.name}</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="flex gap-2">
+              <Input 
+                value={imageSearchQuery} 
+                onChange={(e) => setImageSearchQuery(e.target.value)}
+                placeholder="Ex: Coca Cola 2L garrafa"
+                className="font-bold"
+              />
+              <Button onClick={performSearch} disabled={searching} className="bg-zinc-900 hover:bg-zinc-800">
+                {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              </Button>
+              <Button variant="outline" className="border-2 border-zinc-200" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(imageSearchQuery)}&tbm=isch`, '_blank')}>
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-3 gap-4">
+                {searchResults.map((url, i) => (
+                  <div 
+                    key={i} 
+                    className="group relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 hover:border-zinc-900 cursor-pointer transition-all"
+                    onClick={() => selectImage(url)}
+                  >
+                    <img src={url} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="text-white font-black uppercase text-[10px]">Selecionar</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-zinc-100 rounded-2xl p-12 text-center">
+                <ImageIcon className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
+                <p className="text-zinc-400 font-bold uppercase text-[10px]">Clique em pesquisar para ver sugestões ou use o botão do Google ao lado</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Ou cole a URL da imagem diretamente</label>
+              <Input 
+                placeholder="https://exemplo.com/foto.jpg" 
+                onChange={(e) => {
+                  if (e.target.value.startsWith('http')) {
+                    selectImage(e.target.value)
+                  }
+                }}
+                className="text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSearchDialogOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
