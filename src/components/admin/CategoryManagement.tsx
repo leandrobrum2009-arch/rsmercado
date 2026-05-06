@@ -311,8 +311,8 @@ export function CategoryManagement() {
                       <button
                         key={icon.url}
                         type="button"
-                        onClick={() => setCurrentCategory({...currentCategory, icon_url: icon.url})}
-                        className={`p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2 ${currentCategory.icon_url === icon.url ? 'bg-white border-primary shadow-md scale-105' : 'bg-white border-zinc-100 hover:border-primary/30'}`}
+                        onClick={() => setCurrentCategory({...currentCategory, icon_url: icon.url, icon_name: ''})}
+                        className={`p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2 ${currentCategory.icon_url === icon.url ? 'bg-white border-primary shadow-md scale-105' : 'bg-white border-zinc-100 hover:border-primary/30 opacity-70 hover:opacity-100'}`}
                       >
                         <img src={icon.url} className="w-8 h-8 object-contain" alt={icon.name} />
                         <span className="text-[8px] font-bold uppercase truncate w-full text-center">{icon.name}</span>
@@ -382,8 +382,8 @@ export function CategoryManagement() {
                         <button
                           key={icon.name}
                           type="button"
-                          onClick={() => setCurrentCategory({...currentCategory, icon_name: `${icon.name}:${selectedStyle}`})}
-                          className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all border-2 ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-md' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary'}`}
+                          onClick={() => setCurrentCategory({...currentCategory, icon_name: `${icon.name}:${selectedStyle}`, icon_url: ''})}
+                          className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all border-2 ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-md' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary opacity-70 hover:opacity-100'}`}
                         >
                           {Icon ? (
                             <Icon 
