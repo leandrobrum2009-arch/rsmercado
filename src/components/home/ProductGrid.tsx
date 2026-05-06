@@ -1,7 +1,8 @@
- import { ProductCard } from "../ProductCard";
+import { ProductCard } from "../ProductCard";
  import { useEffect, useState } from "react";
  import { supabase } from "@/lib/supabase";
- import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
  
    export const ProductGrid = ({ title, categoryName, tag }: { title: string, categoryName?: string, tag?: string }) => {
     const [products, setProducts] = useState<any[]>([]);
@@ -84,10 +85,18 @@
  
    return (
      <section className="px-4 py-6">
-       <div className="flex items-center justify-between mb-4">
-         <h2 className="text-lg font-bold text-gray-800">{title}</h2>
-         <button className="text-green-600 text-sm font-semibold">Ver tudo</button>
-       </div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+          {tag === 'DESTAQUE' && (
+            <Link to="/highlights" className="text-green-600 text-sm font-semibold">Ver tudo</Link>
+          )}
+          {tag === 'OFERTA' && (
+            <Link to="/offers" className="text-green-600 text-sm font-semibold">Ver tudo</Link>
+          )}
+          {!tag && (
+            <button className="text-green-600 text-sm font-semibold">Ver tudo</button>
+          )}
+        </div>
         {products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
            {products.map((p) => (
