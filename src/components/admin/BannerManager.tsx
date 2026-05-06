@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Loader2, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react'
+import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram } from 'lucide-react'
 import { toast } from '@/lib/toast'
 
 export function BannerManager() {
@@ -60,6 +60,26 @@ export function BannerManager() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  const importFromInstagram = (url: string) => {
+    if (!url.includes('instagram.com/')) {
+      return toast.error('URL do Instagram inválida');
+    }
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      if (pathParts.length >= 2 && (pathParts[0] === 'p' || pathParts[0] === 'reels' || pathParts[0] === 'reel' || pathParts[0] === 'stories')) {
+        const postId = pathParts[1];
+        const imageUrl = `https://www.instagram.com/p/${postId}/media/?size=l`;
+        setNewBanner({ ...newBanner, image_url: imageUrl });
+        toast.success('Imagem do Instagram capturada para o banner!');
+      } else {
+        toast.error('Não foi possível identificar o ID da postagem.');
+      }
+    } catch (e) {
+      toast.error('Erro ao processar URL.');
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -179,7 +199,20 @@ export function BannerManager() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              <div className="space-y-2 col-span-1 md:col-span-3">
-                <label className="text-xs font-black uppercase text-zinc-500">Imagem do Banner</label>
+                <label className="text-xs font-black uppercase text-zinc-500 flex justify-between items-center">
+                  Imagem do Banner
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
+                    onClick={() => {
+                      const url = prompt('Cole o link da postagem do Instagram para a imagem:');
+                      if (url) importFromInstagram(url);
+                    }}
+                  >
+                    <Instagram size={10} className="mr-1" /> Importar do Insta
+                  </Button>
+                </label>
                 <div className="flex gap-4 items-center">
                   {newBanner.image_url && (
                     <img src={newBanner.image_url} className="w-32 h-16 object-cover rounded-lg border-2 border-zinc-200" alt="Preview" />
