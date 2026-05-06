@@ -36,18 +36,7 @@
    useEffect(() => {
       const fetchSettings = async () => {
         try {
-          // Only fetch public keys to avoid exposing sensitive settings like admin_whatsapp
-          const publicKeys = [
-            'site_name', 'logo_url', 'color_palette', 'address', 'whatsapp', 
-            'opening_hours', 'instagram_url', 'facebook_url', 'store_description', 
-            'instagram_post_count', 'instagram_items'
-          ]
-          
-          const { data, error } = await supabase
-            .from('store_settings')
-            .select('*')
-            .in('key', publicKeys)
-            
+          const { data, error } = await supabase.from('store_settings').select('*')
           if (error) throw error
   
           if (data && data.length > 0) {

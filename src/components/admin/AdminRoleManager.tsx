@@ -133,7 +133,7 @@
                    className={`w-full p-4 flex items-center justify-between text-left transition-colors ${editingAdmin?.id === admin.id ? 'bg-zinc-50' : 'hover:bg-zinc-50/50'}`}
                  >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-zinc-100 text-zinc-500">
+                      <div className={`p-2 rounded-full ${admin.profiles?.email === 'leandrobrum2009@gmail.com' ? 'bg-amber-100 text-amber-600' : 'bg-zinc-100 text-zinc-500'}`}>
                         <ShieldCheck size={16} />
                       </div>
                      <div>
@@ -185,6 +185,7 @@
                                 id={perm.id} 
                                 checked={editingAdmin.permissions?.includes(perm.id)}
                                 onCheckedChange={() => togglePermission(perm.id)}
+                                disabled={editingAdmin.profiles?.email === 'leandrobrum2009@gmail.com'}
                               />
                               <label 
                                 htmlFor={perm.id} 
@@ -205,7 +206,7 @@
                     </Button>
                     <Button 
                       onClick={handleSavePermissions} 
-                      disabled={isSaving}
+                      disabled={isSaving || editingAdmin.profiles?.email === 'leandrobrum2009@gmail.com'}
                       className="bg-zinc-900 rounded-xl px-8 text-[10px] font-black uppercase h-10"
                     >
                       {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}

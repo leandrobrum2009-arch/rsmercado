@@ -133,6 +133,8 @@ export const Route = createFileRoute('/admin')({
            
             if (roleData?.permissions) {
               setUserPermissions(roleData.permissions)
+            } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+              setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "organizer", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "theme", "whatsapp", "webhooks", "admin_roles"])
             }
          }
  
@@ -232,7 +234,7 @@ export const Route = createFileRoute('/admin')({
                <h3 className="px-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{group.title}</h3>
                <div className="space-y-1">
                    {group.items.map((item) => {
-                     const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all')
+                     const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
                      if (!isAllowed) return null
                     return (
                     <button
