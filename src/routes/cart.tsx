@@ -331,6 +331,12 @@ function CartPage() {
                 </p>
               </div>
             </div>
+          ) : addresses.length === 0 ? (
+            <button onClick={() => setUseSimplifiedAddress(true)} className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
+              <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
+              <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
+              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Digitação Rápida</span>
+            </button>
           ) : (
             <div className="bg-white rounded-3xl shadow-sm border p-4 space-y-3">
               <div className="flex items-start gap-3">
