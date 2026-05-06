@@ -10,8 +10,7 @@
      const { data: settings, error: settingsError } = await supabase.from('store_settings').select('*')
      if (settingsError) console.log('Settings Error:', settingsError.message)
      else {
-       const siteName = settings?.find(s => s.key === 'site_name')?.value;
-       console.log('Site Name:', siteName);
+       settings?.forEach(s => console.log(`Key: ${s.key}, Value: ${JSON.stringify(s.value)}`));
      }
  
      const { data: alerts, error: alertsError } = await supabase.from('store_alerts').select('*')
