@@ -16,7 +16,7 @@ export function BannerManager() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
    const [newBanner, setNewBanner] = useState({ image_url: '', category_id: '', link_url: '', is_active: true })
-   const [uploading, setUploading] = useState(false)
+   const [uploading, setUploading] = useState<string | boolean>(false)
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0]
      if (!file) return
@@ -31,17 +31,20 @@ export function BannerManager() {
         let bucketName = 'banners';
         let uploadError = null;
         
-        const { data: uploadData, error: firstError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file);
-        
-        if (firstError) {
-          bucketName = 'products';
-          const { data: retryData, error: retryError } = await supabase.storage
-            .from(bucketName)
-            .upload(filePath, file);
-          uploadError = retryError;
+        const buckets = ['banners', 'categories', 'products'];
+        let success = false;
+
+        for (const bucket of buckets) {
+          const { data, error } = await supabase.storage.from(bucket).upload(filePath, file);
+          if (!error) {
+            bucketName = bucket;
+            success = true;
+            break;
+          }
+          uploadError = error;
         }
+
+        if (!success) throw uploadError || new Error('Não foi possível fazer o upload em nenhum bucket.');
   
         if (uploadError) throw uploadError;
   
@@ -191,11 +194,14 @@ export function BannerManager() {
   }
 
   const updateCategoryBanner = async (categoryId: string, url: string) => {
-    const { error } = await supabase.from('categories').update({ banner_url: url }).eq('id', categoryId);
-    if (error) toast.error('Erro ao atualizar banner da categoria');
-    else {
+    try {
+      const { error } = await supabase.from('categories').update({ banner_url: url }).eq('id', categoryId);
+      if (error) throw error;
       toast.success('Banner da categoria atualizado!');
       fetchData();
+    } catch (err: any) {
+      console.error('Error updating category banner:', err);
+      toast.error('Erro ao atualizar: ' + (err.message || 'Erro desconhecido'));
     }
   };
 
@@ -422,27 +428,55 @@ export function BannerManager() {
                     </Button>
                   </Label>
                   <div className="flex gap-2">
-                    <Input 
-                      placeholder="Link da imagem..." 
-                      defaultValue={cat.banner_url} 
-                      onBlur={(e) => updateCategoryBanner(cat.id, e.target.value)}
+                    <Input
+                      key={`${cat.id}-${cat.banner_url}`}
+                      placeholder="Link da imagem..."
+                      defaultValue={cat.banner_url}
+                      onBlur={(e) => {
+                        if (e.target.value !== cat.banner_url) {
+                          updateCategoryBanner(cat.id, e.target.value);
+                        }
+                      }}
                       className="text-xs font-bold h-10 rounded-xl"
                     />
                     <label className="h-10 w-10 shrink-0 bg-zinc-900 text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-zinc-800 transition-colors">
-                      <Upload size={16} />
+                      {uploading === cat.id ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
                       <input 
                         type="file" 
                         className="hidden" 
                         accept="image/*"
+                        disabled={uploading !== false}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
+                          setUploading(cat.id);
+                          try {
                           const fileExt = file.name.split('.').pop();
                           const fileName = `cat-banner-${cat.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                          const { data, error } = await supabase.storage.from('products').upload(fileName, file);
-                          if (!error) {
-                            const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(fileName);
-                            updateCategoryBanner(cat.id, publicUrl);
+                          
+                          const buckets = ['banners', 'categories', 'products'];
+                          let success = false;
+                          let finalBucket = 'products';
+
+                          for (const bucket of buckets) {
+                            const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+                            if (!error) {
+                              finalBucket = bucket;
+                              success = true;
+                              break;
+                            }
+                          }
+
+                          if (success) {
+                            const { data: { publicUrl } } = supabase.storage.from(finalBucket).getPublicUrl(fileName);
+                            await updateCategoryBanner(cat.id, publicUrl);
+                          } else {
+                            toast.error('Erro ao fazer upload da imagem.');
+                          }
+                          } catch (err: any) {
+                            toast.error('Erro no processamento: ' + err.message);
+                          } finally {
+                            setUploading(false);
                           }
                         }}
                       />
