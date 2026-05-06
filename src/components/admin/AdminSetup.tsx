@@ -11,17 +11,9 @@ export function AdminSetup() {
   const [isAdminExists, setIsAdminExists] = useState<boolean | null>(null)
   const [secretKey, setSecretKey] = useState('')
 
- useEffect(() => {
-   const init = async () => {
-     const { data: { session } } = await supabase.auth.getSession();
-     if (session?.user.email === 'leandrobrum2009@gmail.com') {
-       setIsAdminExists(true);
-       return;
-     }
-     checkAdminExists();
-   };
-   init();
- }, []);
+  useEffect(() => {
+    checkAdminExists();
+  }, []);
 
  const checkAdminExists = async () => {
    try {

@@ -131,10 +131,8 @@ export const Route = createFileRoute('/admin')({
              .eq('user_id', currentSession.user.id)
              .maybeSingle()
            
-           if (roleData?.permissions) {
-             setUserPermissions(roleData.permissions)
-            } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
-              setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "theme", "whatsapp", "webhooks", "admin_roles"])
+            if (roleData?.permissions) {
+              setUserPermissions(roleData.permissions)
             }
          }
  
@@ -233,9 +231,9 @@ export const Route = createFileRoute('/admin')({
              <div key={group.title} className="space-y-2">
                <h3 className="px-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{group.title}</h3>
                <div className="space-y-1">
-                  {group.items.map((item) => {
-                    const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
-                    if (!isAllowed) return null
+                   {group.items.map((item) => {
+                     const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all')
+                     if (!isAllowed) return null
                     return (
                     <button
                       key={item.id}

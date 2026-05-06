@@ -133,10 +133,34 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
     };
   
     const updateInstagramItem = (id: number, field: string, value: string) => {
+      let updatedValue = value;
+      let additionalFields = {};
+
+      // Auto-extract thumbnail from Instagram URL
+      if (field === 'url' && value.includes('instagram.com/')) {
+        try {
+          // Extract the path (e.g., /p/CODE/ or /reel/CODE/)
+          const urlObj = new URL(value);
+          const pathParts = urlObj.pathname.split('/').filter(Boolean);
+          if (pathParts.length >= 2 && (pathParts[0] === 'p' || pathParts[0] === 'reels' || pathParts[0] === 'reel' || pathParts[0] === 'stories')) {
+            const postId = pathParts[1];
+            const baseUrl = `https://www.instagram.com/p/${postId}/`;
+            // Suggest the media URL as thumbnail
+            additionalFields = { 
+              thumbnail: `${baseUrl}media/?size=l`,
+              type: pathParts[0] === 'reels' || pathParts[0] === 'reel' ? 'reel' : 
+                    pathParts[0] === 'stories' ? 'story' : 'post'
+            };
+          }
+        } catch (e) {
+          console.error('Invalid URL for thumbnail extraction:', e);
+        }
+      }
+
       setSettings({ 
         ...settings, 
         instagram_items: (settings.instagram_items || []).map((item: any) => 
-          item.id === id ? { ...item, [field]: value } : item
+          item.id === id ? { ...item, [field]: updatedValue, ...additionalFields } : item
         ) 
       });
     };
@@ -157,12 +181,11 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
      setIsSaving(true)
-     try {
-       const { data: isAdmin } = await supabase.rpc('is_admin');
-       const { data: { session } } = await supabase.auth.getSession();
-       if (!isAdmin && session?.user?.email !== 'leandrobrum2009@gmail.com') {
-         throw new Error('Sem permissão administrativa no banco de dados.');
-       }
+      try {
+        const { data: isAdmin } = await supabase.rpc('is_admin');
+        if (!isAdmin) {
+          throw new Error('Sem permissão administrativa no banco de dados.');
+        }
 
        const updates = [
          { key: 'site_name', value: settings.site_name },
@@ -462,8 +485,8 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
              </CardContent>
             </Card>
 
-            {/* Instagram Feed Content */}
-            <Card className="border-zinc-200 shadow-sm">
+             {/* Instagram Feed Content */}
+             <Card className="border-zinc-200 shadow-sm md:col-span-2">
               <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-zinc-800">
                   <Instagram className="h-5 w-5 text-pink-600" />

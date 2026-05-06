@@ -132,10 +132,10 @@
                    onClick={() => setEditingAdmin(admin)}
                    className={`w-full p-4 flex items-center justify-between text-left transition-colors ${editingAdmin?.id === admin.id ? 'bg-zinc-50' : 'hover:bg-zinc-50/50'}`}
                  >
-                   <div className="flex items-center gap-3">
-                     <div className={`p-2 rounded-full ${admin.profiles?.email === 'leandrobrum2009@gmail.com' ? 'bg-amber-100 text-amber-600' : 'bg-zinc-100 text-zinc-500'}`}>
-                       <ShieldCheck size={16} />
-                     </div>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-zinc-100 text-zinc-500">
+                        <ShieldCheck size={16} />
+                      </div>
                      <div>
                        <p className="font-black uppercase text-[10px] text-zinc-900">{admin.profiles?.full_name || 'Usuário Admin'}</p>
                        <p className="text-[9px] font-bold text-zinc-400">{admin.profiles?.email}</p>
@@ -174,45 +174,44 @@
                    </div>
                  )}
  
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                   {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral'].map(group => (
-                     <div key={group} className="space-y-3">
-                       <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b pb-1">{group}</h4>
-                       <div className="space-y-2">
-                         {availablePermissions.filter(p => p.group === group).map(perm => (
-                           <div key={perm.id} className="flex items-center space-x-2">
-                             <Checkbox 
-                               id={perm.id} 
-                               checked={editingAdmin.permissions?.includes(perm.id)}
-                               onCheckedChange={() => togglePermission(perm.id)}
-                               disabled={editingAdmin.profiles?.email === 'leandrobrum2009@gmail.com'}
-                             />
-                             <label 
-                               htmlFor={perm.id} 
-                               className="text-[10px] font-bold uppercase text-zinc-600 cursor-pointer select-none"
-                             >
-                               {perm.label}
-                             </label>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   ))}
-                 </div>
- 
-                 <div className="pt-6 border-t flex justify-end gap-3">
-                   <Button variant="ghost" onClick={() => setEditingAdmin(null)} className="rounded-xl text-[10px] font-black uppercase">
-                     Cancelar
-                   </Button>
-                   <Button 
-                     onClick={handleSavePermissions} 
-                     disabled={isSaving || editingAdmin.profiles?.email === 'leandrobrum2009@gmail.com'}
-                     className="bg-zinc-900 rounded-xl px-8 text-[10px] font-black uppercase h-10"
-                   >
-                     {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-                     Salvar Permissões
-                   </Button>
-                 </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral'].map(group => (
+                      <div key={group} className="space-y-3">
+                        <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b pb-1">{group}</h4>
+                        <div className="space-y-2">
+                          {availablePermissions.filter(p => p.group === group).map(perm => (
+                            <div key={perm.id} className="flex items-center space-x-2">
+                              <Checkbox 
+                                id={perm.id} 
+                                checked={editingAdmin.permissions?.includes(perm.id)}
+                                onCheckedChange={() => togglePermission(perm.id)}
+                              />
+                              <label 
+                                htmlFor={perm.id} 
+                                className="text-[10px] font-bold uppercase text-zinc-600 cursor-pointer select-none"
+                              >
+                                {perm.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+  
+                  <div className="pt-6 border-t flex justify-end gap-3">
+                    <Button variant="ghost" onClick={() => setEditingAdmin(null)} className="rounded-xl text-[10px] font-black uppercase">
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleSavePermissions} 
+                      disabled={isSaving}
+                      className="bg-zinc-900 rounded-xl px-8 text-[10px] font-black uppercase h-10"
+                    >
+                      {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+                      Salvar Permissões
+                    </Button>
+                  </div>
                </div>
              )}
            </CardContent>
