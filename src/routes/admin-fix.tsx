@@ -15,30 +15,34 @@
  
    const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
-   -- Use email_confirmed_at to avoid "generated column" errors with confirmed_at
-   UPDATE auth.users SET email_confirmed_at = NOW(), confirmed_at = NULL WHERE email = 'leandrobrum2009@gmail.com';
+   -- Note: We use email_confirmed_at. confirmed_at is a generated column and should not be touched.
+   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
-  -- Optimized is_admin function to avoid recursion
-  CREATE OR REPLACE FUNCTION public.is_admin() 
-  RETURNS BOOLEAN 
-  LANGUAGE plpgsql 
-  SECURITY DEFINER 
-  SET search_path = public, auth 
-  AS $$
-  BEGIN
-    -- Master bypass by email
-    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
-      RETURN TRUE;
-    END IF;
+   -- Optimized is_admin function to avoid recursion and secure access
+   CREATE OR REPLACE FUNCTION public.is_admin() 
+   RETURNS BOOLEAN 
+   LANGUAGE plpgsql 
+   SECURITY DEFINER 
+   SET search_path = public, auth 
+   AS $$
+   DECLARE
+     user_role TEXT;
+   BEGIN
+     -- Master bypass by email (Secure check against JWT claim)
+     IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+       RETURN TRUE;
+     END IF;
 
-    -- Check user_roles table (SECURITY DEFINER bypasses RLS if owned by postgres)
-    RETURN EXISTS (
-      SELECT 1 FROM public.user_roles 
-      WHERE user_id = auth.uid() 
-      AND role = 'admin'
-    );
-  END; $$;
+     -- Check user_roles table
+     -- Since this is SECURITY DEFINER, it runs as the owner (postgres) and bypasses RLS
+     SELECT role INTO user_role 
+     FROM public.user_roles 
+     WHERE user_id = auth.uid() 
+     LIMIT 1;
+
+     RETURN user_role = 'admin';
+   END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
