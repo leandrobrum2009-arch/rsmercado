@@ -239,26 +239,25 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
     setUploading(type)
     try {
       const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `categories/${type}/${fileName}`
+      const fileName = `cat-${type}-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = `${fileName}`
 
-      // Try categories bucket, fallback to products
+      const buckets = ['categories', 'banners', 'products'];
       let bucketName = 'categories';
       let uploadError = null;
-      
-      const { data: uploadData, error: firstError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file);
-      
-      if (firstError) {
-        bucketName = 'products';
-        const { data: retryData, error: retryError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file);
-        uploadError = retryError;
+      let success = false;
+
+      for (const bucket of buckets) {
+        const { data, error } = await supabase.storage.from(bucket).upload(filePath, file);
+        if (!error) {
+          bucketName = bucket;
+          success = true;
+          break;
+        }
+        uploadError = error;
       }
 
-      if (uploadError) throw uploadError;
+      if (!success) throw uploadError || new Error('Falha no upload em todos os buckets.');
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
@@ -267,11 +266,13 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
       setCurrentCategory({ ...currentCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
       toast.success(`${type === 'icon' ? 'Ícone' : 'Banner'} carregado!`)
     } catch (error: any) {
+      console.error('Upload error:', error);
       toast.error('Erro no upload: ' + error.message)
     } finally {
       setUploading(null)
     }
   }
+
 
   const handleSaveCategory = async () => {
     if (!currentCategory.name || !currentCategory.slug) return toast.error('Nome e Slug são obrigatórios')

@@ -29,6 +29,7 @@ export function HomeBanners() {
           .from('categories')
           .select('*')
           .not('banner_url', 'is', null)
+          .neq('banner_url', '')
           .limit(3);
         
         if (catData && catData.length > 0) {

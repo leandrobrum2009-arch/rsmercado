@@ -55,7 +55,7 @@ export function CategoryBanners() {
             return {
               ...cat,
               product_count: counts[cat.id] || 0,
-              banner_url: cat.banner_url || fallbackImages[slug] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800'
+              banner_url: cat.banner_url && cat.banner_url !== '' ? cat.banner_url : (fallbackImages[slug] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800')
             };
           });
           setCategories(processedCategories);
