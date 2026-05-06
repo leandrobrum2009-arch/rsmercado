@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,11 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
  import * as LucideIcons from 'lucide-react'
- import { 
-    Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, 
-    Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2,
-    Snowflake, Candy, Box, Soup, Sandwich, Popcorn, Salad, Cherry
-  } from 'lucide-react'
+import {
+  Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee,
+  Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2,
+  Snowflake, Candy, Box, Soup, Sandwich, Popcorn, Salad, Cherry, Search, Utensils, Cigarette, Home, Heart,
+  Shirt, Scissors, Zap, Gift, Book, Camera, Tv, Smartphone, Watch, Bike, Car, Briefcase, Calculator,
+  Calendar, Clipboard, Clock, Cloud, Compass, CreditCard, Database, Eye, FileText, Film, Flag, FlaskConical,
+  Folder, Gauge, Globe, HardDrive, Headphones, HelpCircle, Key, Layers, LifeBuoy, Link, List, Lock, Map,
+  MessageSquare, Mic, Moon, MousePointer, Music, Navigation, Palette, Paperclip, Phone, PieChart, Printer,
+  Radio, Save, Search as SearchIcon, Send, Settings, Share2, Shield, ShoppingCart, Star, Sun, Tag,
+  Terminal, ThumbsUp, Ticket, Trophy, Truck, Umbrellas, User, Video, Volume2, Wifi, Zap as ZapIcon
+} from 'lucide-react'
 
   const getIconComponent = (name: string) => {
     // @ts-ignore
@@ -22,45 +28,85 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
+const CATEGORY_ICONS = [
+  { name: 'Apple', label: 'Frutas' },
+  { name: 'Beef', label: 'Carnes' },
+  { name: 'Milk', label: 'Laticínios' },
+  { name: 'Beer', label: 'Bebidas' },
+  { name: 'Fish', label: 'Peixaria' },
+  { name: 'IceCream', label: 'Sorvetes' },
+  { name: 'Snowflake', label: 'Congelados' },
+  { name: 'Coffee', label: 'Café' },
+  { name: 'Carrot', label: 'Legumes' },
+  { name: 'Pizza', label: 'Massas' },
+  { name: 'Wine', label: 'Vinhos' },
+  { name: 'Egg', label: 'Ovos' },
+  { name: 'GlassWater', label: 'Água' },
+  { name: 'ChefHat', label: 'Gourmet' },
+  { name: 'ShoppingBag', label: 'Geral' },
+  { name: 'Trash2', label: 'Limpeza' },
+  { name: 'Sparkles', label: 'Higiene' },
+  { name: 'Baby', label: 'Infantil' },
+  { name: 'Dog', label: 'Pet Shop' },
+  { name: 'Grape', label: 'Frutas' },
+  { name: 'Wheat', label: 'Grãos' },
+  { name: 'Cookie', label: 'Biscoitos' },
+  { name: 'Bath', label: 'Banho' },
+  { name: 'Flower2', label: 'Flores' },
+  { name: 'Candy', label: 'Doces' },
+  { name: 'Box', label: 'Estoque' },
+  { name: 'Soup', label: 'Caldos' },
+  { name: 'Sandwich', label: 'Lanches' },
+  { name: 'Popcorn', label: 'Cinema' },
+  { name: 'Salad', label: 'Saudável' },
+  { name: 'Cherry', label: 'Cerejas' },
+  { name: 'Utensils', label: 'Restaurante' },
+  { name: 'Cigarette', label: 'Tabacaria' },
+  { name: 'Home', label: 'Casa' },
+  { name: 'Heart', label: 'Bem Estar' },
+  { name: 'Shirt', label: 'Vestuário' },
+  { name: 'Scissors', label: 'Beleza' },
+  { name: 'Zap', label: 'Eletrônicos' },
+  { name: 'Gift', label: 'Presentes' },
+  { name: 'Book', label: 'Livraria' },
+  { name: 'Truck', label: 'Logística' },
+  { name: 'Trophy', label: 'Esportes' },
+  { name: 'ShoppingCart', label: 'Mercado' },
+  { name: 'Palette', label: 'Artes' },
+  { name: 'Smartphone', label: 'Mobile' },
+  { name: 'Music', label: 'Música' },
+  { name: 'Camera', label: 'Foto' },
+  { name: 'Tv', label: 'Vídeo' },
+  { name: 'Shield', label: 'Segurança' },
+  { name: 'Sun', label: 'Verão' },
+  { name: 'Moon', label: 'Noite' }
+];
+
 export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag:minimalist', banner_url: '' })
-   const [selectedStyle, setSelectedStyle] = useState('minimalist')
-    const elegantIcons = [
-      { name: 'Apple', label: 'Frutas' },
-      { name: 'Beef', label: 'Carnes' },
-      { name: 'Milk', label: 'Laticínios' },
-      { name: 'Beer', label: 'Bebidas' },
-      { name: 'Fish', label: 'Peixaria' },
-      { name: 'IceCream', label: 'Sorvetes' },
-      { name: 'Snowflake', label: 'Congelados' },
-      { name: 'Coffee', label: 'Café' },
-      { name: 'Carrot', label: 'Legumes' },
-      { name: 'Pizza', label: 'Massas' },
-      { name: 'Wine', label: 'Vinhos' },
-      { name: 'Egg', label: 'Ovos' },
-      { name: 'GlassWater', label: 'Água' },
-      { name: 'ChefHat', label: 'Gourmet' },
-      { name: 'ShoppingBag', label: 'Geral' },
-      { name: 'Trash2', label: 'Limpeza' },
-      { name: 'Sparkles', label: 'Higiene' },
-      { name: 'Baby', label: 'Infantil' },
-      { name: 'Dog', label: 'Pet Shop' },
-      { name: 'Grape', label: 'Frutas' },
-      { name: 'Wheat', label: 'Grãos' },
-      { name: 'Cookie', label: 'Biscoitos' },
-      { name: 'Bath', label: 'Banho' },
-      { name: 'Flower2', label: 'Flores' },
-      { name: 'Candy', label: 'Doces' },
-      { name: 'Box', label: 'Estoque' },
-      { name: 'Soup', label: 'Caldos' },
-      { name: 'Sandwich', label: 'Lanches' },
-      { name: 'Popcorn', label: 'Cinema' },
-      { name: 'Salad', label: 'Saudável' },
-      { name: 'Cherry', label: 'Cerejas' }
-    ];
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const [currentCategory, setCurrentCategory] = useState({ 
+    id: '', 
+    name: '', 
+    slug: '', 
+    icon_url: '', 
+    icon_name: 'ShoppingBag:minimalist', 
+    banner_url: '' 
+  })
+  
+  const [selectedStyle, setSelectedStyle] = useState('minimalist')
+
+  const filteredIcons = useMemo(() => {
+    return CATEGORY_ICONS.filter(icon => 
+      icon.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      icon.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm])
  
    const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
 
