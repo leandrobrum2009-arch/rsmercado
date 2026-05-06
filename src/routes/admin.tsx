@@ -27,8 +27,8 @@ import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { createFileRoute, redirect, useSearch } from '@tanstack/react-router'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
@@ -95,12 +95,24 @@ export const Route = createFileRoute('/admin')({
     await checkAdmin();
   },
   component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      tab: (search.tab as string) || 'dashboard',
+    }
+  },
 })
 
  function RouteComponent() {
+   const { tab } = useSearch({ from: '/admin' })
    const [userPermissions, setUserPermissions] = useState<string[]>([])
    const [session, setSession] = useState<any>(null)
-   const [activeTab, setActiveTab] = useState('dashboard')
+   const [activeTab, setActiveTab] = useState(tab || 'dashboard')
+    useEffect(() => {
+      if (tab && tab !== activeTab) {
+        setActiveTab(tab)
+      }
+    }, [tab])
+
    const [sidebarOpen, setSidebarOpen] = useState(false)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
     const [lastError, setLastError] = useState<string | null>(null)
