@@ -8,7 +8,7 @@
   import { RecipeFeed } from "@/components/home/RecipeFeed";
   import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
   import { InstagramFeed } from "@/components/home/InstagramFeed";
-   import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell } from "lucide-react";
+    import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
  import { Badge } from "@/components/ui/badge";
  
  function DailyFlyer() {
