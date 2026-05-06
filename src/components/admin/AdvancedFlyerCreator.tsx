@@ -21,12 +21,19 @@
    unit?: string
  }
  
- type LayoutType = 'grid-8' | 'featured-side' | 'featured-top' | 'single'
+ type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
+ type BackgroundType = 'image' | 'gradient' | 'color'
  
  export function AdvancedFlyerCreator() {
    const { settings: storeSettings } = useStoreSettings()
-   const [layout, setLayout] = useState<LayoutType>('grid-8')
+   const [layout, setLayout] = useState<LayoutType>('grid')
+   const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
    const [backgroundUrl, setBackgroundUrl] = useState('')
+   const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+   const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+   const [columns, setColumns] = useState(3)
+   const [gridGap, setGridGap] = useState(16)
+   const [showLogo, setShowLogo] = useState(true)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
@@ -70,7 +77,12 @@
    }
  
    const addProductToFlyer = (product: any) => {
-     const max = layout === 'single' ? 1 : 8
+     let max = 12
+     if (layout === 'single') max = 1
+     if (layout === 'grid') max = columns * 4 
+     if (layout === 'featured-side') max = 8
+     if (layout === 'featured-top') max = 10
+ 
      if (selectedProducts.length >= max) {
        toast.error(`Limite de ${max} produtos para este layout`)
        return
@@ -113,7 +125,7 @@
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
                <div className="grid grid-cols-2 gap-2">
                  {[
-                   { id: 'grid-8', label: '8 Produtos (Grade)', icon: Layout },
+                   { id: 'grid', label: 'Grade Flexível', icon: Layout },
                    { id: 'featured-side', label: 'Destaque Lateral', icon: Layout },
                    { id: 'featured-top', label: 'Destaque Topo', icon: Layout },
                    { id: 'single', label: 'Produto Único', icon: Layout },
@@ -134,22 +146,85 @@
                </div>
              </div>
  
-             {/* Background Image */}
-             <div className="space-y-3">
-               <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Imagem de Fundo (A4)</Label>
-               <div className="flex gap-4 items-center">
-                 {backgroundUrl && (
-                   <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
-                 )}
-                 <div className="flex-1">
-                   <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                   <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                     {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                     <span className="text-xs font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
-                   </label>
+               {layout === 'grid' && (
+                 <div className="space-y-3">
+                   <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Colunas na Grade</Label>
+                   <div className="flex gap-2">
+                     {[2, 3, 4].map(c => (
+                       <Button
+                         key={c}
+                         variant={columns === c ? 'default' : 'outline'}
+                         className="flex-1 h-8 text-[10px] font-bold"
+                         onClick={() => setColumns(c)}
+                       >
+                         {c} Colunas
+                       </Button>
+                     ))}
+                   </div>
                  </div>
+               )}
+ 
+               <div className="space-y-3">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento entre Blocos ({gridGap}px)</Label>
+                 <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
                </div>
-             </div>
+ 
+               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Logotipo no Topo</Label>
+                 <Button 
+                   variant={showLogo ? 'default' : 'outline'} 
+                   size="sm" 
+                   className="h-8 text-[10px]"
+                   onClick={() => setShowLogo(!showLogo)}
+                 >
+                   {showLogo ? 'Sim' : 'Não'}
+                 </Button>
+               </div>
+ 
+               {/* Background Settings */}
+               <div className="space-y-3">
+                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
+                 <div className="flex gap-2 mb-2">
+                   {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
+                     <Button
+                       key={type}
+                       variant={backgroundType === type ? 'default' : 'outline'}
+                       className="flex-1 h-8 text-[10px] font-bold capitalize"
+                       onClick={() => setBackgroundType(type)}
+                     >
+                       {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
+                     </Button>
+                   ))}
+                 </div>
+ 
+                 {backgroundType === 'image' && (
+                   <div className="flex gap-4 items-center">
+                     {backgroundUrl && (
+                       <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
+                     )}
+                     <div className="flex-1">
+                       <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
+                       <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
+                         {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                         <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
+                       </label>
+                     </div>
+                   </div>
+                 )}
+ 
+                 {backgroundType === 'color' && (
+                   <div className="flex gap-2">
+                     <Input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-12 h-10 p-0 border-none" />
+                     <Input value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="h-10 text-xs" />
+                   </div>
+                 )}
+ 
+                 {backgroundType === 'gradient' && (
+                   <div className="space-y-2">
+                     <Input value={backgroundGradient} onChange={(e) => setBackgroundGradient(e.target.value)} className="h-10 text-xs font-mono" />
+                   </div>
+                 )}
+               </div>
  
              {/* Styling */}
              <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
@@ -256,30 +331,39 @@
        <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
          <div 
            id="flyer-content"
-           className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden"
-           style={{ 
-             backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
-             backgroundSize: '100% 100%',
-             backgroundPosition: 'center',
-             backgroundRepeat: 'no-repeat'
-           }}
-         >
-           {/* Top Reserved Zone (25%) */}
-           <div className="h-[25%] w-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-             <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-               Topo Reservado (Arte de Fundo)
+             className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300"
+             style={{ 
+               background: backgroundType === 'image' 
+                 ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : 'white')
+                 : backgroundType === 'gradient'
+                   ? backgroundGradient
+                   : backgroundColor
+             }}
+           >
+             {/* Top Reserved Zone (25%) */}
+             <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
+               {showLogo && storeSettings?.logo_url && (
+                 <img src={storeSettings.logo_url} className="h-24 object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" alt="Logo" />
+               )}
+               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                   Topo Reservado (25%)
+                 </div>
+               </div>
              </div>
-           </div>
- 
-           {/* Content Middle Zone (60%) */}
-           <div className="flex-1 px-8 py-4 flex flex-col justify-center">
-             <div className={cn(
-               "grid gap-6 h-full",
-               layout === 'grid-8' && "grid-cols-2 grid-rows-4",
-               layout === 'featured-side' && "grid-cols-4 grid-rows-3",
-               layout === 'featured-top' && "grid-cols-2 grid-rows-5",
-               layout === 'single' && "grid-cols-1 grid-rows-1"
-             )}>
+   
+             {/* Content Middle Zone (60%) */}
+             <div className="h-[60%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
+               <div 
+                 className={cn(
+                   "grid h-full max-h-full transition-all duration-300",
+                   layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
+                   layout === 'featured-side' && "grid-cols-4 grid-rows-3",
+                   layout === 'featured-top' && "grid-cols-2 grid-rows-5",
+                   layout === 'single' && "grid-cols-1 grid-rows-1"
+                 )}
+                 style={{ gap: `${gridGap}px` }}
+               >
                {selectedProducts.map((p, i) => {
                  let spanClass = ""
                  if (layout === 'featured-side') {
@@ -299,19 +383,21 @@
                        fontFamily
                      )}
                    >
-                     <div className={cn(
-                       "relative bg-white/40 backdrop-blur-sm rounded-2xl p-4 w-full h-full flex flex-col items-center justify-center border border-white/50 shadow-sm",
-                       layout === 'single' ? 'p-12' : ''
-                     )}>
-                       <img 
-                         src={p.image_url} 
-                         className={cn(
-                           "object-contain mix-blend-multiply drop-shadow-md",
-                           layout === 'single' ? 'w-80 h-80' : 
-                           (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 'w-24 h-24'
-                         )} 
-                       />
-                       <div className="space-y-1">
+                       <div className={cn(
+                         "relative bg-white/60 backdrop-blur-[2px] rounded-xl p-3 w-full h-full flex flex-col items-center justify-center border border-white/30 shadow-sm hover:shadow-md transition-shadow",
+                         layout === 'single' ? 'p-12' : '',
+                         columns === 4 ? 'p-1.5' : ''
+                       )}>
+                         <img 
+                           src={p.image_url} 
+                           className={cn(
+                             "object-contain mix-blend-multiply drop-shadow-sm",
+                             layout === 'single' ? 'w-80 h-80' : 
+                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
+                             columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
+                           )} 
+                         />
+                         <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
                          <h3 
                            className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
                            style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
@@ -340,12 +426,14 @@
              </div>
            </div>
  
-           {/* Bottom Reserved Zone (15%) */}
-           <div className="h-[15%] w-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-             <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-               Rodapé Reservado (Arte de Fundo)
+             {/* Bottom Reserved Zone (15%) */}
+             <div className="h-[15%] w-full flex items-center justify-center relative">
+               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                   Rodapé Reservado (15%)
+                 </div>
+               </div>
              </div>
-           </div>
          </div>
        </div>
  
