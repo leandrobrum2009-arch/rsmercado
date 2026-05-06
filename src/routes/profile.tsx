@@ -1,28 +1,57 @@
-    import { LoyaltyStatus } from '@/components/profile/LoyaltyStatus'
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+ import { LoyaltyStatus } from '@/components/profile/LoyaltyStatus'
+ import { createFileRoute, Link } from '@tanstack/react-router'
+ import { useState, useEffect } from 'react'
+ import { supabase } from '@/lib/supabase'
  import { AuthForm } from '@/components/auth/AuthForm'
  import { AdminSetup } from '@/components/admin/AdminSetup'
  import { Button } from '@/components/ui/button'
-   import { ProfileDetails } from '@/components/profile/ProfileDetails'
-   import { AddressManager } from '@/components/profile/AddressManager'
-  import { OrderTracking } from '@/components/profile/OrderTracking'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat, Wrench } from 'lucide-react'
+ import { ProfileDetails } from '@/components/profile/ProfileDetails'
+ import { AddressManager } from '@/components/profile/AddressManager'
+ import { OrderTracking } from '@/components/profile/OrderTracking'
+ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+ import { Loader2, LogOut, ShieldCheck, ShoppingBag, ChefHat, Wrench, Search, Phone, ArrowRight, Info } from 'lucide-react'
+ import { Input } from '@/components/ui/input'
+ import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/profile')({
   component: ProfilePage,
 })
 
-function ProfilePage() {
-  const [session, setSession] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isClient, setIsClient] = useState(false)
-  const [savedRecipesCount, setSavedRecipesCount] = useState(0)
+ function ProfilePage() {
+   const [session, setSession] = useState<any>(null)
+   const [profile, setProfile] = useState<any>(null)
+   const [loading, setLoading] = useState(true)
+   const [error, setError] = useState<string | null>(null)
+   const [isClient, setIsClient] = useState(false)
+   const [savedRecipesCount, setSavedRecipesCount] = useState(0)
+   const [lookupPhone, setLookupPhone] = useState('')
+   const [guestOrders, setGuestOrders] = useState<any[]>([])
+   const [isSearching, setIsSearching] = useState(false)
+   const handleOrderLookup = async (e: React.FormEvent) => {
+     e.preventDefault()
+     if (!lookupPhone) return
+     setIsSearching(true)
+     try {
+       const { data, error } = await supabase
+         .from('orders')
+         .select('*')
+         .eq('customer_phone', lookupPhone)
+         .order('created_at', { ascending: false })
+       if (error) throw error
+       setGuestOrders(data || [])
+       if (data && data.length > 0) {
+         toast.success(`${data.length} pedidos encontrados!`)
+       } else {
+         toast.info('Nenhum pedido encontrado para este WhatsApp.')
+       }
+     } catch (err: any) {
+       toast.error('Erro ao buscar pedidos: ' + err.message)
+     } finally {
+       setIsSearching(false)
+     }
+   }
+ 
 
    const checkSession = async () => {
      console.log('Checking session...');
@@ -110,17 +139,95 @@ function ProfilePage() {
     )
   }
 
-  if (!session) {
-    return (
-      <div className="container mx-auto px-4 py-12 flex flex-col items-center min-h-[80vh]">
-        <div className="mb-14 text-center">
-          <h1 className="text-4xl font-black text-gray-900 mb-2 uppercase italic tracking-tighter">Bem-vindo à SuperLoja</h1>
-          <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Ofertas exclusivas e pontos de fidelidade</p>
-        </div>
-        <AuthForm />
-      </div>
-    )
-  }
+   if (!session) {
+     return (
+       <div className="container mx-auto px-4 py-12 flex flex-col items-center min-h-[80vh] space-y-12">
+         <div className="text-center">
+           <h1 className="text-4xl font-black text-gray-900 mb-2 uppercase italic tracking-tighter">Minha Conta</h1>
+           <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Acesse seus pedidos e benefícios</p>
+         </div>
+         
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-5xl">
+           <div className="space-y-6">
+             <AuthForm />
+           </div>
+           
+           <div className="space-y-6">
+             <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white">
+               <CardHeader className="bg-zinc-900 text-white p-6">
+                 <CardTitle className="text-lg font-black uppercase italic tracking-tighter flex items-center gap-2">
+                   <ShoppingBag className="text-primary" /> Já fez um pedido?
+                 </CardTitle>
+                 <p className="text-[10px] font-bold uppercase opacity-60">Consulte seus pedidos sem precisar de senha</p>
+               </CardHeader>
+               <CardContent className="p-6 space-y-4">
+                 <form onSubmit={handleOrderLookup} className="space-y-4">
+                   <div className="space-y-2">
+                     <label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp do Pedido</label>
+                     <div className="relative">
+                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                       <Input 
+                         placeholder="(00) 00000-0000" 
+                         value={lookupPhone}
+                         onChange={(e) => setLookupPhone(e.target.value)}
+                         className="pl-12 h-14 rounded-2xl bg-zinc-50 border-zinc-100 font-bold"
+                       />
+                     </div>
+                   </div>
+                   <Button 
+                    type="submit" 
+                    disabled={isSearching}
+                    className="w-full h-14 rounded-2xl font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800"
+                   >
+                     {isSearching ? <Loader2 className="animate-spin mr-2" /> : <Search className="mr-2" />}
+                     BUSCAR PEDIDOS
+                   </Button>
+                 </form>
+ 
+                 {guestOrders.length > 0 && (
+                   <div className="space-y-3 pt-4 border-t">
+                     <p className="text-[10px] font-black uppercase text-zinc-400">Pedidos Encontrados:</p>
+                     {guestOrders.map(order => (
+                       <Link 
+                        key={order.id} 
+                        to="/track/$orderId" 
+                        params={{ orderId: order.id }}
+                        className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 hover:border-primary transition-colors group"
+                       >
+                         <div>
+                           <p className="font-black text-[10px] uppercase text-zinc-400">#{order.id.substring(0, 8)}</p>
+                           <p className="font-bold text-xs text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
+                         </div>
+                         <div className="text-right flex items-center gap-3">
+                           <span className="text-xs font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
+                           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-zinc-300 group-hover:bg-primary group-hover:text-white transition-all">
+                             <ArrowRight size={14} />
+                           </div>
+                         </div>
+                       </Link>
+                     ))}
+                   </div>
+                 )}
+               </CardContent>
+             </Card>
+ 
+             <div className="bg-amber-50 border-2 border-amber-100 rounded-3xl p-6 flex gap-4">
+               <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                 <Info size={24} />
+               </div>
+               <div>
+                 <h4 className="font-black uppercase text-xs text-amber-900 mb-1">Dica para o Interior</h4>
+                 <p className="text-[10px] font-medium text-amber-700 leading-tight">
+                   Não precisa se preocupar com e-mail ou senha! Use o campo acima para ver seus pedidos apenas com seu WhatsApp. 
+                   Ou faça seu pedido direto no carrinho clicando em "Digitação Rápida".
+                 </p>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     )
+   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-in fade-in duration-500">
