@@ -238,9 +238,10 @@ export const Route = createFileRoute('/admin')({
      )
    }
  
-   return (
-      {/* Mobile Header */}
-      <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
+    return (
+     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
+       {/* Mobile Header */}
+       <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
         <h1 className="font-black italic uppercase text-lg tracking-tighter">Admin Panel</h1>
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X /> : <Menu />}
