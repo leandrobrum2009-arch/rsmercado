@@ -79,13 +79,27 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
-export const formatWhatsAppMessage = (type: 'promotion' | 'order', data: any) => {
+export const formatWhatsAppMessage = (type: 'promotion' | 'order' | 'order_summary', data: any) => {
   if (type === 'promotion') {
     return `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*${data.title}*\n\n${data.description}\n\n👉 Confira aqui: ${window.location.origin}/produtos/${data.id}\n\n*Aproveite enquanto durarem os estoques!* 🛒`;
   }
   
   if (type === 'order') {
     return `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #${data.id.substring(0, 8)} foi recebido com sucesso!\n\n💰 Total: R$ ${data.total_amount.toFixed(2)}\n🚚 Status: ${data.status}\n\n📍 *Rastreie seu pedido aqui:* ${window.location.origin}/track/${data.id}`;
+  }
+
+  if (type === 'order_summary') {
+    let itemsText = (data.items || []).map((item: any) => `• ${item.quantity}x ${item.name || item.products?.name} - R$ ${(item.quantity * (item.unit_price || item.price)).toFixed(2)}`).join('\n');
+    
+    return `🛒 *RESUMO DO PEDIDO #${data.id.substring(0, 8)}*\n\n` +
+           `👤 Cliente: *${data.customer_name}*\n` +
+           `📍 Endereço: ${data.address}\n` +
+           `💳 Pagamento: ${data.payment_method?.toUpperCase()}\n\n` +
+           `📦 *Itens:*\n${itemsText}\n\n` +
+           `💰 Subtotal: R$ ${data.subtotal?.toFixed(2)}\n` +
+           `🚚 Entrega: R$ ${data.delivery_fee?.toFixed(2)}\n` +
+           `⭐ *Total: R$ ${data.total_amount?.toFixed(2)}*\n\n` +
+           `📍 Rastreio: ${window.location.origin}/track/${data.id}`;
   }
 
   return '';

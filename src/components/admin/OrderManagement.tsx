@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks } from 'lucide-react'
 import { toast } from '@/lib/toast'
-  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig } from '@/lib/whatsapp'
+import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
 
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
@@ -67,6 +67,40 @@ import { toast } from '@/lib/toast'
     }
     setLoading(false)
   }
+
+  const sendManualOrderSummary = async (order: any) => {
+    setLoadingItems(true);
+    try {
+      const { data: items, error } = await supabase
+        .from('order_items')
+        .select('*, products(name)')
+        .eq('order_id', order.id);
+      
+      if (error) throw error;
+
+      const addressStr = order.delivery_address 
+        ? `${order.delivery_address.street}, ${order.delivery_address.number} - ${order.delivery_address.neighborhood}`
+        : 'Não informado';
+
+      const summary = formatWhatsAppMessage('order_summary', {
+        id: order.id,
+        customer_name: order.profiles?.full_name || 'Cliente',
+        address: addressStr,
+        payment_method: order.payment_method,
+        items: items,
+        subtotal: Number(order.total_amount) - (Number(order.delivery_fee) || 0),
+        delivery_fee: Number(order.delivery_fee) || 0,
+        total_amount: Number(order.total_amount)
+      });
+
+      await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary);
+      toast.success('Resumo enviado com sucesso!');
+    } catch (e: any) {
+      toast.error('Erro ao enviar resumo: ' + e.message);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
 
   const updateOrderStatus = async (orderId: string, status: string, customerPhone: string, customerName: string) => {
     const { error } = await supabase
@@ -174,6 +208,16 @@ import { toast } from '@/lib/toast'
                         </SelectContent>
                      </Select>
  
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8 w-8 text-green-600 border-green-200 bg-green-50 hover:bg-green-100"
+                        onClick={() => sendManualOrderSummary(order)}
+                        title="Enviar resumo WhatsApp"
+                      >
+                        <Phone size={14} />
+                      </Button>
+
                      <Dialog>
                        <DialogTrigger asChild>
                          <Button 
@@ -301,15 +345,24 @@ import { toast } from '@/lib/toast'
                                <Button className="flex-1 bg-zinc-900 hover:bg-black font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-zinc-200">
                                  <Package size={16} className="mr-2" /> Imprimir Cupom
                                </Button>
-                               <Button 
-                                 className="flex-1 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
-                                  onClick={() => {
-                                    const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${Number(order.total_amount).toFixed(2)}*\n\n📍 *Link de Rastreio:* ${window.location.origin}/track/${order.id}\n\nLogo ele sairá para entrega! 🛒`
-                                    sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
-                                  }}
-                               >
-                                 <Phone size={16} className="mr-2" /> Chamar no Whats
-                               </Button>
+                                <div className="flex flex-col flex-1 gap-2">
+                                  <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
+                                    onClick={() => sendManualOrderSummary(order)}
+                                  >
+                                    <Phone size={16} className="mr-2" /> Enviar Resumo Whats
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    className="w-full border-green-200 text-green-700 font-black uppercase text-[9px] h-8 rounded-xl"
+                                    onClick={() => {
+                                      const message = `Olá *${order.profiles?.full_name}*! Tudo bem? Gostaria de falar sobre o seu pedido *#${order.id.substring(0, 8)}*...`
+                                      sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
+                                    }}
+                                  >
+                                    Abrir Chat Direto
+                                  </Button>
+                                </div>
                              </div>
                            </div>
                          </ScrollArea>
