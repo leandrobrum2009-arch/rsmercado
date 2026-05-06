@@ -140,7 +140,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
             if (theme.radius !== undefined) root.style.setProperty('--radius', `${theme.radius}rem`);
             if (theme.fontSize) root.style.setProperty('--base-font-size', `${theme.fontSize}px`);
             if (theme.fontFamily) {
-              const fontVal = theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'ui-sans-serif, system-ui, sans-serif';
+              const fontMap: Record<string, string> = {
+                'sans': 'Inter, ui-sans-serif, system-ui',
+                'serif': 'serif',
+                'mono': 'monospace',
+                'inter': 'Inter, sans-serif',
+                'montserrat': 'Montserrat, sans-serif'
+              };
+              const fontVal = fontMap[theme.fontFamily] || fontMap['sans'];
               root.style.setProperty('--font-family', fontVal);
               document.body.style.fontFamily = fontVal;
             }
