@@ -14,14 +14,32 @@
    const [loading, setLoading] = useState(false)
  
    const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
-  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
+  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - RS SUPERMERCADO
+  
+  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
+  -- Note: We use email_confirmed_at. confirmed_at is a generated column.
   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
- CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $$
- BEGIN
-   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
- END; $$;
+  -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
+  CREATE OR REPLACE FUNCTION public.is_admin() 
+  RETURNS BOOLEAN 
+  LANGUAGE plpgsql 
+  SECURITY DEFINER 
+  SET search_path = public, auth 
+  AS $$
+  DECLARE
+    user_role TEXT;
+  BEGIN
+    -- Master bypass (Securely checking JWT claim)
+    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+      RETURN TRUE;
+    END IF;
+
+    -- Fetch role directly (SECURITY DEFINER bypasses RLS on user_roles)
+    SELECT role INTO user_role FROM public.user_roles WHERE user_id = auth.uid() LIMIT 1;
+    RETURN COALESCE(user_role = 'admin', FALSE);
+  END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
@@ -188,8 +206,16 @@ BEGIN
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
   CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
   
+  -- 3. POLÍTICAS DE SEGURANÇA NÃO RECURSIVAS
+  -- Fix recursion on user_roles
+  ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
-  CREATE POLICY "Admins manage roles" ON public.user_roles FOR ALL USING (public.is_admin());
+  CREATE POLICY "Admins manage roles" ON public.user_roles 
+  FOR ALL USING ((auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
+  
+  DROP POLICY IF EXISTS "Users view own role" ON public.user_roles;
+  CREATE POLICY "Users view own role" ON public.user_roles 
+  FOR SELECT USING (auth.uid() = user_id);
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
@@ -235,10 +261,35 @@ BEGIN
      END IF;
  END $$;
  
-  -- FINALIZAR POLÍTICAS
+  -- 4. HARDENING E PERMISSÕES GERAIS
+  -- Enable RLS on all sensitive tables
+  DO $$ 
+  DECLARE 
+    t TEXT;
+  BEGIN
+    FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+      EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
+    END LOOP;
+  END $$;
+
+  -- Secure store_settings (Protect secrets)
+  DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
+  CREATE POLICY "Public read settings" ON public.store_settings 
+  FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config', 'admin_setup_secret', 'webhook_secrets'));
+
+  -- FINALIZAR PERMISSÕES
+  GRANT USAGE ON SCHEMA public TO anon, authenticated;
+  GRANT SELECT ON public.store_settings TO anon, authenticated;
+  GRANT SELECT ON public.categories TO anon, authenticated;
+  GRANT SELECT ON public.products TO anon, authenticated;
+  GRANT SELECT ON public.banners TO anon, authenticated;
+  GRANT SELECT ON public.store_alerts TO anon, authenticated;
+  GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
+  
   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;`
+  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+  GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)

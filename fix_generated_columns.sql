@@ -2,9 +2,8 @@
 -- Execute isso no SQL Editor do Supabase se você vir o erro "column confirmed_at can only be updated to DEFAULT"
 
 -- 1. Forçar confirmação de e-mail sem tocar na coluna gerada
-UPDATE auth.users 
-SET email_confirmed_at = NOW() 
-WHERE email = 'leandrobrum2009@gmail.com';
+-- Correct way to confirm email without touching the generated confirmed_at column
+UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
 
 -- 2. Atualizar função confirm_user_email se ela existir
 CREATE OR REPLACE FUNCTION public.confirm_user_email(email_to_confirm TEXT, secret_key TEXT)

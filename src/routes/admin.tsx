@@ -119,20 +119,34 @@ export const Route = createFileRoute('/admin')({
             }
          }
  
-           const { data: adminData, error: adminError } = await supabase.rpc('is_admin');
-           
-           if (adminError) {
-             console.error('RPC is_admin error:', adminError);
-             // If the user is the master email, we ignore the RPC error
-             if (currentSession?.user?.email === 'leandrobrum2009@gmail.com') {
-               setIsAdminDiagnostic(true);
-             } else {
-               setLastError(adminError.message);
-               setIsAdminDiagnostic(false);
-             }
-           } else {
-             setIsAdminDiagnostic(!!adminData || currentSession?.user?.email === 'leandrobrum2009@gmail.com');
-           }
+            // Try RPC first, fallback to direct table check if RPC is missing/failing
+            const { data: adminData, error: adminError } = await supabase.rpc('is_admin')
+            
+            let isUserAdmin = false
+            if (currentSession) {
+              if (!adminError) {
+                isUserAdmin = !!adminData
+              } else {
+                console.warn('RPC is_admin failed, trying fallback:', adminError.message)
+                // Fallback: check user_roles table directly
+                const { data: roleData } = await supabase
+                  .from('user_roles')
+                  .select('role')
+                  .eq('user_id', currentSession.user.id)
+                  .maybeSingle()
+                isUserAdmin = roleData?.role === 'admin'
+              }
+
+              // Master email override
+              if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+                isUserAdmin = true
+              }
+            }
+
+            setIsAdminDiagnostic(isUserAdmin)
+            if (adminError && !isUserAdmin) {
+              setLastError('Não foi possível verificar permissões de administrador. Por favor, execute o script de reparo.')
+            }
        } catch (err: any) {
          console.error('Error in Admin init:', err)
          setLastError(err.message)
