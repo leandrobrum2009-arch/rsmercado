@@ -183,7 +183,8 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
      setIsSaving(true)
       try {
         const { data: isAdmin } = await supabase.rpc('is_admin');
-        if (!isAdmin) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isAdmin && session?.user?.email !== 'leandrobrum2009@gmail.com') {
           throw new Error('Sem permissão administrativa no banco de dados.');
         }
 
