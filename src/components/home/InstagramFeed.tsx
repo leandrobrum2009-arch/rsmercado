@@ -65,11 +65,14 @@
                className="min-w-[200px] md:min-w-[240px] aspect-[9/16] relative rounded-[32px] overflow-hidden group cursor-pointer shadow-xl border-4 border-white"
                 onClick={() => setSelectedReel(reel)}
              >
-               <img 
-                 src={reel.thumbnail} 
-                 alt="Instagram Reel" 
-                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-               />
+                <img 
+                  src={reel.thumbnail || 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400'} 
+                  alt="Instagram Content" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400';
+                  }}
+                />
                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
                
                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-full">
