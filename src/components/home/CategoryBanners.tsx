@@ -20,7 +20,47 @@ export function CategoryBanners() {
     fetchCategoryBanners();
   }, []);
 
-  if (loading) return <div className="px-4 mb-4"><Skeleton className="w-full h-32 rounded-2xl" /></div>;
+  if (loading) return (
+    <div className="px-4 py-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-44 rounded-[32px]" />)}
+      </div>
+    </div>
+  );
+
+  // Define fallback images for common categories
+  const fallbackImages: Record<string, string> = {
+    'higiene': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800',
+    'congelados': 'https://images.unsplash.com/photo-1584263343327-4479f824cca6?q=80&w=800',
+    'laticinios': 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?q=80&w=800',
+    'bebidas': 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?q=80&w=800',
+    'hortifruti': 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?q=80&w=800',
+    'mercearia': 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800',
+    'limpeza': 'https://images.unsplash.com/photo-1584622781564-1d9876a13d00?q=80&w=800',
+    'padaria': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800',
+    'acougue': 'https://images.unsplash.com/photo-1607623273562-6338d8503cb6?q=80&w=800'
+  };
+
+  useEffect(() => {
+    const fetchCategoryBanners = async () => {
+      const { data } = await supabase.from('categories').select('*');
+      
+      if (data) {
+        // Map categories and ensure they have an image
+        const processedCategories = data.map(cat => {
+          const slug = cat.slug || cat.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return {
+            ...cat,
+            banner_url: cat.banner_url || fallbackImages[slug] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800'
+          };
+        });
+        setCategories(processedCategories);
+      }
+      setLoading(false);
+    };
+    fetchCategoryBanners();
+  }, []);
+
   if (categories.length === 0) return null;
 
   return (
