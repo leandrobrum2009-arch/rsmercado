@@ -23,12 +23,13 @@ CREATE POLICY "Users can update own notifications" ON public.notifications
 
 -- RPC function to notify all users
 CREATE OR REPLACE FUNCTION public.notify_all_users(message TEXT, title TEXT, type TEXT DEFAULT 'promo')
-RETURNS void AS 17303
+RETURNS void AS 17354
 BEGIN
     INSERT INTO public.notifications (user_id, title, message, type)
-    SELECT id, title, message, type FROM public.profiles;
+    SELECT p.id, notify_all_users.title, notify_all_users.message, notify_all_users.type 
+    FROM public.profiles p;
 END;
-17303 LANGUAGE plpgsql SECURITY DEFINER;
+17354 LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Notify postgrest to reload schema
 NOTIFY pgrst, 'reload schema';
