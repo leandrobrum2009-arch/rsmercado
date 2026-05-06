@@ -1,22 +1,53 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, ShoppingBag } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import * as LucideIcons from "lucide-react";
+
+const getIconConfig = (cat: any) => {
+  const [name, style] = (cat.icon_name || "").split(":");
+  // @ts-ignore
+  const IconComponent = LucideIcons[name] || LucideIcons[cat.name] || ShoppingBag;
+  
+  let strokeWidth = 1.5;
+  if (style === "bold") strokeWidth = 2.5;
+  if (style === "classic") strokeWidth = 2.0;
+  if (style === "thin") strokeWidth = 1.0;
+  
+  return { IconComponent, strokeWidth };
+};
 
 export function HomeBanners() {
-  const [banners, setBanners] = useState<any[]>([]);
+  const [banners, setBanners] = useState<(any & { product_count?: number })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBanners = async () => {
-      const { data } = await supabase
-        .from('categories')
-        .select('*')
-        .not('banner_url', 'is', null)
-        .limit(3);
-      
-      setBanners(data || []);
-      setLoading(false);
+      try {
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('*')
+          .not('banner_url', 'is', null)
+          .limit(3);
+        
+        if (catData && catData.length > 0) {
+          const { data: countData } = await supabase.from('products').select('category_id');
+          const counts: Record<string, number> = {};
+          countData?.forEach(p => {
+            if (p.category_id) counts[p.category_id] = (counts[p.category_id] || 0) + 1;
+          });
+
+          setBanners(catData.map(c => ({
+            ...c,
+            product_count: counts[c.id] || 0
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching home banners:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchBanners();
   }, []);
@@ -50,25 +81,40 @@ export function HomeBanners() {
   return (
     <div className="px-4 mb-6 space-y-4">
       {banners.map((banner, i) => (
-        <div 
+        <Link 
           key={banner.id} 
-          className={`relative rounded-[32px] overflow-hidden shadow-lg h-44 group active:scale-[0.98] transition-all ${i === 0 ? 'h-52' : 'h-36'}`}
-          onClick={() => window.location.href = `/search?q=${banner.name}`}
+          to="/search"
+          search={{ category: banner.slug }}
+          className={`block relative rounded-[32px] overflow-hidden shadow-lg group active:scale-[0.98] transition-all ${i === 0 ? 'h-52' : 'h-40'}`}
         >
           <img 
             src={banner.banner_url} 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             alt={banner.name} 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-            <span className="text-white/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1">Destaque da Semana</span>
-            <h3 className="text-white text-3xl font-black uppercase italic italic tracking-tighter leading-none">{banner.name}</h3>
-            <div className="flex items-center gap-2 mt-3 text-white/90 font-bold text-[10px] uppercase">
-              <span>Explorar agora</span>
-              <ArrowRight size={12} className="group-hover:translate-x-2 transition-transform" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 flex flex-col justify-end">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                   <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white">
+                     {banner.icon_url ? (
+                       <img src={banner.icon_url} className="w-5 h-5 object-contain" alt={banner.name} />
+                     ) : (() => {
+                       const { IconComponent, strokeWidth } = getIconConfig(banner);
+                       return <IconComponent size={16} strokeWidth={strokeWidth} />;
+                     })()}
+                   </div>
+                   <span className="text-white/60 text-[8px] font-black uppercase tracking-[0.2em]">Destaque da Semana</span>
+                </div>
+                <h3 className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none mb-1">{banner.name}</h3>
+                <p className="text-[9px] font-bold text-white/50 uppercase">{banner.product_count} Produtos disponíveis</p>
+              </div>
+              <div className="bg-white text-zinc-900 p-2 rounded-full shadow-lg group-hover:scale-110 transition-transform">
+                <ArrowRight size={16} />
+              </div>
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
