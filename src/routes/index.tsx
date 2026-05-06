@@ -2,7 +2,8 @@
  import { createFileRoute } from "@tanstack/react-router";
   import { BannerCarousel } from "@/components/home/BannerCarousel";
    import { HomeBanners } from "@/components/home/HomeBanners";
-  import { CategoryBar } from "@/components/home/CategoryBar";
+   import { CategoryBar } from "@/components/home/CategoryBar";
+   import { CategoryBanners } from "@/components/home/CategoryBanners";
  import { ProductGrid } from "@/components/home/ProductGrid";
   import { RecipeFeed } from "@/components/home/RecipeFeed";
   import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
