@@ -44,6 +44,14 @@
    const [fontSize, setFontSize] = useState(14)
    const [priceSize, setPriceSize] = useState(24)
    const [fontFamily, setFontFamily] = useState('font-sans')
+   const [productBgColor, setProductBgColor] = useState('#ffffff')
+   const [productBgOpacity, setProductBgOpacity] = useState(60)
+   const [productBlockHeight, setProductBlockHeight] = useState(0) // 0 means auto
+   const [showPriceBg, setShowPriceBg] = useState(false)
+   const [priceBgColor, setPriceBgColor] = useState('#ffff00')
+   const [showShadows, setShowShadows] = useState(true)
+   const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
+   const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
  
    useEffect(() => {
      fetchProducts()
