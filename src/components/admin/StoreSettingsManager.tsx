@@ -24,7 +24,7 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
     })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
-    const [uploading, setUploading] = useState(false)
+    const [uploading, setUploading] = useState<string | boolean>(false)
  
    useEffect(() => {
      fetchSettings()
@@ -176,6 +176,35 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
       [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
       setSettings({ ...settings, instagram_items: newItems });
     };
+
+    const handleInstagramThumbnailUpload = async (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      setUploading(`insta-${id}`)
+      try {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `insta-${id}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        const filePath = `instagram/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath)
+
+        updateInstagramItem(id, 'thumbnail', publicUrl)
+        toast.success('Capa enviada com sucesso!')
+      } catch (error: any) {
+        toast.error('Erro no upload: ' + error.message)
+      } finally {
+        setUploading(false)
+      }
+    }
 
     const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
@@ -561,30 +590,43 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest flex justify-between">
-                            Link da Imagem
-                            <button 
-                              onClick={() => {
-                                const suggestions = [
-                                  'https://images.unsplash.com/photo-1542838132-92c53300491e',
-                                  'https://images.unsplash.com/photo-1578916171728-46686eac8d58',
-                                  'https://images.unsplash.com/photo-1601598851547-4302969d0614',
-                                  'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8',
-                                  'https://images.unsplash.com/photo-1543168256-418811576931'
-                                ];
-                                const random = suggestions[Math.floor(Math.random() * suggestions.length)];
-                                updateInstagramItem(item.id, 'thumbnail', random + '?q=80&w=400');
-                              }}
-                              className="text-pink-600 hover:underline"
-                            >
-                              Sugerir
-                            </button>
+                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest flex justify-between items-center">
+                            <span>Imagem de Capa</span>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  const suggestions = [
+                                    'https://images.unsplash.com/photo-1542838132-92c53300491e',
+                                    'https://images.unsplash.com/photo-1578916171728-46686eac8d58',
+                                    'https://images.unsplash.com/photo-1601598851547-4302969d0614',
+                                    'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8',
+                                    'https://images.unsplash.com/photo-1543168256-418811576931'
+                                  ];
+                                  const random = suggestions[Math.floor(Math.random() * suggestions.length)];
+                                  updateInstagramItem(item.id, 'thumbnail', random + '?q=80&w=400');
+                                }}
+                                className="text-pink-600 hover:underline"
+                              >
+                                Sugerir
+                              </button>
+                              <label className="cursor-pointer text-blue-600 hover:underline flex items-center gap-1">
+                                {uploading === `insta-${item.id}` ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />}
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/*" 
+                                  onChange={(e) => handleInstagramThumbnailUpload(item.id, e)}
+                                  disabled={uploading === `insta-${item.id}`}
+                                />
+                                Subir Foto
+                              </label>
+                            </div>
                           </label>
                           <Input 
                             value={item.thumbnail}
                             onChange={(e) => updateInstagramItem(item.id, 'thumbnail', e.target.value)}
                             className="h-8 text-[10px]"
-                            placeholder="https://images.unsplash.com/..."
+                            placeholder="Link da imagem ou faça upload"
                           />
                         </div>
                         <div className="space-y-1">
