@@ -46,6 +46,7 @@ import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
    import { LoyaltyManager } from '@/components/admin/LoyaltyManager'
    import { HomeLayoutManager } from '@/components/admin/HomeLayoutManager'
 import { CustomerManagement } from '@/components/admin/CustomerManagement'
+import { DevicePreview } from '@/components/admin/DevicePreview'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -352,6 +353,7 @@ export const Route = createFileRoute('/admin')({
           </div>
         </main>
       </div>
+      <DevicePreview />
     </div>
   )
 }
