@@ -1,5 +1,6 @@
 import { Instagram, Play, Heart, MessageCircle, X, Share2 } from 'lucide-react'
- import { useState } from 'react'
+import { useState } from 'react'
+import { toast } from '@/lib/toast'
  import { supabase } from '@/lib/supabase'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
