@@ -204,6 +204,13 @@ export function AuthForm() {
             </Button>
           )}
           
+          <div className="bg-green-50 p-4 rounded-xl border border-green-100 space-y-2">
+            <p className="text-[10px] font-black text-green-700 uppercase">🚀 Precisa de pressa?</p>
+            <p className="text-[9px] text-green-600 font-bold leading-tight">
+              Você não precisa de cadastro para comprar! Vá ao carrinho e use a "Entrega Rápida" preenchendo apenas nome e WhatsApp.
+            </p>
+          </div>
+
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
             <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-white px-4 text-gray-400">Ou</span></div>

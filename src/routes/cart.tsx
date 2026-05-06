@@ -16,7 +16,9 @@ function CartPage() {
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+   const [profile, setProfile] = useState<any>(null);
+   const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '' });
+   const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
@@ -120,45 +122,36 @@ function CartPage() {
     );
   }
 
-  const handleCheckout = async () => {
-    if (!profile) {
-      toast.error("Você precisa estar logado para finalizar o pedido.");
-      navigate({ to: "/profile" });
-      return;
-    }
-
-    if (!profile.whatsapp) {
-      toast.error("Por favor, preencha seu WhatsApp no perfil para receber notificações.");
-      navigate({ to: "/profile" });
-      return;
-    }
-
-    if (!selectedAddress) {
-      toast.error("Por favor, adicione um endereço de entrega.");
-      navigate({ to: "/profile" });
-      return;
-    }
-
-    if (isValidDeliveryArea === false) {
-      toast.error("Desculpe, não realizamos entregas no bairro " + selectedAddress.neighborhood);
-      return;
-    }
-
-    setIsProcessing(true);
+   const handleCheckout = async () => {
+     const customerName = profile?.full_name || guestInfo.name;
+     const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
+     const deliveryAddress = useSimplifiedAddress ? { street: guestInfo.address, label: 'Simplificado' } : selectedAddress;
+ 
+     if (!customerName || !customerPhone) {
+       toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
+       return;
+     }
+ 
+     if (!deliveryAddress && !useSimplifiedAddress) {
+       toast.error("Por favor, adicione um endereço de entrega ou preencha o campo de endereço rápido.");
+       return;
+     }
+ 
+     setIsProcessing(true);
     try {
       // 1. Create Order
-      const orderPayload: any = {
-        user_id: profile.id,
-        total_amount: total + deliveryFee,
-        delivery_fee: deliveryFee,
-        payment_method: paymentMethod,
-        status: 'pending',
-        points_earned: Math.floor(total * pointsMultiplier),
-        customer_name: profile.full_name,
-        customer_phone: profile.whatsapp,
-        delivery_address: selectedAddress,
-        coupon_code: coupon
-      };
+       const orderPayload: any = {
+         user_id: profile?.id || null,
+         total_amount: total + deliveryFee,
+         delivery_fee: deliveryFee,
+         payment_method: paymentMethod,
+         status: 'pending',
+         points_earned: Math.floor(total * pointsMultiplier),
+         customer_name: customerName,
+         customer_phone: customerPhone,
+         delivery_address: deliveryAddress,
+         coupon_code: coupon
+       };
 
       let { data: order, error: orderError } = await supabase
         .from('orders')
@@ -201,32 +194,33 @@ function CartPage() {
          status: 'Recebido'
        });
        
-       await sendWhatsAppMessage(profile.whatsapp, userMessage);
+       await sendWhatsAppMessage(customerPhone, userMessage);
 
        // Notify Admin if enabled
        const waConfig = await getWhatsAppConfig();
        if (waConfig?.notify_new_order_admin !== false) {
         const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
         if (adminSettings && adminSettings.value) {
-          const adminSummary = formatWhatsAppMessage('order_summary', {
-            id: order.id,
-            customer_name: profile.full_name,
-            address: `${selectedAddress.street}, ${selectedAddress.number} - ${selectedAddress.neighborhood}`,
-            payment_method: paymentMethod,
-            items: items, // use cart items
-            subtotal: total,
-            delivery_fee: deliveryFee,
-            total_amount: total + deliveryFee
-          });
+           const adminSummary = formatWhatsAppMessage('order_summary', {
+             id: order.id,
+             customer_name: customerName,
+             address: useSimplifiedAddress ? deliveryAddress.street : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
+             payment_method: paymentMethod,
+             items: items, // use cart items
+             subtotal: total,
+             delivery_fee: deliveryFee,
+             total_amount: total + deliveryFee
+           });
           
           const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
           await sendWhatsAppMessage(adminSettings.value, adminFullMessage);
         }
        }
 
-       toast.success(`Pedido #${order.id.substring(0, 8)} enviado! Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
+       toast.success(`Pedido #${order.id.substring(0, 8)} enviado!`);
+       if (profile) toast.success(`Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
       clearCart();
-      navigate({ to: "/profile" });
+      navigate({ to: `/track/${order.id}` });
     } catch (error: any) {
       console.error("Checkout error:", error);
       toast.error("Erro ao processar pedido: " + error.message);
@@ -272,18 +266,77 @@ function CartPage() {
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
 
-        {/* Delivery Address */}
+        {/* Customer Info (Quick Checkout) */}
+        {!profile && (
+          <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+            <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
+              <div className="w-2 h-6 bg-green-600 rounded-full" />
+              Dados para Entrega Rápida
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-zinc-400">Seu Nome</label>
+                <input 
+                  type="text" 
+                  value={guestInfo.name}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
+                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
+                  placeholder="Como devemos te chamar?"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-zinc-400">Seu WhatsApp</label>
+                <input 
+                  type="tel" 
+                  value={guestInfo.whatsapp}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, whatsapp: e.target.value })}
+                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-zinc-400 font-medium italic">
+              * Não precisa de cadastro! Preencha apenas o básico para pedir.
+            </p>
+          </div>
+        )}
+
+        {/* Address Selection or Quick Address */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2 flex justify-between items-center">
-            <span>Endereço de Entrega</span>
-            <Link to="/profile" className="text-[10px] text-green-600 font-black uppercase">Alterar / Novo</Link>
-          </h3>
-          {addresses.length === 0 ? (
-            <Link to="/profile" className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
+          <div className="flex justify-between items-center px-2">
+            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Endereço</h3>
+            <button 
+              onClick={() => setUseSimplifiedAddress(!useSimplifiedAddress)}
+              className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100"
+            >
+              {useSimplifiedAddress ? "Usar Meus Endereços" : "Digitação Rápida"}
+            </button>
+          </div>
+
+          {useSimplifiedAddress ? (
+            <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-zinc-400">Endereço Completo</label>
+                <textarea 
+                  value={guestInfo.address}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, address: e.target.value })}
+                  className="w-full h-24 bg-zinc-50 border-zinc-100 rounded-xl p-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all resize-none"
+                  placeholder="Rua, Número, Bairro, Cidade..."
+                />
+              </div>
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
+                <Info size={20} className="text-blue-500 flex-shrink-0" />
+                <p className="text-[10px] text-blue-700 font-bold leading-tight">
+                  DICA: Se não souber o endereço, preencha apenas Nome e WhatsApp que entraremos em contato para combinar a entrega!
+                </p>
+              </div>
+            </div>
+          ) : addresses.length === 0 ? (
+            <button onClick={() => setUseSimplifiedAddress(true)} className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
               <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
               <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
-              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique aqui para adicionar</span>
-            </Link>
+              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Digitação Rápida</span>
+            </button>
           ) : (
             <div className="bg-white rounded-3xl shadow-sm border p-4 space-y-3">
               <div className="flex items-start gap-3">
