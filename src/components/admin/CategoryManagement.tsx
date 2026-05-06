@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,11 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
  import * as LucideIcons from 'lucide-react'
- import { 
-    Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee, 
-    Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2,
-    Snowflake, Candy, Box, Soup, Sandwich, Popcorn, Salad, Cherry
-  } from 'lucide-react'
+import {
+  Loader2, Plus, Trash2, Edit, Upload, Image as ImageIcon, Apple, Beef, Milk, Beer, Fish, IceCream, Coffee,
+  Carrot, Pizza, Wine, Egg, GlassWater, ChefHat, ShoppingBag, Sparkles, Baby, Dog, Grape, Wheat, Cookie, Bath, Flower2,
+  Snowflake, Candy, Box, Soup, Sandwich, Popcorn, Salad, Cherry, Search, Utensils, Cigarette, Home, Heart,
+  Shirt, Scissors, Zap, Gift, Book, Camera, Tv, Smartphone, Watch, Bike, Car, Briefcase, Calculator,
+  Calendar, Clipboard, Clock, Cloud, Compass, CreditCard, Database, Eye, FileText, Film, Flag, FlaskConical,
+  Folder, Gauge, Globe, HardDrive, Headphones, HelpCircle, Key, Layers, LifeBuoy, Link, List, Lock, Map,
+  MessageSquare, Mic, Moon, MousePointer, Music, Navigation, Palette, Paperclip, Phone, PieChart, Printer,
+  Radio, Save, Search as SearchIcon, Send, Settings, Share2, Shield, ShoppingCart, Star, Sun, Tag,
+  Terminal, ThumbsUp, Ticket, Trophy, Truck, Umbrella, User, Video, Volume2, Wifi, Zap as ZapIcon
+} from 'lucide-react'
 
   const getIconComponent = (name: string) => {
     // @ts-ignore
@@ -22,45 +28,85 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
 import { SmartImage } from '@/components/ui/SmartImage'
 
+const CATEGORY_ICONS = [
+  { name: 'Apple', label: 'Frutas' },
+  { name: 'Beef', label: 'Carnes' },
+  { name: 'Milk', label: 'Laticínios' },
+  { name: 'Beer', label: 'Bebidas' },
+  { name: 'Fish', label: 'Peixaria' },
+  { name: 'IceCream', label: 'Sorvetes' },
+  { name: 'Snowflake', label: 'Congelados' },
+  { name: 'Coffee', label: 'Café' },
+  { name: 'Carrot', label: 'Legumes' },
+  { name: 'Pizza', label: 'Massas' },
+  { name: 'Wine', label: 'Vinhos' },
+  { name: 'Egg', label: 'Ovos' },
+  { name: 'GlassWater', label: 'Água' },
+  { name: 'ChefHat', label: 'Gourmet' },
+  { name: 'ShoppingBag', label: 'Geral' },
+  { name: 'Trash2', label: 'Limpeza' },
+  { name: 'Sparkles', label: 'Higiene' },
+  { name: 'Baby', label: 'Infantil' },
+  { name: 'Dog', label: 'Pet Shop' },
+  { name: 'Grape', label: 'Frutas' },
+  { name: 'Wheat', label: 'Grãos' },
+  { name: 'Cookie', label: 'Biscoitos' },
+  { name: 'Bath', label: 'Banho' },
+  { name: 'Flower2', label: 'Flores' },
+  { name: 'Candy', label: 'Doces' },
+  { name: 'Box', label: 'Estoque' },
+  { name: 'Soup', label: 'Caldos' },
+  { name: 'Sandwich', label: 'Lanches' },
+  { name: 'Popcorn', label: 'Cinema' },
+  { name: 'Salad', label: 'Saudável' },
+  { name: 'Cherry', label: 'Cerejas' },
+  { name: 'Utensils', label: 'Restaurante' },
+  { name: 'Cigarette', label: 'Tabacaria' },
+  { name: 'Home', label: 'Casa' },
+  { name: 'Heart', label: 'Bem Estar' },
+  { name: 'Shirt', label: 'Vestuário' },
+  { name: 'Scissors', label: 'Beleza' },
+  { name: 'Zap', label: 'Eletrônicos' },
+  { name: 'Gift', label: 'Presentes' },
+  { name: 'Book', label: 'Livraria' },
+  { name: 'Truck', label: 'Logística' },
+  { name: 'Trophy', label: 'Esportes' },
+  { name: 'ShoppingCart', label: 'Mercado' },
+  { name: 'Palette', label: 'Artes' },
+  { name: 'Smartphone', label: 'Mobile' },
+  { name: 'Music', label: 'Música' },
+  { name: 'Camera', label: 'Foto' },
+  { name: 'Tv', label: 'Vídeo' },
+  { name: 'Shield', label: 'Segurança' },
+  { name: 'Sun', label: 'Verão' },
+  { name: 'Moon', label: 'Noite' }
+];
+
 export function CategoryManagement() {
   const [categories, setCategories] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-   const [newCategory, setNewCategory] = useState({ name: '', slug: '', icon_url: '', icon_name: 'ShoppingBag:minimalist', banner_url: '' })
-   const [selectedStyle, setSelectedStyle] = useState('minimalist')
-    const elegantIcons = [
-      { name: 'Apple', label: 'Frutas' },
-      { name: 'Beef', label: 'Carnes' },
-      { name: 'Milk', label: 'Laticínios' },
-      { name: 'Beer', label: 'Bebidas' },
-      { name: 'Fish', label: 'Peixaria' },
-      { name: 'IceCream', label: 'Sorvetes' },
-      { name: 'Snowflake', label: 'Congelados' },
-      { name: 'Coffee', label: 'Café' },
-      { name: 'Carrot', label: 'Legumes' },
-      { name: 'Pizza', label: 'Massas' },
-      { name: 'Wine', label: 'Vinhos' },
-      { name: 'Egg', label: 'Ovos' },
-      { name: 'GlassWater', label: 'Água' },
-      { name: 'ChefHat', label: 'Gourmet' },
-      { name: 'ShoppingBag', label: 'Geral' },
-      { name: 'Trash2', label: 'Limpeza' },
-      { name: 'Sparkles', label: 'Higiene' },
-      { name: 'Baby', label: 'Infantil' },
-      { name: 'Dog', label: 'Pet Shop' },
-      { name: 'Grape', label: 'Frutas' },
-      { name: 'Wheat', label: 'Grãos' },
-      { name: 'Cookie', label: 'Biscoitos' },
-      { name: 'Bath', label: 'Banho' },
-      { name: 'Flower2', label: 'Flores' },
-      { name: 'Candy', label: 'Doces' },
-      { name: 'Box', label: 'Estoque' },
-      { name: 'Soup', label: 'Caldos' },
-      { name: 'Sandwich', label: 'Lanches' },
-      { name: 'Popcorn', label: 'Cinema' },
-      { name: 'Salad', label: 'Saudável' },
-      { name: 'Cherry', label: 'Cerejas' }
-    ];
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const [currentCategory, setCurrentCategory] = useState({ 
+    id: '', 
+    name: '', 
+    slug: '', 
+    icon_url: '', 
+    icon_name: 'ShoppingBag:minimalist', 
+    banner_url: '' 
+  })
+  
+  const [selectedStyle, setSelectedStyle] = useState('minimalist')
+
+  const filteredIcons = useMemo(() => {
+    return CATEGORY_ICONS.filter(icon => 
+      icon.label.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      icon.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm])
  
    const [uploading, setUploading] = useState<'icon' | 'banner' | null>(null)
 
@@ -107,7 +153,7 @@ export function CategoryManagement() {
         .from(bucketName)
         .getPublicUrl(filePath)
 
-      setNewCategory({ ...newCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
+      setCurrentCategory({ ...currentCategory, [type === 'icon' ? 'icon_url' : 'banner_url']: publicUrl })
       toast.success(`${type === 'icon' ? 'Ícone' : 'Banner'} carregado!`)
     } catch (error: any) {
       toast.error('Erro no upload: ' + error.message)
@@ -116,19 +162,55 @@ export function CategoryManagement() {
     }
   }
 
-  const handleAddCategory = async () => {
-    if (!newCategory.name || !newCategory.slug) return toast.error('Nome e Slug são obrigatórios')
+  const handleSaveCategory = async () => {
+    if (!currentCategory.name || !currentCategory.slug) return toast.error('Nome e Slug são obrigatórios')
     
     setIsSubmitting(true)
-    const { error } = await supabase.from('categories').insert([newCategory])
+    const categoryData = {
+      name: currentCategory.name,
+      slug: currentCategory.slug,
+      icon_url: currentCategory.icon_url,
+      icon_name: currentCategory.icon_name,
+      banner_url: currentCategory.banner_url
+    }
+
+    let error;
+    if (isEditing) {
+      const { error: updateError } = await supabase
+        .from('categories')
+        .update(categoryData)
+        .eq('id', currentCategory.id)
+      error = updateError
+    } else {
+      const { error: insertError } = await supabase
+        .from('categories')
+        .insert([categoryData])
+      error = insertError
+    }
+    
     setIsSubmitting(false)
     
-    if (error) toast.error('Erro ao adicionar categoria')
+    if (error) toast.error('Erro ao salvar categoria')
     else {
-       toast.success('Categoria adicionada!')
-        setNewCategory({ name: '', slug: '', icon_url: '', icon_name: `ShoppingBag:${selectedStyle}`, banner_url: '' })
-       fetchCategories()
+      toast.success(isEditing ? 'Categoria atualizada!' : 'Categoria adicionada!')
+      resetForm()
+      setIsDialogOpen(false)
+      fetchCategories()
     }
+  }
+
+  const resetForm = () => {
+    setCurrentCategory({ id: '', name: '', slug: '', icon_url: '', icon_name: `ShoppingBag:${selectedStyle}`, banner_url: '' })
+    setIsEditing(false)
+    setSearchTerm('')
+  }
+
+  const handleEdit = (category: any) => {
+    setCurrentCategory(category)
+    const style = category.icon_name?.split(':')[1] || 'minimalist'
+    setSelectedStyle(style)
+    setIsEditing(true)
+    setIsDialogOpen(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -148,152 +230,203 @@ export function CategoryManagement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Categorias</CardTitle>
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Nova Categoria</Button>
+              <Button size="sm" onClick={() => {
+                setIsEditing(false);
+                resetForm();
+              }}>
+                <Plus className="w-4 h-4 mr-1" /> Nova Categoria
+              </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Adicionar Categoria</DialogTitle>
+                <DialogTitle>{isEditing ? 'Editar Categoria' : 'Adicionar Categoria'}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input 
-                    value={newCategory.name} 
-                    onChange={(e) => setNewCategory({...newCategory, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
-                  />
+              <div className="space-y-4 pt-4 max-h-[80vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nome</Label>
+                    <Input 
+                      value={currentCategory.name} 
+                      onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Slug (URL)</Label>
+                    <Input value={currentCategory.slug} onChange={(e) => setCurrentCategory({...currentCategory, slug: e.target.value})} />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Slug (URL)</Label>
-                  <Input value={newCategory.slug} onChange={(e) => setNewCategory({...newCategory, slug: e.target.value})} />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                     <Label className="text-[10px] uppercase font-bold">Ícone da Categoria</Label>
-                     <div className="flex gap-2">
-                        <Input 
-                          placeholder="URL ou Upload ->" 
-                          value={newCategory.icon_url} 
-                          onChange={(e) => setNewCategory({...newCategory, icon_url: e.target.value})} 
-                        />
-                        <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
-                          {uploading === 'icon' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
-                          <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'icon')} accept="image/*" />
-                        </label>
-                     </div>
-                   </div>
-                   <div className="space-y-4 col-span-2">
-                     <div className="flex items-center justify-between">
-                       <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Escolha o Ícone Moderno</Label>
-                       <div className="flex bg-zinc-100 p-1 rounded-lg gap-1">
-                         {['thin', 'minimalist', 'classic', 'bold'].map((style) => (
-                           <button
-                             key={style}
-                             type="button"
-                             onClick={() => {
-                               setSelectedStyle(style);
-                               const name = newCategory.icon_name.split(':')[0];
-                               setNewCategory({...newCategory, icon_name: `${name}:${style}`});
-                             }}
-                             className={`px-2 py-1 rounded text-[8px] font-bold uppercase transition-all ${selectedStyle === style ? 'bg-primary text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
-                           >
-                             {style}
-                           </button>
-                         ))}
-                       </div>
-                     </div>
-                     <div className="grid grid-cols-4 md:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-2 bg-zinc-50 rounded-2xl border border-zinc-100">
-                        {elegantIcons.map((icon) => {
-                          const Icon = getIconComponent(icon.name);
-                          const currentName = newCategory.icon_name.split(':')[0];
-                          const isSelected = currentName === icon.name;
-                          
-                          return (
-                            <div className="group relative" key={icon.name}>
-                              <button
-                                type="button"
-                                onClick={() => setNewCategory({...newCategory, icon_name: `${icon.name}:${selectedStyle}`})}
-                                className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all border-2 w-full aspect-square ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-lg shadow-primary/20' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary'}`}
-                              >
-                                {Icon ? (
-                                  <Icon 
-                                    size={24} 
-                                    strokeWidth={selectedStyle === 'bold' ? 2.5 : selectedStyle === 'classic' ? 2.0 : selectedStyle === 'thin' ? 1.0 : 1.5} 
-                                  />
-                                ) : (
-                                  <ShoppingBag size={24} strokeWidth={1.5} />
-                                )}
-                                <span className={`text-[8px] font-bold uppercase truncate w-full text-center ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{icon.label}</span>
-                              </button>
-                            </div>
-                          );
-                        })}
-                     </div>
-                   </div>
-                 </div>
 
-                 <div className="space-y-2">
-                   <Label className="text-[10px] uppercase font-bold">Banner da Categoria (Opcional)</Label>
-                   <div className="flex gap-2">
-                      <Input 
-                        placeholder="URL do banner ou Upload ->" 
-                        value={newCategory.banner_url} 
-                        onChange={(e) => setNewCategory({...newCategory, banner_url: e.target.value})} 
-                      />
-                      <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
-                        {uploading === 'banner' ? <Loader2 className="animate-spin w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
-                        <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'banner')} accept="image/*" />
-                      </label>
-                   </div>
-                   {newCategory.banner_url && (
-                     <img src={newCategory.banner_url} className="w-full h-20 object-cover rounded-lg border mt-2" alt="Preview Banner" />
-                   )}
-                 </div>
-                <Button onClick={handleAddCategory} disabled={isSubmitting} className="w-full">
-                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Salvar Categoria'}
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold">Imagem Personalizada (Opcional)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="URL ou Upload ->" 
+                      value={currentCategory.icon_url} 
+                      onChange={(e) => setCurrentCategory({...currentCategory, icon_url: e.target.value})} 
+                    />
+                    <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                      {uploading === 'icon' ? <Loader2 className="animate-spin w-5 h-5" /> : <Upload className="w-5 h-5" />}
+                      <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'icon')} accept="image/*" />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Escolha o Ícone do Sistema</Label>
+                    <div className="flex bg-zinc-100 p-1 rounded-lg gap-1">
+                      {['thin', 'minimalist', 'classic', 'bold'].map((style) => (
+                        <button
+                          key={style}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStyle(style);
+                            const name = currentCategory.icon_name.split(':')[0];
+                            setCurrentCategory({...currentCategory, icon_name: `${name}:${style}`});
+                          }}
+                          className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-all ${selectedStyle === style ? 'bg-primary text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
+                        >
+                          {style}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                    <Input 
+                      placeholder="Buscar ícones..." 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 max-h-[300px] overflow-y-auto p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    {filteredIcons.map((icon) => {
+                      const Icon = getIconComponent(icon.name);
+                      const currentName = currentCategory.icon_name.split(':')[0];
+                      const isSelected = currentName === icon.name;
+                      
+                      return (
+                        <button
+                          key={icon.name}
+                          type="button"
+                          onClick={() => setCurrentCategory({...currentCategory, icon_name: `${icon.name}:${selectedStyle}`})}
+                          className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all border-2 ${isSelected ? 'bg-primary border-primary text-white scale-105 shadow-md' : 'bg-white border-zinc-100 hover:border-primary/30 text-zinc-400 hover:text-primary'}`}
+                        >
+                          {Icon ? (
+                            <Icon 
+                              size={20} 
+                              strokeWidth={selectedStyle === 'bold' ? 2.5 : selectedStyle === 'classic' ? 2.0 : selectedStyle === 'thin' ? 1.0 : 1.5} 
+                            />
+                          ) : (
+                            <ShoppingBag size={20} strokeWidth={1.5} />
+                          )}
+                          <span className={`text-[8px] font-bold uppercase truncate w-full text-center ${isSelected ? 'text-white' : 'text-zinc-500'}`}>{icon.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-2 border-t pt-4">
+                  <Label className="text-[10px] uppercase font-bold">Banner da Categoria (Opcional)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="URL do banner ou Upload ->" 
+                      value={currentCategory.banner_url} 
+                      onChange={(e) => setCurrentCategory({...currentCategory, banner_url: e.target.value})} 
+                    />
+                    <label className="cursor-pointer bg-zinc-100 p-2 rounded-lg hover:bg-zinc-200 transition-colors">
+                      {uploading === 'banner' ? <Loader2 className="animate-spin w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                      <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'banner')} accept="image/*" />
+                    </label>
+                  </div>
+                  {currentCategory.banner_url && (
+                    <div className="relative group">
+                      <img src={currentCategory.banner_url} className="w-full h-24 object-cover rounded-xl border mt-2 shadow-sm" alt="Preview Banner" />
+                      <button 
+                        onClick={() => setCurrentCategory({...currentCategory, banner_url: ''})}
+                        className="absolute top-4 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <Button onClick={handleSaveCategory} disabled={isSubmitting} className="w-full h-12 bg-zinc-900 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-zinc-200">
+                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : (isEditing ? 'Atualizar Categoria' : 'Salvar Categoria')}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ícone</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((cat) => (
-                 <TableRow key={cat.id} className="hover:bg-zinc-50 transition-colors">
-                   <TableCell>
-                     <div className="flex items-center gap-2">
-                       <SmartImage 
-                         src={cat.icon_url} 
-                         tableName="categories" 
-                         itemId={cat.id} 
-                         className="w-8 h-8 object-contain rounded bg-zinc-100" 
-                       />
-                       {cat.icon_name && (
-                         <span className="text-[10px] bg-zinc-900 text-white px-1.5 py-0.5 rounded font-black uppercase">{cat.icon_name}</span>
-                       )}
-                     </div>
-                   </TableCell>
-                  <TableCell className="font-bold">{cat.name}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{cat.slug}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id)} className="text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {categories.map((cat) => {
+              const iconData = cat.icon_name?.split(':') || ['ShoppingBag', 'minimalist'];
+              const Icon = getIconComponent(iconData[0]);
+              const style = iconData[1] || 'minimalist';
+              
+              return (
+                <div key={cat.id} className="group relative bg-white border border-zinc-100 rounded-3xl p-5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-zinc-50 group-hover:bg-primary/5 transition-colors overflow-hidden border border-zinc-50`}>
+                        {cat.icon_url ? (
+                          <SmartImage 
+                            src={cat.icon_url} 
+                            tableName="categories" 
+                            itemId={cat.id} 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : Icon ? (
+                          <Icon 
+                            size={24} 
+                            className="text-zinc-400 group-hover:text-primary transition-colors"
+                            strokeWidth={style === 'bold' ? 2.5 : style === 'classic' ? 2.0 : style === 'thin' ? 1.0 : 1.5} 
+                          />
+                        ) : (
+                          <ShoppingBag size={24} className="text-zinc-400" strokeWidth={1.5} />
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="font-black uppercase text-sm tracking-tight text-zinc-800">{cat.name}</h3>
+                        <span className="text-[10px] text-zinc-400 font-medium italic">/{cat.slug}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(cat)} className="h-8 w-8 text-zinc-400 hover:text-primary hover:bg-primary/5 rounded-full">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id)} className="h-8 w-8 text-zinc-400 hover:text-destructive hover:bg-destructive/5 rounded-full">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {cat.banner_url && (
+                    <div className="mt-2 rounded-2xl overflow-hidden h-16 border border-zinc-100">
+                      <img src={cat.banner_url} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                    </div>
+                  )}
+                  
+                  {!cat.banner_url && (
+                    <div className="mt-2 h-1 rounded-full bg-zinc-50 overflow-hidden">
+                      <div className="w-1/3 h-full bg-primary/20 group-hover:w-full transition-all duration-700"></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     </div>
