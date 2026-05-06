@@ -9,7 +9,8 @@
      console.log('Listing all tables (by trying to query common ones)...');
      const tables = ['store_settings', 'store_alerts', 'banners', 'announcements', 'notifications'];
      const { data: banners } = await supabase.from('banners').select('*');
-     console.log('Banners:', banners?.map(b => ({ title: b.title, subtitle: b.subtitle })));
+     console.log('First banner row keys:', banners && banners[0] ? Object.keys(banners[0]) : 'none');
+     console.log('All banners:', JSON.stringify(banners, null, 2));
    } catch (e) {
      console.log('Fatal Error:', e)
    }
