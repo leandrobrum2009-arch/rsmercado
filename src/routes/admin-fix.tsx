@@ -193,13 +193,17 @@ BEGIN
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
-  CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
-  RETURNS VOID AS $$
-  BEGIN
-    INSERT INTO public.notifications (user_id, title, message, type)
-    SELECT id, title, message, type FROM auth.users;
-  END;
-  $$ LANGUAGE plpgsql SECURITY DEFINER;
+   CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
+   RETURNS VOID 
+   LANGUAGE plpgsql 
+   SECURITY DEFINER 
+   SET search_path = public, auth
+   AS $$
+   BEGIN
+     INSERT INTO public.notifications (user_id, title, message, type)
+     SELECT id, title, message, type FROM auth.users;
+   END;
+   $$;
 
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
