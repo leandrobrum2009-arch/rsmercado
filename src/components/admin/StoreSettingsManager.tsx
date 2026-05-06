@@ -67,10 +67,10 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
            if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
            if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
             if (item.key === 'store_description') newSettings.store_description = item.value;
-            if (item.key === 'points_multiplier' || item.key === 'points_ratio') {
-              const val = item.value;
-              newSettings.points_ratio = typeof val === 'object' ? (val.points_per_real || val.multiplier) : val;
-            }
+             if (item.key === 'points_multiplier' || item.key === 'points_ratio') {
+               const val = item.value;
+               newSettings.points_ratio = (val && typeof val === 'object') ? (val.points_per_real || val.multiplier) : val;
+             }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
