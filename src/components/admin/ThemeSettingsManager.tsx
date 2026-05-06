@@ -100,8 +100,16 @@ export function ThemeSettingsManager() {
     
     // Font family
     const fontVal = theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'ui-sans-serif, system-ui, sans-serif'
-    root.style.setProperty('--font-family', fontVal)
-    document.body.style.fontFamily = fontVal
+    const fontMap: Record<string, string> = {
+      'sans': 'Inter, ui-sans-serif, system-ui',
+      'serif': 'serif',
+      'mono': 'monospace',
+      'inter': 'Inter, sans-serif',
+      'montserrat': 'Montserrat, sans-serif'
+    }
+    const fontValFinal = fontMap[theme.fontFamily] || fontMap['sans']
+    root.style.setProperty('--font-family', fontValFinal)
+    document.body.style.fontFamily = fontValFinal
   }
 
   const resetToDefault = () => {
@@ -322,7 +330,9 @@ export function ThemeSettingsManager() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sans">Sans Serif (Moderna)</SelectItem>
+                    <SelectItem value="inter">Inter (Legibilidade Alta)</SelectItem>
+                    <SelectItem value="montserrat">Montserrat (Premium)</SelectItem>
+                    <SelectItem value="sans">Sistema (Padrão)</SelectItem>
                     <SelectItem value="serif">Serif (Clássica)</SelectItem>
                     <SelectItem value="mono">Monospace (Técnica)</SelectItem>
                   </SelectContent>
