@@ -14,12 +14,16 @@ export function ThemeSettingsManager() {
       primary: '#16a34a',
       secondary: '#facc15',
       background: '#ffffff',
-      foreground: '#000000',
+      foreground: '#09090b',
+      muted: '#71717a',
       card: '#ffffff',
-      border: '#e4e4e7'
+      border: '#e4e4e7',
+      accent: '#f4f4f5'
     },
     radius: 0.625,
-    fontFamily: 'sans'
+    fontFamily: 'sans',
+    fontSize: 16,
+    lineHeight: 1.5
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -85,11 +89,14 @@ export function ThemeSettingsManager() {
     const root = document.documentElement
     root.style.setProperty('--primary', theme.colors.primary)
     root.style.setProperty('--secondary', theme.colors.secondary)
-    root.style.setProperty('--background', theme.colors.background)
-    root.style.setProperty('--foreground', theme.colors.foreground)
-    root.style.setProperty('--card', theme.colors.card)
-    root.style.setProperty('--border', theme.colors.border)
-    root.style.setProperty('--radius', `${theme.radius}rem`)
+    if (theme.colors.background) root.style.setProperty('--background', theme.colors.background)
+    if (theme.colors.foreground) root.style.setProperty('--foreground', theme.colors.foreground)
+    if (theme.colors.muted) root.style.setProperty('--muted-foreground', theme.colors.muted)
+    if (theme.colors.card) root.style.setProperty('--card', theme.colors.card)
+    if (theme.colors.border) root.style.setProperty('--border', theme.colors.border)
+    if (theme.colors.accent) root.style.setProperty('--accent', theme.colors.accent)
+    if (theme.radius !== undefined) root.style.setProperty('--radius', `${theme.radius}rem`)
+    if (theme.fontSize) root.style.setProperty('--base-font-size', `${theme.fontSize}px`)
     
     // Font family
     const fontVal = theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'ui-sans-serif, system-ui, sans-serif'
@@ -104,11 +111,15 @@ export function ThemeSettingsManager() {
         secondary: '#facc15',
         background: '#ffffff',
         foreground: '#09090b',
+        muted: '#71717a',
         card: '#ffffff',
-        border: '#e4e4e7'
+        border: '#e4e4e7',
+        accent: '#f4f4f5'
       },
       radius: 0.625,
-      fontFamily: 'sans'
+      fontFamily: 'sans',
+      fontSize: 16,
+      lineHeight: 1.5
     })
   }
 
@@ -121,7 +132,25 @@ export function ThemeSettingsManager() {
           <h2 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-900">Personalizar Tema</h2>
           <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest">Ajuste as cores e o estilo visual da loja</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSettings({
+                ...settings,
+                colors: {
+                  ...settings.colors,
+                  background: '#ffffff',
+                  foreground: '#000000',
+                  muted: '#4b5563',
+                  border: '#d1d5db'
+                }
+              })
+            }} 
+            className="rounded-xl border-zinc-200 font-bold uppercase text-[10px] gap-2"
+          >
+            Alto Contraste
+          </Button>
           <Button variant="outline" onClick={resetToDefault} className="rounded-xl border-zinc-200 font-bold uppercase text-[10px] gap-2">
             <RefreshCcw size={14} /> Resetar
           </Button>
@@ -223,63 +252,35 @@ export function ThemeSettingsManager() {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-zinc-500">Cor do Texto</label>
-                <div className="flex gap-2">
-                  <div className="w-10 h-10 rounded-lg border border-zinc-200 relative overflow-hidden">
-                    <input 
-                      type="color" 
-                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                      value={settings.colors.foreground}
-                      onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, foreground: e.target.value } })}
-                    />
-                    <div className="w-full h-full" style={{ backgroundColor: settings.colors.foreground }} />
-                  </div>
-                  <Input 
-                    value={settings.colors.foreground}
-                    onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, foreground: e.target.value } })}
-                    className="rounded-xl border-zinc-200 h-10 font-mono text-xs"
-                  />
-                </div>
+                <ColorInput 
+                  label="Texto Principal" 
+                  value={settings.colors.foreground} 
+                  onChange={(val) => setSettings({ ...settings, colors: { ...settings.colors, foreground: val } })} 
+                />
+              </div>
+              <div className="space-y-2">
+                <ColorInput 
+                  label="Texto Secundário (Muted)" 
+                  value={settings.colors.muted} 
+                  onChange={(val) => setSettings({ ...settings, colors: { ...settings.colors, muted: val } })} 
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-zinc-500">Cor dos Cards</label>
-                <div className="flex gap-2">
-                  <div className="w-10 h-10 rounded-lg border border-zinc-200 relative overflow-hidden">
-                    <input 
-                      type="color" 
-                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                      value={settings.colors.card}
-                      onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, card: e.target.value } })}
-                    />
-                    <div className="w-full h-full" style={{ backgroundColor: settings.colors.card }} />
-                  </div>
-                  <Input 
-                    value={settings.colors.card}
-                    onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, card: e.target.value } })}
-                    className="rounded-xl border-zinc-200 h-10 font-mono text-xs"
-                  />
-                </div>
+                <ColorInput 
+                  label="Cor de Fundo" 
+                  value={settings.colors.background} 
+                  onChange={(val) => setSettings({ ...settings, colors: { ...settings.colors, background: val } })} 
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-zinc-500">Bordas e Divisores</label>
-                <div className="flex gap-2">
-                  <div className="w-10 h-10 rounded-lg border border-zinc-200 relative overflow-hidden">
-                    <input 
-                      type="color" 
-                      className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-                      value={settings.colors.border}
-                      onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, border: e.target.value } })}
-                    />
-                    <div className="w-full h-full" style={{ backgroundColor: settings.colors.border }} />
-                  </div>
-                  <Input 
-                    value={settings.colors.border}
-                    onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, border: e.target.value } })}
-                    className="rounded-xl border-zinc-200 h-10 font-mono text-xs"
-                  />
-                </div>
+                <ColorInput 
+                  label="Bordas" 
+                  value={settings.colors.border} 
+                  onChange={(val) => setSettings({ ...settings, colors: { ...settings.colors, border: val } })} 
+                />
               </div>
             </div>
           </CardContent>
@@ -326,6 +327,19 @@ export function ThemeSettingsManager() {
                     <SelectItem value="mono">Monospace (Técnica)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label className="text-[10px] font-black uppercase text-zinc-500">Tamanho da Fonte ({settings.fontSize}px)</label>
+                </div>
+                <Slider 
+                  value={[settings.fontSize]} 
+                  min={12} 
+                  max={20} 
+                  step={1}
+                  onValueChange={(val) => setSettings({ ...settings, fontSize: val[0] })}
+                />
               </div>
             </div>
 
@@ -379,6 +393,30 @@ export function ThemeSettingsManager() {
             </div>
           </CardContent>
         </Card>
+      </div>
+    </div>
+  )
+}
+
+function ColorInput({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase text-zinc-500">{label}</label>
+      <div className="flex gap-2">
+        <div className="w-10 h-10 rounded-lg border border-zinc-200 relative overflow-hidden flex-shrink-0">
+          <input 
+            type="color" 
+            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <div className="w-full h-full" style={{ backgroundColor: value }} />
+        </div>
+        <Input 
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="rounded-xl border-zinc-200 h-10 font-mono text-xs"
+        />
       </div>
     </div>
   )
