@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog'
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram, Search, ExternalLink, Camera } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
@@ -169,9 +169,48 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     })
     const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+  const [imageSearchQuery, setImageSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<string[]>([])
+  const [searching, setSearching] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
  
+  const performSearch = async () => {
+    if (!imageSearchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const query = encodeURIComponent(imageSearchQuery + " fundo branco profissional oficial");
+      const results = [
+        `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse1.mm.bing.net/th?q=${encodeURIComponent(imageSearchQuery + " embalagem")}&w=600&h=600&c=7&rs=1`,
+        `https://tse2.mm.bing.net/th?q=${encodeURIComponent(imageSearchQuery + " produto")}&w=600&h=600&c=7&rs=1`
+      ];
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setSearchResults(results);
+    } catch (error) {
+      toast.error('Erro ao buscar imagens');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const openImageSearch = () => {
+    const brandPrefix = newProduct.brand ? `${newProduct.brand} ` : '';
+    setImageSearchQuery(`${brandPrefix}${newProduct.name}`);
+    setSearchDialogOpen(true);
+    setSearchResults([]);
+  };
+
+  const selectImage = (url: string) => {
+    setNewProduct({ ...newProduct, image_url: url });
+    setSearchDialogOpen(false);
+    toast.success('Imagem selecionada!');
+  };
+
    useEffect(() => {
      const checkAdmin = async () => {
        const { data, error } = await supabase.rpc('is_admin')
@@ -534,21 +573,33 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                   <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                 </div>
                  <div className="space-y-2 col-span-2 md:col-span-1">
-                   <Label className="text-[10px] uppercase font-bold flex justify-between items-center">
-                     Link da Imagem
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
-                       onClick={() => {
-                         const url = prompt('Cole o link da postagem do Instagram:');
-                         if (url) importFromInstagram(url);
-                       }}
-                     >
-                       <Instagram size={10} className="mr-1" /> Importar do Insta
-                     </Button>
-                   </Label>
-                   <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                    <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
+                    <div className="flex gap-2">
+                      <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} className="flex-1" />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 bg-zinc-900 text-white border-none hover:bg-zinc-800"
+                        title="Buscar Foto na Internet"
+                        onClick={openImageSearch}
+                      >
+                        <Search size={16} />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
+                        onClick={() => {
+                          const url = prompt('Cole o link da postagem do Instagram:');
+                          if (url) importFromInstagram(url);
+                        }}
+                      >
+                        <Instagram size={10} className="mr-1" /> Importar do Insta
+                      </Button>
+                    </div>
                  </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold">Categoria</Label>
@@ -662,143 +713,69 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                          <Edit className="h-4 w-4" />
                        </Button>
                      </DialogTrigger>
-                     <DialogContent className="max-w-2xl">
-                       <DialogHeader><DialogTitle className="font-black uppercase">Editar Produto</DialogTitle></DialogHeader>
-                       <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
-                           <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
-        <Dialog open={isQuickEditOpen} onOpenChange={setIsQuickEditOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
-            <DialogHeader className="p-6 bg-zinc-900 text-white">
-              <DialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Atualização de Preços Diária</DialogTitle>
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex-1">
-                  <Label className="text-[10px] font-black uppercase text-zinc-400 mb-1 block">Filtrar Categoria</Label>
-                  <Select value={quickEditCategory} onValueChange={setQuickEditCategory}>
-                    <SelectTrigger className="h-9 bg-zinc-800 border-zinc-700 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as Categorias</SelectItem>
-                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="pt-5">
-                  <p className="text-[10px] font-bold text-zinc-500">Editando {products.filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory).length} itens</p>
-                </div>
-              </div>
-            </DialogHeader>
-            
-            <div className="flex-1 overflow-y-auto p-6 bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
-                     <TableHead className="text-[10px] font-black uppercase text-center">Preço De (R$)</TableHead>
-                     <TableHead className="text-[10px] font-black uppercase text-center">Preço Por (R$)</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase text-center">Estoque (Qtd)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products
-                    .filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory)
-                    .map(p => (
-                      <TableRow key={p.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <img src={p.image_url} className="w-8 h-8 rounded object-cover border" />
-                            <p className="text-xs font-bold uppercase">{p.name}</p>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader><DialogTitle className="font-black uppercase">Editar Produto</DialogTitle></DialogHeader>
+                        <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
+                            <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            type="number" 
-                            step="0.01"
-                            placeholder="Sem preço original"
-                            value={quickEditData[p.id]?.old_price || ''} 
-                            onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], old_price: e.target.value }})}
-                            className="text-center font-black text-xs h-8 border-zinc-200 focus:ring-zinc-500 text-zinc-400"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            type="number" 
-                            step="0.01"
-                            value={quickEditData[p.id]?.price || ''} 
-                            onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
-                            className="text-center font-black text-xs h-8 border-amber-200 focus:ring-amber-500 bg-amber-50/30"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input 
-                            type="number" 
-                            value={quickEditData[p.id]?.stock || ''} 
-                            onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], stock: e.target.value }})}
-                            className="text-center font-black text-xs h-8 border-amber-100 focus:ring-amber-500"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
-  
-            <DialogFooter className="p-6 border-t bg-zinc-50 gap-2">
-              <Button variant="ghost" onClick={() => setIsQuickEditOpen(false)} className="font-bold uppercase text-[10px]">Cancelar</Button>
-              <Button onClick={handleQuickUpdate} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8 shadow-xl shadow-green-100">
-                {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-                Salvar Alterações em Lote
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-     </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Marca</Label>
-                           <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
-                           <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
-                           <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
-                         </div>
-                         <div className="space-y-2 col-span-2 md:col-span-1">
-                           <Label className="text-[10px] uppercase font-bold">Valor em Pontos (Opcional)</Label>
-                           <Input type="number" value={newProduct.points_value} onChange={(e) => setNewProduct({...newProduct, points_value: e.target.value})} />
-                         </div>
-                         <div className="space-y-2">
-                           <Label className="text-[10px] uppercase font-bold">Categoria</Label>
-                           <Select 
-                             value={newProduct.category_id} 
-                             onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
-                           >
-                             <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                             <SelectContent className="max-h-[300px]">
-                               {categories.map(c => (
-                                 <SelectItem key={c.id} value={c.id}>
-                                   <div className="flex items-center gap-2">
-                                     <CategoryIcon category={c} size={14} />
-                                     <span>{c.name}</span>
-                                   </div>
-                                 </SelectItem>
-                               ))}
-                             </SelectContent>
-                           </Select>
-                         </div>
-                         <div className="flex items-center gap-2 col-span-2 py-2">
-                           <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
-                           <Label className="font-bold">Disponível para venda na loja</Label>
-                         </div>
-                         <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
-                           {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Atualizar Produto'}
-                         </Button>
-                       </div>
-                     </DialogContent>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Marca</Label>
+                            <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Preço Atual</Label>
+                            <Input type="number" step="0.01" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas (Separe por vírgula)</Label>
+                            <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
+                          </div>
+                          <div className="space-y-2 col-span-2 md:col-span-1">
+                            <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
+                            <div className="flex gap-2">
+                              <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} className="flex-1" />
+                              <Button 
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 bg-zinc-900 text-white border-none hover:bg-zinc-800"
+                                title="Buscar Foto na Internet"
+                                onClick={openImageSearch}
+                              >
+                                <Search size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] uppercase font-bold">Categoria</Label>
+                            <Select 
+                              value={newProduct.category_id} 
+                              onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
+                            >
+                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                              <SelectContent className="max-h-[300px]">
+                                {categories.map(c => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    <div className="flex items-center gap-2">
+                                      <CategoryIcon category={c} size={14} />
+                                      <span>{c.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center gap-2 col-span-2 py-2">
+                            <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                            <Label className="font-bold">Disponível para venda na loja</Label>
+                          </div>
+                          <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
+                            {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : 'Atualizar Produto'}
+                          </Button>
+                        </div>
+                      </DialogContent>
                    </Dialog>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} className="text-red-500">
                     <Trash2 className="h-4 w-4" />
@@ -809,6 +786,158 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={isQuickEditOpen} onOpenChange={setIsQuickEditOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 bg-zinc-900 text-white">
+            <DialogTitle className="text-xl font-black uppercase italic italic tracking-tighter">Atualização de Preços Diária</DialogTitle>
+            <div className="flex items-center gap-4 mt-4">
+              <div className="flex-1">
+                <Label className="text-[10px] font-black uppercase text-zinc-400 mb-1 block">Filtrar Categoria</Label>
+                <Select value={quickEditCategory} onValueChange={setQuickEditCategory}>
+                  <SelectTrigger className="h-9 bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Categorias</SelectItem>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="pt-5">
+                <p className="text-[10px] font-bold text-zinc-500">Editando {products.filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory).length} itens</p>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-6 bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-center">Preço De (R$)</TableHead>
+                   <TableHead className="text-[10px] font-black uppercase text-center">Preço Por (R$)</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-center">Estoque (Qtd)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products
+                  .filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory)
+                  .map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <img src={p.image_url} className="w-8 h-8 rounded object-cover border" />
+                          <p className="text-xs font-bold uppercase">{p.name}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="Sem preço original"
+                          value={quickEditData[p.id]?.old_price || ''} 
+                          onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], old_price: e.target.value }})}
+                          className="text-center font-black text-xs h-8 border-zinc-200 focus:ring-zinc-500 text-zinc-400"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          value={quickEditData[p.id]?.price || ''} 
+                          onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
+                          className="text-center font-black text-xs h-8 border-amber-200 focus:ring-amber-500 bg-amber-50/30"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input 
+                          type="number" 
+                          value={quickEditData[p.id]?.stock || ''} 
+                          onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], stock: e.target.value }})}
+                          className="text-center font-black text-xs h-8 border-amber-100 focus:ring-amber-500"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <DialogFooter className="p-6 border-t bg-zinc-50 gap-2">
+            <Button variant="ghost" onClick={() => setIsQuickEditOpen(false)} className="font-bold uppercase text-[10px]">Cancelar</Button>
+            <Button onClick={handleQuickUpdate} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] px-8 shadow-xl shadow-green-100">
+              {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar Alterações em Lote
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="max-w-2xl border-4 border-zinc-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase italic text-2xl tracking-tighter">Buscador de Fotos</DialogTitle>
+            <DialogDescription className="font-bold uppercase text-[10px]">Encontre a melhor imagem para {newProduct.name}</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="flex gap-2">
+              <Input 
+                value={imageSearchQuery} 
+                onChange={(e) => setImageSearchQuery(e.target.value)}
+                placeholder="Ex: Coca Cola 2L garrafa"
+                className="font-bold"
+              />
+              <Button onClick={performSearch} disabled={searching} className="bg-zinc-900 hover:bg-zinc-800">
+                {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              </Button>
+              <Button variant="outline" className="border-2 border-zinc-200" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(imageSearchQuery)}&tbm=isch`, '_blank')}>
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-3 gap-4">
+                {searchResults.map((url, i) => (
+                  <div 
+                    key={i} 
+                    className="group relative aspect-square rounded-xl overflow-hidden border-2 border-zinc-100 hover:border-zinc-900 cursor-pointer transition-all"
+                    onClick={() => selectImage(url)}
+                  >
+                    <img src={url} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <span className="text-white font-black uppercase text-[10px]">Selecionar</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-zinc-100 rounded-2xl p-12 text-center">
+                <ImageIcon className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
+                <p className="text-zinc-400 font-bold uppercase text-[10px]">Clique em pesquisar para ver sugestões ou use o botão do Google ao lado</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Ou cole a URL da imagem diretamente</label>
+              <Input 
+                placeholder="https://exemplo.com/foto.jpg" 
+                onChange={(e) => {
+                  if (e.target.value.startsWith('http')) {
+                    selectImage(e.target.value)
+                  }
+                }}
+                className="text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSearchDialogOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
