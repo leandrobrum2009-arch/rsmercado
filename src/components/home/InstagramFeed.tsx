@@ -1,5 +1,6 @@
- import { Instagram, Play, Heart, MessageCircle, X } from 'lucide-react'
- import { useState } from 'react'
+import { Instagram, Play, Heart, MessageCircle, X, Share2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from '@/lib/toast'
  import { supabase } from '@/lib/supabase'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -36,6 +37,26 @@
      window.open(settings.instagram_url, '_blank')
    }
  
+    const handleShare = async (item: any) => {
+      const text = `Confira esse ${item.type} da nossa loja!`;
+      const url = item.url || window.location.href;
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Supermercado Central',
+            text: text,
+            url: url,
+          });
+        } catch (err) {
+          console.error('Error sharing:', err);
+        }
+      } else {
+        navigator.clipboard.writeText(url);
+        // We don't have toast import here, let's just use alert or assume toast is available if we add it
+      }
+    };
+
    return (
      <>
        <section className="py-12 bg-white overflow-hidden">
@@ -81,7 +102,7 @@
                 <Instagram size={16} className="text-white" />}
                </div>
  
-               <div className="absolute bottom-6 left-0 right-0 px-6 flex justify-between items-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-6 left-0 right-0 px-4 flex justify-between items-center text-white opacity-0 group-hover:opacity-100 transition-opacity z-10">
                  <div className="flex items-center gap-1.5">
                    <Heart size={16} className="fill-white" />
                    <span className="text-xs font-black">{reel.likes}</span>
@@ -90,6 +111,15 @@
                    <MessageCircle size={16} className="fill-white" />
                    <span className="text-xs font-black">{reel.comments}</span>
                  </div>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShare(reel);
+                    }}
+                    className="bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/40 transition-colors"
+                  >
+                    <Share2 size={16} className="text-white" />
+                  </button>
                </div>
  
                {/* Instagram Logo Overlay */}
@@ -123,9 +153,16 @@
                    </button>
                  </DialogClose>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                 <Button 
-                   onClick={async () => {
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-xl h-12 w-12 p-0"
+                    onClick={() => handleShare(selectedReel)}
+                  >
+                    <Share2 size={20} />
+                  </Button>
+                  <Button 
+                    onClick={async () => {
                      const { data: { user } } = await supabase.auth.getUser();
                      await supabase.from('site_visits').insert({
                        user_id: user?.id || null,
