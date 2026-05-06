@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram, LayoutGrid, Layers } from 'lucide-react'
+import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram, LayoutGrid, Layers, ArrowUp, ArrowDown } from 'lucide-react'
   const [activeTab, setActiveTab] = useState<'home' | 'categories'>('home')
 import { toast } from '@/lib/toast'
 
@@ -199,6 +199,15 @@ export function BannerManager() {
     }
   };
 
+  const handleMoveToTop = async (id: string) => {
+    const { error } = await supabase.from('banners').update({ created_at: new Date().toISOString() }).eq('id', id);
+    if (error) toast.error('Erro ao reordenar');
+    else {
+      toast.success('Banner movido para o topo!');
+      fetchData();
+    }
+  };
+
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
   return (
@@ -326,9 +335,20 @@ export function BannerManager() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right p-6">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-red-500 hover:bg-red-50 rounded-full h-10 w-10">
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleMoveToTop(banner.id)} 
+                      className="text-amber-500 hover:bg-amber-50 rounded-full h-10 w-10"
+                      title="Mover para o topo"
+                    >
+                      <ArrowUp className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-red-500 hover:bg-red-50 rounded-full h-10 w-10">
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
