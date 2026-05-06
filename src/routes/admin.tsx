@@ -1,3 +1,4 @@
+import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
  import { AlertManager } from '@/components/admin/AlertManager'
  import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
@@ -17,7 +18,8 @@
    X,
    Users,
    Bell,
-   AlertCircle,
+    AlertCircle,
+    Palette,
     Truck,
     Percent,
     Lock,
@@ -182,8 +184,9 @@ export const Route = createFileRoute('/admin')({
        {
        title: 'Configurações e Integrações',
         items: [
-            { id: 'settings', label: 'Dados da Loja', icon: Settings },
-            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+              { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
+              { id: 'theme', label: 'Tema Visual', icon: Palette },
+              { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
             { id: 'webhooks', label: 'Webhooks', icon: Webhook }
           ]
         },

@@ -112,12 +112,44 @@ function RootShell({ children }: { children: React.ReactNode }) {
           data.forEach(item => {
             if (item.key === 'site_name') newSettings.site_name = item.value;
             if (item.key === 'logo_url') newSettings.logo_url = item.value;
-            if (item.key === 'color_palette') newSettings.colors = item.value;
+            if (item.key === 'color_palette') {
+              newSettings.colors.primary = item.value.primary || newSettings.colors.primary;
+              newSettings.colors.secondary = item.value.secondary || newSettings.colors.secondary;
+            }
+            if (item.key === 'theme_settings') {
+              newSettings.theme = item.value;
+            }
           });
           setStoreSettings(newSettings);
+          
           if (newSettings.site_name) document.title = newSettings.site_name;
-          if (newSettings.colors.primary) document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
-          if (newSettings.colors.secondary) document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
+          
+          const applyTheme = (theme: any) => {
+            if (!theme) return;
+            const root = document.documentElement;
+            if (theme.colors) {
+              if (theme.colors.primary) root.style.setProperty('--primary', theme.colors.primary);
+              if (theme.colors.secondary) root.style.setProperty('--secondary', theme.colors.secondary);
+              if (theme.colors.background) root.style.setProperty('--background', theme.colors.background);
+              if (theme.colors.foreground) root.style.setProperty('--foreground', theme.colors.foreground);
+              if (theme.colors.card) root.style.setProperty('--card', theme.colors.card);
+              if (theme.colors.border) root.style.setProperty('--border', theme.colors.border);
+            }
+            if (theme.radius !== undefined) root.style.setProperty('--radius', `${theme.radius}rem`);
+            if (theme.fontFamily) {
+              const fontVal = theme.fontFamily === 'serif' ? 'serif' : theme.fontFamily === 'mono' ? 'monospace' : 'ui-sans-serif, system-ui, sans-serif';
+              root.style.setProperty('--font-family', fontVal);
+              document.body.style.fontFamily = fontVal;
+            }
+          };
+
+          if (newSettings.theme) {
+            applyTheme(newSettings.theme);
+          } else {
+            // Fallback for legacy color_palette
+            if (newSettings.colors.primary) document.documentElement.style.setProperty('--primary', newSettings.colors.primary);
+            if (newSettings.colors.secondary) document.documentElement.style.setProperty('--secondary', newSettings.colors.secondary);
+          }
         }
         setIsConnected(true);
       } catch (err) {
