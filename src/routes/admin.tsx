@@ -37,7 +37,7 @@ import { ProductManagement } from '@/components/admin/ProductManagement'
 import { OrderManagement } from '@/components/admin/OrderManagement'
 import { ProductImporter } from '@/components/admin/ProductImporter'
 import { RecipeManager } from '@/components/admin/RecipeManager'
-import { FlyerCreator } from '@/components/admin/FlyerCreator'
+ import { AdvancedFlyerCreator } from '@/components/admin/AdvancedFlyerCreator'
 import { BannerManager } from '@/components/admin/BannerManager'
 import { StoreSettingsManager } from '@/components/admin/StoreSettingsManager'
 import { WhatsAppManager } from '@/components/admin/WhatsAppManager'
@@ -341,9 +341,9 @@ export const Route = createFileRoute('/admin')({
               <TabsContent value="recipes" className="mt-0 focus-visible:ring-0">
                 <RecipeManager />
               </TabsContent>
-              <TabsContent value="flyers" className="mt-0 focus-visible:ring-0">
-                <FlyerCreator />
-              </TabsContent>
+               <TabsContent value="flyers" className="mt-0 focus-visible:ring-0">
+                 <AdvancedFlyerCreator />
+               </TabsContent>
               <TabsContent value="banners" className="mt-0 focus-visible:ring-0">
                 <BannerManager />
               </TabsContent>
