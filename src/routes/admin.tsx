@@ -64,38 +64,9 @@ export const Route = createFileRoute('/admin')({
       console.error('Error getting session:', e)
     }
 
-    const checkAdmin = async () => {
-      if (!session) {
-        console.log('Admin check: No session found, redirecting to home');
-        throw redirect({
-          to: '/',
-          search: { redirect: location.href },
-        })
-      }
-
-      let isAdmin = false;
-      try {
-        const { data: rpcAdmin } = await supabase.rpc('is_admin');
-        isAdmin = !!rpcAdmin;
-        
-        if (!isAdmin) {
-          // Fallback to manual check if RPC fails or returns false
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          isAdmin = roleData?.role === 'admin';
-        }
-      } catch (e) {
-        console.error('Error checking admin status:', e);
-      }
-
-      console.log('Secure Admin check result:', isAdmin);
-      return true; // We allow access so they can see the repair button if not admin
-    };
-
-    await checkAdmin();
+     // We allow everyone to reach the /admin page to see diagnostic info or the repair button
+     // Access to actual data is protected by RLS and components checks
+     return true;
   },
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
@@ -225,10 +196,52 @@ export const Route = createFileRoute('/admin')({
         }
     ];
 
-  return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
-      {/* Mobile Header */}
-      <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
+   if (!session) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 p-4">
+         <div className="max-w-md w-full text-center space-y-8 animate-in fade-in zoom-in duration-300">
+           <div className="bg-white p-8 rounded-[40px] shadow-2xl border-t-8 border-primary">
+             <div className="w-20 h-20 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+               <Lock size={40} />
+             </div>
+             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Acesso Restrito</h2>
+             <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest mb-8">Faça login como administrador para continuar</p>
+             
+             <div className="space-y-4">
+               <Button 
+                 onClick={() => navigate({ to: '/profile' })}
+                 className="w-full h-14 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg hover:scale-[1.02] transition-transform"
+               >
+                 Ir para Login
+               </Button>
+               
+               <div className="relative py-4">
+                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                 <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-zinc-50 px-4 text-zinc-400">Problemas?</span></div>
+               </div>
+ 
+               <Button 
+                 variant="outline"
+                 onClick={() => window.location.href = '/admin-fix'}
+                 className="w-full h-14 rounded-2xl font-black uppercase tracking-wider text-[10px] border-2 border-red-100 text-red-600 hover:bg-red-50"
+               >
+                 Reparar Acesso / Confirmar E-mail
+               </Button>
+             </div>
+           </div>
+           
+           <Button variant="ghost" onClick={() => navigate({ to: '/' })} className="text-zinc-400 font-bold uppercase text-[10px]">
+             Voltar para a Loja
+           </Button>
+         </div>
+       </div>
+     )
+   }
+ 
+    return (
+     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50">
+       {/* Mobile Header */}
+       <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
         <h1 className="font-black italic uppercase text-lg tracking-tighter">Admin Panel</h1>
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X /> : <Menu />}

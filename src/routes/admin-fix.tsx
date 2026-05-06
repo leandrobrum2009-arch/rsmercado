@@ -13,50 +13,27 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-   const sqlToRun = `-- 🛠️ REPARAÇÃO MASTER - RS SUPERMERCADO
+   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
- UPDATE auth.users 
- SET email_confirmed_at = NOW(), 
-     confirmed_at = NOW()
- WHERE email = 'leandrobrum2009@gmail.com';
+ UPDATE auth.users SET email_confirmed_at = NOW(), confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
- CREATE OR REPLACE FUNCTION public.is_admin() 
- RETURNS BOOLEAN 
- LANGUAGE plpgsql 
- SECURITY DEFINER
- SET search_path = public, auth
- AS $$
+ CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $$
  BEGIN
-   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR 
-          EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
- END;
- $$;
+   RETURN (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin');
+ END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
- INSERT INTO public.user_roles (user_id, role)
- SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
+ INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
  ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
  
- -- 4. CRIAR TABELA DE SITE VISITS SE NÃO EXISTIR (EVITA CRASH NO DASHBOARD)
- CREATE TABLE IF NOT EXISTS public.site_visits (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID,
-     path TEXT,
-     user_agent TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
+ -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
+ CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
  ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
- DO $$ BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Public insert visits') THEN
-         CREATE POLICY "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
-     END IF;
- END $$;
  
- -- 5. GARANTIR QUE ADMIN PODE VER TUDO
- GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
- GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
- GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+ -- 5. TABELAS DE WHATSAPP (MALA DIRETA)
+ CREATE TABLE IF NOT EXISTS public.whatsapp_campaigns (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), message TEXT NOT NULL, status TEXT DEFAULT 'pending', total_recipients INTEGER DEFAULT 0, sent_count INTEGER DEFAULT 0, target_audience TEXT, scheduled_for TIMESTAMP WITH TIME ZONE, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
+ ALTER TABLE public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
  
  -- 6. TABELA DE ENDEREÇOS
 CREATE TABLE IF NOT EXISTS public.user_addresses (
@@ -216,13 +193,17 @@ BEGIN
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
-  CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
-  RETURNS VOID AS $$
-  BEGIN
-    INSERT INTO public.notifications (user_id, title, message, type)
-    SELECT id, title, message, type FROM auth.users;
-  END;
-  $$ LANGUAGE plpgsql SECURITY DEFINER;
+   CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
+   RETURNS VOID 
+   LANGUAGE plpgsql 
+   SECURITY DEFINER 
+   SET search_path = public, auth
+   AS $$
+   BEGIN
+     INSERT INTO public.notifications (user_id, title, message, type)
+     SELECT id, title, message, type FROM auth.users;
+   END;
+   $$;
 
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -254,19 +235,10 @@ BEGIN
      END IF;
  END $$;
  
- CREATE TABLE IF NOT EXISTS public.site_visits (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID,
-     path TEXT,
-     user_agent TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
- DO $$ BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Public insert visits') THEN
-         CREATE POLICY "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
-     END IF;
- END $$;`
+  -- FINALIZAR POLÍTICAS
+  GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
