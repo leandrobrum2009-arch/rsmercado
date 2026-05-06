@@ -34,21 +34,36 @@
    const [isLoading, setIsLoading] = useState(true)
  
    useEffect(() => {
-     const fetchSettings = async () => {
-       try {
-         const { data, error } = await supabase.from('store_settings').select('*')
-         if (error) throw error
- 
-         if (data && data.length > 0) {
-           const newSettings = { ...defaultSettings }
-           data.forEach(item => {
-             if (item.key in newSettings) {
-               (newSettings as any)[item.key] = item.value
-             }
-           })
-           setSettings(newSettings)
-         }
-       } catch (error) {
+      const fetchSettings = async () => {
+        try {
+          // Only fetch public keys to avoid exposing sensitive settings like admin_whatsapp
+          const publicKeys = [
+            'site_name', 'logo_url', 'color_palette', 'address', 'whatsapp', 
+            'opening_hours', 'instagram_url', 'facebook_url', 'store_description', 
+            'instagram_post_count', 'instagram_items'
+          ]
+          
+          const { data, error } = await supabase
+            .from('store_settings')
+            .select('*')
+            .in('key', publicKeys)
+            
+          if (error) throw error
+  
+          if (data && data.length > 0) {
+            const newSettings = { ...defaultSettings }
+            data.forEach(item => {
+              let key = item.key
+              // Map database keys to frontend keys if they differ
+              if (key === 'color_palette') key = 'colors'
+              
+              if (key in newSettings) {
+                (newSettings as any)[key] = item.value
+              }
+            })
+            setSettings(newSettings)
+          }
+        } catch (error) {
          console.error('Error fetching store settings:', error)
        } finally {
          setIsLoading(false)
