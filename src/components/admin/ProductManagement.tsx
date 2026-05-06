@@ -7,10 +7,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-    import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid } from 'lucide-react'
+import * as LucideIcons from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
+const getIconComponent = (name: string) => {
+  // @ts-ignore
+  return LucideIcons[name] || LucideIcons.ShoppingBag;
+};
+
+const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, size?: number, className?: string }) => {
+  if (!category) return <ShoppingBag size={size} className={className} />;
+  
+  if (category.icon_url) {
+    return <img src={category.icon_url} className={`object-contain ${className}`} style={{ width: size, height: size }} alt="" />;
+  }
+  
+  const [name, style] = (category.icon_name || "").split(":");
+  const Icon = getIconComponent(name || category.name);
+  const strokeWidth = style === 'bold' ? 2.5 : style === 'classic' ? 2.0 : style === 'thin' ? 1.0 : 1.5;
+  
+  return <Icon size={size} strokeWidth={strokeWidth} className={className} />;
+};
+
  export function ProductManagement() {
     const productBadges = [
       { id: 'OFERTA', label: 'Oferta', color: 'bg-red-600', animation: '' },
@@ -377,12 +397,17 @@ import { SmartImage } from '@/components/ui/SmartImage'
                <SelectTrigger className="h-9 text-xs">
                  <SelectValue placeholder="Todas as categorias" />
                </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="all">Todas as categorias</SelectItem>
-                 {categories.map(cat => (
-                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                 ))}
-               </SelectContent>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <CategoryIcon category={cat} size={14} className="opacity-60" />
+                        <span>{cat.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
              </Select>
            </div>
            <div className="space-y-1">
@@ -488,8 +513,15 @@ import { SmartImage } from '@/components/ui/SmartImage'
                     onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
                   >
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                    <SelectContent>
-                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    <SelectContent className="max-h-[300px]">
+                      {categories.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          <div className="flex items-center gap-2">
+                            <CategoryIcon category={c} size={14} />
+                            <span>{c.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -539,9 +571,11 @@ import { SmartImage } from '@/components/ui/SmartImage'
                  <TableCell className="font-bold text-xs uppercase">
                    <div className="flex flex-col">
                      <span>{p.name}</span>
-                     <span className="text-[9px] text-zinc-400 font-normal italic">
-                       {p.brand ? `Marca: ${p.brand}` : 'Sem marca'} | {p.categories?.name || 'Sem categoria'}
-                     </span>
+                     <div className="flex items-center gap-1 text-[9px] text-zinc-400 font-normal italic">
+                       <span>{p.brand ? `Marca: ${p.brand}` : 'Sem marca'} |</span>
+                       <CategoryIcon category={p.categories} size={10} className="inline-block" />
+                       <span>{p.categories?.name || 'Sem categoria'}</span>
+                     </div>
                    </div>
                  </TableCell>
                  <TableCell>
