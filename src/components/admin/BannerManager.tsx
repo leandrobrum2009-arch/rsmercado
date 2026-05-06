@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram } from 'lucide-react'
+import { Loader2, Plus, Trash2, Image as ImageIcon, Upload, Instagram, LayoutGrid, Layers } from 'lucide-react'
+  const [activeTab, setActiveTab] = useState<'home' | 'categories'>('home')
 import { toast } from '@/lib/toast'
 
 export function BannerManager() {
@@ -188,13 +190,39 @@ export function BannerManager() {
     }
   }
 
+  const updateCategoryBanner = async (categoryId: string, url: string) => {
+    const { error } = await supabase.from('categories').update({ banner_url: url }).eq('id', categoryId);
+    if (error) toast.error('Erro ao atualizar banner da categoria');
+    else {
+      toast.success('Banner da categoria atualizado!');
+      fetchData();
+    }
+  };
+
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
   return (
     <div className="space-y-6">
+      <div className="flex bg-zinc-100 p-1 rounded-xl w-fit">
+        <button 
+          onClick={() => setActiveTab('home')} 
+          className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all flex items-center gap-2 ${activeTab === 'home' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+        >
+          <Layers size={14} /> Carrossel Principal
+        </button>
+        <button 
+          onClick={() => setActiveTab('categories')} 
+          className={`px-6 py-2 rounded-lg font-black uppercase text-[10px] transition-all flex items-center gap-2 ${activeTab === 'categories' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+        >
+          <LayoutGrid size={14} /> Banners de Categorias
+        </button>
+      </div>
+
+      {activeTab === 'home' ? (
+        <>
       <Card>
         <CardHeader>
-          <CardTitle>Adicionar Novo Banner</CardTitle>
+          <CardTitle className="font-black uppercase italic tracking-tighter">Adicionar ao Carrossel Principal</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -269,41 +297,124 @@ export function BannerManager() {
         </CardContent>
       </Card>
 
-       <div className="border rounded-2xl overflow-hidden bg-white shadow-sm border-zinc-200">
+      <div className="border-2 border-zinc-100 rounded-[32px] overflow-hidden bg-white shadow-xl shadow-zinc-100">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-zinc-50">
             <TableRow>
-               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Preview</TableHead>
-               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Categoria</TableHead>
-               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Link</TableHead>
-               <TableHead className="text-right text-[10px] font-black uppercase text-zinc-500">Ações</TableHead>
+               <TableHead className="text-[10px] font-black uppercase text-zinc-500 p-6">Preview</TableHead>
+               <TableHead className="text-[10px] font-black uppercase text-zinc-500">Link de Destino</TableHead>
+               <TableHead className="text-right text-[10px] font-black uppercase text-zinc-500 p-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {banners.map((banner) => (
               <TableRow key={banner.id}>
-                <TableCell>
-                  <img src={banner.image_url} className="h-12 w-32 object-cover rounded border" />
+                <TableCell className="p-6">
+                  <div className="relative group">
+                    <img src={banner.image_url} className="h-20 w-48 object-cover rounded-2xl shadow-sm border border-zinc-100" />
+                    {banner.categories && (
+                      <span className="absolute -top-2 -right-2 bg-zinc-900 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                        {banner.categories.name}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell>{banner.categories?.name || 'Geral'}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{banner.link_url || '-'}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-destructive">
-                    <Trash2 className="h-4 w-4" />
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-zinc-800">{banner.link_url || 'Sem link'}</span>
+                    <span className="text-[10px] text-zinc-400 font-medium">Redireciona ao clicar</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right p-6">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(banner.id)} className="text-red-500 hover:bg-red-50 rounded-full h-10 w-10">
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
             {banners.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                  Nenhum banner cadastrado.
+                <TableCell colSpan={3} className="text-center py-20">
+                  <div className="flex flex-col items-center gap-2 text-zinc-300">
+                    <ImageIcon size={48} strokeWidth={1} />
+                    <p className="font-black uppercase text-[10px] tracking-widest">Nenhum banner no carrossel</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+      </>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((cat) => (
+            <Card key={cat.id} className="rounded-[32px] overflow-hidden border-2 border-zinc-100 hover:border-zinc-900 transition-all group">
+              <div className="h-32 bg-zinc-100 relative overflow-hidden">
+                {cat.banner_url ? (
+                  <img src={cat.banner_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 gap-1 bg-zinc-50">
+                    <ImageIcon size={24} strokeWidth={1.5} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Sem Banner</span>
+                  </div>
+                )}
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white shadow-lg">
+                  <span className="text-[10px] font-black uppercase tracking-tighter text-zinc-900">{cat.name}</span>
+                </div>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest flex justify-between">
+                    URL da Imagem
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-4 text-[8px] font-black text-pink-600 p-0"
+                      onClick={() => {
+                        const url = prompt('Cole o link do Instagram para o banner de ' + cat.name + ':');
+                        if (url) {
+                          const pathParts = new URL(url).pathname.split('/').filter(Boolean);
+                          if (pathParts[1]) updateCategoryBanner(cat.id, `https://www.instagram.com/p/${pathParts[1]}/media/?size=l`);
+                        }
+                      }}
+                    >
+                      <Instagram size={10} className="mr-1" /> Insta
+                    </Button>
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Link da imagem..." 
+                      defaultValue={cat.banner_url} 
+                      onBlur={(e) => updateCategoryBanner(cat.id, e.target.value)}
+                      className="text-xs font-bold h-10 rounded-xl"
+                    />
+                    <label className="h-10 w-10 shrink-0 bg-zinc-900 text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-zinc-800 transition-colors">
+                      <Upload size={16} />
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const fileExt = file.name.split('.').pop();
+                          const fileName = `cat-banner-${cat.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                          const { data, error } = await supabase.storage.from('products').upload(fileName, file);
+                          if (!error) {
+                            const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(fileName);
+                            updateCategoryBanner(cat.id, publicUrl);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
