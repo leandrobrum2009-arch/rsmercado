@@ -815,15 +815,15 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
-                   <TableHead className="text-[10px] font-black uppercase text-center">Preço De (R$)</TableHead>
-                   <TableHead className="text-[10px] font-black uppercase text-center">Preço Por (R$)</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-center text-zinc-500">Preço Antigo (De)</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-center text-amber-600">Preço Novo (Por)</TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-center">Estoque (Qtd)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products
                   .filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory)
-                  .map(p => (
+                  .map((p, index) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -831,24 +831,31 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                           <p className="text-xs font-bold uppercase">{p.name}</p>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          placeholder="Sem preço original"
-                          value={quickEditData[p.id]?.old_price || ''} 
-                          onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], old_price: e.target.value }})}
-                          className="text-center font-black text-xs h-8 border-zinc-200 focus:ring-zinc-500 text-zinc-400"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          value={quickEditData[p.id]?.price || ''} 
-                          onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
-                          className="text-center font-black text-xs h-8 border-amber-200 focus:ring-amber-500 bg-amber-50/30"
-                        />
+                        <TableCell className="w-[140px]">
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="text-[10px] font-bold text-zinc-400">R$</span>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              placeholder="0.00"
+                              value={quickEditData[p.id]?.old_price || ''} 
+                              onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], old_price: e.target.value }})}
+                              className="text-center font-black text-xs h-9 border-zinc-200 focus:ring-zinc-500 text-zinc-400 bg-zinc-50/50"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="w-[140px]">
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="text-[10px] font-black text-amber-600">R$</span>
+                            <Input 
+                              type="number" 
+                              step="0.01"
+                              autoFocus={index === 0}
+                              value={quickEditData[p.id]?.price || ''} 
+                              onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
+                              className="text-center font-black text-sm h-9 border-amber-300 focus:ring-amber-500 bg-amber-50 ring-2 ring-amber-100"
+                            />
+                          </div>
                       </TableCell>
                       <TableCell>
                         <Input 

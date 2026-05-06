@@ -8,7 +8,7 @@
   import { RecipeFeed } from "@/components/home/RecipeFeed";
   import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
   import { InstagramFeed } from "@/components/home/InstagramFeed";
-   import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell } from "lucide-react";
+    import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
  import { Badge } from "@/components/ui/badge";
  
  function DailyFlyer() {
@@ -45,25 +45,25 @@ export const Route = createFileRoute("/")({
 // create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
   function Index() {
     const [layout, setLayout] = useState<any[]>([
-        { id: 'search', visible: true },
-        { id: 'delivery_check', visible: true },
+      { id: 'search', visible: true },
+      { id: 'delivery_check', visible: true },
+      { id: 'prod_destaque', visible: true, title: 'Destaques para Você', tag: 'DESTAQUE' },
+      { id: 'offers_btn', visible: true },
       { id: 'flyer', visible: true },
       { id: 'banner_carousel', visible: true },
       { id: 'home_banners', visible: true },
       { id: 'category_bar', visible: true },
-      { id: 'stories', visible: false },
-      { id: 'recipes', visible: true },
-      { id: 'ai_recipes', visible: true },
-      { id: 'instagram', visible: true },
-       { id: 'prod_destaque', visible: true, title: 'Destaques para Você', tag: 'DESTAQUE' },
-       { id: 'prod_horti', visible: true, title: 'Hortifruti Fresquinho', category: 'Hortifruti' },
+      { id: 'category_banners', visible: true },
+      { id: 'prod_horti', visible: true, title: 'Hortifruti Fresquinho', category: 'Hortifruti' },
       { id: 'pwa', visible: true },
       { id: 'prod_mercearia', visible: true, title: 'Destaques da Mercearia', category: 'Mercearia' },
       { id: 'digital_flyers', visible: true },
       { id: 'prod_bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
+      { id: 'recipes', visible: true },
+      { id: 'ai_recipes', visible: true },
+      { id: 'instagram', visible: true },
       { id: 'coupon', visible: true },
-      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' },
-      { id: 'category_banners', visible: true }
+      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
     ]);
 
     useEffect(() => {
@@ -111,6 +111,34 @@ export const Route = createFileRoute("/")({
                 </div>
                 <div className="bg-zinc-100 text-zinc-400 p-2 rounded-lg group-hover:bg-green-600 group-hover:text-white transition-colors">
                   <Search size={16} />
+                </div>
+              </Link>
+            </div>
+          );
+        case 'offers_btn':
+          return (
+            <div key="offers_btn" className="px-4 pt-4">
+              <Link 
+                to="/offers" 
+                className="relative flex items-center justify-between bg-red-600 hover:bg-red-700 text-white p-5 rounded-[32px] shadow-xl shadow-red-100 group transition-all active:scale-[0.98] overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md animate-bounce">
+                    <Zap className="text-amber-300" size={24} strokeWidth={3} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-100">Live Agora</p>
+                    </div>
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Confira as Ofertas</h3>
+                  </div>
+                </div>
+                
+                <div className="bg-white text-red-600 w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform relative z-10">
+                  <ChevronRight size={24} strokeWidth={3} />
                 </div>
               </Link>
             </div>
