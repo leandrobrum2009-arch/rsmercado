@@ -10,7 +10,23 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Doces', url: 'https://cdn-icons-png.flaticon.com/512/1904/1904425.png' },
   { name: 'Laticínios', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
   { name: 'Frios', url: 'https://cdn-icons-png.flaticon.com/512/1154/1154625.png' },
-  { name: 'Congelados', url: 'https://cdn-icons-png.flaticon.com/512/2210/2210565.png' }
+  { name: 'Congelados', url: 'https://cdn-icons-png.flaticon.com/512/2210/2210565.png' },
+  { name: 'Hambúrguer', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png' },
+  { name: 'Pizza', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png' },
+  { name: 'Cachorro Quente', url: 'https://cdn-icons-png.flaticon.com/512/2362/2362313.png' },
+  { name: 'Batata Frita', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046786.png' },
+  { name: 'Refrigerante', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png' },
+  { name: 'Sorvete', url: 'https://cdn-icons-png.flaticon.com/512/938/938063.png' },
+  { name: 'Sushi', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252430.png' },
+  { name: 'Tacos', url: 'https://cdn-icons-png.flaticon.com/512/612/612260.png' },
+  { name: 'Burrito', url: 'https://cdn-icons-png.flaticon.com/512/2362/2362252.png' },
+  { name: 'Frango Frito', url: 'https://cdn-icons-png.flaticon.com/512/1895/1895681.png' },
+  { name: 'Sanduíche', url: 'https://cdn-icons-png.flaticon.com/512/3076/3076044.png' },
+  { name: 'Pipoca', url: 'https://cdn-icons-png.flaticon.com/512/3503/3503803.png' },
+  { name: 'Snacks', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png' },
+  { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
+  { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
+  { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' }
 ];
 
 import { useState, useEffect, useMemo } from 'react'
