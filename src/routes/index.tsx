@@ -61,7 +61,8 @@ export const Route = createFileRoute("/")({
       { id: 'digital_flyers', visible: true },
       { id: 'prod_bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
       { id: 'coupon', visible: true },
-      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
+      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' },
+      { id: 'category_banners', visible: true }
     ]);
 
     useEffect(() => {
@@ -129,6 +130,8 @@ export const Route = createFileRoute("/")({
           return <AiRecipeBanner key="ai_recipes" />;
         case 'instagram':
           return <InstagramFeed key="instagram" />;
+        case 'category_banners':
+          return <CategoryBanners key="category_banners" />;
         case 'pwa':
           return (
             <div key="pwa" className="px-4 py-2">
