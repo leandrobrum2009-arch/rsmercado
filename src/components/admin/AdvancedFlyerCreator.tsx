@@ -383,19 +383,21 @@
                        fontFamily
                      )}
                    >
-                     <div className={cn(
-                       "relative bg-white/40 backdrop-blur-sm rounded-2xl p-4 w-full h-full flex flex-col items-center justify-center border border-white/50 shadow-sm",
-                       layout === 'single' ? 'p-12' : ''
-                     )}>
-                       <img 
-                         src={p.image_url} 
-                         className={cn(
-                           "object-contain mix-blend-multiply drop-shadow-md",
-                           layout === 'single' ? 'w-80 h-80' : 
-                           (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 'w-24 h-24'
-                         )} 
-                       />
-                       <div className="space-y-1">
+                       <div className={cn(
+                         "relative bg-white/60 backdrop-blur-[2px] rounded-xl p-3 w-full h-full flex flex-col items-center justify-center border border-white/30 shadow-sm hover:shadow-md transition-shadow",
+                         layout === 'single' ? 'p-12' : '',
+                         columns === 4 ? 'p-1.5' : ''
+                       )}>
+                         <img 
+                           src={p.image_url} 
+                           className={cn(
+                             "object-contain mix-blend-multiply drop-shadow-sm",
+                             layout === 'single' ? 'w-80 h-80' : 
+                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
+                             columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
+                           )} 
+                         />
+                         <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
                          <h3 
                            className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
                            style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
