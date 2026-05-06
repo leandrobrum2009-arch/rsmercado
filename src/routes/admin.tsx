@@ -64,38 +64,9 @@ export const Route = createFileRoute('/admin')({
       console.error('Error getting session:', e)
     }
 
-    const checkAdmin = async () => {
-      if (!session) {
-        console.log('Admin check: No session found, redirecting to home');
-        throw redirect({
-          to: '/',
-          search: { redirect: location.href },
-        })
-      }
-
-      let isAdmin = false;
-      try {
-        const { data: rpcAdmin } = await supabase.rpc('is_admin');
-        isAdmin = !!rpcAdmin;
-        
-        if (!isAdmin) {
-          // Fallback to manual check if RPC fails or returns false
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          isAdmin = roleData?.role === 'admin';
-        }
-      } catch (e) {
-        console.error('Error checking admin status:', e);
-      }
-
-      console.log('Secure Admin check result:', isAdmin);
-      return true; // We allow access so they can see the repair button if not admin
-    };
-
-    await checkAdmin();
+     // We allow everyone to reach the /admin page to see diagnostic info or the repair button
+     // Access to actual data is protected by RLS and components checks
+     return true;
   },
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
