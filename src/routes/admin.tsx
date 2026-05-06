@@ -70,25 +70,22 @@ export const Route = createFileRoute('/admin')({
         })
       }
 
-      let isAdmin = session.user.email === 'leandrobrum2009@gmail.com';
-      
-      if (!isAdmin) {
-        try {
-          const { data: rpcAdmin } = await supabase.rpc('is_admin');
-          if (rpcAdmin) {
-            isAdmin = true;
-          } else {
-            // Fallback to manual check if RPC fails
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            isAdmin = roleData?.role === 'admin';
-          }
-        } catch (e) {
-          console.error('Error checking admin status:', e);
+      let isAdmin = false;
+      try {
+        const { data: rpcAdmin } = await supabase.rpc('is_admin');
+        isAdmin = !!rpcAdmin;
+        
+        if (!isAdmin) {
+          // Fallback to manual check if RPC fails or returns false
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          isAdmin = roleData?.role === 'admin';
         }
+      } catch (e) {
+        console.error('Error checking admin status:', e);
       }
 
       console.log('Secure Admin check result:', isAdmin);
