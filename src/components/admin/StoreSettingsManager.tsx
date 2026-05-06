@@ -511,7 +511,25 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Link da Imagem (Thumbnail)</label>
+                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest flex justify-between">
+                            Link da Imagem
+                            <button 
+                              onClick={() => {
+                                const suggestions = [
+                                  'https://images.unsplash.com/photo-1542838132-92c53300491e',
+                                  'https://images.unsplash.com/photo-1578916171728-46686eac8d58',
+                                  'https://images.unsplash.com/photo-1601598851547-4302969d0614',
+                                  'https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8',
+                                  'https://images.unsplash.com/photo-1543168256-418811576931'
+                                ];
+                                const random = suggestions[Math.floor(Math.random() * suggestions.length)];
+                                updateInstagramItem(item.id, 'thumbnail', random + '?q=80&w=400');
+                              }}
+                              className="text-pink-600 hover:underline"
+                            >
+                              Sugerir
+                            </button>
+                          </label>
                           <Input 
                             value={item.thumbnail}
                             onChange={(e) => updateInstagramItem(item.id, 'thumbnail', e.target.value)}
