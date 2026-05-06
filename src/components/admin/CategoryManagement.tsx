@@ -11,7 +11,7 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Laticínios', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
   { name: 'Frios', url: 'https://cdn-icons-png.flaticon.com/512/1154/1154625.png' },
   { name: 'Congelados', url: 'https://cdn-icons-png.flaticon.com/512/2210/2210565.png' },
-  { name: 'Hambúrguer', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png' },
+  { name: 'Burguer', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png' },
   { name: 'Pizza', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png' },
   { name: 'Cachorro Quente', url: 'https://cdn-icons-png.flaticon.com/512/2362/2362313.png' },
   { name: 'Batata Frita', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046786.png' },
@@ -23,10 +23,23 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Frango Frito', url: 'https://cdn-icons-png.flaticon.com/512/1895/1895681.png' },
   { name: 'Sanduíche', url: 'https://cdn-icons-png.flaticon.com/512/3076/3076044.png' },
   { name: 'Pipoca', url: 'https://cdn-icons-png.flaticon.com/512/3503/3503803.png' },
-  { name: 'Snacks', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png' },
+  { name: 'Donut', url: 'https://cdn-icons-png.flaticon.com/512/3144/3144505.png' },
+  { name: 'Panquecas', url: 'https://cdn-icons-png.flaticon.com/512/2484/2484024.png' },
+  { name: 'Carne/Steak', url: 'https://cdn-icons-png.flaticon.com/512/3143/3143643.png' },
+  { name: 'Macarrão', url: 'https://cdn-icons-png.flaticon.com/512/3480/3480618.png' },
+  { name: 'Cookies', url: 'https://cdn-icons-png.flaticon.com/512/541/541732.png' },
+  { name: 'Milkshake', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405527.png' },
+  { name: 'Suco', url: 'https://cdn-icons-png.flaticon.com/512/3076/3076007.png' },
+  { name: 'Croissant', url: 'https://cdn-icons-png.flaticon.com/512/3014/3014514.png' },
+  { name: 'Pretzel', url: 'https://cdn-icons-png.flaticon.com/512/3014/3014532.png' },
+  { name: 'Combo', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075929.png' },
+  { name: 'Wraps', url: 'https://cdn-icons-png.flaticon.com/512/2362/2362260.png' },
+  { name: 'Ovos', url: 'https://cdn-icons-png.flaticon.com/512/2619/2619557.png' },
   { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
   { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
-  { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' }
+  { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
+  { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' }
+];
 ];
 
 import { useState, useEffect, useMemo } from 'react'
