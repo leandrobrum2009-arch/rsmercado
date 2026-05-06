@@ -12,13 +12,37 @@
      return new Response('ok', { headers: corsHeaders })
    }
  
-   try {
-     const supabase = createClient(
-       Deno.env.get('SUPABASE_URL') ?? '',
-       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-     )
- 
-     const { notification_id } = await req.json()
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
+
+    try {
+      // Auth check
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'No authorization header' }), { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        })
+      }
+
+      // Use the user's JWT to check if they are an admin
+      // We need a separate client with the user's JWT to check is_admin correctly
+      const userSupabase = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } }
+      })
+
+      const { data: isAdmin, error: adminError } = await userSupabase.rpc('is_admin')
+      if (adminError || !isAdmin) {
+        return new Response(JSON.stringify({ error: 'Unauthorized: Admin only' }), { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        })
+      }
+
+      const { notification_id } = await req.json()
  
      // Get notification details
      const { data: notification, error: nError } = await supabase
