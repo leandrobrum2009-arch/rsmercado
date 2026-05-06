@@ -148,13 +148,20 @@ export const Route = createFileRoute('/admin')({
             }
          }
  
-          const { data: adminData, error: adminError } = await supabase.rpc('is_admin')
-          if (adminError) {
-            setLastError(adminError.message)
-            setIsAdminDiagnostic(false)
-          } else {
-            setIsAdminDiagnostic(!!adminData)
-          }
+           const { data: adminData, error: adminError } = await supabase.rpc('is_admin');
+           
+           if (adminError) {
+             console.error('RPC is_admin error:', adminError);
+             // If the user is the master email, we ignore the RPC error
+             if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+               setIsAdminDiagnostic(true);
+             } else {
+               setLastError(adminError.message);
+               setIsAdminDiagnostic(false);
+             }
+           } else {
+             setIsAdminDiagnostic(!!adminData || currentSession.user.email === 'leandrobrum2009@gmail.com');
+           }
        } catch (err: any) {
          console.error('Error in Admin init:', err)
          setLastError(err.message)
