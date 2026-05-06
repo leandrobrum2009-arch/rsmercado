@@ -4,7 +4,6 @@
    import { HomeBanners } from "@/components/home/HomeBanners";
   import { CategoryBar } from "@/components/home/CategoryBar";
  import { ProductGrid } from "@/components/home/ProductGrid";
- import { StoriesCarousel } from "@/components/home/StoriesCarousel";
   import { RecipeFeed } from "@/components/home/RecipeFeed";
   import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
   import { InstagramFeed } from "@/components/home/InstagramFeed";
@@ -51,7 +50,7 @@ export const Route = createFileRoute("/")({
       { id: 'banner_carousel', visible: true },
       { id: 'home_banners', visible: true },
       { id: 'category_bar', visible: true },
-      { id: 'stories', visible: true },
+      { id: 'stories', visible: false },
       { id: 'recipes', visible: true },
       { id: 'ai_recipes', visible: true },
       { id: 'instagram', visible: true },
@@ -122,7 +121,7 @@ export const Route = createFileRoute("/")({
         case 'category_bar':
           return <CategoryBar key="category_bar" />;
         case 'stories':
-          return <StoriesCarousel key="stories" />;
+          return null;
         case 'recipes':
           return <RecipeFeed key="recipes" />;
         case 'ai_recipes':
