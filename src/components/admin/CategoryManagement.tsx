@@ -77,7 +77,7 @@ import {
   Folder, Gauge, Globe, HardDrive, Headphones, HelpCircle, Key, Layers, LifeBuoy, Link, List, Lock, Map,
   MessageSquare, Mic, Moon, MousePointer, Music, Navigation, Palette, Paperclip, Phone, PieChart, Printer,
   Radio, Save, Search as SearchIcon, Send, Settings, Share2, Shield, ShoppingCart, Star, Sun, Tag,
-  Terminal, ThumbsUp, Ticket, Trophy, Truck, Umbrella, User, Video, Volume2, Wifi, Zap as ZapIcon
+  Terminal, ThumbsUp, Ticket, Trophy, Truck, Umbrella, User, Video, Volume2, Wifi, Zap as ZapIcon, Instagram
 } from 'lucide-react'
 
   const getIconComponent = (name: string) => {
@@ -188,6 +188,26 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
       }
     }
   }, [editCategoryName, categories, lastEditedName])
+
+  const importFromInstagram = (url: string) => {
+    if (!url.includes('instagram.com/')) {
+      return toast.error('URL do Instagram inválida');
+    }
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      if (pathParts.length >= 2 && (pathParts[0] === 'p' || pathParts[0] === 'reels' || pathParts[0] === 'reel' || pathParts[0] === 'stories')) {
+        const postId = pathParts[1];
+        const imageUrl = `https://www.instagram.com/p/${postId}/media/?size=l`;
+        setCurrentCategory({ ...currentCategory, banner_url: imageUrl });
+        toast.success('Imagem do Instagram capturada para o banner!');
+      } else {
+        toast.error('Não foi possível identificar o ID da postagem.');
+      }
+    } catch (e) {
+      toast.error('Erro ao processar URL.');
+    }
+  };
 
   const fetchCategories = async () => {
     setIsLoading(true)
@@ -478,7 +498,20 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
                 </div>
 
                 <div className="space-y-2 border-t pt-4">
-                  <Label className="text-[10px] uppercase font-bold">Banner da Categoria (Opcional)</Label>
+                  <Label className="text-[10px] uppercase font-bold flex justify-between items-center">
+                    Banner da Categoria (Opcional)
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
+                      onClick={() => {
+                        const url = prompt('Cole o link da postagem do Instagram para o banner:');
+                        if (url) importFromInstagram(url);
+                      }}
+                    >
+                      <Instagram size={10} className="mr-1" /> Importar do Insta
+                    </Button>
+                  </Label>
                   <div className="flex gap-2">
                     <Input 
                       placeholder="URL do banner ou Upload ->" 
