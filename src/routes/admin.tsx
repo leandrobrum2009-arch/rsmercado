@@ -112,12 +112,12 @@ export const Route = createFileRoute('/admin')({
    const { tab, edit } = useSearch({ from: '/admin' })
    const [userPermissions, setUserPermissions] = useState<string[]>([])
    const [session, setSession] = useState<any>(null)
-   const [activeTab, setActiveTab] = useState(tab || 'dashboard')
-    useEffect(() => {
-      if (tab && tab !== activeTab) {
-        setActiveTab(tab)
-      }
-    }, [tab])
+    const activeTab = tab || 'dashboard';
+    const setActiveTab = (newTab: string) => {
+      window.history.pushState({}, '', `/admin?tab=${newTab}${edit ? `&edit=${edit}` : ''}`);
+      // Trigger a navigation/re-render by navigating via router if needed, 
+      // but for now let's use the router's navigate
+    };
 
    const [sidebarOpen, setSidebarOpen] = useState(false)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
