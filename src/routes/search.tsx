@@ -5,9 +5,9 @@ import { ProductCard } from '@/components/ProductCard'
 import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag } from 'lucide-react'
 
 export const Route = createFileRoute('/search')({
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { q?: string; category?: string } => {
     return {
-      q: (search.q as string) || '',
+      q: (search.q as string) || undefined,
       category: (search.category as string) || undefined,
     }
   },
