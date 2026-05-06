@@ -95,15 +95,16 @@ export const Route = createFileRoute('/admin')({
     await checkAdmin();
   },
   component: RouteComponent,
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
     return {
       tab: (search.tab as string) || 'dashboard',
+      edit: search.edit as string,
     }
   },
 })
 
  function RouteComponent() {
-   const { tab } = useSearch({ from: '/admin' })
+   const { tab, edit } = useSearch({ from: '/admin' })
    const [userPermissions, setUserPermissions] = useState<string[]>([])
    const [session, setSession] = useState<any>(null)
    const [activeTab, setActiveTab] = useState(tab || 'dashboard')
@@ -288,7 +289,7 @@ export const Route = createFileRoute('/admin')({
                 <ProductManagement />
               </TabsContent>
               <TabsContent value="categories" className="mt-0 focus-visible:ring-0">
-                <CategoryManagement />
+                <CategoryManagement editCategoryName={edit} />
               </TabsContent>
               <TabsContent value="importer" className="mt-0 focus-visible:ring-0">
                 <ProductImporter />
