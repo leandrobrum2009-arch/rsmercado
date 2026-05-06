@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     title TEXT NOT NULL,
     message TEXT NOT NULL,
     type TEXT DEFAULT 'info',
-    read BOOLEAN DEFAULT FALSE,
+    is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -23,7 +23,7 @@ CREATE POLICY "Users can update own notifications" ON public.notifications
 
 -- RPC function to notify all users
 CREATE OR REPLACE FUNCTION public.notify_all_users(message TEXT, title TEXT, type TEXT DEFAULT 'promo')
-RETURNS void AS 17404
+RETURNS void AS 17504
 BEGIN
     -- Check if the caller is an admin
     IF NOT EXISTS (
@@ -37,7 +37,7 @@ BEGIN
     SELECT p.id, notify_all_users.title, notify_all_users.message, notify_all_users.type 
     FROM public.profiles p;
 END;
-17404 LANGUAGE plpgsql SECURITY DEFINER;
+17504 LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Notify postgrest to reload schema
 NOTIFY pgrst, 'reload schema';
