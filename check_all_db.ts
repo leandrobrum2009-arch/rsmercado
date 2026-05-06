@@ -9,7 +9,10 @@
      console.log('Checking database...');
      const { data: settings, error: settingsError } = await supabase.from('store_settings').select('*')
      if (settingsError) console.log('Settings Error:', settingsError.message)
-     else console.log('Settings keys:', settings?.map(s => s.key))
+     else {
+       const siteName = settings?.find(s => s.key === 'site_name')?.value;
+       console.log('Site Name:', siteName);
+     }
  
      const { data: alerts, error: alertsError } = await supabase.from('store_alerts').select('*')
      if (alertsError) console.log('Alerts Error:', alertsError.message)
