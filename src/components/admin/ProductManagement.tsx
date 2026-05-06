@@ -718,10 +718,20 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                          </div>
                          <div className="space-y-2">
                            <Label className="text-[10px] uppercase font-bold">Categoria</Label>
-                           <Select value={newProduct.category_id} onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
+                           <Select 
+                             value={newProduct.category_id} 
+                             onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
+                           >
                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                             <SelectContent>
-                               {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                             <SelectContent className="max-h-[300px]">
+                               {categories.map(c => (
+                                 <SelectItem key={c.id} value={c.id}>
+                                   <div className="flex items-center gap-2">
+                                     <CategoryIcon category={c} size={14} />
+                                     <span>{c.name}</span>
+                                   </div>
+                                 </SelectItem>
+                               ))}
                              </SelectContent>
                            </Select>
                          </div>
