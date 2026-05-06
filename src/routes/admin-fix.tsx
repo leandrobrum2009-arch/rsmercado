@@ -14,35 +14,32 @@
    const [loading, setLoading] = useState(false)
  
    const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
-  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
-   -- Note: We use email_confirmed_at. confirmed_at is a generated column and should not be touched.
-   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - RS SUPERMERCADO
+  
+  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
+  -- Note: We use email_confirmed_at. confirmed_at is a generated column.
+  UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
-   -- Optimized is_admin function to avoid recursion and secure access
-   CREATE OR REPLACE FUNCTION public.is_admin() 
-   RETURNS BOOLEAN 
-   LANGUAGE plpgsql 
-   SECURITY DEFINER 
-   SET search_path = public, auth 
-   AS $$
-   DECLARE
-     user_role TEXT;
-   BEGIN
-     -- Master bypass by email (Secure check against JWT claim)
-     IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
-       RETURN TRUE;
-     END IF;
+  -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
+  CREATE OR REPLACE FUNCTION public.is_admin() 
+  RETURNS BOOLEAN 
+  LANGUAGE plpgsql 
+  SECURITY DEFINER 
+  SET search_path = public, auth 
+  AS $$
+  DECLARE
+    user_role TEXT;
+  BEGIN
+    -- Master bypass (Securely checking JWT claim)
+    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+      RETURN TRUE;
+    END IF;
 
-     -- Check user_roles table
-     -- Since this is SECURITY DEFINER, it runs as the owner (postgres) and bypasses RLS
-     SELECT role INTO user_role 
-     FROM public.user_roles 
-     WHERE user_id = auth.uid() 
-     LIMIT 1;
-
-     RETURN user_role = 'admin';
-   END; $$;
+    -- Fetch role directly (SECURITY DEFINER bypasses RLS on user_roles)
+    SELECT role INTO user_role FROM public.user_roles WHERE user_id = auth.uid() LIMIT 1;
+    RETURN COALESCE(user_role = 'admin', FALSE);
+  END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
@@ -209,13 +206,16 @@ BEGIN
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
   CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
   
-    -- Use a non-recursive policy for user_roles to prevent infinite loops
-    -- We only allow the master email to manage roles to break recursion
-    DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
-    CREATE POLICY "Admins manage roles" ON public.user_roles 
-    FOR ALL USING (
-      (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com')
-    );
+  -- 3. POLÍTICAS DE SEGURANÇA NÃO RECURSIVAS
+  -- Fix recursion on user_roles
+  ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+  CREATE POLICY "Admins manage roles" ON public.user_roles 
+  FOR ALL USING ((auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
+  
+  DROP POLICY IF EXISTS "Users view own role" ON public.user_roles;
+  CREATE POLICY "Users view own role" ON public.user_roles 
+  FOR SELECT USING (auth.uid() = user_id);
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
