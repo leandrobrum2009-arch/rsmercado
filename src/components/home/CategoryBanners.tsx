@@ -31,7 +31,7 @@ export function CategoryBanners() {
           <Link 
             key={cat.id} 
             to="/search" 
-            search={{ q: cat.name }}
+            search={{ category: cat.slug }}
             className="min-w-[280px] h-32 relative rounded-2xl overflow-hidden shadow-md group active:scale-[0.98] transition-all"
           >
             <img 

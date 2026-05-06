@@ -38,7 +38,25 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
   { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
   { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
-  { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' }
+  { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' },
+  { name: 'Milkshake', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405527.png' },
+  { name: 'Sushi', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252430.png' },
+  { name: 'Salada', url: 'https://cdn-icons-png.flaticon.com/512/2153/2153788.png' },
+  { name: 'Sopa', url: 'https://cdn-icons-png.flaticon.com/512/3480/3480618.png' },
+  { name: 'Frango Frito', url: 'https://cdn-icons-png.flaticon.com/512/1895/1895681.png' },
+  { name: 'Peixe', url: 'https://cdn-icons-png.flaticon.com/512/1141/1141771.png' },
+  { name: 'Ovos', url: 'https://cdn-icons-png.flaticon.com/512/2619/2619557.png' },
+  { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
+  { name: 'Donut', url: 'https://cdn-icons-png.flaticon.com/512/3144/3144505.png' },
+  { name: 'Cookie', url: 'https://cdn-icons-png.flaticon.com/512/541/541732.png' },
+  { name: 'Pão', url: 'https://cdn-icons-png.flaticon.com/512/992/992743.png' },
+  { name: 'Queijo', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
+  { name: 'Leite', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674505.png' },
+  { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
+  { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
+  { name: 'Refrigerante', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png' },
+  { name: 'Pipoca', url: 'https://cdn-icons-png.flaticon.com/512/3503/3503803.png' },
+  { name: 'Batata', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046786.png' }
 ];
 
 import { useState, useEffect, useMemo } from 'react'
@@ -126,11 +144,12 @@ const CATEGORY_ICONS = [
 ];
 
 export function CategoryManagement({ editCategoryName }: { editCategoryName?: string }) {
-  const [categories, setCategories] = useState<any[]>([])
+  const [categories, setCategories] = useState<(any & { product_count?: number })[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [lastEditedName, setLastEditedName] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   
   const [currentCategory, setCurrentCategory] = useState({ 
@@ -158,21 +177,38 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
   }, [])
 
   useEffect(() => {
-    if (editCategoryName && categories.length > 0) {
+    if (editCategoryName && categories.length > 0 && editCategoryName !== lastEditedName) {
       const categoryToEdit = categories.find(c => 
         c.name.toLowerCase() === editCategoryName.toLowerCase() || 
         c.slug.toLowerCase() === editCategoryName.toLowerCase()
       )
       if (categoryToEdit) {
+        setLastEditedName(editCategoryName)
         handleEdit(categoryToEdit)
       }
     }
-  }, [editCategoryName, categories])
+  }, [editCategoryName, categories, lastEditedName])
 
   const fetchCategories = async () => {
     setIsLoading(true)
-    const { data } = await supabase.from('categories').select('*').order('name')
-    setCategories(data || [])
+    const { data: catData } = await supabase.from('categories').select('*').order('name')
+    
+    if (catData) {
+      // Fetch product counts for each category
+      const { data: countData } = await supabase
+        .from('products')
+        .select('category_id')
+      
+      const counts: Record<string, number> = {}
+      countData?.forEach(p => {
+        if (p.category_id) counts[p.category_id] = (counts[p.category_id] || 0) + 1
+      })
+      
+      setCategories(catData.map(c => ({
+        ...c,
+        product_count: counts[c.id] || 0
+      })))
+    }
     setIsLoading(false)
   }
 
@@ -261,8 +297,14 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
   }
 
   const handleEdit = (category: any) => {
-    setCurrentCategory(category)
-    const style = category.icon_name?.split(':')[1] || 'minimalist'
+    const safeCategory = {
+      ...category,
+      icon_name: category.icon_name || 'ShoppingBag:minimalist',
+      icon_url: category.icon_url || '',
+      banner_url: category.banner_url || ''
+    }
+    setCurrentCategory(safeCategory)
+    const style = safeCategory.icon_name.split(':')[1] || 'minimalist'
     setSelectedStyle(style)
     setIsEditing(true)
     setIsDialogOpen(true)
@@ -498,7 +540,14 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <h3 className="font-black uppercase text-sm tracking-tight text-zinc-800">{cat.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black uppercase text-sm tracking-tight text-zinc-800">{cat.name}</h3>
+                          {cat.product_count !== undefined && (
+                            <span className="bg-zinc-100 text-zinc-500 text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                              {cat.product_count}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-zinc-400 font-medium italic">/{cat.slug}</span>
                       </div>
                     </div>

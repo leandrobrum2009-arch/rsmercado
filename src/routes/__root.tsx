@@ -314,7 +314,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="flex items-center space-x-1">
               <NotificationCenter />
-             <Link to="/search" className="p-2 text-gray-600">
+             <Link to="/search" search={{}} className="p-2 text-gray-600">
                <Search size={20} />
              </Link>
              <Link to="/cart" className="relative p-2 text-gray-600">
