@@ -96,9 +96,12 @@ export const Route = createFileRoute('/admin')({
   },
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
+    const tab = Array.isArray(search.tab) ? search.tab[0] : search.tab;
+    const edit = Array.isArray(search.edit) ? search.edit[0] : search.edit;
+    
     return {
-      tab: (search.tab as string) || 'dashboard',
-      edit: search.edit as string,
+      tab: (tab as string) || 'dashboard',
+      edit: edit as string,
     }
   },
 })
