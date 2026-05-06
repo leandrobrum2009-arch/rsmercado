@@ -499,20 +499,39 @@
                          >
                            {p.name}
                          </h3>
-                         <div className="flex flex-col items-center">
-                           {p.original_price && (
-                             <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
-                           )}
-                           <div 
-                             className="font-black italic flex items-start drop-shadow-sm"
-                             style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
-                           >
-                             <span className="text-[0.5em] mt-1 mr-0.5">R$</span>
-                             <span>{p.price.toFixed(2).split('.')[0]}</span>
-                             <span className="text-[0.5em] mt-1">,{p.price.toFixed(2).split('.')[1]}</span>
-                             {p.unit && <span className="text-[0.3em] self-end mb-1 ml-1">{p.unit}</span>}
-                           </div>
-                         </div>
+                          <div className={cn(
+                            "flex flex-col items-center mt-auto",
+                            showPriceBg ? "px-3 py-1 rounded-lg" : ""
+                          )}
+                          style={{ backgroundColor: showPriceBg ? priceBgColor : 'transparent' }}
+                          >
+                            {p.original_price && (
+                              <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
+                            )}
+                            
+                            {priceLayout === 'traditional' ? (
+                              <div 
+                                className="font-black italic flex items-baseline drop-shadow-sm"
+                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                              >
+                                <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
+                                <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
+                                <div className="flex flex-col items-start ml-0.5">
+                                  <span className="text-[0.4em] leading-none border-b-2 border-current">,{p.price.toFixed(2).split('.')[1]}</span>
+                                  {p.unit && <span className="text-[0.25em] leading-none mt-0.5">{p.unit}</span>}
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                className="font-black italic flex items-center drop-shadow-sm"
+                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                              >
+                                <span className="text-[0.5em] mr-1">R$</span>
+                                <span>{p.price.toFixed(2).replace('.', ',')}</span>
+                                {p.unit && <span className="text-[0.3em] ml-1">{p.unit}</span>}
+                              </div>
+                            )}
+                          </div>
                        </div>
                      </div>
                    </div>
