@@ -55,7 +55,8 @@ export const Route = createFileRoute("/")({
       { id: 'recipes', visible: true },
       { id: 'ai_recipes', visible: true },
       { id: 'instagram', visible: true },
-      { id: 'prod_horti', visible: true, title: 'Ingredientes em Oferta', category: 'Hortifruti' },
+       { id: 'prod_destaque', visible: true, title: 'Destaques para Você', tag: 'DESTAQUE' },
+       { id: 'prod_horti', visible: true, title: 'Hortifruti Fresquinho', category: 'Hortifruti' },
       { id: 'pwa', visible: true },
       { id: 'prod_mercearia', visible: true, title: 'Destaques da Mercearia', category: 'Mercearia' },
       { id: 'digital_flyers', visible: true },
@@ -189,8 +190,11 @@ export const Route = createFileRoute("/")({
             </div>
           );
         default:
+          if (section.id === 'prod_destaque') {
+            return <ProductGrid key="prod_destaque" title={section.title} tag="DESTAQUE" />;
+          }
           if (section.id.startsWith('prod_')) {
-            return <ProductGrid key={section.id} title={section.title} categoryName={section.category} />;
+            return <ProductGrid key={section.id} title={section.title} categoryName={section.category} tag={section.tag} />;
           }
           return null;
       }
