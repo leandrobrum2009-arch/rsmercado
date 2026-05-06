@@ -126,12 +126,12 @@ export const Route = createFileRoute('/admin')({
    useEffect(() => {
       const fetchPermissionsAndAdmin = async () => {
         try {
-          const { data, error: sessionError } = await supabase.auth.getSession()
-          const currentSession = data?.session
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+          const currentSession = sessionData?.session
           setSession(currentSession)
           
           if (currentSession) {
-           const { data: roleData } = await supabase
+            const { data: roleData } = await supabase
              .from('user_roles')
              .select('permissions')
              .eq('user_id', currentSession.user.id)
@@ -144,13 +144,13 @@ export const Route = createFileRoute('/admin')({
             }
          }
  
-         const { data, error } = await supabase.rpc('is_admin')
-         if (error) {
-           setLastError(error.message)
-           setIsAdminDiagnostic(false)
-         } else {
-           setIsAdminDiagnostic(data)
-         }
+          const { data: adminData, error: adminError } = await supabase.rpc('is_admin')
+          if (adminError) {
+            setLastError(adminError.message)
+            setIsAdminDiagnostic(false)
+          } else {
+            setIsAdminDiagnostic(!!adminData)
+          }
        } catch (err: any) {
          console.error('Error in Admin init:', err)
          setLastError(err.message)
