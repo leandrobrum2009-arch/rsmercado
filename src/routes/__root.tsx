@@ -103,11 +103,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
      trackVisit();
  
-     const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase.from('store_settings').select('*');
-        if (error) throw error;
-        if (data) {
+      const fetchSettings = async () => {
+       try {
+         const { data, error } = await supabase.from('store_settings').select('*');
+         // Don't throw if settings are missing, use defaults instead
+         if (error) {
+           console.warn('Store settings error:', error.message);
+           setIsConnected(true); // Still connected to Supabase, just no settings access
+           return;
+         }
+         
+         if (data && data.length > 0) {
           const newSettings = { ...storeSettings };
           data.forEach(item => {
             if (item.key === 'site_name') newSettings.site_name = item.value;
