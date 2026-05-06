@@ -483,7 +483,10 @@ import { SmartImage } from '@/components/ui/SmartImage'
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold">Categoria</Label>
-                  <Select onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}>
+                  <Select 
+                    value={newProduct.category_id} 
+                    onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
+                  >
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
                       {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
