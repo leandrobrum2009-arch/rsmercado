@@ -116,7 +116,7 @@
                   {section.category && (
                     <Link 
                       to="/admin" 
-                      search={{ tab: 'categories' }} 
+                       search={{ tab: 'categories', edit: section.category }} 
                       className="p-2 text-zinc-400 hover:text-green-600 transition-colors border rounded-xl hover:bg-green-50"
                       title={`Editar categoria ${section.category}`}
                     >
