@@ -201,16 +201,16 @@ function CartPage() {
        if (waConfig?.notify_new_order_admin !== false) {
         const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
         if (adminSettings && adminSettings.value) {
-          const adminSummary = formatWhatsAppMessage('order_summary', {
-            id: order.id,
-            customer_name: profile.full_name,
-            address: `${selectedAddress.street}, ${selectedAddress.number} - ${selectedAddress.neighborhood}`,
-            payment_method: paymentMethod,
-            items: items, // use cart items
-            subtotal: total,
-            delivery_fee: deliveryFee,
-            total_amount: total + deliveryFee
-          });
+           const adminSummary = formatWhatsAppMessage('order_summary', {
+             id: order.id,
+             customer_name: customerName,
+             address: useSimplifiedAddress ? deliveryAddress.street : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
+             payment_method: paymentMethod,
+             items: items, // use cart items
+             subtotal: total,
+             delivery_fee: deliveryFee,
+             total_amount: total + deliveryFee
+           });
           
           const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
           await sendWhatsAppMessage(adminSettings.value, adminFullMessage);
