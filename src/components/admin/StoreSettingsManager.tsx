@@ -123,7 +123,25 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
       }
     }
 
-   const handleSave = async () => {
+    const addInstagramItem = () => {
+      const newItem = { id: Date.now(), type: 'post', url: '', thumbnail: '', likes: '0', comments: '0' };
+      setSettings({ ...settings, instagram_items: [...(settings.instagram_items || []), newItem] });
+    };
+  
+    const removeInstagramItem = (id: number) => {
+      setSettings({ ...settings, instagram_items: (settings.instagram_items || []).filter((item: any) => item.id !== id) });
+    };
+  
+    const updateInstagramItem = (id: number, field: string, value: string) => {
+      setSettings({ 
+        ...settings, 
+        instagram_items: (settings.instagram_items || []).map((item: any) => 
+          item.id === id ? { ...item, [field]: value } : item
+        ) 
+      });
+    };
+  
+    const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
      setIsSaving(true)
