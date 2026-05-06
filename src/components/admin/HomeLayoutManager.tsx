@@ -2,9 +2,10 @@
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Loader2, Save, GripVertical, Eye, EyeOff, Layout as LayoutIcon } from 'lucide-react'
+  import { Loader2, Save, GripVertical, Eye, EyeOff, Layout as LayoutIcon, Edit } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Switch } from '@/components/ui/switch'
+  import { Link } from '@tanstack/react-router'
  
  export function HomeLayoutManager() {
    const [loading, setLoading] = useState(false)
@@ -111,10 +112,22 @@
                  <p className="font-black uppercase text-xs tracking-tight">{section.label}</p>
                  <p className="text-[10px] text-zinc-500 font-bold">{section.id}</p>
                </div>
-               <div className="flex items-center gap-3">
-                 <Switch checked={section.visible} onCheckedChange={() => toggleVisibility(index)} />
-                 {section.visible ? <Eye size={16} className="text-green-600" /> : <EyeOff size={16} className="text-zinc-300" />}
-               </div>
+                <div className="flex items-center gap-2">
+                  {section.category && (
+                    <Link 
+                      to="/admin" 
+                      search={{ tab: 'categories' }} 
+                      className="p-2 text-zinc-400 hover:text-green-600 transition-colors border rounded-xl hover:bg-green-50"
+                      title={`Editar categoria ${section.category}`}
+                    >
+                      <Edit size={14} />
+                    </Link>
+                  )}
+                  <div className="flex items-center gap-3 ml-2 border-l pl-3">
+                    <Switch checked={section.visible} onCheckedChange={() => toggleVisibility(index)} />
+                    {section.visible ? <Eye size={16} className="text-green-600" /> : <EyeOff size={16} className="text-zinc-300" />}
+                  </div>
+                </div>
              </div>
            ))}
          </div>
