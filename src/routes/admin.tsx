@@ -123,22 +123,24 @@ export const Route = createFileRoute('/admin')({
             const { data: adminData, error: adminError } = await supabase.rpc('is_admin')
             
             let isUserAdmin = false
-            if (!adminError) {
-              isUserAdmin = !!adminData
-            } else {
-              console.warn('RPC is_admin failed, trying fallback:', adminError.message)
-              // Fallback: check user_roles table directly
-              const { data: roleData } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', currentSession.user.id)
-                .maybeSingle()
-              isUserAdmin = roleData?.role === 'admin'
-            }
+            if (currentSession) {
+              if (!adminError) {
+                isUserAdmin = !!adminData
+              } else {
+                console.warn('RPC is_admin failed, trying fallback:', adminError.message)
+                // Fallback: check user_roles table directly
+                const { data: roleData } = await supabase
+                  .from('user_roles')
+                  .select('role')
+                  .eq('user_id', currentSession.user.id)
+                  .maybeSingle()
+                isUserAdmin = roleData?.role === 'admin'
+              }
 
-            // Master email override
-            if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
-              isUserAdmin = true
+              // Master email override
+              if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+                isUserAdmin = true
+              }
             }
 
             setIsAdminDiagnostic(isUserAdmin)
