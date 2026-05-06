@@ -133,6 +133,15 @@ export function ThemeSettingsManager() {
 
   if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
+  const getContrastYIQ = (hexcolor: string) => {
+    if (!hexcolor || hexcolor.length < 6) return 'black';
+    const r = parseInt(hexcolor.substring(1, 3), 16);
+    const g = parseInt(hexcolor.substring(3, 5), 16);
+    const b = parseInt(hexcolor.substring(5, 7), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? 'black' : 'white';
+  };
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center">
@@ -220,10 +229,16 @@ export function ThemeSettingsManager() {
             </div>
             
             <div className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50 space-y-3">
-              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Preview</p>
+              <div className="flex justify-between items-center">
+                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Preview de Contraste</p>
+                <div className="flex gap-1">
+                  <div className={`w-2 h-2 rounded-full ${getContrastYIQ(settings.colors.primary) === 'white' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                  <span className="text-[8px] font-bold uppercase text-zinc-400">AA Check</span>
+                </div>
+              </div>
               <div className="flex gap-2">
-                <Button size="sm" className="rounded-xl text-[10px] font-black uppercase" style={{ backgroundColor: settings.colors.primary, color: '#fff' }}>Botão Primário</Button>
-                <Button size="sm" variant="outline" className="rounded-xl text-[10px] font-black uppercase border-2" style={{ borderColor: settings.colors.secondary, color: settings.colors.secondary }}>Contorno</Button>
+                <Button size="sm" className="rounded-xl text-[10px] font-black uppercase shadow-sm" style={{ backgroundColor: settings.colors.primary, color: getContrastYIQ(settings.colors.primary) }}>Botão Primário</Button>
+                <Button size="sm" className="rounded-xl text-[10px] font-black uppercase shadow-sm" style={{ backgroundColor: settings.colors.secondary, color: getContrastYIQ(settings.colors.secondary) }}>Botão Secundário</Button>
               </div>
             </div>
           </CardContent>
