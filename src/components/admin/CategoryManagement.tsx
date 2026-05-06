@@ -290,17 +290,40 @@ export function CategoryManagement() {
                 <DialogTitle>{isEditing ? 'Editar Categoria' : 'Adicionar Categoria'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4 max-h-[80vh] overflow-y-auto pr-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Nome</Label>
-                    <Input 
-                      value={currentCategory.name} 
-                      onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Nome</Label>
+                        <Input 
+                          value={currentCategory.name} 
+                          onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Slug (URL)</Label>
+                        <Input value={currentCategory.slug} onChange={(e) => setCurrentCategory({...currentCategory, slug: e.target.value})} />
+                      </div>
+                    </div>
                   </div>
+
                   <div className="space-y-2">
-                    <Label>Slug (URL)</Label>
-                    <Input value={currentCategory.slug} onChange={(e) => setCurrentCategory({...currentCategory, slug: e.target.value})} />
+                    <Label className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Visualização na Loja</Label>
+                    <div className="bg-zinc-50 rounded-3xl p-4 border-2 border-dashed border-zinc-100 flex flex-col items-center justify-center gap-2 h-full min-h-[120px]">
+                      <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center overflow-hidden relative group/prev">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/prev:opacity-100 transition-opacity" />
+                        {currentCategory.icon_url ? (
+                          <img src={currentCategory.icon_url} className="w-10 h-10 object-contain relative z-10" alt="Preview" />
+                        ) : (() => {
+                          const iconData = currentCategory.icon_name?.split(':') || ['ShoppingBag', 'minimalist'];
+                          const Icon = getIconComponent(iconData[0]);
+                          const style = iconData[1] || 'minimalist';
+                          const strokeWidth = style === 'bold' ? 2.5 : style === 'classic' ? 2.0 : style === 'thin' ? 1.0 : 1.5;
+                          return <Icon size={28} strokeWidth={strokeWidth} className="text-primary relative z-10" />;
+                        })()}
+                      </div>
+                      <span className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Como aparecerá na barra</span>
+                    </div>
                   </div>
                 </div>
 
