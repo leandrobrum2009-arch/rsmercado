@@ -278,7 +278,7 @@ export function BannerManager() {
                         onChange={handleFileUpload}
                         className="hidden" 
                         id="banner-upload"
-                        disabled={uploading}
+                        disabled={!!uploading}
                       />
                       <label 
                         htmlFor="banner-upload" 
