@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
- import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag, Eye } from 'lucide-react'
+ import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag, Eye, Search } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
@@ -35,6 +35,8 @@ export function WhatsAppManager() {
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
     const [isSavingTemplate, setIsSavingTemplate] = useState(false)
     const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+    const [customerSearch, setCustomerSearch] = useState('')
+    const [customersList, setCustomersList] = useState<any[]>([])
 
   const suggestedTemplates = [
     { 
@@ -243,13 +245,29 @@ export function WhatsAppManager() {
       }
     }
 
-   useEffect(() => {
-     fetchConfig()
-     fetchCampaigns()
-      fetchLogs()
-     fetchCoupons()
-     fetchTemplates()
-   }, [])
+    useEffect(() => {
+      fetchConfig()
+      fetchCampaigns()
+       fetchLogs()
+      fetchCoupons()
+      fetchTemplates()
+      fetchRecentCustomers()
+    }, [])
+ 
+    const fetchRecentCustomers = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, whatsapp')
+        .not('whatsapp', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      setCustomersList(data || [])
+    }
+ 
+    const filteredCustomersList = customersList.filter(c => 
+      c.full_name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      c.whatsapp?.includes(customerSearch)
+    )
 
   const fetchConfig = async () => {
     const data = await getWhatsAppConfig()
