@@ -21,12 +21,19 @@
    unit?: string
  }
  
- type LayoutType = 'grid-8' | 'featured-side' | 'featured-top' | 'single'
+ type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
+ type BackgroundType = 'image' | 'gradient' | 'color'
  
  export function AdvancedFlyerCreator() {
    const { settings: storeSettings } = useStoreSettings()
-   const [layout, setLayout] = useState<LayoutType>('grid-8')
+   const [layout, setLayout] = useState<LayoutType>('grid')
+   const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
    const [backgroundUrl, setBackgroundUrl] = useState('')
+   const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+   const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+   const [columns, setColumns] = useState(3)
+   const [gridGap, setGridGap] = useState(16)
+   const [showLogo, setShowLogo] = useState(true)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
