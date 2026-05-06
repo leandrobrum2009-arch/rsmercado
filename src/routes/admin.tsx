@@ -27,8 +27,8 @@ import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
-import { createFileRoute, redirect, useSearch } from '@tanstack/react-router'
-import { useEffect, useState, useMemo } from 'react'
+import { createFileRoute, redirect, useSearch, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
@@ -112,12 +112,15 @@ export const Route = createFileRoute('/admin')({
    const { tab, edit } = useSearch({ from: '/admin' })
    const [userPermissions, setUserPermissions] = useState<string[]>([])
    const [session, setSession] = useState<any>(null)
+    const navigate = useNavigate();
     const activeTab = tab || 'dashboard';
-    const setActiveTab = (newTab: string) => {
-      window.history.pushState({}, '', `/admin?tab=${newTab}${edit ? `&edit=${edit}` : ''}`);
-      // Trigger a navigation/re-render by navigating via router if needed, 
-      // but for now let's use the router's navigate
-    };
+    
+    const setActiveTab = useCallback((newTab: string) => {
+      navigate({
+        to: '/admin',
+        search: (prev: any) => ({ ...prev, tab: newTab })
+      });
+    }, [navigate]);
 
    const [sidebarOpen, setSidebarOpen] = useState(false)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
