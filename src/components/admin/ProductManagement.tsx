@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
  import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
-import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram } from 'lucide-react'
+import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram, Search, ExternalLink, Camera } from 'lucide-react'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
@@ -169,9 +169,42 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     })
     const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<string[]>([])
+  const [searching, setSearching] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
  
+  const performSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const query = encodeURIComponent(searchQuery + " fundo branco profissional oficial");
+      const results = [
+        `https://tse1.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse2.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse3.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse4.mm.bing.net/th?q=${query}&w=600&h=600&c=7&rs=1`,
+        `https://tse1.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " embalagem")}&w=600&h=600&c=7&rs=1`,
+        `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchQuery + " produto")}&w=600&h=600&c=7&rs=1`
+      ];
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setSearchResults(results);
+    } catch (error) {
+      toast.error('Erro ao buscar imagens');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const openImageSearch = () => {
+    const brandPrefix = newProduct.brand ? `${newProduct.brand} ` : '';
+    setSearchQuery(`${brandPrefix}${newProduct.name}`);
+    setSearchDialogOpen(true);
+    setSearchResults([]);
+  };
+
    useEffect(() => {
      const checkAdmin = async () => {
        const { data, error } = await supabase.rpc('is_admin')
@@ -534,21 +567,33 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                   <Input placeholder="Ex: Oferta, Novo, Destaque" value={newProduct.tags} onChange={(e) => setNewProduct({...newProduct, tags: e.target.value})} />
                 </div>
                  <div className="space-y-2 col-span-2 md:col-span-1">
-                   <Label className="text-[10px] uppercase font-bold flex justify-between items-center">
-                     Link da Imagem
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
-                       onClick={() => {
-                         const url = prompt('Cole o link da postagem do Instagram:');
-                         if (url) importFromInstagram(url);
-                       }}
-                     >
-                       <Instagram size={10} className="mr-1" /> Importar do Insta
-                     </Button>
-                   </Label>
-                   <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} />
+                    <Label className="text-[10px] uppercase font-bold">Link da Imagem</Label>
+                    <div className="flex gap-2">
+                      <Input placeholder="https://..." value={newProduct.image_url} onChange={(e) => setNewProduct({...newProduct, image_url: e.target.value})} className="flex-1" />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 bg-zinc-900 text-white border-none hover:bg-zinc-800"
+                        title="Buscar Foto na Internet"
+                        onClick={openImageSearch}
+                      >
+                        <Search size={16} />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-5 text-[9px] font-black text-pink-600 hover:text-pink-700 p-0"
+                        onClick={() => {
+                          const url = prompt('Cole o link da postagem do Instagram:');
+                          if (url) importFromInstagram(url);
+                        }}
+                      >
+                        <Instagram size={10} className="mr-1" /> Importar do Insta
+                      </Button>
+                    </div>
                  </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold">Categoria</Label>
