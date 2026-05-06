@@ -231,19 +231,10 @@ BEGIN
      END IF;
  END $$;
  
- CREATE TABLE IF NOT EXISTS public.site_visits (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID,
-     path TEXT,
-     user_agent TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
- ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
- DO $$ BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Public insert visits') THEN
-         CREATE POLICY "Public insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
-     END IF;
- END $$;`
+  -- FINALIZAR POLÍTICAS
+  GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+  GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
