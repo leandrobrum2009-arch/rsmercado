@@ -23,7 +23,7 @@
              <Badge className="bg-amber-400 text-amber-900 border-0 text-[8px] font-black uppercase px-2 py-0.5 shadow-sm">Oferta do Dia</Badge>
              <h3 className="font-black uppercase italic tracking-tighter text-xl leading-none">Super Encarte</h3>
            </div>
-           <p className="text-[10px] font-bold uppercase text-green-100 opacity-90">Hortifruti e Açougue válidos até 20h!</p>
+            <p className="text-[10px] font-bold uppercase text-green-100 opacity-90">Hortifruti e Açougue válidos até 21h!</p>
          </div>
        </div>
        <button className="bg-white text-green-600 px-5 py-2.5 rounded-xl font-black uppercase text-[10px] shadow-lg relative z-10 hover:bg-zinc-100 transition-colors">
