@@ -5,17 +5,18 @@ import { ProductCard } from '@/components/ProductCard'
 import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag } from 'lucide-react'
 
 export const Route = createFileRoute('/search')({
-  validateSearch: (search: Record<string, unknown>): { q?: string; category?: string } => {
+   validateSearch: (search: Record<string, unknown>): { q?: string; category?: string; tag?: string } => {
     return {
       q: (search.q as string) || undefined,
       category: (search.category as string) || undefined,
+      tag: (search.tag as string) || undefined,
     }
   },
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { q, category } = useSearch({ from: '/search' })
+   const { q, category, tag } = useSearch({ from: '/search' })
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [multiplier, setMultiplier] = useState(1)
@@ -44,9 +45,13 @@ function RouteComponent() {
           .eq('is_available', true)
           .eq('is_approved', true)
 
-        if (q) {
-          query = query.ilike('name', `%${q}%`)
-        }
+         if (q) {
+           query = query.ilike('name', `%${q}%`)
+         }
+
+         if (tag) {
+           query = query.contains('tags', [tag])
+         }
 
         const { data: prodData, error } = await query.order('name')
         if (error) throw error
@@ -78,8 +83,8 @@ function RouteComponent() {
       }
     }
 
-    fetchInitialData()
-  }, [q, category])
+     fetchInitialData()
+   }, [q, category, tag])
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

@@ -110,18 +110,25 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
     const [isQuickEditOpen, setIsQuickEditOpen] = useState(false)
     const [quickEditCategory, setQuickEditCategory] = useState('all')
-     const [quickEditData, setQuickEditData] = useState<Record<string, { price: string, stock: string }>>({})
+     const [quickEditData, setQuickEditData] = useState<Record<string, { price: string, old_price: string, stock: string }>>({})
     const handleQuickUpdate = async () => {
       setIsSubmitting(true)
       try {
-        const updates = Object.entries(quickEditData).map(([id, data]) => ({
-          id,
-          price: parseFloat(data.price),
-          stock: parseInt(data.stock)
-        }))
-  
-        for (const update of updates) {
-          await supabase.from('products').update({ price: update.price, stock: update.stock }).eq('id', update.id)
+        const updates = Object.entries(quickEditData).filter(([id, data]) => {
+          const p = products.find(prod => prod.id === id);
+          return p && (
+            p.price.toString() !== data.price || 
+            (p.old_price?.toString() || '') !== data.old_price || 
+            (p.stock || 0).toString() !== data.stock
+          );
+        });
+
+        for (const [id, data] of updates) {
+          await supabase.from('products').update({ 
+            price: parseFloat(data.price), 
+            old_price: data.old_price ? parseFloat(data.old_price) : null,
+            stock: parseInt(data.stock) 
+          }).eq('id', id)
         }
   
         toast.success('Produtos atualizados com sucesso!')
@@ -442,8 +449,12 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
              variant="outline" 
              size="sm"
               onClick={() => {
-                const initialData: Record<string, { price: string, stock: string }> = {}
-                products.forEach(p => initialData[p.id] = { price: p.price.toString(), stock: (p.stock || 0).toString() })
+                 const initialData: Record<string, { price: string, old_price: string, stock: string }> = {}
+                 products.forEach(p => initialData[p.id] = { 
+                   price: p.price.toString(), 
+                   old_price: p.old_price ? p.old_price.toString() : '',
+                   stock: (p.stock || 0).toString() 
+                 })
                 setQuickEditData(initialData)
                 setIsQuickEditOpen(true)
               }}
@@ -652,7 +663,8 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-[10px] font-black uppercase">Produto</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase text-center">Preço (R$)</TableHead>
+                     <TableHead className="text-[10px] font-black uppercase text-center">Preço De (R$)</TableHead>
+                     <TableHead className="text-[10px] font-black uppercase text-center">Preço Por (R$)</TableHead>
                     <TableHead className="text-[10px] font-black uppercase text-center">Estoque (Qtd)</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -671,9 +683,19 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
                           <Input 
                             type="number" 
                             step="0.01"
+                            placeholder="Sem preço original"
+                            value={quickEditData[p.id]?.old_price || ''} 
+                            onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], old_price: e.target.value }})}
+                            className="text-center font-black text-xs h-8 border-zinc-200 focus:ring-zinc-500 text-zinc-400"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            step="0.01"
                             value={quickEditData[p.id]?.price || ''} 
                             onChange={(e) => setQuickEditData({...quickEditData, [p.id]: { ...quickEditData[p.id], price: e.target.value }})}
-                            className="text-center font-black text-xs h-8 border-amber-100 focus:ring-amber-500"
+                            className="text-center font-black text-xs h-8 border-amber-200 focus:ring-amber-500 bg-amber-50/30"
                           />
                         </TableCell>
                         <TableCell>
