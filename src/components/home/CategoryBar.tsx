@@ -96,7 +96,11 @@ export const CategoryBar = () => {
                       <div className="w-16 h-16 rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         {cat.icon_url ? (
-                          <img src={cat.icon_url} className="w-10 h-10 object-contain relative z-10 brightness-0 opacity-40 group-hover:brightness-100 group-hover:opacity-100 transition-all" alt={cat.name} />
+                          <img 
+                            src={cat.icon_url} 
+                            className="w-10 h-10 object-contain relative z-10 transition-all group-hover:scale-110" 
+                            alt={cat.name} 
+                          />
                         ) : (
                           <IconComponent size={24} strokeWidth={strokeWidth} className="transition-colors relative z-10" />
                         )}
