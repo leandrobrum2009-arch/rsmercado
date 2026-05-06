@@ -3,7 +3,7 @@
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload } from 'lucide-react'
+import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function StoreSettingsManager() {
