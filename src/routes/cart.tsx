@@ -15,7 +15,34 @@ function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("pix");
-  const [isProcessing, setIsProcessing] = useState(false);
+   const [isProcessing, setIsProcessing] = useState(false);
+   const [lookupPhone, setLookupPhone] = useState('');
+   const [guestOrders, setGuestOrders] = useState<any[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
+ 
+   const handleOrderLookup = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!lookupPhone) return;
+     setIsSearching(true);
+     try {
+       const { data, error } = await supabase
+         .from('orders')
+         .select('*')
+         .eq('customer_phone', lookupPhone)
+         .order('created_at', { ascending: false });
+       if (error) throw error;
+       setGuestOrders(data || []);
+       if (data && data.length > 0) {
+         toast.success(`${data.length} pedidos encontrados!`);
+       } else {
+         toast.info('Nenhum pedido encontrado para este WhatsApp.');
+       }
+     } catch (err: any) {
+       toast.error('Erro ao buscar pedidos: ' + err.message);
+     } finally {
+       setIsSearching(false);
+     }
+   };
    const [profile, setProfile] = useState<any>(null);
    const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '' });
    const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
