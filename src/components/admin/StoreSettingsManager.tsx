@@ -3,7 +3,7 @@
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type } from 'lucide-react'
+import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
  export function StoreSettingsManager() {
@@ -141,6 +141,18 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
       });
     };
   
+    const moveInstagramItem = (id: number, direction: 'up' | 'down') => {
+      const newItems = [...(settings.instagram_items || [])];
+      const index = newItems.findIndex(item => item.id === id);
+      if (index === -1) return;
+      
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= newItems.length) return;
+      
+      [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+      setSettings({ ...settings, instagram_items: newItems });
+    };
+
     const handleSave = async () => {
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
@@ -463,12 +475,26 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(settings.instagram_items || []).map((item: any) => (
                     <div key={item.id} className="p-4 border border-zinc-100 rounded-[24px] bg-white shadow-sm space-y-3 relative group">
-                      <button 
-                        onClick={() => removeInstagramItem(item.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="absolute -top-2 -right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button 
+                          onClick={() => removeInstagramItem(item.id)}
+                          className="bg-red-500 text-white p-1.5 rounded-full shadow-lg"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => moveInstagramItem(item.id, 'up')}
+                          className="bg-zinc-800 text-white p-1.5 rounded-full shadow-lg"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button 
+                          onClick={() => moveInstagramItem(item.id, 'down')}
+                          className="bg-zinc-800 text-white p-1.5 rounded-full shadow-lg"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                      </div>
                       
                       <div className="aspect-[9/16] bg-zinc-100 rounded-2xl overflow-hidden relative">
                         {item.thumbnail ? (
