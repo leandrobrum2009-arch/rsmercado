@@ -38,7 +38,25 @@ const SUGGESTED_COLORED_ICONS = [
   { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
   { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
   { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
-  { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' }
+  { name: 'Vinho', url: 'https://cdn-icons-png.flaticon.com/512/3122/3122040.png' },
+  { name: 'Milkshake', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405527.png' },
+  { name: 'Sushi', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252430.png' },
+  { name: 'Salada', url: 'https://cdn-icons-png.flaticon.com/512/2153/2153788.png' },
+  { name: 'Sopa', url: 'https://cdn-icons-png.flaticon.com/512/3480/3480618.png' },
+  { name: 'Frango Frito', url: 'https://cdn-icons-png.flaticon.com/512/1895/1895681.png' },
+  { name: 'Peixe', url: 'https://cdn-icons-png.flaticon.com/512/1141/1141771.png' },
+  { name: 'Ovos', url: 'https://cdn-icons-png.flaticon.com/512/2619/2619557.png' },
+  { name: 'Bolo', url: 'https://cdn-icons-png.flaticon.com/512/2682/2682435.png' },
+  { name: 'Donut', url: 'https://cdn-icons-png.flaticon.com/512/3144/3144505.png' },
+  { name: 'Cookie', url: 'https://cdn-icons-png.flaticon.com/512/541/541732.png' },
+  { name: 'Pão', url: 'https://cdn-icons-png.flaticon.com/512/992/992743.png' },
+  { name: 'Queijo', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png' },
+  { name: 'Leite', url: 'https://cdn-icons-png.flaticon.com/512/2674/2674505.png' },
+  { name: 'Café', url: 'https://cdn-icons-png.flaticon.com/512/3054/3054889.png' },
+  { name: 'Cerveja', url: 'https://cdn-icons-png.flaticon.com/512/931/931949.png' },
+  { name: 'Refrigerante', url: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png' },
+  { name: 'Pipoca', url: 'https://cdn-icons-png.flaticon.com/512/3503/3503803.png' },
+  { name: 'Batata', url: 'https://cdn-icons-png.flaticon.com/512/1046/1046786.png' }
 ];
 
 import { useState, useEffect, useMemo } from 'react'
@@ -261,8 +279,14 @@ export function CategoryManagement({ editCategoryName }: { editCategoryName?: st
   }
 
   const handleEdit = (category: any) => {
-    setCurrentCategory(category)
-    const style = category.icon_name?.split(':')[1] || 'minimalist'
+    const safeCategory = {
+      ...category,
+      icon_name: category.icon_name || 'ShoppingBag:minimalist',
+      icon_url: category.icon_url || '',
+      banner_url: category.banner_url || ''
+    }
+    setCurrentCategory(safeCategory)
+    const style = safeCategory.icon_name.split(':')[1] || 'minimalist'
     setSelectedStyle(style)
     setIsEditing(true)
     setIsDialogOpen(true)
