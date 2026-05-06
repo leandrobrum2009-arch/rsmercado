@@ -183,8 +183,8 @@ export const Route = createFileRoute('/admin')({
        {
        title: 'Configurações e Integrações',
         items: [
-             { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
-             { id: 'theme', label: 'Tema Visual', icon: Palette },
+              { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
+              { id: 'theme', label: 'Tema Visual', icon: Palette },
                 <TabsContent value="theme" className="mt-0 focus-visible:ring-0">
                   <ThemeSettingsManager />
                 </TabsContent>
