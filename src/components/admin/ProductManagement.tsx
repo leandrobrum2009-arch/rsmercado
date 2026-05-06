@@ -823,7 +823,7 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
               <TableBody>
                 {products
                   .filter(p => quickEditCategory === 'all' || p.category_id === quickEditCategory)
-                  .map(p => (
+                  .map((p, index) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
