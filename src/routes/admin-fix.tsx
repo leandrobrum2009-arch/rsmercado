@@ -14,8 +14,8 @@
    const [loading, setLoading] = useState(false)
  
    const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
- -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
- UPDATE auth.users SET email_confirmed_at = NOW(), confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE O BLOQUEIO DE LOGIN)
+  UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
  CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $$
