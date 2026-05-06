@@ -743,21 +743,72 @@ export function WhatsAppManager() {
           </Button>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Teste de Envio</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-2">
-          <Input 
-            placeholder="Seu celular (com DDD)" 
-            value={testPhone}
-            onChange={(e) => setTestPhone(e.target.value)}
-          />
-          <Button variant="outline" onClick={handleTest}>
-            <Send className="mr-2 h-4 w-4" /> Testar
-          </Button>
-        </CardContent>
-      </Card>
+       <Card className="border-zinc-200 shadow-sm">
+         <CardHeader className="bg-zinc-50 border-b py-3 px-4">
+           <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+             <Zap size={14} className="text-amber-500" /> Teste Rápido Individual
+           </CardTitle>
+         </CardHeader>
+         <CardContent className="p-4 space-y-4">
+           <div className="space-y-2">
+             <Label className="text-[10px] font-black uppercase text-zinc-500">1. Selecionar Usuário para Teste</Label>
+             <div className="relative">
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+               <Input 
+                 placeholder="Buscar por nome ou celular..." 
+                 value={customerSearch}
+                 onChange={(e) => setCustomerSearch(e.target.value)}
+                 className="pl-10 text-xs h-9"
+               />
+             </div>
+             
+             {customerSearch && (
+               <div className="max-h-32 overflow-y-auto border rounded-xl bg-white divide-y shadow-inner">
+                 {filteredCustomersList.length === 0 ? (
+                   <p className="p-3 text-[10px] text-zinc-400 text-center">Nenhum cliente encontrado</p>
+                 ) : (
+                   filteredCustomersList.map(customer => (
+                     <button
+                       key={customer.id}
+                       onClick={() => {
+                         setTestPhone(customer.whatsapp)
+                         setCustomerSearch(customer.full_name)
+                       }}
+                       className={`w-full p-2 text-left text-[10px] flex items-center justify-between hover:bg-zinc-50 transition-colors ${testPhone === customer.whatsapp ? 'bg-green-50 font-bold' : ''}`}
+                     >
+                       <div>
+                         <p className="uppercase">{customer.full_name}</p>
+                         <p className="text-zinc-500">{customer.whatsapp}</p>
+                       </div>
+                       {testPhone === customer.whatsapp && <CheckCircle className="h-3 w-3 text-green-600" />}
+                     </button>
+                   ))
+                 )}
+               </div>
+             )}
+           </div>
+
+           <div className="flex gap-2">
+             <div className="flex-1 space-y-1">
+               <Label className="text-[10px] font-black uppercase text-zinc-400">2. Confirmar Número</Label>
+               <Input 
+                 placeholder="Ex: 5511999999999" 
+                 value={testPhone}
+                 onChange={(e) => setTestPhone(e.target.value)}
+                 className="h-10 text-xs"
+               />
+             </div>
+             <Button 
+               variant="outline" 
+               onClick={handleTest}
+               disabled={!testPhone}
+               className="mt-auto h-10 border-2 font-black uppercase text-[10px] px-6"
+             >
+               <Send className="mr-2 h-4 w-4" /> Enviar Teste
+             </Button>
+           </div>
+         </CardContent>
+       </Card>
 
       <Card className="bg-zinc-50 border-zinc-200">
         <CardContent className="pt-6 text-sm text-zinc-600">
