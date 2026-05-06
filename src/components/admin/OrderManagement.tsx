@@ -345,15 +345,24 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                                <Button className="flex-1 bg-zinc-900 hover:bg-black font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-zinc-200">
                                  <Package size={16} className="mr-2" /> Imprimir Cupom
                                </Button>
-                               <Button 
-                                 className="flex-1 bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
-                                  onClick={() => {
-                                    const message = `Olá *${order.profiles?.full_name}*!\n\nEstamos processando o seu pedido *#${order.id.substring(0, 8)}*.\n\n🚚 Status: *Aprovado*\n💰 Total: *R$ ${Number(order.total_amount).toFixed(2)}*\n\n📍 *Link de Rastreio:* ${window.location.origin}/track/${order.id}\n\nLogo ele sairá para entrega! 🛒`
-                                    sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
-                                  }}
-                               >
-                                 <Phone size={16} className="mr-2" /> Chamar no Whats
-                               </Button>
+                                <div className="flex flex-col flex-1 gap-2">
+                                  <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
+                                    onClick={() => sendManualOrderSummary(order)}
+                                  >
+                                    <Phone size={16} className="mr-2" /> Enviar Resumo Whats
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    className="w-full border-green-200 text-green-700 font-black uppercase text-[9px] h-8 rounded-xl"
+                                    onClick={() => {
+                                      const message = `Olá *${order.profiles?.full_name}*! Tudo bem? Gostaria de falar sobre o seu pedido *#${order.id.substring(0, 8)}*...`
+                                      sendWhatsAppMessage(order.profiles?.whatsapp || '', message)
+                                    }}
+                                  >
+                                    Abrir Chat Direto
+                                  </Button>
+                                </div>
                              </div>
                            </div>
                          </ScrollArea>
