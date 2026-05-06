@@ -293,14 +293,14 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
                          onChange={handleFileUpload}
                          className="hidden"
                          id="logo-upload"
-                         disabled={uploading}
+                          disabled={!!uploading}
                        />
                         <div className="flex flex-col md:flex-row gap-4 items-start">
                           <label 
                             htmlFor="logo-upload" 
                             className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
                           >
-                            {uploading ? (
+                            {!!uploading ? (
                               <Loader2 className="h-10 w-10 animate-spin text-green-600" />
                             ) : settings.logo_url ? (
                               <div className="flex flex-col items-center">
