@@ -13,6 +13,15 @@ import { toast } from '@/lib/toast'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 
+const parsePrice = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  // Replace comma with dot for Brazilian format
+  const sanitized = value.toString().replace(',', '.');
+  const parsed = parseFloat(sanitized);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 export function ProductImporter() {
    const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history' | 'csv'>('importer')
    const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -187,7 +196,7 @@ export function ProductImporter() {
     }
 
     // Robust normalization for duplicate checking
-     const normalize = (str: string) => {
+const normalize = (str: string) => {
        if (!str) return '';
        return str
          .toLowerCase()
@@ -477,7 +486,7 @@ export function ProductImporter() {
             if (catId) categoryCache[pCategory.toLowerCase()] = catId;
           }
   
-          const priceValue = parseFloat(p.price);
+          const priceValue = parsePrice(p.price);
           const productData = {
             name: pName.substring(0, 255),
             price: isNaN(priceValue) ? 0 : priceValue,

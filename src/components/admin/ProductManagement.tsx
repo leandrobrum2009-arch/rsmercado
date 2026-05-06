@@ -31,7 +31,16 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
   return <Icon size={size} strokeWidth={strokeWidth} className={className} />;
 };
 
- export function ProductManagement() {
+const parsePrice = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  // Replace comma with dot for Brazilian format
+  const sanitized = value.replace(',', '.');
+  const parsed = parseFloat(sanitized);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+export function ProductManagement() {
     const productBadges = [
       { id: 'OFERTA', label: 'Oferta', color: 'bg-red-600', animation: '' },
       { id: 'NOVO', label: 'Novo', color: 'bg-green-600', animation: '' },
@@ -124,10 +133,19 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
         });
 
         for (const [id, data] of updates) {
+          const price = parsePrice(data.price);
+          const oldPrice = data.old_price ? parsePrice(data.old_price) : null;
+          
+          if (price <= 0) {
+            toast.error(`O preço do produto ${products.find(p => p.id === id)?.name} deve ser maior que zero.`);
+            setIsSubmitting(false);
+            return;
+          }
+
           await supabase.from('products').update({ 
-            price: parseFloat(data.price), 
-            old_price: data.old_price ? parseFloat(data.old_price) : null,
-            stock: parseInt(data.stock) 
+            price: price, 
+            old_price: oldPrice,
+            stock: parseInt(data.stock) || 0
           }).eq('id', id)
         }
   
@@ -312,24 +330,31 @@ const CategoryIcon = ({ category, size = 16, className = "" }: { category: any, 
     }
   }
 
-   const handleSaveProduct = async () => {
-     if (!newProduct.name || !newProduct.price || !newProduct.category_id) {
-       return toast.error('Nome, preço e categoria são obrigatórios')
-     }
-     
-     setIsSubmitting(true)
-     const productData: any = {
-       name: newProduct.name,
-       description: newProduct.description,
-       price: Number(newProduct.price),
-       old_price: newProduct.old_price ? Number(newProduct.old_price) : null,
-       category_id: newProduct.category_id,
-       image_url: newProduct.image_url,
-       stock: parseInt(newProduct.stock) || 0,
-       points_value: parseInt(newProduct.points_value) || 0,
-       brand: newProduct.brand,
-       tags: newProduct.tags ? newProduct.tags.split(',').map(t => t.trim()) : []
-     };
+    const handleSaveProduct = async () => {
+      const price = parsePrice(newProduct.price);
+      const oldPrice = newProduct.old_price ? parsePrice(newProduct.old_price) : null;
+
+      if (!newProduct.name || !newProduct.category_id) {
+        return toast.error('Nome e categoria são obrigatórios');
+      }
+
+      if (price <= 0) {
+        return toast.error('O preço atual deve ser maior que zero');
+      }
+      
+      setIsSubmitting(true)
+      const productData: any = {
+        name: newProduct.name,
+        description: newProduct.description,
+        price: price,
+        old_price: oldPrice,
+        category_id: newProduct.category_id,
+        image_url: newProduct.image_url,
+        stock: parseInt(newProduct.stock) || 0,
+        points_value: parseInt(newProduct.points_value) || 0,
+        brand: newProduct.brand,
+        tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : []
+      };
  
      let error;
      if (isEditing) {
