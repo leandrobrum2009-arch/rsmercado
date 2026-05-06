@@ -195,7 +195,7 @@
                         <Badge variant="outline" className="text-[8px] font-black uppercase py-0 px-1.5 h-4 border-zinc-200 text-zinc-400">
                           {p.categories?.name || 'Sem categoria'}
                         </Badge>
-                        <span className="text-[10px] font-bold text-green-600">R$ {p.price.toFixed(2)}</span>
+                         <span className="text-[10px] font-bold text-green-600">R$ {Number(p.price || 0).toFixed(2)}</span>
                      </div>
                    </div>
                    <div className="opacity-0 group-hover:opacity-100 text-zinc-300">
