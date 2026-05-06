@@ -588,13 +588,18 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">URL do Destino</label>
-                          <Input 
-                            value={item.url}
-                            onChange={(e) => updateInstagramItem(item.id, 'url', e.target.value)}
-                            className="h-8 text-[10px]"
-                            placeholder="https://instagram.com/p/..."
-                          />
+                           <label className="text-[9px] font-black uppercase text-zinc-400 tracking-widest flex justify-between">
+                             URL do Destino
+                             <span className="text-[8px] text-pink-500 font-bold">Auto-importa foto</span>
+                           </label>
+                           <div className="flex gap-1">
+                             <Input 
+                               value={item.url}
+                               onChange={(e) => updateInstagramItem(item.id, 'url', e.target.value)}
+                               className="h-8 text-[10px] flex-1"
+                               placeholder="https://instagram.com/p/..."
+                             />
+                           </div>
                         </div>
                       </div>
                     </div>
