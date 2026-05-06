@@ -3,7 +3,7 @@
  import { supabase } from "@/lib/supabase";
  import { Loader2 } from "lucide-react";
  
-  export const ProductGrid = ({ title, categoryName }: { title: string, categoryName?: string }) => {
+   export const ProductGrid = ({ title, categoryName, tag }: { title: string, categoryName?: string, tag?: string }) => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [multiplier, setMultiplier] = useState(1);
@@ -50,11 +50,17 @@
          if (error) throw error;
  
          let filteredData = data || [];
-         if (categoryName) {
-           filteredData = filteredData.filter((p: any) => 
-             p.categories?.name?.toLowerCase().includes(categoryName.toLowerCase())
-           );
-         }
+          if (categoryName) {
+            filteredData = filteredData.filter((p: any) => 
+              p.categories?.name?.toLowerCase().includes(categoryName.toLowerCase())
+            );
+          }
+
+          if (tag) {
+            filteredData = filteredData.filter((p: any) => 
+              p.tags && p.tags.includes(tag)
+            );
+          }
 
          setProducts(filteredData);
       } catch (err) {
