@@ -95,10 +95,10 @@ export const Route = createFileRoute('/admin')({
     await checkAdmin();
   },
   component: RouteComponent,
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
     return {
       tab: (search.tab as string) || 'dashboard',
-      edit: (search.edit as string) || undefined,
+      edit: search.edit as string,
     }
   },
 })
