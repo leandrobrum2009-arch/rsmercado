@@ -13,6 +13,15 @@ import { toast } from '@/lib/toast'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 
+const parsePrice = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  // Replace comma with dot for Brazilian format
+  const sanitized = value.toString().replace(',', '.');
+  const parsed = parseFloat(sanitized);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 export function ProductImporter() {
    const [activeTab, setActiveTab] = useState<'importer' | 'review' | 'history' | 'csv'>('importer')
    const [csvFile, setCsvFile] = useState<File | null>(null)
