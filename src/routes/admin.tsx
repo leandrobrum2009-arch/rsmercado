@@ -54,8 +54,10 @@ export const Route = createFileRoute('/admin')({
     let session = null
     try {
       if (supabase?.auth) {
-        const { data } = await supabase.auth.getSession()
-        session = data.session
+        const { data, error } = await supabase.auth.getSession()
+        if (!error && data) {
+          session = data.session
+        }
       }
     } catch (e) {
       console.error('Error getting session:', e)
@@ -122,12 +124,13 @@ export const Route = createFileRoute('/admin')({
     const [lastError, setLastError] = useState<string | null>(null)
  
    useEffect(() => {
-     const fetchPermissionsAndAdmin = async () => {
-       try {
-         const { data: { session: currentSession } } = await supabase.auth.getSession()
-         setSession(currentSession)
-         
-         if (currentSession) {
+      const fetchPermissionsAndAdmin = async () => {
+        try {
+          const { data, error: sessionError } = await supabase.auth.getSession()
+          const currentSession = data?.session
+          setSession(currentSession)
+          
+          if (currentSession) {
            const { data: roleData } = await supabase
              .from('user_roles')
              .select('permissions')
