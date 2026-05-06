@@ -112,7 +112,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
           data.forEach(item => {
             if (item.key === 'site_name') newSettings.site_name = item.value;
             if (item.key === 'logo_url') newSettings.logo_url = item.value;
-            if (item.key === 'color_palette') {
+            if (item.key === 'color_palette' && item.value) {
               newSettings.colors.primary = item.value.primary || newSettings.colors.primary;
               newSettings.colors.secondary = item.value.secondary || newSettings.colors.secondary;
             }

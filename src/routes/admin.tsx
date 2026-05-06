@@ -54,8 +54,10 @@ export const Route = createFileRoute('/admin')({
     let session = null
     try {
       if (supabase?.auth) {
-        const { data } = await supabase.auth.getSession()
-        session = data.session
+        const { data, error } = await supabase.auth.getSession()
+        if (!error && data) {
+          session = data.session
+        }
       }
     } catch (e) {
       console.error('Error getting session:', e)
@@ -96,9 +98,12 @@ export const Route = createFileRoute('/admin')({
   },
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
+    const tab = Array.isArray(search.tab) ? search.tab[0] : search.tab;
+    const edit = Array.isArray(search.edit) ? search.edit[0] : search.edit;
+    
     return {
-      tab: (search.tab as string) || 'dashboard',
-      edit: search.edit as string,
+      tab: (tab as string) || 'dashboard',
+      edit: edit as string,
     }
   },
 })
@@ -119,13 +124,14 @@ export const Route = createFileRoute('/admin')({
     const [lastError, setLastError] = useState<string | null>(null)
  
    useEffect(() => {
-     const fetchPermissionsAndAdmin = async () => {
-       try {
-         const { data: { session: currentSession } } = await supabase.auth.getSession()
-         setSession(currentSession)
-         
-         if (currentSession) {
-           const { data: roleData } = await supabase
+      const fetchPermissionsAndAdmin = async () => {
+        try {
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+          const currentSession = sessionData?.session
+          setSession(currentSession)
+          
+          if (currentSession) {
+            const { data: roleData } = await supabase
              .from('user_roles')
              .select('permissions')
              .eq('user_id', currentSession.user.id)
@@ -138,13 +144,13 @@ export const Route = createFileRoute('/admin')({
             }
          }
  
-         const { data, error } = await supabase.rpc('is_admin')
-         if (error) {
-           setLastError(error.message)
-           setIsAdminDiagnostic(false)
-         } else {
-           setIsAdminDiagnostic(data)
-         }
+          const { data: adminData, error: adminError } = await supabase.rpc('is_admin')
+          if (adminError) {
+            setLastError(adminError.message)
+            setIsAdminDiagnostic(false)
+          } else {
+            setIsAdminDiagnostic(!!adminData)
+          }
        } catch (err: any) {
          console.error('Error in Admin init:', err)
          setLastError(err.message)

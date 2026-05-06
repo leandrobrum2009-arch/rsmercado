@@ -111,14 +111,14 @@ import { SmartImage } from "./ui/SmartImage";
          
          <div className="mt-auto">
            <div className="flex items-baseline gap-2">
-             <span className="text-lg font-bold text-green-700">
-               R$ {product.price.toFixed(2)}
-             </span>
-             {product.old_price && (
-               <span className="text-xs text-gray-400 line-through">
-                 R$ {product.old_price.toFixed(2)}
-               </span>
-             )}
+              <span className="text-lg font-bold text-green-700">
+                R$ {Number(product.price || 0).toFixed(2)}
+              </span>
+              {product.old_price && (
+                <span className="text-xs text-gray-400 line-through">
+                  R$ {Number(product.old_price).toFixed(2)}
+                </span>
+              )}
            </div>
  
            <div className="mt-3">
