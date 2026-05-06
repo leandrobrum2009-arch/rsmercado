@@ -209,12 +209,13 @@ BEGIN
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
   CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
   
-  -- Use a non-recursive policy for user_roles
-  DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
-  CREATE POLICY "Admins manage roles" ON public.user_roles 
-  FOR ALL USING (
-    (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com')
-  );
+   -- Use a non-recursive policy for user_roles to prevent infinite loops
+   DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+   CREATE POLICY "Admins manage roles" ON public.user_roles 
+   FOR ALL USING (
+     (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') OR
+     (EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin'))
+   );
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
