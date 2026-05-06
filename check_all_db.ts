@@ -8,23 +8,8 @@
    try {
      console.log('Listing all tables (by trying to query common ones)...');
      const tables = ['store_settings', 'store_alerts', 'banners', 'announcements', 'notifications'];
-     for (const table of tables) {
-       const { data, error } = await supabase.from(table).select('*').limit(5);
-       if (error) {
-         // Ignore table not found errors
-         if (!error.message.includes('does not exist')) {
-           console.log(`Table ${table} Error: ${error.message}`);
-         }
-       } else {
-         console.log(`Table ${table} exists with ${data.length} records.`);
-         data.forEach(row => {
-           const str = JSON.stringify(row);
-           if (str.includes('Não se trata')) {
-             console.log(`FOUND IN ${table}:`, row);
-           }
-         });
-       }
-     }
+     const { data: banners } = await supabase.from('banners').select('*');
+     console.log('Banners:', banners?.map(b => ({ title: b.title, subtitle: b.subtitle })));
    } catch (e) {
      console.log('Fatal Error:', e)
    }
