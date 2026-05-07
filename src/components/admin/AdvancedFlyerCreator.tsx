@@ -229,7 +229,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                     height: imageSize > 100 ? 'auto' : '100%',
                                     maxHeight: imageSize > 100 ? 'none' : '100%',
                                     objectFit: 'contain',
-                                    transform: `scale(${imageSize / 100})`,
+                                    transform: `scale(${imageSize / 100}) translateY(${imageOffsetY}px)`,
                                     position: 'relative',
                                     zIndex: 10,
                                   }}
@@ -254,10 +254,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            {!nameOnTop && (
                            <h3 
                              className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
-                             style={{ 
-                               color: titleColor, 
-                                    fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`
-                             }}
+                              style={{ 
+                                color: titleColor, 
+                                fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`,
+                                transform: `translateY(${nameOffsetY}px)`
+                              }}
                            >
                              {p.name}
                            </h3>
@@ -269,7 +270,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               )}
                               style={{ 
                                 backgroundColor: showPriceBg ? priceBgColor : 'transparent',
-                                zIndex: 40
+                                zIndex: 40,
+                                transform: `translateY(${priceOffsetY}px)`
                               }}
                             >
                              {p.original_price && (
