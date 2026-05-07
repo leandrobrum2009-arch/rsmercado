@@ -779,9 +779,9 @@ import html2canvas from 'html2canvas'
                       {t.name}
                     </Button>
                   ))}
-                </div>
-              </div>
-
+            </div>
+          </div>
+        </div>
               {/* Layout Selection */}
              <div className="space-y-3">
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
