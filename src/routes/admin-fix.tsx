@@ -298,16 +298,21 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   -- 10. NOTIFICAÇÕES E ALERTAS
    -- FUNÇÃO PARA NOTIFICAR TODOS
      DROP FUNCTION IF EXISTS public.notify_all_users(text,text,text);
-     CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
-    RETURNS VOID 
-    LANGUAGE plpgsql 
-    SECURITY DEFINER 
-    SET search_path = public, auth
-    AS $BODY$
-    BEGIN
-      INSERT INTO public.notifications (user_id, title, message, type)
-      SELECT id, p_title, p_message, p_type FROM auth.users;
-    END; $BODY$;
+      CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info', p_scheduled_at TIMESTAMP WITH TIME ZONE DEFAULT NULL)
+     RETURNS VOID 
+     LANGUAGE plpgsql 
+     SECURITY DEFINER 
+     SET search_path = public, auth
+     AS $BODY$
+     BEGIN
+       -- Security check: only admins can call this
+       IF NOT public.is_admin() AND (auth.jwt() ->> 'email' != 'leandrobrum2009@gmail.com') THEN
+         RAISE EXCEPTION 'Acesso negado: apenas administradores podem enviar notificações para todos.';
+       END IF;
+
+       INSERT INTO public.notifications (user_id, title, message, type, scheduled_at)
+       SELECT id, p_title, p_message, p_type, p_scheduled_at FROM auth.users;
+     END; $BODY$;
 
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
