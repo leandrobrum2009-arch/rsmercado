@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -573,6 +573,31 @@ import html2canvas from 'html2canvas'
       } finally {
         setUploading(false)
       }
+    }
+
+    const handleShareWhatsApp = async () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
+      }
+
+      await saveToDatabase()
+
+      let message = `🚀 *OFERTAS DO DIA - ${storeSettings?.site_name || 'RS SUPERMERCADO'}* 🚀\n\n`
+      if (validityText) message += `📅 _${validityText}_\n\n`
+
+      selectedProducts.forEach(p => {
+        message += `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*${p.unit ? ` / ${p.unit}` : ''}\n`
+        if (p.original_price) message += `❌ ~~De R$ ${p.original_price.toFixed(2)}~~\n`
+        message += `\n`
+      })
+
+      message += `🛒 *Peça agora pelo site:* ${window.location.origin}\n`
+      message += `📍 ${storeSettings?.address || ''}`
+
+      const encoded = encodeURIComponent(message)
+      window.open(`https://wa.me/?text=${encoded}`, '_blank')
+      toast.success('Compartilhando no WhatsApp...')
     }
 
    const hexToRgba = (hex: string, opacity: number) => {
@@ -1340,10 +1365,16 @@ import html2canvas from 'html2canvas'
                </div>
              </div>
  
-              <div className="flex flex-col gap-2">
-                <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-                  <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
-                </Button>
+               <div className="flex flex-col gap-2">
+                 <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
+                   <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                 </Button>
+                 <Button 
+                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" 
+                   onClick={handleShareWhatsApp}
+                 >
+                   <MessageCircle className="w-4 h-4 mr-2" /> Compartilhar WhatsApp
+                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
@@ -1359,8 +1390,88 @@ import html2canvas from 'html2canvas'
                 </Button>
               </div>
            </CardContent>
-         </Card>
-       </div>
+          </Card>
+
+          {/* Lista por Data (Histórico) */}
+          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden print:hidden">
+            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
+              <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
+                <History className="w-5 h-5 text-primary" /> Histórico por Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[400px] overflow-y-auto divide-y divide-zinc-50">
+                {loadingSaved ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : savedFlyers.length === 0 ? (
+                  <div className="p-8 text-center text-zinc-400 text-xs font-bold uppercase">Nenhum encarte salvo</div>
+                ) : (
+                  savedFlyers.map((f) => (
+                    <div key={f.id} className="p-4 hover:bg-zinc-50 transition-colors group">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-black uppercase italic text-xs tracking-tight">{f.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Calendar className="w-3 h-3 text-zinc-400" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                              {new Date(f.created_at).toLocaleDateString('pt-BR')}
+                            </span>
+                            <Clock className="w-3 h-3 text-zinc-400 ml-1" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                              {new Date(f.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-7 w-7 text-primary" 
+                            title="Abrir"
+                            onClick={() => {
+                              if (f.config) applyTemplate(f.config)
+                              if (f.products_data) setSelectedProducts(f.products_data)
+                              toast.success('Encarte carregado!')
+                            }}
+                          >
+                            <FolderOpen className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-7 w-7 text-green-600" 
+                            title="WhatsApp"
+                            onClick={() => {
+                               // Set context then share
+                               if (f.products_data) {
+                                 const msg = `🚀 *OFERTAS DE ${new Date(f.created_at).toLocaleDateString('pt-BR')}* 🚀\n\n` + 
+                                   f.products_data.map((p: any) => `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*\n`).join('\n') +
+                                   `\n🛒 ${window.location.origin}`;
+                                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                               }
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 overflow-hidden h-8">
+                        {f.products_data?.slice(0, 5).map((p: any, i: number) => (
+                          <img key={i} src={p.image_url} className="h-full w-8 object-contain bg-white rounded border border-zinc-100" />
+                        ))}
+                        {f.products_data?.length > 5 && (
+                          <div className="h-full aspect-square bg-zinc-100 rounded flex items-center justify-center text-[8px] font-black text-zinc-400">
+                            +{f.products_data.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
  
         {/* Preview Area */}
          <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500">
