@@ -1189,7 +1189,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
                       <TabsContent value="presets" className="space-y-4 py-4">
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                           <div className="grid grid-cols-1 gap-2">
                             {PRESET_TEMPLATES.map((t, idx) => (
                               <div key={idx} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-primary/30 transition-colors">
@@ -2059,7 +2059,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[400px] overflow-y-auto divide-y divide-zinc-50">
+              <div className="max-h-[400px] overflow-y-auto divide-y divide-zinc-50 no-scrollbar">
                 {loadingSaved ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : savedFlyers.length === 0 ? (
