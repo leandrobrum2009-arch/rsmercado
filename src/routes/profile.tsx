@@ -21,7 +21,8 @@ export const Route = createFileRoute('/profile')({
  function ProfilePage() {
    const [session, setSession] = useState<any>(null)
    const [profile, setProfile] = useState<any>(null)
-   const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true)
+    const [isAdmin, setIsAdmin] = useState(false)
    const [error, setError] = useState<string | null>(null)
    const [isClient, setIsClient] = useState(false)
    const [savedRecipesCount, setSavedRecipesCount] = useState(0)
@@ -70,8 +71,15 @@ export const Route = createFileRoute('/profile')({
        setSession(data.session);
        console.log('Session status:', data.session ? 'Logged in' : 'Logged out');
        
-       if (data.session) {
-         const userId = data.session.user.id;
+        if (data.session) {
+          const userId = data.session.user.id;
+
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .maybeSingle();
+          setIsAdmin(roleData?.role === 'admin');
          let { data: profileData, error } = await supabase
            .from('profiles')
            .select('*')
@@ -275,22 +283,23 @@ export const Route = createFileRoute('/profile')({
           
            <div className="space-y-6">
              <LoyaltyStatus userId={session.user.id} />
-             <AdminSetup />
+             {isAdmin && <AdminSetup />}
            </div>
         </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-        <Card 
-          className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-primary active:scale-[0.98] group bg-white" 
-          onClick={() => window.location.href = '/admin'}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Painel Administrativo</CardTitle>
-            <ShieldCheck size={24} className="text-primary group-hover:rotate-12 transition-transform" />
-          </CardHeader>
-          <CardContent><p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Gestão completa da sua loja virtual.</p></CardContent>
-        </Card>
-
+        {isAdmin && (
+          <Card 
+            className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-primary active:scale-[0.98] group bg-white" 
+            onClick={() => window.location.href = '/admin'}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Painel Administrativo</CardTitle>
+              <ShieldCheck size={24} className="text-primary group-hover:rotate-12 transition-transform" />
+            </CardHeader>
+            <CardContent><p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Gestão completa da sua loja virtual.</p></CardContent>
+          </Card>
+        )}
         <Card 
           className="hover:shadow-2xl cursor-pointer transition-all border-2 border-transparent hover:border-amber-500 active:scale-[0.98] group bg-white"
           onClick={() => window.location.href = '/recipes'}
@@ -314,19 +323,20 @@ export const Route = createFileRoute('/profile')({
           <CardContent><p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Histórico de compras e entregas.</p></CardContent>
         </Card>
 
-        <Card 
-          className="hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-zinc-400 active:scale-[0.98] group bg-zinc-100" 
-          onClick={() => window.location.href = '/admin-fix'}
-        >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Suporte / Reparo</CardTitle>
-            <Wrench size={16} className="text-zinc-600" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Corrigir problemas de acesso ou dados.</p>
-          </CardContent>
-        </Card>
-
+        {isAdmin && (
+          <Card 
+            className="hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-zinc-400 active:scale-[0.98] group bg-zinc-100" 
+            onClick={() => window.location.href = '/admin-fix'}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Suporte / Reparo</CardTitle>
+              <Wrench size={16} className="text-zinc-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Corrigir problemas de acesso ou dados.</p>
+            </CardContent>
+          </Card>
+        )}
         <Card 
           className="hover:shadow-lg cursor-pointer transition-all border-2 border-transparent hover:border-red-500 active:scale-[0.98] group bg-zinc-50" 
           onClick={() => supabase.auth.signOut().then(() => window.location.reload())}

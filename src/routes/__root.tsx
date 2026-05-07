@@ -246,7 +246,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     return (
        <div className="flex flex-col min-h-screen bg-gray-50">
          <StoreAlertBanner />
-        {isSupabaseMissing && (
+        {isSupabaseMissing && isAdmin && (
           <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse z-[60]">
             <div className="flex items-center gap-3">
               <AlertTriangle className="flex-shrink-0" />
@@ -310,9 +310,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
-             <Link to="/admin" search={{ tab: 'dashboard', edit: undefined }} className="text-gray-600 hover:text-green-600">
-               <Settings size={20} />
-             </Link>
+             {isAdmin && (
+               <Link to="/admin" search={{ tab: 'dashboard', edit: undefined }} className="text-gray-600 hover:text-green-600">
+                 <Settings size={20} />
+               </Link>
+             )}
            </div>
          </div>
        </header>
