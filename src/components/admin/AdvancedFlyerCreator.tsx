@@ -78,6 +78,7 @@ import html2canvas from 'html2canvas'
      const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
+    const [productPadding, setProductPadding] = useState(8)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
 
@@ -257,7 +258,7 @@ import html2canvas from 'html2canvas'
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -330,6 +331,7 @@ import html2canvas from 'html2canvas'
       if (config.showShadows !== undefined) setShowShadows(config.showShadows)
       if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
       if (config.priceLayout) setPriceLayout(config.priceLayout)
+      if (config.productPadding !== undefined) setProductPadding(config.productPadding)
        if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
        if (config.imageSize !== undefined) setImageSize(config.imageSize)
        if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
