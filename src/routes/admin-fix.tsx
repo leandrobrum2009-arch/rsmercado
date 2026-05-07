@@ -18,7 +18,29 @@
   
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
   -- Note: We use email_confirmed_at. confirmed_at is a generated column.
-  UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+
+   -- 1.1 GARANTIR TABELA DE ENCARTES (FLYERS)
+   CREATE TABLE IF NOT EXISTS public.flyers (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       title TEXT NOT NULL,
+       layout_type TEXT DEFAULT 'grid',
+       primary_color TEXT,
+       secondary_color TEXT,
+       products_data JSONB DEFAULT '[]',
+       config JSONB DEFAULT '{}',
+       image_url TEXT,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
+   DO $$ BEGIN
+       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='flyers' AND policyname='Anyone can view flyers') THEN
+           CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
+       END IF;
+       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='flyers' AND policyname='Admin can manage flyers') THEN
+           CREATE POLICY "Admin can manage flyers" ON public.flyers FOR ALL USING (public.is_admin());
+       END IF;
+   END $$;
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
    -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
@@ -87,6 +109,18 @@
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
       product_id UUID,
+      
+      -- Adicionar FK se estiver faltando para permitir joins no dashboard
+      DO $$ BEGIN
+          IF NOT EXISTS (
+              SELECT 1 FROM information_schema.table_constraints 
+              WHERE constraint_name = 'order_items_product_id_fkey'
+          ) THEN
+              ALTER TABLE public.order_items 
+              ADD CONSTRAINT order_items_product_id_fkey 
+              FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
+          END IF;
+      END $$;
       quantity INTEGER NOT NULL,
       unit_price DECIMAL(10,2) NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
