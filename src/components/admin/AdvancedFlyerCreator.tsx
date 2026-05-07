@@ -436,6 +436,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           productBlockHeight: 300, showPriceBg: false, showShadows: false,
           priceLayout: 'inline', imageSize: 85, nameOnTop: false, showValidity: false
         }
+      },
+      {
+        name: '🎯 Produto Único Destaque',
+        config: {
+          layout: 'single', backgroundType: 'gradient', backgroundGradient: 'radial-gradient(circle, #ffffff, #f1f5f9)',
+          columns: 1, gridGap: 0, productPadding: 40, showLogo: true, logoPosition: 'center', logoSize: 150,
+          titleColor: '#000000', priceColor: '#e11d48', fontSize: 18, priceSize: 40,
+          fontFamily: 'font-sans font-black italic', productBgColor: '#ffffff', productBgOpacity: 0,
+          productBlockHeight: 0, showPriceBg: false, showShadows: false,
+          priceLayout: 'traditional', imageSize: 150, nameOnTop: false, showValidity: true,
+          nameOffsetY: -50, priceOffsetY: 50, imageOffsetY: 0, blurAmount: 0
+        }
       }
     ];
 
