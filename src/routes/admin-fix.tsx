@@ -218,7 +218,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
     
     -- Configurações (Público lê, Admin altera)
     DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
-    CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config'));
+    CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config', 'admin_setup_secret', 'webhook_secrets'));
     DROP POLICY IF EXISTS "Admin manage settings" ON public.store_settings;
     CREATE POLICY "Admin manage settings" ON public.store_settings FOR ALL USING (public.is_admin());
 
