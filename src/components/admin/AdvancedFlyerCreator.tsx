@@ -1363,10 +1363,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-              <div className="flex flex-col gap-2">
-                <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-                  <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
-                </Button>
+               <div className="flex flex-col gap-2">
+                 <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
+                   <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                 </Button>
+                 <Button 
+                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" 
+                   onClick={handleShareWhatsApp}
+                 >
+                   <MessageCircle className="w-4 h-4 mr-2" /> Compartilhar WhatsApp
+                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
