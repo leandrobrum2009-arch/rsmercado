@@ -1686,11 +1686,57 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
              <FlyerContentInner />
            </div>
          </div>
+        </div>
+      </div>
 
-    // Extract content to a reusable component
-    function FlyerContentInner() {
-      return (
-        <>
+      <style>{`
+        @media print {
+          @page { 
+            size: A4 portrait; 
+            margin: 0 !important; 
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * { visibility: hidden !important; }
+          #flyer-content, #flyer-content * { 
+            visibility: visible !important; 
+          }
+          #flyer-content {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transform: none !important;
+            transition: none !important;
+            box-shadow: none !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          .print\:hidden { display: none !important; }
+        }
+      `}</style>
+    </div>
+  )
+
+  // Extract content to a reusable component
+  function FlyerContentInner() {
+    return (
+      <>
                 {/* Top Reserved Zone (15%) */}
                  <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
                   {showLogo && storeSettings?.logo_url && (
