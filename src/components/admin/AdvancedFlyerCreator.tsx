@@ -97,23 +97,44 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
-     const [showPreviewModal, setShowPreviewModal] = useState(false)
+      const [showPreviewModal, setShowPreviewModal] = useState(false)
+      const [printImage, setPrintImage] = useState<string | null>(null)
+      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
      const [flyerScale, setFlyerScale] = useState(0.8)
  
-     useEffect(() => {
-       const handleResize = () => {
-         if (typeof window !== 'undefined') {
-           const width = window.innerWidth
-           if (width < 640) setFlyerScale((width - 40) / 794)
-           else if (width < 1024) setFlyerScale((width - 100) / 794)
-           else if (width < 1400) setFlyerScale(0.7)
-           else setFlyerScale(0.85)
-         }
-       }
-       handleResize()
-       window.addEventListener('resize', handleResize)
-       return () => window.removeEventListener('resize', handleResize)
-     }, [])
+      useEffect(() => {
+        const handleResize = () => {
+          if (typeof window !== 'undefined') {
+            const width = window.innerWidth
+            if (width < 640) setFlyerScale((width - 40) / 794)
+            else if (width < 1024) setFlyerScale((width - 100) / 794)
+            else if (width < 1400) setFlyerScale(0.7)
+            else setFlyerScale(0.85)
+          }
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+      }, [])
+
+      useEffect(() => {
+        if (printImage) {
+          const handleAfterPrint = () => {
+            setPrintImage(null)
+            window.removeEventListener('afterprint', handleAfterPrint)
+          }
+          window.addEventListener('afterprint', handleAfterPrint)
+          
+          const timer = setTimeout(() => {
+            window.print()
+          }, 1000)
+          
+          return () => {
+            clearTimeout(timer)
+            window.removeEventListener('afterprint', handleAfterPrint)
+          }
+        }
+      }, [printImage])
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
