@@ -334,17 +334,29 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
   CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
  
-  -- 4. HARDENING E PERMISSÕES GERAIS
-   -- Enable RLS on all sensitive tables
-   DO $RLS$ 
-   DECLARE 
-     t TEXT;
-   BEGIN
-     FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-       EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
-     END LOOP;
-   END $RLS$;
-
+   -- 4. HARDENING E PERMISSÕES GERAIS
+   -- Enable RLS on all sensitive tables manually to avoid DO block syntax issues
+   ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.user_roles ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.categories ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.products ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.orders ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.order_items ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.flyers ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.banners ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.site_visits ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.notifications ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.store_alerts ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.app_feedback ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.loyalty_rewards ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.weekly_challenges ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.delivery_neighborhoods ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
   -- Secure store_settings (Protect secrets)
   DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
   CREATE POLICY "Public read settings" ON public.store_settings 
