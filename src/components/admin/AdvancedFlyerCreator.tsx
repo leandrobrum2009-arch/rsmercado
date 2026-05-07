@@ -56,6 +56,33 @@
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+
+   // Background removal helper (for white backgrounds)
+   const removeWhiteBackground = (imgElement: HTMLImageElement) => {
+     const canvas = document.createElement('canvas')
+     const ctx = canvas.getContext('2d')
+     if (!ctx) return imgElement.src
+
+     canvas.width = imgElement.naturalWidth
+     canvas.height = imgElement.naturalHeight
+     ctx.drawImage(imgElement, 0, 0)
+
+     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+     const data = imageData.data
+
+     for (let i = 0; i < data.length; i += 4) {
+       const r = data[i]
+       const g = data[i + 1]
+       const b = data[i + 2]
+       // If pixel is close to white, make it transparent
+       if (r > 240 && g > 240 && b > 240) {
+         data[i + 3] = 0
+       }
+     }
+
+     ctx.putImageData(imageData, 0, 0)
+     return canvas.toDataURL()
+   }
  
    useEffect(() => {
      fetchProducts()
