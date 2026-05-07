@@ -65,7 +65,7 @@
             initial={{ height: 0, opacity: 0, y: -20 }}
             animate={{ height: 'auto', opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
-            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-lg z-[100] md:relative`}
+            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-lg z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-2 ring-red-500 ring-inset' : ''}`}
           >
             <div className="container mx-auto px-4 py-4 md:py-3.5 flex flex-col md:flex-row items-center md:justify-between gap-4 relative z-10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
