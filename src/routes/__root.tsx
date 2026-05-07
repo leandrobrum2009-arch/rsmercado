@@ -426,7 +426,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         )}
-        <Toaster position="top-center" />
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            className: "rounded-2xl border-2 border-zinc-100 shadow-2xl font-bold uppercase text-[11px] tracking-tight",
+            style: {
+              padding: '16px',
+            },
+          }}
+        />
      </div>
    );
  }
