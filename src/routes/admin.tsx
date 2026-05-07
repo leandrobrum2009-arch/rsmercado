@@ -346,9 +346,9 @@ export const Route = createFileRoute('/admin')({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-6xl mx-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-visible bg-zinc-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar">
+          <div className={cn("mx-auto transition-all duration-500", activeTab === 'flyers' ? "max-w-full w-full" : "max-w-6xl")}>
             {lastError && (
               <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 rounded-2xl flex items-center gap-3 text-red-700">
                 <AlertCircle className="flex-shrink-0" />
