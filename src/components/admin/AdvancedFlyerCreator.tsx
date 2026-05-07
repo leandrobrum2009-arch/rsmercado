@@ -34,7 +34,7 @@
    const [backgroundColor, setBackgroundColor] = useState('#ffffff')
    const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
    const [columns, setColumns] = useState(3)
-   const [gridGap, setGridGap] = useState(16)
+    const [gridGap, setGridGap] = useState(10)
    const [showLogo, setShowLogo] = useState(true)
    const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
    const [logoSize, setLogoSize] = useState(120)
@@ -59,7 +59,7 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-     const [productBlockHeight, setProductBlockHeight] = useState<number>(240) // Default to a reasonable height
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(220) // Default to a reasonable height
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -73,8 +73,9 @@
     // Validity phrase states
     const [showValidity, setShowValidity] = useState(true)
     const [validityText, setValidityText] = useState(`Ofertas válidas de ${new Date().toLocaleDateString('pt-BR')} até as 21h`)
-    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer'>('bottom')
-    const [validityBgColor, setValidityBgColor] = useState('#fbbf24') // yellow-400
+    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer' | 'between'>('bottom')
+     const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
+     const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
@@ -458,7 +459,7 @@
       setSelectedProducts(updated)
     }
  
-   const handlePrint = () => {
+    const handlePrint = async () => {
      const historyItem = {
        id: Math.random().toString(36).substring(7),
        timestamp: new Date().toISOString(),
@@ -476,6 +477,7 @@
      const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
      setFlyerHistory(updatedHistory)
      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
+      await saveToDatabase()
      window.print()
    }
  
@@ -486,10 +488,18 @@
      return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
-    const ValidityBanner = () => (
+     const ValidityBanner = ({ isLine = false }: { isLine?: boolean }) => (
       <div 
-        className="w-full py-1.5 px-4 text-center font-black uppercase italic text-[11px] shadow-md z-[45] tracking-tight"
-        style={{ backgroundColor: validityBgColor, color: validityTextColor }}
+         className={cn(
+           "w-full px-4 text-center font-black uppercase italic shadow-md z-[45] tracking-tight transition-all",
+           isLine ? "py-0.5 border-y border-black/10 my-1" : "py-1.5"
+         )}
+         style={{ 
+           backgroundColor: validityBgColor, 
+           color: validityTextColor, 
+           fontSize: `${isLine ? Math.max(validityFontSize * 0.7, 7) : validityFontSize}px`,
+           minHeight: isLine ? '12px' : 'auto'
+         }}
       >
         {validityText}
       </div>
@@ -780,17 +790,24 @@
                       onChange={(e) => setValidityText(e.target.value)}
                       className="h-8 text-[10px]"
                     />
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['top', 'bottom', 'footer'] as const).map(pos => (
+                    <div className="grid grid-cols-4 gap-1">
+                      {(['top', 'bottom', 'footer', 'between'] as const).map(pos => (
                         <Button
                           key={pos}
                           variant={validityPosition === pos ? 'default' : 'outline'}
                           className="h-7 text-[8px] font-bold uppercase"
                           onClick={() => setValidityPosition(pos)}
                         >
-                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : 'Rodapé'}
+                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : pos === 'footer' ? 'Rodapé' : 'Entre'}
                         </Button>
                       ))}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[8px] font-bold uppercase">
+                        <span>Tamanho Fonte Validade</span>
+                        <span>{validityFontSize}px</span>
+                      </div>
+                      <Slider value={[validityFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setValidityFontSize(val)} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -1261,7 +1278,7 @@
              </div>
    
                 {/* Content Middle Zone (80%) */}
-                <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
+                <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
                   {showValidity && validityPosition === 'bottom' && (
                     <div className="mb-4">
                       <ValidityBanner />
@@ -1277,8 +1294,9 @@
                  )}
                  style={{ gap: `${gridGap}px` }}
                >
-               {selectedProducts.map((p, i) => {
-                 let spanClass = ""
+                {selectedProducts.map((p, i) => {
+                  const isBetweenRow = validityPosition === 'between' && i > 0 && i % columns === 0;
+                  let spanClass = ""
                  if (layout === 'featured-side') {
                    if (i === 0) spanClass = "col-span-1 row-span-3"
                    if (i === 1) spanClass = "col-span-1 row-span-3 order-last"
@@ -1287,7 +1305,13 @@
                    if (i === 0 || i === 1) spanClass = "col-span-1 row-span-1"
                  }
  
-                 return (
+                  return (
+                    <>
+                    {isBetweenRow && (
+                      <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
+                        <ValidityBanner isLine={true} />
+                      </div>
+                    )}
                    <div 
                      key={i} 
                      className={cn(
@@ -1316,7 +1340,7 @@
                                     ? `${productBlockHeight * 3 + gridGap * 2}px` 
                                     : `${productBlockHeight}px`)
                                 : 'auto',
-                              overflow: imageSize > 100 ? 'visible' : 'hidden'
+                              overflow: 'visible'
                             }}
                         >
                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
@@ -1409,6 +1433,7 @@
                        </div>
                      </div>
                    </div>
+                   </>
                  )
                })}
              </div>
