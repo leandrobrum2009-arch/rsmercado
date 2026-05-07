@@ -69,9 +69,15 @@ export function FlyerCreator() {
     setSelectedProducts(selectedProducts.filter(p => p.id !== id))
   }
 
-   const handlePrint = () => {
-     window.print()
-   }
+    const handlePrint = () => {
+      const element = document.getElementById('flyer-content');
+      if (element) {
+        element.style.transition = 'none';
+      }
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
  
    const handleWhatsAppShare = async () => {
      if (selectedProducts.length === 0) {
