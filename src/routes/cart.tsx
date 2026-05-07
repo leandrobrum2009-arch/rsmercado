@@ -183,19 +183,22 @@ function CartPage() {
      }
  
       setIsProcessing(true);
-      const orderPayload: any = {
-        change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
-        user_id: profile?.id || null,
-        total_amount: total + deliveryFee,
-        delivery_fee: deliveryFee,
-        payment_method: paymentMethod,
-        status: 'pending',
-        points_earned: Math.floor(total * pointsMultiplier),
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        delivery_address: deliveryAddress,
-        coupon_code: coupon
-      };
+       const orderPayload: any = {
+         change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
+         user_id: profile?.id || null,
+         total_amount: total + deliveryFee,
+         delivery_fee: deliveryFee,
+         payment_method: paymentMethod,
+         status: 'pending',
+         points_earned: Math.floor(total * pointsMultiplier),
+         customer_name: customerName,
+         customer_phone: customerPhone,
+         delivery_address: deliveryAddress,
+         coupon_code: coupon
+       };
+       
+       // Log para depuração de RLS
+       console.log('Final payload before insert:', orderPayload);
       console.log('Starting order creation with payload:', orderPayload);
       try {
 
@@ -269,9 +272,15 @@ function CartPage() {
        if (profile) toast.success(`Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
       clearCart();
       navigate({ to: `/track/${order.id}` });
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error("Erro ao processar pedido: " + error.message);
+     } catch (error: any) {
+       console.error("Checkout error:", error);
+       let errorMessage = error.message;
+       
+       if (error.message?.includes('row-level security') || error.code === '42501') {
+         errorMessage = "Erro de permissão no banco de dados. Por favor, acesse /admin-fix e execute o script de reparação para corrigir o acesso.";
+       }
+       
+       toast.error("Erro ao processar pedido: " + errorMessage);
     } finally {
       setIsProcessing(false);
     }
