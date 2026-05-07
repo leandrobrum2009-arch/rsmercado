@@ -2,6 +2,7 @@
  
  -- 1. Create tables if missing
  CREATE TABLE IF NOT EXISTS public.orders (
+     change_for DECIMAL(10,2),
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      user_id UUID REFERENCES auth.users(id),
      customer_name TEXT,
