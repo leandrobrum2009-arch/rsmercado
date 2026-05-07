@@ -1154,7 +1154,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     return (
       <>
       {printImage && (
-        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static">
+        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static flyer-print-overlay">
           <img 
             src={printImage} 
             className="w-[210mm] h-[297mm] object-contain mx-auto" 
@@ -2279,8 +2279,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           body * { visibility: hidden !important; }
           
           /* Show the captured image if it exists, otherwise fall back to content */
-          div[class*="z-[99999]"], 
-          div[class*="z-[99999]"] img,
+          .flyer-print-overlay, 
+          .flyer-print-overlay img,
           #flyer-content, 
           #flyer-content * { 
             visibility: visible !important; 
@@ -2307,7 +2307,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             print-color-adjust: exact !important;
           }
           
-          div[class*="z-[99999]"] {
+          .flyer-print-overlay {
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
