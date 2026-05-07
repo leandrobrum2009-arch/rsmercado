@@ -590,7 +590,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-          nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
+          nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -635,7 +635,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
         productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-        nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
+        nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
         showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
@@ -718,7 +718,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
        if (config.nameOffsetY !== undefined) setNameOffsetY(config.nameOffsetY)
        if (config.priceOffsetY !== undefined) setPriceOffsetY(config.priceOffsetY)
+       if (config.priceOffsetX !== undefined) setPriceOffsetX(config.priceOffsetX)
+       if (config.nameOffsetX !== undefined) setNameOffsetX(config.nameOffsetX)
        if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
+       if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
        if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
       toast.success('Template aplicado!')
     }
