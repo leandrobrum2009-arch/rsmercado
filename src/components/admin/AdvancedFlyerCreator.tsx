@@ -600,7 +600,7 @@ import html2canvas from 'html2canvas'
     )
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
@@ -1368,7 +1368,7 @@ import html2canvas from 'html2canvas'
        </div>
  
         {/* Preview Area */}
-        <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none">
+         <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -1383,11 +1383,16 @@ import html2canvas from 'html2canvas'
           </div>
 
          <div 
-           id="flyer-content"
-               className={cn(
-                 "relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300",
-                 removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl"
-               )}
+            <div 
+              className="w-full max-w-[700px] flex justify-center perspective-1000 print:max-w-none"
+              style={{ perspective: '2000px' }}
+            >
+              <div 
+                id="flyer-content"
+                className={cn(
+                  "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
+                  removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
+                )}
                style={{ 
                  background: backgroundType === 'image' 
                    ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
