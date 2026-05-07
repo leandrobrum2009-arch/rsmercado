@@ -725,10 +725,16 @@ import html2canvas from 'html2canvas'
                  </div>
                )}
  
-               <div className="space-y-3">
-                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento entre Blocos ({gridGap}px)</Label>
-                 <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
-               </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento ({gridGap}px)</Label>
+                    <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Padding ({productPadding}px)</Label>
+                    <Slider value={[productPadding]} min={0} max={20} step={1} onValueChange={([val]) => setProductPadding(val)} />
+                  </div>
+                </div>
  
                <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Logotipo no Topo</Label>
