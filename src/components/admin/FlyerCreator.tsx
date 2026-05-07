@@ -94,50 +94,70 @@ export function FlyerCreator() {
 
     const handlePrint = async () => {
       if (selectedProducts.length === 0) {
-        toast.error('Adicione produtos ao encarte primeiro')
-        return
+        toast.error('Adicione produtos ao encarte primeiro');
+        return;
       }
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
-        toast.error('Conteúdo do encarte não encontrado')
-        return
+        toast.error('Conteúdo do encarte não encontrado');
+        return;
       }
 
-      setIsPreparingPrint(true)
-      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+      setIsPreparingPrint(true);
+      const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
         // Ensure all images are loaded before capture
-        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        const images = Array.from(flyerElement.getElementsByTagName('img'));
         await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
+          if (img.complete) return Promise.resolve();
           return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve
-          })
-        }))
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }));
+
+        // Force specific dimensions for A4 capture
+        const originalWidth = flyerElement.style.width;
+        const originalHeight = flyerElement.style.height;
+        const originalMaxWidth = flyerElement.style.maxWidth;
+
+        // A4 is 794x1123 at 96dpi
+        flyerElement.style.width = '794px';
+        flyerElement.style.height = layout === 'story' ? '1411px' : '1123px';
+        flyerElement.style.maxWidth = 'none';
+
+        // Wait for re-layout
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // Capture as image for perfect print reproduction
         const canvas = await html2canvas(flyerElement, {
           useCORS: true,
-          scale: 3, // High quality for print
+          scale: 4, // Higher scale for extreme detail
           backgroundColor: '#ffffff',
           logging: false,
-          imageTimeout: 30000,
-        })
+          imageTimeout: 60000,
+          allowTaint: true
+        });
 
-        const dataUrl = canvas.toDataURL('image/png')
-        setPrintImage(dataUrl)
-        toast.dismiss(loadingToast)
+        // Restore styles
+        flyerElement.style.width = originalWidth;
+        flyerElement.style.height = originalHeight;
+        flyerElement.style.maxWidth = originalMaxWidth;
+
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+        setPrintImage(dataUrl);
+        toast.dismiss(loadingToast);
+        toast.success('Pronto para imprimir!');
       } catch (error) {
-        console.error('Error preparing print:', error)
-        toast.error('Erro ao preparar impressão')
-        toast.dismiss(loadingToast)
+        console.error('Error preparing print:', error);
+        toast.error('Erro ao preparar impressão');
+        toast.dismiss(loadingToast);
       } finally {
-        setIsPreparingPrint(false)
+        setIsPreparingPrint(false);
       }
-    }
+    };
 
     const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
@@ -219,7 +239,7 @@ export function FlyerCreator() {
        <div className={`contents ${printImage ? 'print:hidden' : ''}`}>
          {/* Controls Sidebar */}
       {/* Controls Sidebar */}
-          <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
+          <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

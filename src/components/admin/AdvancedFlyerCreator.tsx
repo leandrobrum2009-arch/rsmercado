@@ -914,73 +914,101 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
     const handlePrint = async () => {
       if (selectedProducts.length === 0) {
-        toast.error('Adicione produtos ao encarte primeiro')
-        return
+        toast.error('Adicione produtos ao encarte primeiro');
+        return;
       }
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
-        toast.error('Conteúdo do encarte não encontrado')
-        return
+        toast.error('Conteúdo do encarte não encontrado');
+        return;
       }
 
-      setIsPreparingPrint(true)
-      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+      setIsPreparingPrint(true);
+      const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
-      // Save history and to database in background to avoid blocking the print UI
-      const historyItem = {
-        id: Math.random().toString(36).substring(7),
-        timestamp: new Date().toISOString(),
-        config: {
-          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
-          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
-          imageOffsetX, imageOffsetY, blurAmount
-        },
-        products: selectedProducts
-      }
-      const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
-      setFlyerHistory(updatedHistory)
-      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
-      
-      // Non-blocking save
-      saveToDatabase().catch(err => console.error("Auto-save failed:", err))
+        // Save history and to database in background
+        const historyItem = {
+          id: Math.random().toString(36).substring(7),
+          timestamp: new Date().toISOString(),
+          config: {
+            layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+            columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+            fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+            productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+            priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+            bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+            showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
+            imageOffsetX, imageOffsetY, blurAmount
+          },
+          products: selectedProducts
+        };
+        const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
+        setFlyerHistory(updatedHistory);
+        localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
+        saveToDatabase().catch(err => console.error("Auto-save failed:", err));
 
-        // Ensure all images are loaded before capture
-        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        // Wait for all images to load
+        const images = Array.from(flyerElement.querySelectorAll('img'));
         await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
+          if (img.complete) return Promise.resolve();
           return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve
-          })
-        }))
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }));
 
-        // Capture as image for perfect print reproduction
+        // CRITICAL: Temporarily reset transform scale for perfect capture
+        const originalTransform = flyerElement.style.transform;
+        const originalMarginBottom = flyerElement.style.marginBottom;
+        const originalMarginLeft = flyerElement.style.marginLeft;
+        const originalMarginRight = flyerElement.style.marginRight;
+
+        flyerElement.style.transform = 'scale(1)';
+        flyerElement.style.marginBottom = '0px';
+        flyerElement.style.marginLeft = '0px';
+        flyerElement.style.marginRight = '0px';
+
+        // Use a slight delay to allow the browser to re-layout at scale 1
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         const canvas = await html2canvas(flyerElement, {
           useCORS: true,
-          scale: 3, // High quality for print
+          scale: 4, // Higher scale for extreme detail
           backgroundColor: removeFlyerBg ? null : '#ffffff',
           logging: false,
-          imageTimeout: 30000,
-        })
+          imageTimeout: 60000,
+          allowTaint: true,
+          onclone: (clonedDoc) => {
+            // Additional cleanup in clone if needed
+            const clonedFlyer = clonedDoc.getElementById('flyer-content');
+            if (clonedFlyer) {
+              clonedFlyer.style.transform = 'none';
+              clonedFlyer.style.margin = '0';
+              clonedFlyer.style.boxShadow = 'none';
+            }
+          }
+        });
 
-        const dataUrl = canvas.toDataURL('image/png')
-        setPrintImage(dataUrl)
-        toast.dismiss(loadingToast)
+        // Restore original styles
+        flyerElement.style.transform = originalTransform;
+        flyerElement.style.marginBottom = originalMarginBottom;
+        flyerElement.style.marginLeft = originalMarginLeft;
+        flyerElement.style.marginRight = originalMarginRight;
+
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+        setPrintImage(dataUrl);
+        toast.dismiss(loadingToast);
+        toast.success('Pronto para imprimir!');
       } catch (error) {
-        console.error('Error preparing print:', error)
-        toast.error('Erro ao preparar impressão')
-        toast.dismiss(loadingToast)
+        console.error('Error preparing print:', error);
+        toast.error('Erro ao preparar impressão');
+        toast.dismiss(loadingToast);
       } finally {
-        setIsPreparingPrint(false)
+        setIsPreparingPrint(false);
       }
-    }
+    };
 
     const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
@@ -1189,7 +1217,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
+        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
