@@ -86,7 +86,7 @@
                  window.open(alert.target_url, '_blank');
                }
              }}
-             className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-4 ring-red-500/50 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/10 cursor-pointer active:scale-[0.98] transition-transform touch-none`}
+              className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-shake-critical ring-4 ring-red-400 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/20 cursor-pointer active:scale-[0.98] transition-all touch-none`}
            >
             <div className="container mx-auto px-4 py-4 md:py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 relative z-10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
