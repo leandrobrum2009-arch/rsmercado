@@ -190,13 +190,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               "relative rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
                                layout === 'single' ? 'p-16' : '',
                              columns === 4 ? 'p-1.5' : '',
-                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
+                              (showShadows && productBgOpacity > 0) ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                               productBlockHeight === 0 ? "h-fit min-h-full" : ""
                            )}
                              style={{
                                 backgroundColor: productBgOpacity > 0 ? hexToRgba(productBgColor, productBgOpacity) : 'transparent',
-                                backdropFilter: productBgOpacity > 0 ? `blur(${blurAmount}px)` : 'none',
-                                borderColor: productBgOpacity > 0 ? 'rgba(255,255,255,0.3)' : 'transparent',
+                                backdropFilter: (productBgOpacity > 0 && blurAmount > 0) ? `blur(${blurAmount}px)` : 'none',
+                                border: productBgOpacity > 0 ? '1px solid rgba(255,255,255,0.3)' : 'none',
                               height: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
@@ -2092,17 +2092,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
-              <div
-                id="flyer-content"
-                className={cn(
-                  "relative flex flex-col aspect-[210/297] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
-                  removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
-                )}
-                style={{
-                  backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                }}
+            <div className="w-full flex justify-center print:block overflow-hidden p-4">
+              <div 
+                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center"
+                style={{ scrollbarWidth: 'thin' }}
               >
+                <div
+                  id="flyer-content"
+                  className={cn(
+                    "relative flex flex-col shrink-0 print:w-[210mm] print:h-[297mm] print:shadow-none overflow-hidden transition-all duration-500 origin-top shadow-2xl",
+                    removeFlyerBg ? "bg-transparent" : "bg-white border border-zinc-100"
+                  )}
+                  style={{
+                    width: '794px', // A4 em 96dpi
+                    height: '1123px',
+                    backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                    transform: `scale(${typeof window !== 'undefined' && window.innerWidth < 1000 ? (window.innerWidth - 100) / 794 : 0.8})`,
+                    marginBottom: '-200px' // Compensar o espaço do scale
+                  }}
+                >
                 {/* Dedicated Background Layer for better print reliability */}
                 <div 
                   className="absolute inset-0 z-0 pointer-events-none"
