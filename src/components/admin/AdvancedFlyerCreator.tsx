@@ -2219,10 +2219,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full flex justify-center print:block overflow-hidden p-4">
+            <div className="w-full flex justify-center print:block overflow-hidden p-4 no-scrollbar">
               <div 
-                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center"
-                style={{ scrollbarWidth: 'thin' }}
+                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center no-scrollbar"
               >
                 <div
                   id="flyer-content"
