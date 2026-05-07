@@ -903,6 +903,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const flyerElement = document.getElementById('flyer-content');
       if (flyerElement) {
         flyerElement.style.transition = 'none';
+        flyerElement.style.transform = 'none';
+        flyerElement.style.margin = '0';
         // Force reflow
         void flyerElement.offsetHeight;
       }
