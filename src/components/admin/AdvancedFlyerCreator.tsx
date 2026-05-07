@@ -206,6 +206,34 @@
                    {showLogo ? 'Sim' : 'Não'}
                  </Button>
                </div>
+
+               {showLogo && (
+                 <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 animate-in fade-in slide-in-from-top-2">
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Posição do Logo</Label>
+                     <div className="flex gap-2">
+                       {[
+                         { id: 'left', icon: AlignLeft },
+                         { id: 'center', icon: AlignCenter },
+                         { id: 'right', icon: AlignRight },
+                       ].map(pos => (
+                         <Button
+                           key={pos.id}
+                           variant={logoPosition === pos.id ? 'default' : 'outline'}
+                           className="flex-1 h-8"
+                           onClick={() => setLogoPosition(pos.id as any)}
+                         >
+                           <pos.icon className="w-4 h-4" />
+                         </Button>
+                       ))}
+                     </div>
+                   </div>
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho do Logo ({logoSize}px)</Label>
+                     <Slider value={[logoSize]} min={40} max={400} step={10} onValueChange={([val]) => setLogoSize(val)} />
+                   </div>
+                 </div>
+               )}
  
                {/* Background Settings */}
                <div className="space-y-3">
