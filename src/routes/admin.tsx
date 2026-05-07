@@ -1,4 +1,5 @@
-import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
+ import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
+ import { FeedbackManager } from '@/components/admin/FeedbackManager'
  import { AlertManager } from '@/components/admin/AlertManager'
  import { AdminDashboard } from '@/components/admin/AdminDashboard'
  import { NotificationManager } from '@/components/admin/NotificationManager'
@@ -205,7 +206,8 @@ export const Route = createFileRoute('/admin')({
         {
           title: 'Controle de Acesso',
           items: [
-            { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock }
+            { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
+            { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
           ]
         }
     ];
@@ -382,6 +384,9 @@ export const Route = createFileRoute('/admin')({
                    </TabsContent>
                    <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
                      <AdminRoleManager />
+                   </TabsContent>
+                   <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
+                     <FeedbackManager />
                    </TabsContent>
             </Tabs>
           </div>
