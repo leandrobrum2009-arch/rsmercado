@@ -37,6 +37,11 @@
    const [showLogo, setShowLogo] = useState(true)
    const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
    const [logoSize, setLogoSize] = useState(120)
+   const [subtitleText, setSubtitleText] = useState('')
+   const [showSubtitle, setShowSubtitle] = useState(false)
+   const [footerText, setFooterText] = useState('')
+   const [showFooter, setShowFooter] = useState(false)
+   const [footerFontSize, setFooterFontSize] = useState(10)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
@@ -59,33 +64,38 @@
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+ 
+   const PREDEFINED_BGS = [
+     'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
+   ]
 
-   // Background removal helper (for white backgrounds)
-   const removeWhiteBackground = (imgElement: HTMLImageElement) => {
-     const canvas = document.createElement('canvas')
-     const ctx = canvas.getContext('2d')
-     if (!ctx) return imgElement.src
-
-     canvas.width = imgElement.naturalWidth
-     canvas.height = imgElement.naturalHeight
-     ctx.drawImage(imgElement, 0, 0)
-
-     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-     const data = imageData.data
-
-     for (let i = 0; i < data.length; i += 4) {
-       const r = data[i]
-       const g = data[i + 1]
-       const b = data[i + 2]
-       // If pixel is close to white, make it transparent
-       if (r > 240 && g > 240 && b > 240) {
-         data[i + 3] = 0
-       }
-     }
-
-     ctx.putImageData(imageData, 0, 0)
-     return canvas.toDataURL()
-   }
+    const processImageBackground = (url: string): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.src = url
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          if (!ctx) { resolve(url); return; }
+          canvas.width = img.width
+          canvas.height = img.height
+          ctx.drawImage(img, 0, 0)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imageData.data
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2]
+            if (r > 230 && g > 230 && b > 230) data[i+3] = 0
+          }
+          ctx.putImageData(imageData, 0, 0)
+          resolve(canvas.toDataURL())
+        }
+        img.onerror = () => resolve(url)
+      })
+    }
  
     useEffect(() => {
       fetchProducts()
@@ -155,8 +165,13 @@
 
    useEffect(() => {
      if (storeSettings) {
-       if (storeSettings.colors?.primary) setPriceColor(storeSettings.colors.primary)
-       if (storeSettings.colors?.secondary) setSecondaryColor(storeSettings.colors.secondary)
+        if (storeSettings.colors?.primary) {
+          setPriceColor(storeSettings.colors.primary)
+          setTitleColor(storeSettings.colors.primary)
+        }
+        if (storeSettings.colors?.secondary) {
+          setSecondaryColor(storeSettings.colors.secondary)
+        }
      }
    }, [storeSettings])
  
@@ -217,11 +232,16 @@
      setSelectedProducts(updated)
    }
 
-   const toggleProductBg = (idx: number) => {
-     const updated = [...selectedProducts]
-     updated[idx].removeBg = !updated[idx].removeBg
-     setSelectedProducts(updated)
-   }
+    const toggleProductBg = async (idx: number) => {
+      const updated = [...selectedProducts]
+      const product = updated[idx]
+      product.removeBg = !product.removeBg
+      if (product.removeBg && !product.image_url.startsWith('data:image')) {
+        const processed = await processImageBackground(product.image_url)
+        product.image_url = processed
+      }
+      setSelectedProducts(updated)
+    }
  
    const handlePrint = () => {
      window.print()
@@ -370,43 +390,77 @@
                        ))}
                      </div>
                    </div>
-                   <div className="space-y-2">
-                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho do Logo ({logoSize}px)</Label>
-                     <Slider value={[logoSize]} min={40} max={400} step={10} onValueChange={([val]) => setLogoSize(val)} />
-                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho Logo ({logoSize}px)</Label>
+                      <Slider value={[logoSize]} min={40} max={400} step={5} onValueChange={([val]) => setLogoSize(val)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Frase..." 
+                          value={subtitleText} 
+                          onChange={(e) => setSubtitleText(e.target.value)} 
+                          className="h-8 text-[10px]" 
+                        />
+                        <Button 
+                          variant={showSubtitle ? 'default' : 'outline'} 
+                          size="sm" 
+                          className="h-8" 
+                          onClick={() => setShowSubtitle(!showSubtitle)}
+                        >
+                          {showSubtitle ? 'On' : 'Off'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                  </div>
                )}
  
-               {/* Background Settings */}
-               <div className="space-y-3">
-                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
-                 <div className="flex gap-2 mb-2">
-                   {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
-                     <Button
-                       key={type}
-                       variant={backgroundType === type ? 'default' : 'outline'}
-                       className="flex-1 h-8 text-[10px] font-bold capitalize"
-                       onClick={() => setBackgroundType(type)}
-                     >
-                       {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
-                     </Button>
-                   ))}
-                 </div>
- 
-                 {backgroundType === 'image' && (
-                   <div className="flex gap-4 items-center">
-                     {backgroundUrl && (
-                       <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
-                     )}
-                     <div className="flex-1">
-                       <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                       <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                         {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                         <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
-                       </label>
-                     </div>
-                   </div>
-                 )}
+              {/* Background Settings */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
+                <div className="flex gap-2 mb-2">
+                  {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
+                    <Button
+                      key={type}
+                      variant={backgroundType === type ? 'default' : 'outline'}
+                      className="flex-1 h-8 text-[10px] font-bold capitalize"
+                      onClick={() => setBackgroundType(type)}
+                    >
+                      {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
+                    </Button>
+                  ))}
+                </div>
+
+                {backgroundType === 'image' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="grid grid-cols-4 gap-2">
+                      {PREDEFINED_BGS.map((bg, idx) => (
+                        <button
+                          key={idx}
+                          className={cn(
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
+                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                          )}
+                          onClick={() => setBackgroundUrl(bg)}
+                        >
+                          <img src={bg} className="w-full h-full object-cover" alt={`BG ${idx}`} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
+                        <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Minha Arte'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
  
                  {backgroundType === 'color' && (
                    <div className="flex gap-2">
@@ -474,10 +528,12 @@
                        <SelectValue />
                      </SelectTrigger>
                      <SelectContent>
-                       <SelectItem value="font-sans">Sans</SelectItem>
-                       <SelectItem value="font-serif">Serif</SelectItem>
-                       <SelectItem value="font-mono">Mono</SelectItem>
-                       <SelectItem value="font-black">Black</SelectItem>
+                        <SelectItem value="font-sans">Inter (Sans)</SelectItem>
+                        <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
+                        <SelectItem value="font-mono">Fira (Mono)</SelectItem>
+                        <SelectItem value="font-black text-6xl">Impact (Bold)</SelectItem>
+                        <SelectItem value="font-sans uppercase">Arial (Caps)</SelectItem>
+                        <SelectItem value="italic font-serif">Italic Serif</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -512,10 +568,39 @@
                    </div>
                  </div>
  
-                 <div className="space-y-2">
-                   <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                   <Slider value={[productBlockHeight]} min={0} max={400} step={10} onValueChange={([val]) => setProductBlockHeight(val)} />
-                 </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                      <Slider value={[productBlockHeight]} min={0} max={400} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                    </div>
+                    
+                    <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
+                      <div className="flex gap-2 mb-2">
+                        <Input 
+                          placeholder="Endereço, Telefone, Observações..." 
+                          value={footerText} 
+                          onChange={(e) => setFooterText(e.target.value)} 
+                          className="h-8 text-[10px]" 
+                        />
+                        <Button 
+                          variant={showFooter ? 'default' : 'outline'} 
+                          size="sm" 
+                          className="h-8" 
+                          onClick={() => setShowFooter(!showFooter)}
+                        >
+                          {showFooter ? 'On' : 'Off'}
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-bold uppercase">
+                          <span>Tam. Fonte</span>
+                          <span>{footerFontSize}px</span>
+                        </div>
+                        <Slider value={[footerFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setFooterFontSize(val)} />
+                      </div>
+                    </div>
+                  </div>
  
                  <div className="grid grid-cols-2 gap-4">
                    <div className="flex items-center gap-2">
@@ -647,25 +732,35 @@
                      : backgroundColor
                }}
            >
-               {/* Top Reserved Zone (15%) */}
-               <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/50">
-               {showLogo && storeSettings?.logo_url && (
-                 <div 
-                   className={cn(
-                     "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
-                     logoPosition === 'left' && "justify-start",
-                     logoPosition === 'center' && "justify-center",
-                     logoPosition === 'right' && "justify-end"
-                   )}
-                 >
-                   <img 
-                     src={storeSettings.logo_url} 
-                     style={{ width: `${logoSize}px` }}
-                     className="object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" 
-                     alt="Logo" 
-                   />
-                 </div>
-               )}
+                {/* Top Reserved Zone (15%) */}
+                <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30">
+                  {showLogo && storeSettings?.logo_url && (
+                    <div 
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
+                        logoPosition === 'left' && "justify-start",
+                        logoPosition === 'center' && "justify-center",
+                        logoPosition === 'right' && "justify-end"
+                      )}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <img 
+                          src={storeSettings.logo_url} 
+                          style={{ width: `${logoSize}px` }}
+                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
+                          alt="Logo" 
+                        />
+                        {showSubtitle && subtitleText && (
+                          <p 
+                            className="font-black uppercase italic text-center drop-shadow-sm animate-in slide-in-from-top-2 duration-700"
+                            style={{ color: titleColor, fontSize: `${logoSize / 8}px` }}
+                          >
+                            {subtitleText}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                      Topo Reservado (15%)
@@ -709,7 +804,7 @@
                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
                             layout === 'single' ? 'p-12' : '',
                             columns === 4 ? 'p-1.5' : '',
-                            showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
+                             showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
                           style={{ 
@@ -721,7 +816,7 @@
                             src={p.image_url} 
                             className={cn(
                               "object-contain transition-all duration-300",
-                              p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : "drop-shadow-sm",
+                               p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
                               layout === 'single' ? 'w-80 h-80' : 
                               (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
                               columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
@@ -779,14 +874,22 @@
              </div>
            </div>
  
-               {/* Bottom Reserved Zone (5%) */}
-               <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/50">
-               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
-                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                     Rodapé Reservado (5%)
-                 </div>
-               </div>
-             </div>
+                {/* Bottom Reserved Zone (5%) */}
+                <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12">
+                  {showFooter && footerText && (
+                    <div 
+                      className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
+                      style={{ color: titleColor, fontSize: `${footerFontSize}px` }}
+                    >
+                      {footerText}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
+                    <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                        Rodapé Reservado (5%)
+                    </div>
+                  </div>
+                </div>
          </div>
        </div>
  
@@ -794,18 +897,23 @@
          @media print {
            body * { visibility: hidden; }
            #flyer-content, #flyer-content * { visibility: visible; }
-           #flyer-content { 
-             position: absolute; 
-             left: 0; 
-             top: 0; 
-             width: 210mm; 
-             height: 297mm;
-             margin: 0;
-             padding: 0;
-             border: none !important;
-             -webkit-print-color-adjust: exact;
-             print-color-adjust: exact;
-           }
+            #flyer-content {
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 210mm !important;
+              height: 297mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              overflow: hidden !important;
+              box-sizing: border-box !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              page-break-after: avoid !important;
+              page-break-before: avoid !important;
+            }
+            html, body { height: 297mm; overflow: hidden; }
            @page { 
              size: A4; 
              margin: 0; 
