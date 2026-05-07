@@ -1269,7 +1269,7 @@
                   )}
                <div 
                  className={cn(
-                    "grid h-fit max-h-full transition-all duration-300 items-start",
+                    "grid h-fit max-h-full transition-all duration-300 items-stretch",
                    layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                    layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
