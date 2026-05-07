@@ -1967,8 +1967,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           </div>
 
             <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
-              <div 
-              <div 
+              <div
                 id="flyer-content"
                 className={cn(
                   "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
