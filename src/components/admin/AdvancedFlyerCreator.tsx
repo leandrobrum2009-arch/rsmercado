@@ -728,7 +728,7 @@
                     {globalRemoveBg && (
                       <div className="space-y-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 animate-in fade-in zoom-in-95">
                         <div className="flex justify-between items-center">
-                       <Label className="text-[9px] font-black uppercase">Refinar Recorte ({bgRemovalThreshold})</Label>
+                       <Label className="text-[9px] font-black uppercase">Refinar Recorte Inteligente ({bgRemovalThreshold})</Label>
                        <Button 
                          variant="ghost" 
                          size="icon" 
