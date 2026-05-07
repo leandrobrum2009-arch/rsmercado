@@ -186,15 +186,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                        style={{ padding: `${productPadding}px` }}
                      >
                          <div 
-                           className={cn(
-                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
-                              layout === 'single' ? 'p-16' : '',
+                            className={cn(
+                              "relative rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
+                               layout === 'single' ? 'p-16' : '',
                              columns === 4 ? 'p-1.5' : '',
                               showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                               productBlockHeight === 0 ? "h-fit min-h-full" : ""
                            )}
                              style={{
-                               backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                                backgroundColor: productBgOpacity > 0 ? hexToRgba(productBgColor, productBgOpacity) : 'transparent',
+                                backdropFilter: productBgOpacity > 0 ? `blur(${blurAmount}px)` : 'none',
+                                borderColor: productBgOpacity > 0 ? 'rgba(255,255,255,0.3)' : 'transparent',
                               height: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
