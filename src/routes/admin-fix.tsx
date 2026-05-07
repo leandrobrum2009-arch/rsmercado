@@ -36,25 +36,25 @@
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
    -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
-   CREATE OR REPLACE FUNCTION public.is_admin() 
-   RETURNS BOOLEAN 
-   LANGUAGE plpgsql 
-   SECURITY DEFINER 
-   SET search_path = public, auth 
-   AS $$
-   BEGIN
-     -- 1. Master bypass (JWT check is extremely fast)
-     IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
-       RETURN TRUE;
-     END IF;
- 
-     -- 2. Check roles table
-     RETURN EXISTS (
-       SELECT 1 FROM public.user_roles 
-       WHERE user_id = auth.uid() 
-       AND role = 'admin'
-     );
-   END; $$;
+    CREATE OR REPLACE FUNCTION public.is_admin() 
+    RETURNS BOOLEAN 
+    LANGUAGE plpgsql 
+    SECURITY DEFINER 
+    SET search_path = public, auth 
+    AS $BODY$
+    BEGIN
+      -- 1. Master bypass (JWT check is extremely fast)
+      IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+        RETURN TRUE;
+      END IF;
+  
+      -- 2. Check roles table
+      RETURN EXISTS (
+        SELECT 1 FROM public.user_roles 
+        WHERE user_id = auth.uid() 
+        AND role = 'admin'
+      );
+    END; $BODY$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
@@ -335,15 +335,15 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
  
   -- 4. HARDENING E PERMISSÕES GERAIS
-  -- Enable RLS on all sensitive tables
-  DO $$ 
-  DECLARE 
-    t TEXT;
-  BEGIN
-    FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-      EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
-    END LOOP;
-  END $$;
+   -- Enable RLS on all sensitive tables
+   DO $RLS$ 
+   DECLARE 
+     t TEXT;
+   BEGIN
+     FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+       EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
+     END LOOP;
+   END $RLS$;
 
   -- Secure store_settings (Protect secrets)
   DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
