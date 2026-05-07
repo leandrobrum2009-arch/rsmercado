@@ -248,7 +248,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
       DROP POLICY IF EXISTS "Users view own orders" ON public.orders;
       DROP POLICY IF EXISTS "Admin manage orders" ON public.orders;
        CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
-       CREATE POLICY "Anyone can view orders" ON public.orders FOR SELECT USING (true);
+        CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
       CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
 
       -- Itens do Pedido
@@ -256,7 +256,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
       DROP POLICY IF EXISTS "Anyone can view order items" ON public.order_items;
       DROP POLICY IF EXISTS "Users view own order items" ON public.order_items;
        CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
-       CREATE POLICY "Anyone can view order items" ON public.order_items FOR SELECT USING (true);
+        CREATE POLICY "Users view own order items" ON public.order_items FOR SELECT USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND (auth.uid() = user_id OR public.is_admin())));
 
       -- Feedback
       DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.app_feedback;
