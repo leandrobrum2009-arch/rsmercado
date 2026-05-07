@@ -56,9 +56,9 @@
       );
     END; $BODY$;
  
- -- 3. PROMOVER USUÁRIO A ADMIN
- INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
- ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+  -- 3. PROMOVER USUÁRIO A ADMIN (IDEMPOTENTE SEM DO UPDATE)
+  DELETE FROM public.user_roles WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'leandrobrum2009@gmail.com');
+  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com';
  
   -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
   CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
