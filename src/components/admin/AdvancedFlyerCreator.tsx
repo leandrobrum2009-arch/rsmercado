@@ -545,11 +545,11 @@
                             layout === 'single' ? 'p-12' : '',
                             columns === 4 ? 'p-1.5' : '',
                             showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
-                            productBlockHeight === 0 ? "h-full" : ""
+                             productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
                           style={{ 
                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                            height: productBlockHeight > 0 ? `${productBlockHeight}px` : '100%'
+                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
                           }}
                         >
                           <img 
