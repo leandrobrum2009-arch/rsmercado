@@ -447,31 +447,29 @@ export function FlyerCreator() {
             </div>
           </div>
         </div>
-      </div>
-
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 0; }
-          body * { visibility: hidden !important; }
-          #flyer-content, #flyer-content * { visibility: visible !important; }
-          #flyer-content { 
-            position: fixed !important; 
-            left: 0 !important; 
-            top: 0 !important; 
-            width: 210mm !important; 
-            height: 297mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-            transition: none !important;
-            z-index: 99999 !important;
-            background: white !important;
-          }
-          html, body { height: 297mm !important; width: 210mm !important; overflow: hidden !important; }
-        }
-      `}</style>
+       </div>
+ 
+       <style>{`
+         @media print {
+           @page { size: A4 portrait; margin: 0; }
+           body { background: white !important; }
+           .print\:hidden { display: none !important; }
+           #flyer-content { 
+             position: fixed !important; 
+             left: 0 !important; 
+             top: 0 !important; 
+             width: 210mm !important; 
+             height: 297mm !important;
+             margin: 0 !important;
+             padding: 0 !important;
+             border: none !important;
+             box-shadow: none !important;
+             transform: none !important;
+             transition: none !important;
+             background: white !important;
+           }
+         }
+       `}</style>
     </div>
   )
 }
