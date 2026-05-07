@@ -34,7 +34,7 @@
    const [backgroundColor, setBackgroundColor] = useState('#ffffff')
    const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
    const [columns, setColumns] = useState(3)
-   const [gridGap, setGridGap] = useState(16)
+    const [gridGap, setGridGap] = useState(10)
    const [showLogo, setShowLogo] = useState(true)
    const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
    const [logoSize, setLogoSize] = useState(120)
@@ -59,7 +59,7 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-     const [productBlockHeight, setProductBlockHeight] = useState<number>(240) // Default to a reasonable height
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(220) // Default to a reasonable height
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -74,7 +74,8 @@
     const [showValidity, setShowValidity] = useState(true)
     const [validityText, setValidityText] = useState(`Ofertas válidas de ${new Date().toLocaleDateString('pt-BR')} até as 21h`)
     const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer' | 'between'>('bottom')
-    const [validityBgColor, setValidityBgColor] = useState('#fbbf24') // yellow-400
+     const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
+     const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
@@ -487,10 +488,17 @@
      return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
-    const ValidityBanner = () => (
+     const ValidityBanner = ({ isLine = false }: { isLine?: boolean }) => (
       <div 
-        className="w-full py-1.5 px-4 text-center font-black uppercase italic text-[11px] shadow-md z-[45] tracking-tight"
-        style={{ backgroundColor: validityBgColor, color: validityTextColor }}
+         className={cn(
+           "w-full px-4 text-center font-black uppercase italic shadow-md z-[45] tracking-tight transition-all",
+           isLine ? "py-0.5 border-y border-black/10" : "py-1.5"
+         )}
+         style={{ 
+           backgroundColor: validityBgColor, 
+           color: validityTextColor, 
+           fontSize: `${isLine ? validityFontSize * 0.8 : validityFontSize}px` 
+         }}
       >
         {validityText}
       </div>
@@ -781,8 +789,15 @@
                       onChange={(e) => setValidityText(e.target.value)}
                       className="h-8 text-[10px]"
                     />
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1">
                       {(['top', 'bottom', 'footer', 'between'] as const).map(pos => (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[8px] font-bold uppercase">
+                        <span>Tamanho Fonte</span>
+                        <span>{validityFontSize}px</span>
+                      </div>
+                      <Slider value={[validityFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setValidityFontSize(val)} />
+                    </div>
                         <Button
                           key={pos}
                           variant={validityPosition === pos ? 'default' : 'outline'}
@@ -1292,8 +1307,8 @@
                   return (
                     <>
                     {isBetweenRow && (
-                      <div className="col-span-full my-2 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
-                        <ValidityBanner />
+                      <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
+                        <ValidityBanner isLine={true} />
                       </div>
                     )}
                    <div 
@@ -1324,7 +1339,7 @@
                                     ? `${productBlockHeight * 3 + gridGap * 2}px` 
                                     : `${productBlockHeight}px`)
                                 : 'auto',
-                              overflow: imageSize > 100 ? 'visible' : 'hidden'
+                              overflow: 'visible'
                             }}
                         >
                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
