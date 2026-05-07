@@ -183,28 +183,28 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                          <div 
                            className={cn(
                              "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
-                             layout === 'single' ? 'p-12' : '',
+                              layout === 'single' ? 'p-16' : '',
                              columns === 4 ? 'p-1.5' : '',
                               showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                               productBlockHeight === 0 ? "h-fit min-h-full" : ""
                            )}
                              style={{
                                backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                               height: layout === 'single' ? '100%' : (productBlockHeight > 0
+                               height: layout === 'single' ? 'auto' : (productBlockHeight > 0
                                  ? (layout === 'featured-side' && (i === 0 || i === 1)
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
                                  : 'auto'),
-                               minHeight: layout === 'single' ? '400px' : (productBlockHeight > 0
+                               minHeight: layout === 'single' ? '60%' : (productBlockHeight > 0
                                  ? (layout === 'featured-side' && (i === 0 || i === 1)
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
                                  : 'auto'),
-                               overflow: imageSize > 100 ? 'visible' : 'hidden'
+                               overflow: (layout === 'single' || imageSize > 100) ? 'visible' : 'hidden'
                              }}
                          >
                              <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible z-10">
-                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: '140px' }}>
+                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: layout === 'single' ? '350px' : '140px' }}>
                                 <img 
                                   src={p.image_url} 
                                    crossOrigin="anonymous"
@@ -249,7 +249,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
                              style={{ 
                                color: titleColor, 
-                                fontSize: `${layout === 'single' ? fontSize * 3.5 : fontSize}px`
+                                    fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`
                              }}
                            >
                              {p.name}
@@ -272,7 +272,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              {priceLayout === 'traditional' ? (
                                <div 
                                  className="font-black italic flex items-baseline drop-shadow-sm"
-                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 3 : priceSize}px` }}
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 4 : priceSize}px` }}
                                >
                                  <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
                                  <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
@@ -284,7 +284,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              ) : (
                                <div 
                                  className="font-black italic flex items-center drop-shadow-sm"
-                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 3 : priceSize}px` }}
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 4 : priceSize}px` }}
                                >
                                  <span className="text-[0.5em] mr-1">R$</span>
                                  <span>{p.price.toFixed(2).replace('.', ',')}</span>
@@ -1947,13 +1947,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <div className="p-8 flex justify-center w-full">
                     <div 
                       className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
-                      style={{ 
-                        background: backgroundType === 'image' 
-                          ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
-                          : backgroundType === 'gradient'
-                            ? backgroundGradient
-                            : backgroundColor
-                      }}
+                       style={{
+                         backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                         backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                         backgroundSize: '100% 100%',
+                         backgroundPosition: 'center',
+                         backgroundRepeat: 'no-repeat',
+                       }}
                     >
                       {/* Render same content as flyer-content */}
                       <FlyerContentInner />
@@ -1973,13 +1973,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
                   removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
                 )}
-               style={{ 
-                 background: backgroundType === 'image' 
-                   ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
-                   : backgroundType === 'gradient'
-                     ? backgroundGradient
-                     : backgroundColor
-               }}
+                style={{
+                  backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                  backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
            >
             <FlyerContentInner />
            </div>
@@ -2023,7 +2023,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             transition: none !important;
             box-shadow: none !important;
             z-index: 99999 !important;
-            background: white !important;
+            /* Remove white background override to allow custom backgrounds in print */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .print\:hidden { display: none !important; }
         }
