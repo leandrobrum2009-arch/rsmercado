@@ -1928,6 +1928,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => setShowPreviewModal(false)}>Fechar</Button>
+                      <Button size="sm" variant="secondary" onClick={() => { setShowPreviewModal(false); setTimeout(handleDownloadPDF, 300); }}>
+                        <Download className="w-3 h-3 mr-1" /> Baixar PDF
+                      </Button>
                       <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
                         <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
                       </Button>
