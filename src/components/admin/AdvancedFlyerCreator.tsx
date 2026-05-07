@@ -289,17 +289,34 @@
       setTemplates(updated)
     }
 
-   useEffect(() => {
-     if (storeSettings) {
-        if (storeSettings.colors?.primary) {
-          setPriceColor(storeSettings.colors.primary)
-          setTitleColor(storeSettings.colors.primary)
-        }
-        if (storeSettings.colors?.secondary) {
-          setSecondaryColor(storeSettings.colors.secondary)
-        }
-     }
-   }, [storeSettings])
+    useEffect(() => {
+      if (storeSettings) {
+         if (storeSettings.colors?.primary) {
+           setPriceColor(storeSettings.colors.primary)
+           setTitleColor(storeSettings.colors.primary)
+         }
+         if (storeSettings.colors?.secondary) {
+           setSecondaryColor(storeSettings.colors.secondary)
+         }
+         
+         // Auto-fill footer if empty
+         if (!footerText) {
+           const info = []
+           if (storeSettings.address) info.push(storeSettings.address)
+           if (storeSettings.whatsapp) info.push(`WhatsApp: ${storeSettings.whatsapp}`)
+           if (info.length > 0) {
+             setFooterText(info.join(' | '))
+             setShowFooter(true)
+           }
+         }
+
+         // Auto-fill subtitle if empty
+         if (!subtitleText && storeSettings.store_description) {
+           setSubtitleText(storeSettings.store_description)
+           setShowSubtitle(true)
+         }
+      }
+    }, [storeSettings])
  
    const fetchProducts = async () => {
      const { data } = await supabase.from('products').select('*').limit(100)
