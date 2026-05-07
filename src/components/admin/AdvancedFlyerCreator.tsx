@@ -2024,7 +2024,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             box-shadow: none !important;
             z-index: 99999 !important;
             /* Remove white background override to allow custom backgrounds in print */
-            background: inherit !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
