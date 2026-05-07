@@ -199,11 +199,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
                                  : 'auto',
-                               overflow: 'hidden' // Garante que imagens não vazem do bloco
+                               overflow: imageSize > 100 ? 'visible' : 'hidden'
                              }}
                          >
-                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
-                               <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")} style={{ minHeight: '120px' }}>
+                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible z-10">
+                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: '140px' }}>
                                 <img 
                                   src={p.image_url} 
                                    crossOrigin="anonymous"
@@ -218,8 +218,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                      width: `${layout === 'single' ? 80 : 
                                               (layout === 'featured-side' && (i === 0 || i === 1)) ? 60 : 
                                               columns === 4 ? 70 : 80}%`,
-                                    height: 'auto',
-                                    maxHeight: '100%',
+                                    height: imageSize > 100 ? 'auto' : '100%',
+                                    maxHeight: imageSize > 100 ? 'none' : '100%',
+                                    objectFit: 'contain',
                                     transform: `scale(${imageSize / 100})`,
                                     position: 'relative',
                                     zIndex: 10,
