@@ -13,7 +13,7 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V3 (SEM BLOCOS DO) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V4 (FIX TRANSLATION) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
