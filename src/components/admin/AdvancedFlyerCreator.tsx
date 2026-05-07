@@ -1237,9 +1237,24 @@ import html2canvas from 'html2canvas'
                </div>
              </div>
  
-             <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-               <Printer className="w-4 h-4 mr-2" /> Gerar PDF / Imprimir
-             </Button>
+              <div className="flex flex-col gap-2">
+                <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
+                  <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
+                  onClick={handleDownloadImage}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Baixar como Imagem (PNG)
+                </Button>
+              </div>
            </CardContent>
          </Card>
        </div>
