@@ -712,6 +712,54 @@
                  </div>
                )}
  
+              {/* Validity Phrase Settings */}
+              <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Frase de Validade</Label>
+                  <Button 
+                    variant={showValidity ? 'default' : 'outline'} 
+                    size="sm" 
+                    className="h-7 text-[10px]"
+                    onClick={() => setShowValidity(!showValidity)}
+                  >
+                    {showValidity ? 'On' : 'Off'}
+                  </Button>
+                </div>
+
+                {showValidity && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <Input 
+                      placeholder="Ex: Ofertas válidas até..." 
+                      value={validityText} 
+                      onChange={(e) => setValidityText(e.target.value)}
+                      className="h-8 text-[10px]"
+                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['top', 'bottom', 'footer'] as const).map(pos => (
+                        <Button
+                          key={pos}
+                          variant={validityPosition === pos ? 'default' : 'outline'}
+                          className="h-7 text-[8px] font-bold uppercase"
+                          onClick={() => setValidityPosition(pos)}
+                        >
+                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : 'Rodapé'}
+                        </Button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase">Fundo</Label>
+                        <Input type="color" value={validityBgColor} onChange={(e) => setValidityBgColor(e.target.value)} className="h-7 w-full p-0 border-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase">Texto</Label>
+                        <Input type="color" value={validityTextColor} onChange={(e) => setValidityTextColor(e.target.value)} className="h-7 w-full p-0 border-none" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Background Settings */}
               <div className="space-y-3">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
