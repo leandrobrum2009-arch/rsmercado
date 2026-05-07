@@ -200,7 +200,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
                                  : 'auto'),
-                               overflow: imageSize > 100 ? 'visible' : 'hidden'
+                               overflow: (layout === 'single' || imageSize > 100) ? 'visible' : 'hidden'
                              }}
                          >
                              <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible z-10">
