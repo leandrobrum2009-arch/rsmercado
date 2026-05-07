@@ -439,7 +439,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
                >
                  <Copy size={16} />
                </button>
-               <pre className="whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto" translate="no">
                  {sqlToRun}
                </pre>
              </div>
