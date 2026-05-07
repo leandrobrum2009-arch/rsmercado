@@ -350,11 +350,8 @@ BEGIN
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
  );
  ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
- DO $$ BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='notifications' AND policyname='Users view own notifications') THEN
-         CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-     END IF;
- END $$;
+  DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
+  CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
  
   CREATE TABLE IF NOT EXISTS public.store_alerts (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -370,11 +367,8 @@ BEGIN
   ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS duration_seconds INTEGER DEFAULT 10;
   ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS shimmer_speed_seconds DECIMAL(4,1) DEFAULT 2.0;
  ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
- DO $$ BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_alerts' AND policyname='Public view alerts') THEN
-         CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
-     END IF;
- END $$;
+  DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
+  CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
  
   -- 4. HARDENING E PERMISSÕES GERAIS
   -- Enable RLS on all sensitive tables
