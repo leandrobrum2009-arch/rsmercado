@@ -1139,12 +1139,20 @@
                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
-                           style={{ 
-                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
-                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
+                            style={{
+                              backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                              height: productBlockHeight > 0 
+                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                                    : `${productBlockHeight}px`)
+                                : 'auto',
+                              minHeight: productBlockHeight > 0 
+                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                                    : `${productBlockHeight}px`)
+                                : 'auto',
                               overflow: imageSize > 100 ? 'visible' : 'hidden'
-                           }}
+                            }}
                         >
                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
                              <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
