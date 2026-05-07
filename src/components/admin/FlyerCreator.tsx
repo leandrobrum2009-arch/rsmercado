@@ -1,4 +1,5 @@
- import { useState, useEffect } from 'react'
+ import { useState, useEffect, useRef } from 'react'
+ import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,29 @@ export function FlyerCreator() {
   const [primaryColor, setPrimaryColor] = useState('#e11d48')
   const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
    const { settings: storeSettings } = useStoreSettings()
-   const [title, setTitle] = useState('Ofertas Especiais')
+    const [title, setTitle] = useState('Ofertas Especiais')
+    const [printImage, setPrintImage] = useState<string | null>(null)
+    const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+ 
+    useEffect(() => {
+      if (printImage) {
+        const handleAfterPrint = () => {
+          setPrintImage(null)
+          window.removeEventListener('afterprint', handleAfterPrint)
+        }
+        window.addEventListener('afterprint', handleAfterPrint)
+        
+        const timer = setTimeout(() => {
+          window.print()
+        }, 1000)
+        
+        return () => {
+          clearTimeout(timer)
+          window.removeEventListener('afterprint', handleAfterPrint)
+        }
+      }
+    }, [printImage])
+ 
    useEffect(() => {
      if (storeSettings.site_name) {
        setTitle(`Ofertas - ${storeSettings.site_name}`)
@@ -69,14 +92,93 @@ export function FlyerCreator() {
     setSelectedProducts(selectedProducts.filter(p => p.id !== id))
   }
 
-    const handlePrint = () => {
-      const element = document.getElementById('flyer-content');
-      if (element) {
-        element.style.transition = 'none';
+    const handlePrint = async () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
       }
-      setTimeout(() => {
-        window.print();
-      }, 500);
+
+      const flyerElement = document.getElementById('flyer-content');
+      if (!flyerElement) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+
+      try {
+        // Ensure all images are loaded before capture
+        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        // Capture as image for perfect print reproduction
+        const canvas = await html2canvas(flyerElement, {
+          useCORS: true,
+          scale: 3, // High quality for print
+          backgroundColor: '#ffffff',
+          logging: false,
+          imageTimeout: 30000,
+        })
+
+        const dataUrl = canvas.toDataURL('image/png')
+        setPrintImage(dataUrl)
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error preparing print:', error)
+        toast.error('Erro ao preparar impressão')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
+    }
+
+    const handleDownloadImage = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
+
+      try {
+        const images = Array.from(element.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 3,
+          backgroundColor: '#ffffff',
+        })
+
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = image
+        link.download = `encarte-${new Date().getTime()}.png`
+        link.click()
+        toast.success('Imagem baixada com sucesso!')
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error downloading image:', error)
+        toast.error('Erro ao baixar imagem')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
     }
  
    const handleWhatsAppShare = async () => {
