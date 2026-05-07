@@ -866,8 +866,25 @@
                    </div>
                     
                     <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
-                      <div className="flex gap-2 mb-2">
+                       <div className="flex justify-between items-center mb-2">
+                         <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Dados do Rodapé</Label>
+                         <Button 
+                           variant="ghost" 
+                           size="sm" 
+                           className="h-6 text-[8px] font-black uppercase"
+                           onClick={() => {
+                             const info = []
+                             if (storeSettings?.address) info.push(storeSettings.address)
+                             if (storeSettings?.whatsapp) info.push(`WhatsApp: ${storeSettings.whatsapp}`)
+                             setFooterText(info.join(' | '))
+                             setShowFooter(true)
+                             toast.success('Dados importados da loja')
+                           }}
+                         >
+                           <RefreshCcw className="w-3 h-3 mr-1" /> Sincronizar
+                         </Button>
+                       </div>
+                       <div className="flex gap-2 mb-2">
                         <Input 
                           placeholder="Endereço, Telefone, Observações..." 
                           value={footerText} 
