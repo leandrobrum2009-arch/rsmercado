@@ -8,7 +8,8 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock } from 'lucide-react'
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
  
