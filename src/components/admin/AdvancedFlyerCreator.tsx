@@ -1223,8 +1223,13 @@
                </div>
              </div>
    
-               {/* Content Middle Zone (80%) */}
+                {/* Content Middle Zone (80%) */}
                 <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
+                  {showValidity && validityPosition === 'bottom' && (
+                    <div className="mb-4">
+                      <ValidityBanner />
+                    </div>
+                  )}
                <div 
                  className={cn(
                     "grid h-fit max-h-full transition-all duration-300 items-start",
