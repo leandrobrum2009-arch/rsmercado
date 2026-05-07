@@ -534,59 +534,88 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
-    const handlePrint = async () => {
-      toast.info('Preparando impressão... Selecione "Salvar como PDF" no destino da impressão.', {
-        duration: 5000
+    const handlePrint = () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
+      }
+
+      toast.info('Preparando impressão... A janela abrirá em instantes.', {
+        duration: 3000
       })
       
-     const historyItem = {
-       id: Math.random().toString(36).substring(7),
-       timestamp: new Date().toISOString(),
-       config: {
-         layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-         columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-         fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-         productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
-         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-         showSubtitle
-       },
-       products: selectedProducts
-     }
-     const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
-     setFlyerHistory(updatedHistory)
-     localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
-      await saveToDatabase()
-      // Give time for the toast and any rendering to settle
+      // Save history and to database in background to avoid blocking the print UI
+      const historyItem = {
+        id: Math.random().toString(36).substring(7),
+        timestamp: new Date().toISOString(),
+        config: {
+          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+          showSubtitle
+        },
+        products: selectedProducts
+      }
+      const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
+      setFlyerHistory(updatedHistory)
+      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
+      
+      // Non-blocking save
+      saveToDatabase().catch(err => console.error("Auto-save failed:", err))
+      
+      // Trigger print with a small delay for any layout settling
       setTimeout(() => {
         window.print()
-      }, 500)
+      }, 300)
     }
 
     const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
-      if (!element) return
+      if (!element) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
 
       setUploading(true)
-      toast.info('Gerando imagem para download...')
+      const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        // Ensure all images are loaded before capturing
+        const images = Array.from(element.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve // Continue anyway if one image fails
+          })
+        }))
+
         const canvas = await html2canvas(element, {
           useCORS: true,
-          scale: 2, // Better quality
+          allowTaint: true,
+          scale: 2, // High quality
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: false,
+          logging: true, // Helpful for debugging
+          imageTimeout: 15000, // Wait up to 15s for images
         })
 
         const image = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
+        document.body.appendChild(link)
         link.click()
+        document.body.removeChild(link)
+        
+        toast.dismiss(loadingToast)
         toast.success('Imagem baixada com sucesso!')
       } catch (err) {
         console.error('Error generating image:', err)
-        toast.error('Erro ao gerar imagem. Tente usar a opção de imprimir PDF.')
+        toast.dismiss(loadingToast)
+        toast.error('Erro ao gerar imagem. Verifique se as imagens dos produtos estão carregando corretamente ou use a opção PDF.')
       } finally {
         setUploading(false)
       }
@@ -1567,11 +1596,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Preview Real A4
             </div>
-              <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={() => {
-                handlePrint()
-                saveToDatabase()
-              }}>
-                <Save className="w-3 h-3 mr-2" /> Salvar e Imprimir
+              <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
+                <Printer className="w-3 h-3 mr-2" /> Salvar e Imprimir
               </Button>
           </div>
 
