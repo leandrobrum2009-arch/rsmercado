@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
- import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks } from 'lucide-react'
+  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -256,10 +256,16 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                                      <Phone size={12} />
                                      <p className="text-xs font-bold">{order.profiles?.whatsapp || 'Não informado'}</p>
                                    </div>
-                                   <div className="flex items-center gap-1 mt-1 text-zinc-500">
-                                     <CreditCard size={12} />
-                                    <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
-                                  </div>
+                                    <div className="flex items-center gap-1 mt-1 text-zinc-500">
+                                      <CreditCard size={12} />
+                                      <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
+                                    </div>
+                                    {order.change_for && (
+                                      <div className="flex items-center gap-1 mt-1 text-amber-600">
+                                        <Banknote size={12} />
+                                        <p className="text-xs font-black uppercase">Troco para: {formatCurrency(order.change_for)}</p>
+                                      </div>
+                                    )}
                                   <div className="flex items-center gap-1 mt-1 text-amber-600">
                                     <ShoppingBag size={12} />
                                     <p className="text-xs font-black uppercase">Pontos: {order.points_earned || 0}</p>
