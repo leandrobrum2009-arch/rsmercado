@@ -80,34 +80,39 @@
         const img = new Image()
         img.crossOrigin = "anonymous"
         img.src = url
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          if (!ctx) { resolve(url); return; }
-          canvas.width = img.width
-          canvas.height = img.height
-          ctx.drawImage(img, 0, 0)
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const data = imageData.data
-         // Improved background removal algorithm
-         // Instead of just pure white, we look for anything close to white
-         // and handle edge case artifacts better
-         for (let i = 0; i < data.length; i += 4) {
-           const r = data[i], g = data[i+1], b = data[i+2]
-           // If pixel is light enough (above 220), make it transparent
-           // We use a slightly more complex check to avoid catching light colors that aren't gray
-           const max = Math.max(r, g, b)
-           const min = Math.min(r, g, b)
-           const diff = max - min
-           
-           if (max > bgRemovalThreshold && diff < 20) {
-             data[i+3] = 0
+         img.onload = () => {
+           try {
+             const canvas = document.createElement('canvas')
+             const ctx = canvas.getContext('2d', { willReadFrequently: true })
+             if (!ctx) { resolve(url); return; }
+             canvas.width = img.width
+             canvas.height = img.height
+             ctx.drawImage(img, 0, 0)
+             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+             const data = imageData.data
+             
+             for (let i = 0; i < data.length; i += 4) {
+               const r = data[i], g = data[i+1], b = data[i+2]
+               const max = Math.max(r, g, b)
+               const min = Math.min(r, g, b)
+               const diff = max - min
+               
+               if (max > bgRemovalThreshold && diff < 20) {
+                 data[i+3] = 0
+               }
+             }
+             ctx.putImageData(imageData, 0, 0)
+             resolve(canvas.toDataURL('image/png'))
+           } catch (e) {
+             console.error('Error removing background:', e)
+             toast.error('Erro ao processar imagem (CORS/Segurança). Tente outra imagem.')
+             resolve(url)
            }
          }
-          ctx.putImageData(imageData, 0, 0)
-          resolve(canvas.toDataURL())
-        }
-        img.onerror = () => resolve(url)
+         img.onerror = () => {
+           toast.error('Erro ao carregar imagem do produto.')
+           resolve(url)
+         }
       })
     }
  
