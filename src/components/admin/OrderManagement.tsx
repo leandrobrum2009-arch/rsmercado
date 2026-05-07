@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
- import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks } from 'lucide-react'
+  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
 
@@ -171,8 +171,8 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                   <TableCell className="font-mono text-xs">#{order.id.substring(0, 8)}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-bold">{order.profiles?.full_name || 'Desconhecido'}</p>
-                      <p className="text-xs text-muted-foreground">{order.profiles?.whatsapp || 'Sem Whats'}</p>
+                       <p className="font-bold">{order.profiles?.full_name || order.customer_name || 'Desconhecido'}</p>
+                       <p className="text-xs text-muted-foreground">{order.profiles?.whatsapp || order.customer_phone || 'Sem Whats'}</p>
                     </div>
                   </TableCell>
                   <TableCell>{formatCurrency(order.total_amount)}</TableCell>
@@ -251,15 +251,21 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                                    <User size={14} className="text-primary" /> Dados do Cliente
                                  </h4>
                                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                                   <p className="font-black text-sm text-zinc-900">{order.profiles?.full_name || 'Desconhecido'}</p>
+                                   <p className="font-black text-sm text-zinc-900">{order.profiles?.full_name || order.customer_name || 'Desconhecido'}</p>
                                    <div className="flex items-center gap-1 mt-1 text-zinc-500">
                                      <Phone size={12} />
-                                     <p className="text-xs font-bold">{order.profiles?.whatsapp || 'Não informado'}</p>
+                                     <p className="text-xs font-bold">{order.profiles?.whatsapp || order.customer_phone || 'Não informado'}</p>
                                    </div>
-                                   <div className="flex items-center gap-1 mt-1 text-zinc-500">
-                                     <CreditCard size={12} />
-                                    <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
-                                  </div>
+                                    <div className="flex items-center gap-1 mt-1 text-zinc-500">
+                                      <CreditCard size={12} />
+                                      <p className="text-xs font-bold uppercase">{order.payment_method || 'PIX'}</p>
+                                    </div>
+                                    {order.change_for && (
+                                      <div className="flex items-center gap-1 mt-1 text-amber-600">
+                                        <Banknote size={12} />
+                                        <p className="text-xs font-black uppercase">Troco para: {formatCurrency(order.change_for)}</p>
+                                      </div>
+                                    )}
                                   <div className="flex items-center gap-1 mt-1 text-amber-600">
                                     <ShoppingBag size={12} />
                                     <p className="text-xs font-black uppercase">Pontos: {order.points_earned || 0}</p>
