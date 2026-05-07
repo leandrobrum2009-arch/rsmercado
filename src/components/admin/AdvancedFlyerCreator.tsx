@@ -600,7 +600,7 @@ import html2canvas from 'html2canvas'
     )
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
@@ -777,11 +777,10 @@ import html2canvas from 'html2canvas'
                       }}
                     >
                       {t.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
+                   </Button>
+                 ))}
+               </div>
+             </div>
               {/* Layout Selection */}
              <div className="space-y-3">
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
@@ -804,9 +803,8 @@ import html2canvas from 'html2canvas'
                      {l.label}
                    </Button>
                  ))}
-               </div>
-             </div>
- 
+                </div>
+              </div>
                {layout === 'grid' && (
                  <div className="space-y-3">
                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Colunas na Grade</Label>
@@ -1056,10 +1054,10 @@ import html2canvas from 'html2canvas'
                     <div className="flex gap-2">
                       <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
                       <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
-                    </div>
-                 </div>
-               </div>
- 
+                </div>
+              </div>
+            </div>
+          </div>
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold uppercase">Tamanho Fonte ({fontSize}px)</Label>
                  <Slider value={[fontSize]} min={8} max={32} step={1} onValueChange={([val]) => setFontSize(val)} />
@@ -1236,10 +1234,8 @@ import html2canvas from 'html2canvas'
                           <span>{footerFontSize}px</span>
                         </div>
                         <Slider value={[footerFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setFooterFontSize(val)} />
-                      </div>
-                    </div>
-                  </div>
- 
+                </div>
+              </div>
                  <div className="grid grid-cols-2 gap-4">
                    <div className="flex items-center gap-2">
                      <Button 
@@ -1284,11 +1280,10 @@ import html2canvas from 'html2canvas'
                           <Slider value={[bgRemovalThreshold]} min={150} max={250} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
                         </div>
                       )}
-                    </div>
-                 </div>
-               </div>
-             </div>
- 
+                </div>
+              </div>
+            </div>
+          </div>
              {/* Product List */}
              <div className="space-y-3">
                <div className="flex justify-between items-center">
@@ -1368,7 +1363,7 @@ import html2canvas from 'html2canvas'
        </div>
  
         {/* Preview Area */}
-        <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none">
+         <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -1382,12 +1377,16 @@ import html2canvas from 'html2canvas'
               </Button>
           </div>
 
-         <div 
-           id="flyer-content"
-               className={cn(
-                 "relative flex flex-col aspect-[1/1.414] w-[700px] print:w-full print:shadow-none overflow-hidden transition-all duration-300",
-                 removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl"
-               )}
+            <div 
+              className="w-full max-w-[700px] flex justify-center perspective-1000 print:max-w-none"
+              style={{ perspective: '2000px' }}
+            >
+              <div 
+                id="flyer-content"
+                className={cn(
+                  "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
+                  removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
+                )}
                style={{ 
                  background: backgroundType === 'image' 
                    ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
@@ -1618,13 +1617,14 @@ import html2canvas from 'html2canvas'
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
                     <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                         Rodapé Reservado (5%)
-                    </div>
                   </div>
                 </div>
-         </div>
-       </div>
- 
-       <style>{`
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
          @media print {
            body * { visibility: hidden; }
            #flyer-content, #flyer-content * { visibility: visible; }
