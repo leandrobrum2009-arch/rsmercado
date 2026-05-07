@@ -1382,7 +1382,6 @@ import html2canvas from 'html2canvas'
               </Button>
           </div>
 
-         <div 
             <div 
               className="w-full max-w-[700px] flex justify-center perspective-1000 print:max-w-none"
               style={{ perspective: '2000px' }}
