@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
-import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -88,6 +88,241 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [productPadding, setProductPadding] = useState(8)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
+    const [showPreviewModal, setShowPreviewModal] = useState(false)
+
+    // Extract content to a reusable component
+    const FlyerContentInner = () => {
+      return (
+        <>
+                {/* Top Reserved Zone (15%) */}
+                 <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
+                  {showLogo && storeSettings?.logo_url && (
+                    <div 
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
+                        logoPosition === 'left' && "justify-start",
+                        logoPosition === 'center' && "justify-center",
+                        logoPosition === 'right' && "justify-end"
+                      )}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <img 
+                          src={storeSettings.logo_url} 
+                          style={{ width: `${logoSize}px` }}
+                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
+                          alt="Logo" 
+                        />
+                        {showSubtitle && subtitleText && (
+                          <p 
+                            className="font-black uppercase italic text-center drop-shadow-sm animate-in slide-in-from-top-2 duration-700"
+                            style={{ color: titleColor, fontSize: `${logoSize / 8}px` }}
+                          >
+                            {subtitleText}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {showValidity && validityPosition === 'top' && (
+                    <div className="absolute -bottom-4 left-0 w-full z-50">
+                      <ValidityBanner />
+                    </div>
+                  )}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                      Topo Reservado (15%)
+                  </div>
+                </div>
+              </div>
+    
+                {/* Content Middle Zone (80%) */}
+                <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
+                  {showValidity && validityPosition === 'bottom' && (
+                    <div className="mb-4">
+                      <ValidityBanner />
+                    </div>
+                  )}
+                <div 
+                  className={cn(
+                     "grid h-fit max-h-full transition-all duration-300 items-stretch",
+                    layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
+                    layout === 'featured-side' && "grid-cols-4 grid-rows-3",
+                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
+                    layout === 'single' && "grid-cols-1 grid-rows-1"
+                  )}
+                  style={{ gap: `${gridGap}px` }}
+                >
+                 {selectedProducts.map((p, i) => {
+                   const isBetweenRow = validityPosition === 'between' && i > 0 && i % columns === 0;
+                   let spanClass = ""
+                  if (layout === 'featured-side') {
+                    if (i === 0) spanClass = "col-span-1 row-span-3"
+                    if (i === 1) spanClass = "col-span-1 row-span-3 order-last"
+                  }
+                  if (layout === 'featured-top') {
+                    if (i === 0 || i === 1) spanClass = "col-span-1 row-span-1"
+                  }
+  
+                   return (
+                     <>
+                     {isBetweenRow && (
+                       <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
+                         <ValidityBanner isLine={true} />
+                       </div>
+                     )}
+                     <div
+                       key={i}
+                       className={cn(
+                         "flex flex-col items-center justify-center text-center space-y-2 relative",
+                         spanClass,
+                         fontFamily
+                       )}
+                       style={{ padding: `${productPadding}px` }}
+                     >
+                         <div 
+                           className={cn(
+                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
+                             layout === 'single' ? 'p-12' : '',
+                             columns === 4 ? 'p-1.5' : '',
+                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
+                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
+                           )}
+                             style={{
+                               backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                               height: productBlockHeight > 0
+                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                     : `${productBlockHeight}px`)
+                                 : 'auto',
+                               minHeight: productBlockHeight > 0
+                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                     : `${productBlockHeight}px`)
+                                 : 'auto',
+                               overflow: 'hidden' // Garante que imagens não vazem do bloco
+                             }}
+                         >
+                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
+                               <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")} style={{ minHeight: '120px' }}>
+                                <img 
+                                  src={p.image_url} 
+                                   crossOrigin="anonymous"
+                                  className={cn(
+                                    "object-contain transition-all duration-300 z-10",
+                                    (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
+                                      ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" 
+                                      : "brightness-[1.02] contrast-[1.05]",
+                                    (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
+                                  )} 
+                                  style={{
+                                     width: `${layout === 'single' ? 80 : 
+                                              (layout === 'featured-side' && (i === 0 || i === 1)) ? 60 : 
+                                              columns === 4 ? 70 : 80}%`,
+                                    height: 'auto',
+                                    maxHeight: '100%',
+                                    transform: `scale(${imageSize / 100})`,
+                                    position: 'relative',
+                                    zIndex: 10,
+                                  }}
+                                />
+                              </div>
+                             {nameOnTop && (
+                               <h3 
+                                 className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
+                                 style={{ 
+                                   color: titleColor, 
+                                   fontSize: `${layout === 'single' ? fontSize * 2 : fontSize}px`,
+                                   backgroundColor: hexToRgba(productBgColor, 40),
+                                   padding: '2px 4px'
+                                 }}
+                               >
+                                 {p.name}
+                               </h3>
+                             )}
+                            </div>
+ 
+                           <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
+                           {!nameOnTop && (
+                           <h3 
+                             className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
+                             style={{ 
+                               color: titleColor, 
+                               fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px`
+                             }}
+                           >
+                             {p.name}
+                           </h3>
+                           )}
+                            <div 
+                              className={cn(
+                                "flex flex-col items-center mt-auto relative",
+                                showPriceBg ? "px-3 py-1 rounded-lg" : ""
+                              )}
+                              style={{ 
+                                backgroundColor: showPriceBg ? priceBgColor : 'transparent',
+                                zIndex: 40
+                              }}
+                            >
+                             {p.original_price && (
+                               <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
+                             )}
+                             
+                             {priceLayout === 'traditional' ? (
+                               <div 
+                                 className="font-black italic flex items-baseline drop-shadow-sm"
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                               >
+                                 <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
+                                 <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
+                                 <div className="flex flex-col items-start ml-0.5">
+                                   <span className="text-[0.4em] leading-none border-b-2 border-current">,{p.price.toFixed(2).split('.')[1]}</span>
+                                   {p.unit && <span className="text-[0.25em] leading-none mt-0.5">{p.unit}</span>}
+                                 </div>
+                               </div>
+                             ) : (
+                               <div 
+                                 className="font-black italic flex items-center drop-shadow-sm"
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                               >
+                                 <span className="text-[0.5em] mr-1">R$</span>
+                                 <span>{p.price.toFixed(2).replace('.', ',')}</span>
+                                 {p.unit && <span className="text-[0.3em] ml-1">{p.unit}</span>}
+                               </div>
+                             )}
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                    </>
+                  )
+                })}
+              </div>
+            </div>
+  
+                 {/* Bottom Reserved Zone (5%) */}
+                 <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
+                   {showValidity && validityPosition === 'footer' && (
+                     <div className="absolute bottom-full left-0 w-full mb-1">
+                       <ValidityBanner />
+                     </div>
+                   )}
+                   {showFooter && footerText && (
+                     <div 
+                       className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
+                       style={{ color: titleColor, fontSize: `${footerFontSize}px` }}
+                     >
+                       {footerText}
+                     </div>
+                   )}
+                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
+                     <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                         Rodapé Reservado (5%)
+                   </div>
+                 </div>
+               </div>
+        </>
+      );
+    };
 
     useEffect(() => {
       if (globalRemoveBg && selectedProducts.length > 0) {
@@ -720,6 +955,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     )
 
     return (
+      <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
@@ -1629,6 +1865,39 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Preview Real A4
             </div>
+              <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="rounded-full h-8 px-4 text-[10px] font-black uppercase bg-white">
+                    <Eye className="w-3 h-3 mr-2" /> Prévia
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center">
+                  <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
+                    <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => setShowPreviewModal(false)}>Fechar</Button>
+                      <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
+                        <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-8 flex justify-center w-full">
+                    <div 
+                      className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
+                      style={{ 
+                        background: backgroundType === 'image' 
+                          ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
+                          : backgroundType === 'gradient'
+                            ? backgroundGradient
+                            : backgroundColor
+                      }}
+                    >
+                      {/* Render same content as flyer-content */}
+                      <FlyerContentInner />
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
                 <Printer className="w-3 h-3 mr-2" /> Salvar e Imprimir
               </Button>
@@ -1649,277 +1918,53 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                      : backgroundColor
                }}
            >
-                {/* Top Reserved Zone (15%) */}
-                 <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
-                  {showLogo && storeSettings?.logo_url && (
-                    <div 
-                      className={cn(
-                        "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
-                        logoPosition === 'left' && "justify-start",
-                        logoPosition === 'center' && "justify-center",
-                        logoPosition === 'right' && "justify-end"
-                      )}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <img 
-                          src={storeSettings.logo_url} 
-                          style={{ width: `${logoSize}px` }}
-                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
-                          alt="Logo" 
-                        />
-                        {showSubtitle && subtitleText && (
-                          <p 
-                            className="font-black uppercase italic text-center drop-shadow-sm animate-in slide-in-from-top-2 duration-700"
-                            style={{ color: titleColor, fontSize: `${logoSize / 8}px` }}
-                          >
-                            {subtitleText}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {showValidity && validityPosition === 'top' && (
-                    <div className="absolute -bottom-4 left-0 w-full z-50">
-                      <ValidityBanner />
-                    </div>
-                  )}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
-                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                     Topo Reservado (15%)
-                 </div>
-               </div>
-             </div>
-   
-                {/* Content Middle Zone (80%) */}
-                <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
-                  {showValidity && validityPosition === 'bottom' && (
-                    <div className="mb-4">
-                      <ValidityBanner />
-                    </div>
-                  )}
-               <div 
-                 className={cn(
-                    "grid h-fit max-h-full transition-all duration-300 items-stretch",
-                   layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
-                   layout === 'featured-side' && "grid-cols-4 grid-rows-3",
-                   layout === 'featured-top' && "grid-cols-2 grid-rows-5",
-                   layout === 'single' && "grid-cols-1 grid-rows-1"
-                 )}
-                 style={{ gap: `${gridGap}px` }}
-               >
-                {selectedProducts.map((p, i) => {
-                  const isBetweenRow = validityPosition === 'between' && i > 0 && i % columns === 0;
-                  let spanClass = ""
-                 if (layout === 'featured-side') {
-                   if (i === 0) spanClass = "col-span-1 row-span-3"
-                   if (i === 1) spanClass = "col-span-1 row-span-3 order-last"
-                 }
-                 if (layout === 'featured-top') {
-                   if (i === 0 || i === 1) spanClass = "col-span-1 row-span-1"
-                 }
- 
-                  return (
-                    <>
-                    {isBetweenRow && (
-                      <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
-                        <ValidityBanner isLine={true} />
-                      </div>
-                    )}
-                    <div
-                      key={i}
-                      className={cn(
-                        "flex flex-col items-center justify-center text-center space-y-2 relative",
-                        spanClass,
-                        fontFamily
-                      )}
-                      style={{ padding: `${productPadding}px` }}
-                    >
-                        <div 
-                          className={cn(
-                            "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
-                            layout === 'single' ? 'p-12' : '',
-                            columns === 4 ? 'p-1.5' : '',
-                             showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
-                             productBlockHeight === 0 ? "h-fit min-h-full" : ""
-                          )}
-                            style={{
-                              backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                              height: productBlockHeight > 0
-                                ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                    : `${productBlockHeight}px`)
-                                : 'auto',
-                              minHeight: productBlockHeight > 0
-                                ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                    : `${productBlockHeight}px`)
-                                : 'auto',
-                              overflow: 'hidden' // Garante que imagens não vazem do bloco
-                            }}
-                        >
-                            <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
-                              <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")} style={{ minHeight: '120px' }}>
-                               <img 
-                                 src={p.image_url} 
-                                  crossOrigin="anonymous"
-                                 className={cn(
-                                   "object-contain transition-all duration-300 z-10",
-                                   (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
-                                     ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" 
-                                     : "brightness-[1.02] contrast-[1.05]",
-                                   (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
-                                 )} 
-                                 style={{
-                                    width: `${layout === 'single' ? 80 : 
-                                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 60 : 
-                                             columns === 4 ? 70 : 80}%`,
-                                   height: 'auto',
-                                   maxHeight: '100%',
-                                   transform: `scale(${imageSize / 100})`,
-                                   position: 'relative',
-                                   zIndex: 10,
-                                 }}
-                               />
-                             </div>
-                            {nameOnTop && (
-                              <h3 
-                                className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
-                                style={{ 
-                                  color: titleColor, 
-                                  fontSize: `${layout === 'single' ? fontSize * 2 : fontSize}px`,
-                                  backgroundColor: hexToRgba(productBgColor, 40),
-                                  padding: '2px 4px'
-                                }}
-                              >
-                                {p.name}
-                              </h3>
-                            )}
-                           </div>
-
-                          <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
-                          {!nameOnTop && (
-                          <h3 
-                            className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
-                            style={{ 
-                              color: titleColor, 
-                              fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px`
-                            }}
-                          >
-                            {p.name}
-                          </h3>
-                          )}
-                           <div 
-                             className={cn(
-                               "flex flex-col items-center mt-auto relative",
-                               showPriceBg ? "px-3 py-1 rounded-lg" : ""
-                             )}
-                             style={{ 
-                               backgroundColor: showPriceBg ? priceBgColor : 'transparent',
-                               zIndex: 40
-                             }}
-                           >
-                            {p.original_price && (
-                              <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
-                            )}
-                            
-                            {priceLayout === 'traditional' ? (
-                              <div 
-                                className="font-black italic flex items-baseline drop-shadow-sm"
-                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
-                              >
-                                <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
-                                <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
-                                <div className="flex flex-col items-start ml-0.5">
-                                  <span className="text-[0.4em] leading-none border-b-2 border-current">,{p.price.toFixed(2).split('.')[1]}</span>
-                                  {p.unit && <span className="text-[0.25em] leading-none mt-0.5">{p.unit}</span>}
-                                </div>
-                              </div>
-                            ) : (
-                              <div 
-                                className="font-black italic flex items-center drop-shadow-sm"
-                                style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
-                              >
-                                <span className="text-[0.5em] mr-1">R$</span>
-                                <span>{p.price.toFixed(2).replace('.', ',')}</span>
-                                {p.unit && <span className="text-[0.3em] ml-1">{p.unit}</span>}
-                              </div>
-                            )}
-                          </div>
-                       </div>
-                     </div>
-                   </div>
-                   </>
-                 )
-               })}
-             </div>
+            <FlyerContentInner />
            </div>
- 
-                {/* Bottom Reserved Zone (5%) */}
-                <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
-                  {showValidity && validityPosition === 'footer' && (
-                    <div className="absolute bottom-full left-0 w-full mb-1">
-                      <ValidityBanner />
-                    </div>
-                  )}
-                  {showFooter && footerText && (
-                    <div 
-                      className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
-                      style={{ color: titleColor, fontSize: `${footerFontSize}px` }}
-                    >
-                      {footerText}
-                    </div>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
-                    <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                        Rodapé Reservado (5%)
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+         </div>
         </div>
+      </div>
 
-        <style>{`
-          @media print {
-            @page { 
-              size: A4 portrait; 
-              margin: 0 !important; 
-            }
-            html, body {
-              margin: 0 !important;
-              padding: 0 !important;
-              width: 210mm !important;
-              height: 297mm !important;
-              overflow: hidden !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            body * { visibility: hidden !important; }
-            #flyer-content, #flyer-content * { 
-              visibility: visible !important; 
-            }
-            #flyer-content {
-              position: fixed !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 210mm !important;
-              height: 297mm !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border: none !important;
-              overflow: hidden !important;
-              box-sizing: border-box !important;
-              display: flex !important;
-              flex-direction: column !important;
-              transform: none !important;
-              transition: none !important;
-              box-shadow: none !important;
-              z-index: 99999 !important;
-              background: white !important;
-            }
-            .print\:hidden { display: none !important; }
+      <style>{`
+        @media print {
+          @page { 
+            size: A4 portrait; 
+            margin: 0 !important; 
           }
-       `}</style>
-     </div>
-   )
- }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body * { visibility: hidden !important; }
+          #flyer-content, #flyer-content * { 
+            visibility: visible !important; 
+          }
+          #flyer-content {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transform: none !important;
+            transition: none !important;
+            box-shadow: none !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          .print\:hidden { display: none !important; }
+        }
+      `}</style>
+      </>
+    )
+  }
