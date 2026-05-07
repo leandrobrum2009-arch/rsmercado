@@ -245,36 +245,65 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
     return (
        <div className="flex flex-col min-h-screen bg-gray-50">
-         <div className="md:contents">
+         <div className="sticky top-0 z-[60] md:relative md:z-auto">
            <StoreAlertBanner />
+           {isSupabaseMissing && isAdmin && (
+             <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse">
+               <div className="flex items-center gap-3">
+                 <AlertTriangle className="flex-shrink-0" />
+                 <div>
+                   <p className="text-xs font-black uppercase tracking-tight">Conexão Supabase Perdida</p>
+                   <p className="text-[10px] opacity-90 font-bold uppercase leading-tight">
+                     Clique no ícone do Supabase na barra lateral e em "Connect" para restaurar o banco de dados.
+                   </p>
+                 </div>
+               </div>
+               <div className="flex gap-2">
+                 <button 
+                   onClick={() => setShowConfigModal(true)}
+                   className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors"
+                 >
+                   INSERIR CHAVES
+                 </button>
+                 <button 
+                   onClick={() => window.location.href = 'https://lovable.dev'}
+                   className="bg-white text-red-600 p-2 rounded-lg"
+                 >
+                   <ExternalLink size={16} />
+                 </button>
+               </div>
+             </div>
+           )}
+           {/* Mobile Header (moves into sticky group) */}
+           <header className="w-full bg-white border-b shadow-sm md:hidden">
+             <div className="flex items-center justify-between h-14 px-4">
+                <Link to="/" className="flex items-center gap-2">
+                  {storeSettings.logo_url ? (
+                    <img src={storeSettings.logo_url} alt="Logo" className="h-10 md:h-12 object-contain" />
+                  ) : (
+                    <span className="text-xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
+                  )}
+                </Link>
+                <div className="flex items-center space-x-1">
+                  <NotificationCenter />
+                 <Link to="/search" search={{}} className="p-2 text-gray-600">
+                   <Search size={20} />
+                 </Link>
+                  <Link to="/search" search={{ tag: 'OFERTA' }} className="p-2 text-red-600 animate-pulse bg-red-50 rounded-full">
+                    <ShoppingBag size={20} />
+                  </Link>
+                  <Link to="/cart" className="relative p-2 text-gray-600">
+                    <ShoppingCart size={20} />
+                    {cartCount > 0 && (
+                      <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Link>
+               </div>
+             </div>
+           </header>
          </div>
-        {isSupabaseMissing && isAdmin && (
-          <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse z-[60]">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="flex-shrink-0" />
-              <div>
-                <p className="text-xs font-black uppercase tracking-tight">Conexão Supabase Perdida</p>
-                <p className="text-[10px] opacity-90 font-bold uppercase leading-tight">
-                  Clique no ícone do Supabase na barra lateral e em "Connect" para restaurar o banco de dados.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowConfigModal(true)}
-                className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors"
-              >
-                INSERIR CHAVES
-              </button>
-              <button 
-                onClick={() => window.location.href = 'https://lovable.dev'}
-                className="bg-white text-red-600 p-2 rounded-lg"
-              >
-                <ExternalLink size={16} />
-              </button>
-            </div>
-          </div>
-        )}
        {/* Desktop Header */}
        <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm hidden md:block">
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
