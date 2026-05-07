@@ -955,6 +955,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     )
 
     return (
+      <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
@@ -1917,7 +1918,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                      : backgroundColor
                }}
            >
-             <FlyerContentInner />
+            <FlyerContentInner />
            </div>
          </div>
         </div>
@@ -1964,13 +1965,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           .print\:hidden { display: none !important; }
         }
       `}</style>
-    </div>
-  )
-
-  // Extract content to a reusable component
-  function FlyerContentInner() {
-    return (
-      <>
+      </>
+    )
+  }
                 {/* Top Reserved Zone (15%) */}
                  <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
                   {showLogo && storeSettings?.logo_url && (
