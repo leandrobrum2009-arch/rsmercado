@@ -74,30 +74,41 @@
            </div>
          </div>
        </CardHeader>
-       <CardContent className="p-6 space-y-6">
-         <div className="flex flex-col md:flex-row gap-4">
-           <div className="flex-1 space-y-2">
-             <label className="text-[10px] font-black uppercase text-zinc-500">Mensagem do Alerta</label>
-             <Input 
-               placeholder="Ex: Estamos abertos hoje até as 22h! 🕒" 
-               value={message} 
-               onChange={(e) => setMessage(e.target.value)}
-             />
-           </div>
-           <div className="w-full md:w-40 space-y-2">
-             <label className="text-[10px] font-black uppercase text-zinc-500">Estilo</label>
-             <Select value={type} onValueChange={setType}>
-               <SelectTrigger>
-                 <SelectValue />
-               </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="info">Azul (Info)</SelectItem>
-                 <SelectItem value="warning">Amarelo (Aviso)</SelectItem>
-                 <SelectItem value="danger">Vermelho (Urgente)</SelectItem>
-                 <SelectItem value="success">Verde (Sucesso)</SelectItem>
-               </SelectContent>
-             </Select>
-           </div>
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Mensagem do Alerta</label>
+              <Input 
+                placeholder="Ex: Estamos abertos hoje até as 22h! 🕒" 
+                value={message} 
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Link de Destino (Opcional)</label>
+              <Input 
+                placeholder="Ex: /promocoes ou https://..." 
+                value={targetUrl} 
+                onChange={(e) => setTargetUrl(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-40 space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Estilo</label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="info">Azul (Info)</SelectItem>
+                  <SelectItem value="warning">Amarelo (Aviso)</SelectItem>
+                  <SelectItem value="danger">Vermelho (Urgente)</SelectItem>
+                  <SelectItem value="success">Verde (Sucesso)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
              <div className="mt-auto flex gap-2">
                <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                  <DialogTrigger asChild>
