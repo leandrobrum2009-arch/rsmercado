@@ -516,9 +516,10 @@
                      <DialogTitle>Templates de Encarte</DialogTitle>
                    </DialogHeader>
                     <Tabs defaultValue="templates" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
+                      <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="templates">Templates</TabsTrigger>
                         <TabsTrigger value="history">Histórico</TabsTrigger>
+                        <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
                       <TabsContent value="templates" className="space-y-4 py-4">
                         <div className="flex gap-2">
@@ -582,6 +583,42 @@
                                       }}
                                     >
                                       Restaurar
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="saved" className="space-y-4 py-4">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                          {loadingSaved ? (
+                            <div className="flex justify-center py-8"><Loader2 className="animate-spin" /></div>
+                          ) : savedFlyers.length === 0 ? (
+                            <p className="text-center py-8 text-zinc-400 text-xs">Nenhum encarte salvo no banco</p>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                              {savedFlyers.map((h) => (
+                                <div key={h.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-xs">{h.title}</span>
+                                    <span className="text-[8px] text-zinc-400 flex items-center">
+                                      <Calendar className="w-2 h-2 mr-1" /> {new Date(h.created_at).toLocaleDateString()} {new Date(h.created_at).toLocaleTimeString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="h-7 text-[10px]" 
+                                      onClick={() => {
+                                        if (h.config) applyTemplate(h.config)
+                                        if (h.products_data) setSelectedProducts(h.products_data)
+                                        toast.success('Encarte carregado!')
+                                      }}
+                                    >
+                                      Abrir
                                     </Button>
                                   </div>
                                 </div>
