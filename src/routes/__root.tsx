@@ -350,35 +350,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
          </div>
        </header>
  
-       {/* Mobile Header */}
-       <header className="sticky top-0 z-50 w-full bg-white border-b shadow-sm md:hidden">
-         <div className="flex items-center justify-between h-14 px-4">
-            <Link to="/" className="flex items-center gap-2">
-              {storeSettings.logo_url ? (
-                <img src={storeSettings.logo_url} alt="Logo" className="h-10 md:h-12 object-contain" />
-              ) : (
-                <span className="text-xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
-              )}
-            </Link>
-            <div className="flex items-center space-x-1">
-              <NotificationCenter />
-             <Link to="/search" search={{}} className="p-2 text-gray-600">
-               <Search size={20} />
-             </Link>
-              <Link to="/search" search={{ tag: 'OFERTA' }} className="p-2 text-red-600 animate-pulse bg-red-50 rounded-full">
-                <ShoppingBag size={20} />
-              </Link>
-              <Link to="/cart" className="relative p-2 text-gray-600">
-                <ShoppingCart size={20} />
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-           </div>
-         </div>
-       </header>
  
        <main className="flex-1 pb-20 md:pb-0">
          <Outlet />
