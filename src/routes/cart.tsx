@@ -163,47 +163,51 @@ function CartPage() {
     );
   }
 
-   const handleCheckout = async () => {
-     const customerName = profile?.full_name || guestInfo.name;
-     const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
-     const deliveryAddress = useSimplifiedAddress 
-       ? { street: guestInfo.address, neighborhood: guestInfo.neighborhood, label: 'Simplificado' } 
-       : selectedAddress;
+    const handleCheckout = async () => {
+      console.log('handleCheckout started');
+      const customerName = profile?.full_name || guestInfo.name;
+      const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
+      const deliveryAddress = useSimplifiedAddress 
+        ? { street: guestInfo.address, neighborhood: guestInfo.neighborhood, label: 'Simplificado' } 
+        : selectedAddress;
  
-     if (!customerName || !customerPhone) {
-       toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
-       return;
-     }
+      if (!customerName || !customerPhone) {
+        console.log('Missing name or phone:', { customerName, customerPhone });
+        toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
+        return;
+      }
  
      if (!deliveryAddress && !useSimplifiedAddress) {
        toast.error("Por favor, adicione um endereço de entrega ou preencha o campo de endereço rápido.");
        return;
      }
  
-     setIsProcessing(true);
-    try {
-      // 1. Create Order
-         const orderPayload: any = {
-          change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
-         user_id: profile?.id || null,
-         total_amount: total + deliveryFee,
-         delivery_fee: deliveryFee,
-         payment_method: paymentMethod,
-         status: 'pending',
-         points_earned: Math.floor(total * pointsMultiplier),
-         customer_name: customerName,
-         customer_phone: customerPhone,
-         delivery_address: deliveryAddress,
-         coupon_code: coupon
-       };
+      setIsProcessing(true);
+      const orderPayload: any = {
+        change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
+        user_id: profile?.id || null,
+        total_amount: total + deliveryFee,
+        delivery_fee: deliveryFee,
+        payment_method: paymentMethod,
+        status: 'pending',
+        points_earned: Math.floor(total * pointsMultiplier),
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        delivery_address: deliveryAddress,
+        coupon_code: coupon
+      };
+      console.log('Starting order creation with payload:', orderPayload);
+      try {
 
-      let { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert(orderPayload)
-        .select()
-        .single();
-
-      if (orderError && (orderError.message.includes('column') || orderError.code === '42703')) {
+       console.log('Inserting into orders table...');
+       let { data: order, error: orderError } = await supabase
+         .from('orders')
+         .insert(orderPayload)
+         .select()
+         .single();
+       console.log('Primary insert result:', { order, orderError });
+ 
+       if (orderError && (orderError.message.includes('column') || orderError.code === '42703')) {
         console.warn('Falling back to minimal order insert due to missing columns');
         const { customer_name, customer_phone, change_for, points_earned, coupon_code, delivery_address, ...minimalPayload } = orderPayload;
         const result = await supabase
