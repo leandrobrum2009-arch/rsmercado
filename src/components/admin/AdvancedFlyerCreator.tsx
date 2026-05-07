@@ -1519,15 +1519,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             variant="ghost" 
                             className="h-7 w-7 text-green-600" 
                             title="WhatsApp"
-                            onClick={() => {
-                               // Set context then share
+                             onClick={() => {
                                if (f.products_data) {
-                                 const msg = `🚀 *OFERTAS DE ${new Date(f.created_at).toLocaleDateString('pt-BR')}* 🚀\n\n` + 
-                                   f.products_data.map((p: any) => `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*\n`).join('\n') +
-                                   `\n🛒 ${window.location.origin}`;
+                                 const storeName = storeSettings?.site_name || 'RS SUPERMERCADO';
+                                 let msg = `🚀 *OFERTAS - ${storeName.toUpperCase()}* 🚀\n`;
+                                 msg += `📅 *DATA:* ${new Date(f.created_at).toLocaleDateString('pt-BR')}\n`;
+                                 msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+                                 
+                                 f.products_data.forEach((p: any) => {
+                                   msg += `✅ *${p.name.toUpperCase()}*\n`;
+                                   msg += `💰 *R$ ${p.price.toFixed(2).replace('.', ',')}* ${p.unit ? `(${p.unit})` : ''}\n\n`;
+                                 });
+                                 
+                                 msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+                                 msg += `🛒 *PEÇA AQUI:* ${window.location.origin}`;
+                                 
                                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                                }
-                            }}
+                             }}
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
