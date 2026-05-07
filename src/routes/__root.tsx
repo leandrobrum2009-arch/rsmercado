@@ -38,7 +38,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SuperLoja" },
+       { title: "RS SUPERMERCADO" },
       { name: "description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "RS SUPERMERCADO" },
@@ -76,7 +76,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
    const { items } = useCart();
    const [isAdmin, setIsAdmin] = useState(false);
     const [storeSettings, setStoreSettings] = useState<any>({
-      site_name: 'SuperLoja',
+       site_name: 'RS SUPERMERCADO',
       logo_url: '',
       colors: { primary: '#16a34a', secondary: '#facc15' }
     });

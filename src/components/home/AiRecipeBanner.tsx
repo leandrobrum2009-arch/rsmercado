@@ -82,7 +82,7 @@
          <DialogContent className="max-w-md rounded-[40px] border-8 border-indigo-50 p-8 shadow-2xl">
            <DialogHeader>
              <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">
-               Chef IA SuperLoja
+                Chef IA RS SUPERMERCADO
              </DialogTitle>
              <DialogDescription className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest">
                Liste os produtos que você tem ou quer comprar
