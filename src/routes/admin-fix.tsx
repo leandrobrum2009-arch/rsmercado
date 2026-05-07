@@ -13,12 +13,11 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V9 (EXECUTION ORDER FIX) - RS SUPERMERCADO
+   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V10 (DEPENDENCY FIX) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
-  -- 1. GARANTIR FUNÇÃO IS_ADMIN (PRIMEIRO PASSO CRÍTICO)
-     DROP FUNCTION IF EXISTS public.is_admin();
-    CREATE OR REPLACE FUNCTION public.is_admin() 
+   -- 1. GARANTIR FUNÇÃO IS_ADMIN (PRIMEIRO PASSO CRÍTICO)
+     CREATE OR REPLACE FUNCTION public.is_admin() 
     RETURNS BOOLEAN 
     LANGUAGE plpgsql 
     SECURITY DEFINER 
@@ -296,10 +295,9 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   CREATE POLICY "Users view own role" ON public.user_roles 
   FOR SELECT USING (auth.uid() = user_id);
 
- -- 10. NOTIFICAÇÕES E ALERTAS
-  -- FUNÇÃO PARA NOTIFICAR TODOS
-    DROP FUNCTION IF EXISTS public.notify_all_users(text,text,text);
-    CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
+  -- 10. NOTIFICAÇÕES E ALERTAS
+   -- FUNÇÃO PARA NOTIFICAR TODOS
+     CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
     RETURNS VOID 
     LANGUAGE plpgsql 
     SECURITY DEFINER 
@@ -388,9 +386,8 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   );
   ALTER TABLE public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
-  DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
-  DROP FUNCTION IF EXISTS public.log_migration_step(text,text,text,jsonb);
-  CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
+   DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
+   CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
   RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $BODY$
   BEGIN
       INSERT INTO public.migration_audit_logs (migration_name, step_name, status, details)
