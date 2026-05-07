@@ -292,17 +292,16 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
-   CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
-   RETURNS VOID 
-   LANGUAGE plpgsql 
-   SECURITY DEFINER 
-   SET search_path = public, auth
-   AS $$
-   BEGIN
-     INSERT INTO public.notifications (user_id, title, message, type)
-     SELECT id, title, message, type FROM auth.users;
-   END;
-   $$;
+    CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
+    RETURNS VOID 
+    LANGUAGE plpgsql 
+    SECURITY DEFINER 
+    SET search_path = public, auth
+    AS $BODY$
+    BEGIN
+      INSERT INTO public.notifications (user_id, title, message, type)
+      SELECT id, p_title, p_message, p_type FROM auth.users;
+    END; $BODY$;
 
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -386,11 +385,11 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   CREATE POLICY "Admins view audit logs" ON public.migration_audit_logs FOR SELECT USING (public.is_admin());
 
   CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
-  RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS \$\$
+  RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $BODY$
   BEGIN
       INSERT INTO public.migration_audit_logs (migration_name, step_name, status, details)
       VALUES (p_migration_name, p_step_name, p_status, p_details);
-  END; \$\$;
+  END; $BODY$;
 
   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
