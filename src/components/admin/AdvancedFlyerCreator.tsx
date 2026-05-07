@@ -330,10 +330,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           image_url: selectedProducts[0]?.image_url || ''
         })
 
-        if (error) throw error
-        toast.success('Encarte salvo com sucesso no banco de dados!')
-        fetchSavedFlyers()
+        if (error) {
+          if (error.message?.includes('row-level security')) {
+            toast.error('Erro de permissão! O banco bloqueou o salvamento. Vá em /admin-fix e execute o script de reparo.', {
+              duration: 10000,
+            })
+          } else {
+            throw error
+          }
+        } else {
+          toast.success('Encarte salvo com sucesso no banco de dados!')
+          fetchSavedFlyers()
+        }
       } catch (error: any) {
+        console.error('Error saving flyer:', error)
         toast.error('Erro ao salvar no banco: ' + error.message)
       }
     }
