@@ -90,35 +90,13 @@ export function AuthForm() {
 
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 ring-1 ring-black/5">
-      <CardHeader className="bg-zinc-50/50 border-b pb-6 relative">
-         <div 
-           className="absolute -top-20 left-0 right-0 bg-green-600 text-white p-4 rounded-xl text-[12px] font-black leading-tight shadow-2xl z-20 animate-bounce border-4 border-white cursor-pointer"
-           onClick={() => window.location.href = '/admin-fix'}
-         >
-           🔓 NÃO CONSEGUE ENTRAR? CLIQUE AQUI! <br/>
-           <span className="text-[10px] opacity-90 uppercase">Ativação instantânea sem precisar de e-mail</span>
-         </div>
+      <CardHeader className="bg-zinc-50/50 border-b pb-6">
         <CardTitle className="text-2xl font-black text-gray-900 tracking-tight">
           {isSignUp ? 'Criar Nova Conta' : 'Acessar Minha Conta'}
         </CardTitle>
          <CardDescription className="font-medium">
            {isSignUp ? 'Cadastre-se para gerenciar sua loja.' : 'Informe suas credenciais de acesso.'}
          </CardDescription>
-         {errorMsg === 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.' && (
-           <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl animate-bounce">
-             <p className="text-xs font-black text-red-700 uppercase mb-2">🚨 PROBLEMAS COM O E-MAIL?</p>
-             <p className="text-[10px] text-red-600 font-bold leading-tight mb-3">
-               Se você já clicou no link e ele não funcionou (tentou abrir no localhost), você pode ativar sua conta agora mesmo sem precisar do e-mail:
-             </p>
-             <Button 
-               variant="destructive" 
-               className="w-full text-[10px] font-black h-8"
-               onClick={() => window.location.href = '/admin-fix'}
-             >
-               ATIVAR MINHA CONTA AGORA
-             </Button>
-           </div>
-         )}
       </CardHeader>
       <CardContent className="pt-8">
         {errorMsg && (
@@ -127,15 +105,6 @@ export function AuthForm() {
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <p className="text-xs font-black leading-relaxed">{errorMsg}</p>
             </div>
-            {errorMsg.includes('LIMITE') && (
-              <Button 
-                variant="destructive" 
-                className="w-full text-[10px] font-black h-10 bg-red-600 animate-pulse"
-                onClick={() => window.location.href = '/admin-fix'}
-              >
-                JÁ TENHO CADASTRO? ATIVAR ACESSO AGORA
-              </Button>
-            )}
           </div>
         )}
         
