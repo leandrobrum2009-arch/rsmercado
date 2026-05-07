@@ -1281,11 +1281,10 @@ import html2canvas from 'html2canvas'
                           <Slider value={[bgRemovalThreshold]} min={150} max={250} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
                         </div>
                       )}
-                    </div>
-                 </div>
-               </div>
-             </div>
- 
+                </div>
+              </div>
+            </div>
+          </div>
              {/* Product List */}
              <div className="space-y-3">
                <div className="flex justify-between items-center">
