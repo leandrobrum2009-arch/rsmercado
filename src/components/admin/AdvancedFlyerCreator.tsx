@@ -1623,7 +1623,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
  
         {/* Preview Area */}
-         <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500">
+          <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -1634,10 +1634,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div 
-              className="w-full max-w-[700px] flex justify-center perspective-1000 print:max-w-none"
-              style={{ perspective: '2000px' }}
-            >
+            <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
               <div 
                 id="flyer-content"
                 className={cn(
@@ -1886,23 +1883,23 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           @media print {
             @page { 
               size: A4 portrait; 
-              margin: 0mm !important; 
+              margin: 0 !important; 
             }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              height: 297mm !important;
               width: 210mm !important;
+              height: 297mm !important;
               overflow: hidden !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            body * { visibility: hidden; }
+            body * { visibility: hidden !important; }
             #flyer-content, #flyer-content * { 
               visibility: visible !important; 
             }
             #flyer-content {
-              position: absolute !important;
+              position: fixed !important;
               left: 0 !important;
               top: 0 !important;
               width: 210mm !important;
@@ -1917,10 +1914,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               transform: none !important;
               transition: none !important;
               box-shadow: none !important;
-              z-index: 9999 !important;
-              page-break-after: avoid !important;
-              page-break-before: avoid !important;
+              z-index: 99999 !important;
+              background: white !important;
             }
+            .print\:hidden { display: none !important; }
           }
        `}</style>
      </div>

@@ -325,10 +325,10 @@ export function FlyerCreator() {
       <style>{`
         @media print {
           @page { size: A4 portrait; margin: 0; }
-          body * { visibility: hidden; }
+          body * { visibility: hidden !important; }
           #flyer-content, #flyer-content * { visibility: visible !important; }
           #flyer-content { 
-            position: absolute !important; 
+            position: fixed !important; 
             left: 0 !important; 
             top: 0 !important; 
             width: 210mm !important; 
@@ -339,8 +339,10 @@ export function FlyerCreator() {
             box-shadow: none !important;
             transform: none !important;
             transition: none !important;
+            z-index: 99999 !important;
+            background: white !important;
           }
-          html, body { height: 297mm; width: 210mm; overflow: hidden; }
+          html, body { height: 297mm !important; width: 210mm !important; overflow: hidden !important; }
         }
       `}</style>
     </div>
