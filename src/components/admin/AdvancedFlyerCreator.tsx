@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
@@ -115,7 +115,57 @@ import html2canvas from 'html2canvas'
      'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
-   ]
+    ];
+
+    const PRESET_TEMPLATES = [
+      {
+        name: '🔥 Oferta Explosiva',
+        config: {
+          layout: 'grid', backgroundType: 'color', backgroundColor: '#ffffff',
+          columns: 3, gridGap: 12, productPadding: 8, showLogo: true, logoPosition: 'center', logoSize: 120,
+          titleColor: '#e11d48', priceColor: '#ffffff', fontSize: 14, priceSize: 28,
+          fontFamily: 'font-sans', productBgColor: '#ffffff', productBgOpacity: 100,
+          productBlockHeight: 220, showPriceBg: true, priceBgColor: '#e11d48', showShadows: true,
+          priceLayout: 'traditional', imageSize: 100, nameOnTop: false, showValidity: true,
+          validityBgColor: '#facc15', validityTextColor: '#000000'
+        }
+      },
+      {
+        name: '🥗 Hortifruti Fresco',
+        config: {
+          layout: 'grid', backgroundType: 'gradient', backgroundGradient: 'linear-gradient(to bottom, #f0fdf4, #dcfce7)',
+          columns: 3, gridGap: 10, productPadding: 10, showLogo: true, logoPosition: 'left', logoSize: 100,
+          titleColor: '#166534', priceColor: '#16a34a', fontSize: 13, priceSize: 24,
+          fontFamily: 'font-sans', productBgColor: '#ffffff', productBgOpacity: 80,
+          productBlockHeight: 200, showPriceBg: false, showShadows: false,
+          priceLayout: 'traditional', imageSize: 110, nameOnTop: false, showValidity: true,
+          validityBgColor: '#16a34a', validityTextColor: '#ffffff'
+        }
+      },
+      {
+        name: '🌑 Black Friday / Noturno',
+        config: {
+          layout: 'featured-side', backgroundType: 'color', backgroundColor: '#09090b',
+          columns: 3, gridGap: 15, productPadding: 12, showLogo: true, logoPosition: 'center', logoSize: 150,
+          titleColor: '#ffffff', priceColor: '#facc15', fontSize: 14, priceSize: 32,
+          fontFamily: 'font-sans', productBgColor: '#18181b', productBgOpacity: 100,
+          productBlockHeight: 240, showPriceBg: true, priceBgColor: '#27272a', showShadows: true,
+          priceLayout: 'traditional', imageSize: 90, nameOnTop: true, showValidity: true,
+          validityBgColor: '#facc15', validityTextColor: '#000000'
+        }
+      },
+      {
+        name: '✨ Premium Minimalista',
+        config: {
+          layout: 'grid', backgroundType: 'color', backgroundColor: '#ffffff',
+          columns: 2, gridGap: 20, productPadding: 15, showLogo: true, logoPosition: 'center', logoSize: 80,
+          titleColor: '#18181b', priceColor: '#18181b', fontSize: 16, priceSize: 30,
+          fontFamily: 'font-serif', productBgColor: '#fafafa', productBgOpacity: 100,
+          productBlockHeight: 300, showPriceBg: false, showShadows: false,
+          priceLayout: 'inline', imageSize: 85, nameOnTop: false, showValidity: false
+        }
+      }
+    ];
 
      const processImageBackground = (url: string, threshold = bgRemovalThreshold, smoothing = bgRemovalSmoothing): Promise<string> => {
       return new Promise((resolve) => {
