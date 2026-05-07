@@ -13,7 +13,7 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V6 (CLEANUP POLICIES) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V7 (FINAL CLEANUP) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
@@ -21,12 +21,22 @@
    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
 
      -- 0. LIMPEZA DE POLÍTICAS (PREVENTIVO)
+     -- Flyers
      DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
      DROP POLICY IF EXISTS "Admin manage flyers" ON public.flyers;
      DROP POLICY IF EXISTS "Admins manage flyers" ON public.flyers;
      DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
      DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
      DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
+     
+     -- Outras Tabelas (Limpeza Crítica)
+     DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
+     DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
+     DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
+     DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
+     DROP POLICY IF EXISTS "Admin manage settings" ON public.store_settings;
 
      -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
      ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
