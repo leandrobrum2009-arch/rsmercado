@@ -19,6 +19,7 @@
    original_price?: number
    image_url: string
    unit?: string
+   removeBg?: boolean
  }
  
  type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
@@ -34,6 +35,8 @@
    const [columns, setColumns] = useState(3)
    const [gridGap, setGridGap] = useState(16)
    const [showLogo, setShowLogo] = useState(true)
+   const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
+   const [logoSize, setLogoSize] = useState(120)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
@@ -52,6 +55,7 @@
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
+   const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
  
    useEffect(() => {
      fetchProducts()
