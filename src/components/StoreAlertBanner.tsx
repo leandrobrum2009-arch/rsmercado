@@ -89,7 +89,10 @@
               className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-shake-critical ring-4 ring-red-400 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/20 cursor-pointer active:scale-[0.98] transition-all touch-none`}
            >
             <div className="container mx-auto px-4 py-4 md:py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 relative z-10">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full pointer-events-none" 
+                style={{ animation: `shimmer ${alert.shimmer_speed_seconds || 2.0}s infinite` }}
+              />
               
               <div className="flex items-center gap-4 w-full md:w-auto">
                 <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-inner ring-2 ring-white/30 flex-shrink-0 animate-bounce">
@@ -109,7 +112,10 @@
               </div>
               <div className="flex items-center justify-between w-full md:w-auto gap-2 md:gap-4 mt-1 md:mt-0">
                 <div className="md:hidden flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
-                   <div className="h-full bg-white/60 animate-[shimmer_2s_infinite] w-full" />
+                   <div 
+                    className="h-full bg-white/60 w-full" 
+                    style={{ animation: `shimmer ${alert.shimmer_speed_seconds || 2.0}s infinite` }}
+                   />
                 </div>
                 <button 
                   onClick={() => setAlert(null)}
@@ -120,7 +126,10 @@
               </div>
             </div>
             <div className="absolute bottom-0 left-0 h-1.5 bg-white/30" style={{ width: '100%' }}>
-               <div className="h-full bg-white/60 shadow-[0_0_15px_rgba(255,255,255,1)] animate-progress" />
+               <div 
+                className="h-full bg-white/60 shadow-[0_0_15px_rgba(255,255,255,1)]" 
+                style={{ animation: `progress ${alert.duration_seconds || 10}s linear forwards` }}
+               />
             </div>
           </motion.div>
         )}
