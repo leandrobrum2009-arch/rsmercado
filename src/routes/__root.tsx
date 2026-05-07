@@ -245,7 +245,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
  
     return (
        <div className="flex flex-col min-h-screen bg-gray-50">
-         <StoreAlertBanner />
+         <div className="md:contents">
+           <StoreAlertBanner />
+         </div>
         {isSupabaseMissing && isAdmin && (
           <div className="bg-red-600 text-white px-4 py-3 flex items-center justify-between shadow-lg animate-pulse z-[60]">
             <div className="flex items-center gap-3">
