@@ -88,9 +88,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
      const [productPadding, setProductPadding] = useState(8)
-     const [nameOffsetY, setNameOffsetY] = useState(0)
-     const [priceOffsetY, setPriceOffsetY] = useState(0)
-     const [imageOffsetY, setImageOffsetY] = useState(0)
+      const [nameOffsetY, setNameOffsetY] = useState(0)
+      const [nameOffsetX, setNameOffsetX] = useState(0)
+      const [priceOffsetY, setPriceOffsetY] = useState(0)
+      const [priceOffsetX, setPriceOffsetX] = useState(0)
+      const [imageOffsetY, setImageOffsetY] = useState(0)
+      const [imageOffsetX, setImageOffsetX] = useState(0)
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
@@ -245,7 +248,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                     height: imageSize > 100 ? 'auto' : '100%',
                                     maxHeight: imageSize > 100 ? 'none' : '100%',
                                     objectFit: 'contain',
-                                    transform: `scale(${imageSize / 100}) translateY(${imageOffsetY}px)`,
+                                    transform: `scale(${imageSize / 100}) translate(${imageOffsetX}px, ${imageOffsetY}px)`,
                                     position: 'relative',
                                     zIndex: 10,
                                   }}
@@ -273,7 +276,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               style={{ 
                                 color: titleColor, 
                                 fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`,
-                                transform: `translateY(${nameOffsetY}px)`
+                                 transform: `translate(${nameOffsetX}px, ${nameOffsetY}px)`
                               }}
                            >
                              {p.name}
@@ -287,7 +290,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               style={{ 
                                 backgroundColor: showPriceBg ? priceBgColor : 'transparent',
                                 zIndex: 40,
-                                transform: `translateY(${priceOffsetY}px)`
+                                 transform: `translate(${priceOffsetX}px, ${priceOffsetY}px)`
                               }}
                             >
                              {p.original_price && (
@@ -1757,23 +1760,37 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Modelo Único)</Label>
                         <div className="space-y-3">
                           <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Nome ({nameOffsetY}px)</span>
-                            </div>
-                            <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                             <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                               <div className="space-y-1">
+                                 <span>Subir/Descer Nome ({nameOffsetY}px)</span>
+                                 <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                               </div>
+                               <div className="space-y-1">
+                                 <span>Esq/Dir Nome ({nameOffsetX}px)</span>
+                                 <Slider value={[nameOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setNameOffsetX(val)} />
+                               </div>
+                             </div>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Preço ({priceOffsetY}px)</span>
-                            </div>
-                            <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Foto ({imageOffsetY}px)</span>
-                            </div>
-                            <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
-                          </div>
+                           <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                             <div className="space-y-1">
+                               <span>Subir/Descer Preço ({priceOffsetY}px)</span>
+                               <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
+                             </div>
+                             <div className="space-y-1">
+                               <span>Esq/Dir Preço ({priceOffsetX}px)</span>
+                               <Slider value={[priceOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setPriceOffsetX(val)} />
+                             </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                             <div className="space-y-1">
+                               <span>Subir/Descer Foto ({imageOffsetY}px)</span>
+                               <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
+                             </div>
+                             <div className="space-y-1">
+                               <span>Esq/Dir Foto ({imageOffsetX}px)</span>
+                               <Slider value={[imageOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setImageOffsetX(val)} />
+                             </div>
+                           </div>
                         </div>
                       </div>
                     )}
