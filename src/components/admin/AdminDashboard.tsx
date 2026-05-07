@@ -105,17 +105,21 @@
        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
  
-        const { data: orders } = await supabase
+         const { data: orders, error: ordersError } = await supabase
           .from('orders')
           .select('total_amount, created_at, status, delivery_address, delivery_neighborhood_id')
           .neq('status', 'cancelled')
- 
-       if (orders) {
+
+        if (ordersError) {
+          console.error('Error fetching orders for dashboard:', ordersError)
+        }
+  
+        if (orders && Array.isArray(orders)) {
           // Neighborhood stats
           const neighborhoodCounts: Record<string, number> = {}
 
           orders.forEach(o => {
-            const neighborhood = o.delivery_address?.neighborhood || 'Não informado'
+            const neighborhood = (o.delivery_address as any)?.neighborhood || 'Não informado'
             neighborhoodCounts[neighborhood] = (neighborhoodCounts[neighborhood] || 0) + 1
           })
 
@@ -140,13 +144,17 @@
        }
  
        // 2. Get top products
-        const { data: productsData } = await supabase
+        const { data: productsData, error: productsError } = await supabase
           .from('order_items')
           .select('quantity, unit_price, products(name), orders(delivery_address)')
+
+       if (productsError) {
+         console.error('Error fetching products data for dashboard:', productsError)
+       }
        
-       if (productsData) {
+       if (productsData && Array.isArray(productsData)) {
          const grouped = productsData.reduce((acc: any, item: any) => {
-           const name = item.products?.name || 'Desconhecido'
+            const name = (item.products as any)?.name || 'Desconhecido'
            if (!acc[name]) acc[name] = 0
            acc[name] += item.quantity
            return acc
@@ -162,8 +170,8 @@
           // Top products by neighborhood
           const neighborhoodProdMap: Record<string, Record<string, number>> = {}
           productsData.forEach((item: any) => {
-            const neighborhood = item.orders?.delivery_address?.neighborhood || 'Não informado'
-            const prodName = item.products?.name || 'Desconhecido'
+             const neighborhood = (item.orders as any)?.delivery_address?.neighborhood || 'Não informado'
+             const prodName = (item.products as any)?.name || 'Desconhecido'
             
             if (!neighborhoodProdMap[neighborhood]) neighborhoodProdMap[neighborhood] = {}
             neighborhoodProdMap[neighborhood][prodName] = (neighborhoodProdMap[neighborhood][prodName] || 0) + item.quantity
