@@ -791,13 +791,6 @@
                     />
                     <div className="grid grid-cols-4 gap-1">
                       {(['top', 'bottom', 'footer', 'between'] as const).map(pos => (
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[8px] font-bold uppercase">
-                        <span>Tamanho Fonte</span>
-                        <span>{validityFontSize}px</span>
-                      </div>
-                      <Slider value={[validityFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setValidityFontSize(val)} />
-                    </div>
                         <Button
                           key={pos}
                           variant={validityPosition === pos ? 'default' : 'outline'}
@@ -807,6 +800,13 @@
                           {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : pos === 'footer' ? 'Rodapé' : 'Entre'}
                         </Button>
                       ))}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[8px] font-bold uppercase">
+                        <span>Tamanho Fonte Validade</span>
+                        <span>{validityFontSize}px</span>
+                      </div>
+                      <Slider value={[validityFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setValidityFontSize(val)} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
