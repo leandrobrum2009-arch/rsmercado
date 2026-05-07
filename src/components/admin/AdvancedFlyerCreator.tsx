@@ -1189,7 +1189,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start h-full", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 h-fit pr-2 pb-20">
+        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 h-[calc(100vh-40px)] overflow-y-auto no-scrollbar pr-2 pb-20">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
@@ -2021,7 +2021,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  </Dialog>
                </div>
  
-               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                  {selectedProducts.map((p, idx) => (
                    <div key={idx} className="flex items-center gap-3 bg-zinc-50 p-3 rounded-xl border border-zinc-100 group">
                      <img src={p.image_url} className="w-10 h-10 object-contain" />
