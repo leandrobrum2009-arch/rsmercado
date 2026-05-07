@@ -165,8 +165,13 @@
 
    useEffect(() => {
      if (storeSettings) {
-       if (storeSettings.colors?.primary) setPriceColor(storeSettings.colors.primary)
-       if (storeSettings.colors?.secondary) setSecondaryColor(storeSettings.colors.secondary)
+        if (storeSettings.colors?.primary) {
+          setPriceColor(storeSettings.colors.primary)
+          setTitleColor(storeSettings.colors.primary)
+        }
+        if (storeSettings.colors?.secondary) {
+          setSecondaryColor(storeSettings.colors.secondary)
+        }
      }
    }, [storeSettings])
  
@@ -892,18 +897,23 @@
          @media print {
            body * { visibility: hidden; }
            #flyer-content, #flyer-content * { visibility: visible; }
-           #flyer-content { 
-             position: absolute; 
-             left: 0; 
-             top: 0; 
-             width: 210mm; 
-             height: 297mm;
-             margin: 0;
-             padding: 0;
-             border: none !important;
-             -webkit-print-color-adjust: exact;
-             print-color-adjust: exact;
-           }
+            #flyer-content {
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 210mm !important;
+              height: 297mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              overflow: hidden !important;
+              box-sizing: border-box !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              page-break-after: avoid !important;
+              page-break-before: avoid !important;
+            }
+            html, body { height: 297mm; overflow: hidden; }
            @page { 
              size: A4; 
              margin: 0; 
