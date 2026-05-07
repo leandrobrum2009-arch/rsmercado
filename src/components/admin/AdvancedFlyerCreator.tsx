@@ -803,9 +803,11 @@ import html2canvas from 'html2canvas'
                      {l.label}
                    </Button>
                  ))}
-               </div>
-             </div>
- 
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
                {layout === 'grid' && (
                  <div className="space-y-3">
                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Colunas na Grade</Label>
