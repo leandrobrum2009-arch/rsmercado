@@ -55,7 +55,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
-    const [templates, setTemplates] = useState<any[]>([])
+    const [templates, setTemplates] = useState<any[]>([]) // Local templates
+    const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
     const [templateName, setTemplateName] = useState('')
    
@@ -528,10 +529,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const { data, error } = await supabase
           .from('flyers')
           .select('*')
+          .eq('is_template', false)
           .order('created_at', { ascending: false })
         
         if (error) throw error
         setSavedFlyers(data || [])
+
+        const { data: tData, error: tError } = await supabase
+          .from('flyers')
+          .select('*')
+          .eq('is_template', true)
+          .order('created_at', { ascending: false })
+        
+        if (!tError) setDbTemplates(tData || [])
       } catch (error: any) {
         console.error('Error fetching saved flyers:', error)
       } finally {
@@ -585,30 +595,56 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }
 
-    const saveTemplate = () => {
+    const saveTemplate = async () => {
       if (!templateName) {
-        toast.error('Dê um nome ao template')
+        toast.error('Dê um nome ao modelo')
         return
       }
-      const newTemplate = {
-        id: Math.random().toString(36).substring(7),
-        name: templateName,
-        timestamp: new Date().toISOString(),
-        config: {
-          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
-        }
+
+      const config = {
+        layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+        columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+        fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+        productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+        priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+        bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
-      const updated = [newTemplate, ...templates]
-      localStorage.setItem('flyer_templates', JSON.stringify(updated))
-      setTemplates(updated)
-      setTemplateName('')
-      toast.success('Template salvo!')
+
+      try {
+        setUploading(true)
+        const { error } = await supabase.from('flyers').insert({
+          title: templateName,
+          template_name: templateName,
+          is_template: true,
+          layout_type: layout,
+          primary_color: priceColor,
+          config: config,
+          products_data: [] // Templates save the style, not necessarily the products
+        })
+
+        if (error) throw error
+
+        toast.success(`Modelo "${templateName}" salvo com sucesso!`)
+        setTemplateName('')
+        fetchSavedFlyers()
+        
+        // Also save to local storage as fallback
+        const newTemplate = {
+          id: Math.random().toString(36).substring(7),
+          name: templateName,
+          timestamp: new Date().toISOString(),
+          config: config
+        }
+        const updated = [newTemplate, ...templates]
+        localStorage.setItem('flyer_templates', JSON.stringify(updated))
+        setTemplates(updated)
+      } catch (error: any) {
+        console.error('Error saving template:', error)
+        toast.error('Erro ao salvar modelo: ' + error.message)
+      } finally {
+        setUploading(false)
+      }
     }
 
     const applyTemplate = (config: any) => {
