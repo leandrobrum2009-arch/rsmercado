@@ -73,7 +73,7 @@
     // Validity phrase states
     const [showValidity, setShowValidity] = useState(true)
     const [validityText, setValidityText] = useState(`Ofertas válidas de ${new Date().toLocaleDateString('pt-BR')} até as 21h`)
-    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer'>('bottom')
+    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer' | 'between'>('bottom')
     const [validityBgColor, setValidityBgColor] = useState('#fbbf24') // yellow-400
     const [validityTextColor, setValidityTextColor] = useState('#000000')
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
@@ -458,7 +458,7 @@
       setSelectedProducts(updated)
     }
  
-   const handlePrint = () => {
+    const handlePrint = async () => {
      const historyItem = {
        id: Math.random().toString(36).substring(7),
        timestamp: new Date().toISOString(),
@@ -476,6 +476,7 @@
      const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
      setFlyerHistory(updatedHistory)
      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
+      saveToDatabase()
      window.print()
    }
  
@@ -780,15 +781,15 @@
                       onChange={(e) => setValidityText(e.target.value)}
                       className="h-8 text-[10px]"
                     />
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['top', 'bottom', 'footer'] as const).map(pos => (
+                    <div className="grid grid-cols-4 gap-2">
+                      {(['top', 'bottom', 'footer', 'between'] as const).map(pos => (
                         <Button
                           key={pos}
                           variant={validityPosition === pos ? 'default' : 'outline'}
                           className="h-7 text-[8px] font-bold uppercase"
                           onClick={() => setValidityPosition(pos)}
                         >
-                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : 'Rodapé'}
+                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : pos === 'footer' ? 'Rodapé' : 'Entre'}
                         </Button>
                       ))}
                     </div>
@@ -1261,7 +1262,7 @@
              </div>
    
                 {/* Content Middle Zone (80%) */}
-                <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
+                <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
                   {showValidity && validityPosition === 'bottom' && (
                     <div className="mb-4">
                       <ValidityBanner />
@@ -1277,8 +1278,9 @@
                  )}
                  style={{ gap: `${gridGap}px` }}
                >
-               {selectedProducts.map((p, i) => {
-                 let spanClass = ""
+                {selectedProducts.map((p, i) => {
+                  const isBetweenRow = validityPosition === 'between' && i > 0 && i % columns === 0;
+                  let spanClass = ""
                  if (layout === 'featured-side') {
                    if (i === 0) spanClass = "col-span-1 row-span-3"
                    if (i === 1) spanClass = "col-span-1 row-span-3 order-last"
@@ -1287,7 +1289,13 @@
                    if (i === 0 || i === 1) spanClass = "col-span-1 row-span-1"
                  }
  
-                 return (
+                  return (
+                    <>
+                    {isBetweenRow && (
+                      <div className="col-span-full my-2 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
+                        <ValidityBanner />
+                      </div>
+                    )}
                    <div 
                      key={i} 
                      className={cn(
@@ -1420,6 +1428,7 @@
                     <div className="absolute bottom-full left-0 w-full mb-1">
                       <ValidityBanner />
                     </div>
+                    </>
                   )}
                   {showFooter && footerText && (
                     <div 
