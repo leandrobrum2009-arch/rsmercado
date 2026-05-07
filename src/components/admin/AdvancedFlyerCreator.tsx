@@ -1143,10 +1143,10 @@
                              backgroundColor: hexToRgba(productBgColor, productBgOpacity),
                              height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
                              minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
-                             overflow: imageSize > 120 ? 'visible' : 'hidden'
+                              overflow: imageSize > 100 ? 'visible' : 'hidden'
                            }}
                         >
-                           <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
+                            <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
                              <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
                                <img 
                                  src={p.image_url} 
@@ -1158,13 +1158,14 @@
                                    (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
                                  )} 
                                  style={{
-                                   width: `${(layout === 'single' ? 80 : 
-                                            (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
-                                            columns === 4 ? 20 : 30) * (imageSize / 100)}%`,
+                                    width: `${layout === 'single' ? 80 : 
+                                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 60 : 
+                                             columns === 4 ? 70 : 80}%`,
                                    height: 'auto',
-                                   maxHeight: imageSize > 120 ? 'none' : '100%',
+                                   maxHeight: '100%',
                                    transform: `scale(${imageSize / 100})`,
-                                   position: imageSize > 120 ? 'absolute' : 'relative',
+                                   position: 'relative',
+                                   zIndex: 10,
                                  }}
                                />
                              </div>
