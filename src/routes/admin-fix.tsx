@@ -21,25 +21,26 @@
   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
-  -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
-  CREATE OR REPLACE FUNCTION public.is_admin() 
-  RETURNS BOOLEAN 
-  LANGUAGE plpgsql 
-  SECURITY DEFINER 
-  SET search_path = public, auth 
-  AS $$
-  DECLARE
-    user_role TEXT;
-  BEGIN
-    -- Master bypass (Securely checking JWT claim)
-    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
-      RETURN TRUE;
-    END IF;
-
-    -- Fetch role directly (SECURITY DEFINER bypasses RLS on user_roles)
-    SELECT role INTO user_role FROM public.user_roles WHERE user_id = auth.uid() LIMIT 1;
-    RETURN COALESCE(user_role = 'admin', FALSE);
-  END; $$;
+   -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
+   CREATE OR REPLACE FUNCTION public.is_admin() 
+   RETURNS BOOLEAN 
+   LANGUAGE plpgsql 
+   SECURITY DEFINER 
+   SET search_path = public, auth 
+   AS $$
+   BEGIN
+     -- 1. Master bypass (JWT check is extremely fast)
+     IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+       RETURN TRUE;
+     END IF;
+ 
+     -- 2. Check roles table
+     RETURN EXISTS (
+       SELECT 1 FROM public.user_roles 
+       WHERE user_id = auth.uid() 
+       AND role = 'admin'
+     );
+   END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
