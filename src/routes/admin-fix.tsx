@@ -210,7 +210,7 @@ BEGIN
 
       -- Pedidos (Qualquer um pode criar, Admin gerencia tudo, Usuário vê os seus)
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Anyone can insert orders') THEN
-          CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
+          CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK ((user_id IS NULL) OR (auth.uid() = user_id));
       END IF;
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Users view own orders') THEN
           CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR customer_phone IS NOT NULL);
