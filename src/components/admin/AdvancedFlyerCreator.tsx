@@ -145,11 +145,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   )}
                 <div 
                   className={cn(
-                     "grid h-fit max-h-full transition-all duration-300 items-stretch",
+                    "grid transition-all duration-300 items-stretch",
+                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1" : "h-fit max-h-full",
                     layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                     layout === 'featured-side' && "grid-cols-4 grid-rows-3",
-                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
-                    layout === 'single' && "grid-cols-1 grid-rows-1"
+                    layout === 'featured-top' && "grid-cols-2 grid-rows-5"
                   )}
                   style={{ gap: `${gridGap}px` }}
                 >
@@ -852,11 +852,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: false, // Security: false to avoid tainted canvas
-          scale: 3, // Even higher quality for printing/sharing
+          allowTaint: true, // Permitir taint para evitar erro imediato, embora possa impedir toDataURL
+          scale: 3, 
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: false,
-          imageTimeout: 30000,
+          logging: true, // Habilitar logs para depuração
+          imageTimeout: 60000, // Aumentar timeout para 60s
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -864,6 +864,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.transition = 'none';
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
+              clonedElement.style.display = 'flex';
             }
           }
         })
