@@ -1378,7 +1378,12 @@
            </div>
  
                 {/* Bottom Reserved Zone (5%) */}
-                <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12">
+                <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
+                  {showValidity && validityPosition === 'footer' && (
+                    <div className="absolute bottom-full left-0 w-full mb-1">
+                      <ValidityBanner />
+                    </div>
+                  )}
                   {showFooter && footerText && (
                     <div 
                       className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
