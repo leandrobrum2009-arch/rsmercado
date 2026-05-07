@@ -2162,8 +2162,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       <Button size="sm" variant="secondary" onClick={() => { setShowPreviewModal(false); setTimeout(handleDownloadPDF, 300); }}>
                         <Download className="w-3 h-3 mr-1" /> Baixar PDF
                       </Button>
-                      <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
-                        <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
+                      <Button 
+                        size="sm" 
+                        className="bg-primary text-white" 
+                        onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}
+                        disabled={isPreparingPrint}
+                      >
+                        {isPreparingPrint ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <Printer className="w-3 h-3 mr-1" />
+                        )}
+                        Imprimir Agora
                       </Button>
                     </div>
                   </div>
@@ -2193,8 +2203,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
-                <Printer className="w-3 h-3 mr-2" /> Salvar e Imprimir
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                className="rounded-full h-8 px-4 text-[10px] font-black uppercase" 
+                onClick={handlePrint}
+                disabled={isPreparingPrint}
+              >
+                {isPreparingPrint ? (
+                  <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                ) : (
+                  <Printer className="w-3 h-3 mr-2" />
+                )}
+                Salvar e Imprimir
               </Button>
           </div>
 
