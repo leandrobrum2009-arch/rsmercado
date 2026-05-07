@@ -67,25 +67,34 @@
            exit={{ height: 0, opacity: 0 }}
            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden`}
          >
-            <div className="container mx-auto px-4 py-3.5 flex items-center justify-between gap-4 relative z-10">
+            <div className="container mx-auto px-4 py-4 md:py-3.5 flex flex-col md:flex-row items-center md:justify-between gap-4 relative z-10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
               
-             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full md:w-auto">
                 <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner ring-1 ring-white/30">
-                  <Icon size={18} className="animate-bounce" />
+                  <Icon size={24} className="animate-bounce md:w-[18px] md:h-[18px]" />
                </div>
-                <div className="flex flex-col">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">
-                    Aviso Importante
-                  </p>
-                  <p className="text-xs md:text-sm font-black uppercase tracking-tight italic leading-tight">
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none">
+                      Aviso Importante
+                    </span>
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                  </div>
+                  <p className="text-sm md:text-sm font-black uppercase tracking-tight italic leading-tight md:leading-tight">
                     {alert.message}
                   </p>
                 </div>
+                <button 
+                  onClick={() => setAlert(null)}
+                  className="p-2 hover:bg-white/20 active:bg-white/30 rounded-xl transition-all border border-white/10 backdrop-blur-md md:hidden"
+                >
+                  <X size={20} />
+                </button>
              </div>
              <button 
                onClick={() => setAlert(null)}
-                className="p-2 hover:bg-white/20 active:bg-white/30 rounded-xl transition-all border border-white/10 backdrop-blur-md"
+                className="p-2 hover:bg-white/20 active:bg-white/30 rounded-xl transition-all border border-white/10 backdrop-blur-md hidden md:block"
              >
                 <X size={20} />
              </button>
