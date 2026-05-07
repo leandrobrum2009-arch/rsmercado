@@ -44,7 +44,12 @@
    return (
      <Dialog open={isOpen} onOpenChange={setIsOpen}>
        <DialogTrigger asChild>
-         <button className="fixed bottom-20 right-4 z-40 bg-zinc-900 text-white p-3 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all md:bottom-6 group overflow-hidden">
+         <button className="fixed bottom-20 right-4 z-40 bg-zinc-900 text-white p-3.5 rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all md:bottom-6 group overflow-hidden border-2 border-white/20">
+            <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+            <div className="absolute -top-1 -right-1 flex h-3 w-3">
+               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+               <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+            </div>
             <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
             <MessageSquare size={20} className="relative z-10" />
          </button>
