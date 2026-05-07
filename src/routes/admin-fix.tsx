@@ -97,26 +97,26 @@
     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS points_earned INTEGER DEFAULT 0;
     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
    
-   CREATE TABLE IF NOT EXISTS public.order_items (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
-      product_id UUID,
-      
-      -- Adicionar FK se estiver faltando para permitir joins no dashboard
-      DO $$ BEGIN
-          IF NOT EXISTS (
-              SELECT 1 FROM information_schema.table_constraints 
-              WHERE constraint_name = 'order_items_product_id_fkey'
-          ) THEN
-              ALTER TABLE public.order_items 
-              ADD CONSTRAINT order_items_product_id_fkey 
-              FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
-          END IF;
-      END $$;
-      quantity INTEGER NOT NULL,
-      unit_price DECIMAL(10,2) NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
+    CREATE TABLE IF NOT EXISTS public.order_items (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+       product_id UUID,
+       quantity INTEGER NOT NULL,
+       unit_price DECIMAL(10,2) NOT NULL,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- Adicionar FK se estiver faltando para permitir joins no dashboard
+    DO $$ BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.table_constraints 
+            WHERE constraint_name = 'order_items_product_id_fkey'
+        ) THEN
+            ALTER TABLE public.order_items 
+            ADD CONSTRAINT order_items_product_id_fkey 
+            FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
+        END IF;
+    END $$;
 
   CREATE TABLE IF NOT EXISTS public.app_feedback (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
