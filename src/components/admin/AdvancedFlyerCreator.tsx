@@ -615,9 +615,25 @@
                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho Logo ({logoSize}px)</Label>
                       <Slider value={[logoSize]} min={40} max={400} step={5} onValueChange={([val]) => setLogoSize(val)} />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
-                      <div className="flex gap-2">
+                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                       <div className="flex justify-between items-center mb-1">
+                         <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
+                         {storeSettings?.store_description && (
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-5 text-[7px] px-1 font-black uppercase"
+                             onClick={() => {
+                               setSubtitleText(storeSettings.store_description)
+                               setShowSubtitle(true)
+                               toast.success('Descrição importada')
+                             }}
+                           >
+                             <RefreshCcw className="w-2 h-2 mr-1" /> Usar Descrição
+                           </Button>
+                         )}
+                       </div>
+                       <div className="flex gap-2">
                         <Input 
                           placeholder="Frase..." 
                           value={subtitleText} 
