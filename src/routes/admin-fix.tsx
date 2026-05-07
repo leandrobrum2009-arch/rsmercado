@@ -106,17 +106,9 @@
        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
 
-    -- Adicionar FK se estiver faltando para permitir joins no dashboard
-    DO $$ BEGIN
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.table_constraints 
-            WHERE constraint_name = 'order_items_product_id_fkey'
-        ) THEN
-            ALTER TABLE public.order_items 
-            ADD CONSTRAINT order_items_product_id_fkey 
-            FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
-        END IF;
-    END $$;
+    -- Adicionar FK de forma idempotente sem bloco DO
+    ALTER TABLE public.order_items DROP CONSTRAINT IF EXISTS order_items_product_id_fkey;
+    ALTER TABLE public.order_items ADD CONSTRAINT order_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE SET NULL;
 
   CREATE TABLE IF NOT EXISTS public.app_feedback (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
