@@ -240,9 +240,53 @@
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
-             <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
-               <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
-             </CardTitle>
+             <div className="flex items-center justify-between">
+               <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
+                 <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
+               </CardTitle>
+               <Dialog>
+                 <DialogTrigger asChild>
+                   <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
+                     <FolderOpen className="w-3 h-3 mr-1" /> Templates
+                   </Button>
+                 </DialogTrigger>
+                 <DialogContent>
+                   <DialogHeader>
+                     <DialogTitle>Templates de Encarte</DialogTitle>
+                   </DialogHeader>
+                   <div className="space-y-4 py-4">
+                     <div className="flex gap-2">
+                       <Input 
+                         placeholder="Nome do novo template..." 
+                         value={templateName} 
+                         onChange={(e) => setTemplateName(e.target.value)} 
+                       />
+                       <Button onClick={saveTemplate} size="sm">
+                         <Save className="w-4 h-4 mr-1" /> Salvar Atual
+                       </Button>
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Templates Salvos</Label>
+                       {templates.length === 0 ? (
+                         <p className="text-center py-8 text-zinc-400 text-xs">Nenhum template salvo</p>
+                       ) : (
+                         <div className="grid grid-cols-1 gap-2">
+                           {templates.map((t, idx) => (
+                             <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
+                               <span className="font-bold text-sm">{t.name}</span>
+                               <div className="flex gap-2">
+                                 <Button size="sm" variant="outline" onClick={() => applyTemplate(t.config)}>Usar</Button>
+                                 <Button size="sm" variant="ghost" className="text-red-500" onClick={() => deleteTemplate(idx)}><Trash2 className="w-4 h-4" /></Button>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </DialogContent>
+               </Dialog>
+             </div>
            </CardHeader>
            <CardContent className="space-y-6 pt-6">
              {/* Layout Selection */}
