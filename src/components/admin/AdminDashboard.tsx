@@ -217,11 +217,15 @@
        }
  
         // 4. Demographics from profiles
-        const { data: profiles } = await supabase
+         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('gender, household_status')
-        
-        if (profiles) {
+
+         if (profilesError) {
+           console.error('Error fetching profiles for dashboard:', profilesError)
+         }
+         
+         if (profiles && Array.isArray(profiles)) {
           const genderCounts = profiles.reduce((acc: any, p: any) => {
             const g = p.gender === 'man' ? 'Homens' : p.gender === 'woman' ? 'Mulheres' : 'Outros/Não inf.'
             acc[g] = (acc[g] || 0) + 1
@@ -249,13 +253,13 @@
         setStats((prev: any) => ({ ...prev, customers_count: count || 0 }))
  
         // 5. Get low stock products
-        const { data: lowStock } = await supabase
+        const { data: lowStock, error: stockError } = await supabase
           .from('products')
           .select('name, stock')
           .lt('stock', 5)
           .order('stock', { ascending: true })
           .limit(3)
-        
+
          setLowStockProducts(lowStock || [])
  
          if (lowStock && lowStock.length > 0) {
