@@ -13,40 +13,11 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V8 (FIX PARAMETERS) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V9 (EXECUTION ORDER FIX) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
-  -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
-  -- Note: We use email_confirmed_at. confirmed_at is a generated column.
-   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
-
-     -- 0. LIMPEZA DE POLÍTICAS (PREVENTIVO)
-     -- Flyers
-     DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admin manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admins manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
-     DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
-     
-     -- Outras Tabelas (Limpeza Crítica)
-     DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
-     DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
-     DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
-     DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
-     DROP POLICY IF EXISTS "Admin manage settings" ON public.store_settings;
-
-     -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
-     ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
-     CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
-     CREATE POLICY "Admin manage flyers" ON public.flyers FOR ALL TO authenticated 
-     USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
-     WITH CHECK (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
- 
- -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
-   -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
+  -- 1. GARANTIR FUNÇÃO IS_ADMIN (PRIMEIRO PASSO CRÍTICO)
+     DROP FUNCTION IF EXISTS public.is_admin();
     CREATE OR REPLACE FUNCTION public.is_admin() 
     RETURNS BOOLEAN 
     LANGUAGE plpgsql 
@@ -66,12 +37,38 @@
         AND role = 'admin'
       );
     END; $BODY$;
- 
-  -- 3. PROMOVER USUÁRIO A ADMIN (IDEMPOTENTE SEM DO UPDATE)
+
+  -- 2. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
+  UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
+
+  -- 3. PROMOVER USUÁRIO A ADMIN (IDEMPOTENTE)
   DELETE FROM public.user_roles WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'leandrobrum2009@gmail.com');
   INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com';
- 
-  -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
+
+  -- 4. LIMPEZA DE POLÍTICAS (PREVENTIVO)
+  DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
+  DROP POLICY IF EXISTS "Admin manage flyers" ON public.flyers;
+  DROP POLICY IF EXISTS "Admins manage flyers" ON public.flyers;
+  DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
+  DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
+  DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
+  DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
+  DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
+  DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
+  DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
+  DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
+  DROP POLICY IF EXISTS "Admin manage settings" ON public.store_settings;
+  DROP POLICY IF EXISTS "Users view own role" ON public.user_roles;
+  DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
+
+  -- 5. REPARAR PERMISSÕES DE ENCARTES (FLYERS)
+  ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
+  CREATE POLICY "Admin manage flyers" ON public.flyers FOR ALL TO authenticated 
+  USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
+  WITH CHECK (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
+
+  -- 6. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
   CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
    ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
    DROP POLICY IF EXISTS "Anyone can insert visits" ON public.site_visits;
