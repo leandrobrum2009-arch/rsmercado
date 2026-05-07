@@ -88,6 +88,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [productPadding, setProductPadding] = useState(8)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
+    const [showPreviewModal, setShowPreviewModal] = useState(false)
 
     useEffect(() => {
       if (globalRemoveBg && selectedProducts.length > 0) {
@@ -1629,6 +1630,39 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Preview Real A4
             </div>
+              <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="rounded-full h-8 px-4 text-[10px] font-black uppercase bg-white">
+                    <Eye className="w-3 h-3 mr-2" /> Prévia
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center">
+                  <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
+                    <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => setShowPreviewModal(false)}>Fechar</Button>
+                      <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
+                        <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-8 flex justify-center w-full">
+                    <div 
+                      className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
+                      style={{ 
+                        background: backgroundType === 'image' 
+                          ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
+                          : backgroundType === 'gradient'
+                            ? backgroundGradient
+                            : backgroundColor
+                      }}
+                    >
+                      {/* Render same content as flyer-content */}
+                      <FlyerContentInner />
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
                 <Printer className="w-3 h-3 mr-2" /> Salvar e Imprimir
               </Button>
@@ -1649,6 +1683,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                      : backgroundColor
                }}
            >
+             <FlyerContentInner />
+           </div>
+         </div>
+
+    // Extract content to a reusable component
+    function FlyerContentInner() {
+      return (
+        <>
                 {/* Top Reserved Zone (15%) */}
                  <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
                   {showLogo && storeSettings?.logo_url && (
@@ -1875,9 +1917,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+        </>
+      );
+    }
 
         <style>{`
           @media print {
