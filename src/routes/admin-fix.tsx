@@ -300,13 +300,15 @@ BEGIN
      END IF;
  END $$;
  
- CREATE TABLE IF NOT EXISTS public.store_alerts (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     message TEXT NOT NULL,
-     type TEXT DEFAULT 'info',
-     is_active BOOLEAN DEFAULT TRUE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
+  CREATE TABLE IF NOT EXISTS public.store_alerts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      message TEXT NOT NULL,
+      type TEXT DEFAULT 'info',
+      is_active BOOLEAN DEFAULT TRUE,
+      target_url TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS target_url TEXT;
  ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
  DO $$ BEGIN
      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_alerts' AND policyname='Public view alerts') THEN
