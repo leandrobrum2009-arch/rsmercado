@@ -575,11 +575,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }
 
-    const handleShareWhatsApp = () => {
+    const handleShareWhatsApp = async () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro')
         return
       }
+
+      await saveToDatabase()
 
       let message = `🚀 *OFERTAS DO DIA - ${storeSettings?.site_name || 'RS SUPERMERCADO'}* 🚀\n\n`
       if (validityText) message += `📅 _${validityText}_\n\n`
