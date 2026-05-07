@@ -65,7 +65,8 @@
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
-   const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
  
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
@@ -99,7 +100,7 @@
            const min = Math.min(r, g, b)
            const diff = max - min
            
-           if (max > 220 && diff < 20) {
+           if (max > bgRemovalThreshold && diff < 20) {
              data[i+3] = 0
            }
          }
@@ -546,9 +547,10 @@
                         <SelectItem value="font-sans">Inter (Sans)</SelectItem>
                         <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
                         <SelectItem value="font-mono">Fira (Mono)</SelectItem>
-                        <SelectItem value="font-black text-6xl">Impact (Bold)</SelectItem>
-                        <SelectItem value="font-sans uppercase">Arial (Caps)</SelectItem>
-                        <SelectItem value="italic font-serif">Italic Serif</SelectItem>
+                       <SelectItem value="font-black">Impact (Bold)</SelectItem>
+                       <SelectItem value="font-sans uppercase tracking-tighter">Arial (Caps)</SelectItem>
+                       <SelectItem value="italic font-serif">Merriweather (Serif)</SelectItem>
+                       <SelectItem value="font-['Montserrat']">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -674,13 +676,21 @@
                    >
                      Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
                    </Button>
-                   <Button 
-                     variant={globalRemoveBg ? 'default' : 'outline'} 
-                     size="sm" className="h-8 text-[10px]"
-                     onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
-                   >
-                      <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
-                   </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        variant={globalRemoveBg ? 'default' : 'outline'} 
+                        size="sm" className="w-full h-8 text-[10px]"
+                        onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
+                      >
+                         <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
+                      </Button>
+                      {globalRemoveBg && (
+                        <div className="px-2">
+                          <Label className="text-[8px] font-bold uppercase mb-1 block">Sensibilidade ({bgRemovalThreshold})</Label>
+                          <Slider value={[bgRemovalThreshold]} min={150} max={250} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                        </div>
+                      )}
+                    </div>
                  </div>
                </div>
              </div>
@@ -886,12 +896,15 @@
 
                           <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
                           {!nameOnTop && (
-                            <h3 
-                              className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
-                              style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
-                            >
-                              {p.name}
-                            </h3>
+                          <h3 
+                            className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
+                            style={{ 
+                              color: titleColor, 
+                              fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px`
+                            }}
+                          >
+                            {p.name}
+                          </h3>
                           )}
                            <div 
                              className={cn(
