@@ -57,7 +57,7 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // 0 means auto
+     const [productBlockHeight, setProductBlockHeight] = useState<number>(240) // Default to a reasonable height
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -65,7 +65,33 @@
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
-    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+     const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+     const [processingBg, setProcessingBg] = useState<string | null>(null)
+    useEffect(() => {
+      if (globalRemoveBg && selectedProducts.length > 0) {
+        const processAll = async () => {
+          const updated = [...selectedProducts]
+          let hasChanges = false
+          for (let i = 0; i < updated.length; i++) {
+            if (!updated[i].image_url.startsWith('data:image')) {
+              setProcessingBg(updated[i].id)
+              const processed = await processImageBackground(updated[i].image_url)
+              if (processed !== updated[i].image_url) {
+                updated[i].image_url = processed
+                updated[i].removeBg = true
+                hasChanges = true
+              }
+            }
+          }
+          if (hasChanges) {
+            setSelectedProducts(updated)
+          }
+          setProcessingBg(null)
+        }
+        processAll()
+      }
+    }, [globalRemoveBg])
+
     const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
  
    const PREDEFINED_BGS = [
@@ -230,22 +256,36 @@
      if (layout === 'featured-side') max = 8
      if (layout === 'featured-top') max = 10
  
-     if (selectedProducts.length >= max) {
-       toast.error(`Limite de ${max} produtos para este layout`)
-       return
-     }
-     const newProduct: FlyerProduct = {
-       id: product.id,
-       name: product.name,
-       price: product.price,
-       original_price: product.old_price,
-       image_url: product.image_url,
-       unit: product.unit,
-       removeBg: globalRemoveBg
-     }
-     setSelectedProducts([...selectedProducts, newProduct])
-     toast.success('Produto adicionado')
-   }
+      if (selectedProducts.length >= max) {
+        toast.error(`Limite de ${max} produtos para este layout`)
+        return
+      }
+      
+      let imageUrl = product.image_url
+      const newProduct: FlyerProduct = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        original_price: product.old_price,
+        image_url: imageUrl,
+        unit: product.unit,
+        removeBg: globalRemoveBg
+      }
+
+      setSelectedProducts([...selectedProducts, newProduct])
+      toast.success('Produto adicionado')
+
+      // If global removal is on, process it immediately
+      if (globalRemoveBg) {
+        processImageBackground(imageUrl).then(processed => {
+          if (processed !== imageUrl) {
+            setSelectedProducts(prev => prev.map(p => 
+              p.id === product.id ? { ...p, image_url: processed, removeBg: true } : p
+            ))
+          }
+        })
+      }
+    }
  
    const removeProduct = (idx: number) => {
      const updated = [...selectedProducts]
@@ -552,10 +592,10 @@
                         <SelectItem value="font-sans">Inter (Sans)</SelectItem>
                         <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
                         <SelectItem value="font-mono">Fira (Mono)</SelectItem>
-                       <SelectItem value="font-black">Impact (Bold)</SelectItem>
-                       <SelectItem value="font-sans uppercase tracking-tighter">Arial (Caps)</SelectItem>
-                       <SelectItem value="italic font-serif">Merriweather (Serif)</SelectItem>
-                       <SelectItem value="font-['Montserrat']">Montserrat</SelectItem>
+                        <SelectItem value="font-sans font-black italic">Impact (Black)</SelectItem>
+                        <SelectItem value="font-sans font-bold">Arial Bold</SelectItem>
+                        <SelectItem value="font-serif italic font-bold">Traditional Serif</SelectItem>
+                        <SelectItem value="font-['Montserrat',sans-serif]">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -591,20 +631,46 @@
                  </div>
  
                   <div className="space-y-4">
-                   <div className="space-y-2">
-                     <div className="flex justify-between items-center">
-                       <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                       <Input 
-                         type="number" 
-                         value={productBlockHeight} 
-                         onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
-                         className="w-16 h-6 text-[10px] p-1 text-center"
-                         min={0}
-                         max={800}
-                       />
-                     </div>
-                     <Slider value={[productBlockHeight]} min={0} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
-                   </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-black uppercase tracking-tighter">Altura do Bloco ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                        <div className="flex gap-1">
+                           <Button variant="outline" size="sm" className="h-6 px-1 text-[8px]" onClick={() => setProductBlockHeight(0)}>AUTO</Button>
+                           <Input 
+                             type="number" 
+                             value={productBlockHeight} 
+                             onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
+                             className="w-12 h-6 text-[10px] p-1 text-center"
+                             min={0}
+                             max={800}
+                           />
+                        </div>
+                      </div>
+                      <div className="flex gap-1 mb-2">
+                        {[180, 220, 260, 300, 350].map(h => (
+                          <Button 
+                            key={h} 
+                            variant={productBlockHeight === h ? "default" : "outline"} 
+                            className="flex-1 h-7 text-[8px] font-bold px-0"
+                            onClick={() => setProductBlockHeight(h)}
+                          >
+                            {h}px
+                          </Button>
+                        ))}
+                      </div>
+                      <Slider value={[productBlockHeight]} min={100} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                    </div>
+                    
+                    {globalRemoveBg && (
+                      <div className="space-y-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 animate-in fade-in zoom-in-95">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] font-black uppercase">Sensibilidade Remoção ({bgRemovalThreshold})</Label>
+                          <RefreshCcw className={cn("w-3 h-3 text-zinc-400 cursor-pointer", processingBg ? "animate-spin" : "")} onClick={() => setGlobalRemoveBg(!globalRemoveBg)} />
+                        </div>
+                        <Slider value={[bgRemovalThreshold]} min={150} max={255} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                        <p className="text-[7px] text-zinc-500">Valores menores removem mais fundos escuros.</p>
+                      </div>
+                    )}
                    
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
@@ -864,26 +930,35 @@
                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
-                          style={{ 
-                            backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
-                          }}
+                           style={{ 
+                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
+                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
+                             overflow: imageSize > 120 ? 'visible' : 'hidden'
+                           }}
                         >
                            <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
-                            <img 
-                              src={p.image_url} 
-                              className={cn(
-                                "object-contain transition-all duration-300 z-10",
-                                 p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
-                              )} 
-                              style={{
-                                width: `${(layout === 'single' ? 80 : 
-                                         (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
-                                         columns === 4 ? 16 : 24) * (imageSize / 100)}%`,
-                                height: 'auto',
-                                maxHeight: '100%',
-                              }}
-                            />
+                             <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
+                               <img 
+                                 src={p.image_url} 
+                                 className={cn(
+                                   "object-contain transition-all duration-300 z-10",
+                                   (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
+                                     ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" 
+                                     : "brightness-[1.02] contrast-[1.05]",
+                                   (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
+                                 )} 
+                                 style={{
+                                   width: `${(layout === 'single' ? 80 : 
+                                            (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
+                                            columns === 4 ? 20 : 30) * (imageSize / 100)}%`,
+                                   height: 'auto',
+                                   maxHeight: imageSize > 120 ? 'none' : '100%',
+                                   transform: `scale(${imageSize / 100})`,
+                                   position: imageSize > 120 ? 'absolute' : 'relative',
+                                 }}
+                               />
+                             </div>
                             {nameOnTop && (
                               <h3 
                                 className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
