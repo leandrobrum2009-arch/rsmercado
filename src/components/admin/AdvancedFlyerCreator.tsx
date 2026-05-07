@@ -68,7 +68,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-    const [productBlockHeight, setProductBlockHeight] = useState<number>(220) // Default to a reasonable height
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // Default to auto
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -146,7 +146,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 <div 
                   className={cn(
                     "grid transition-all duration-300 items-stretch",
-                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1" : "h-fit max-h-full",
+                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1 flex items-center justify-center" : "h-fit max-h-full",
                     layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                     layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                     layout === 'featured-top' && "grid-cols-2 grid-rows-5"
@@ -190,21 +190,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            )}
                              style={{
                                backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                               height: layout === 'single' ? 'auto' : (productBlockHeight > 0
-                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                     : `${productBlockHeight}px`)
-                                 : 'auto'),
-                               minHeight: layout === 'single' ? '60%' : (productBlockHeight > 0
-                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                     : `${productBlockHeight}px`)
-                                 : 'auto'),
+                              height: layout === 'single' ? '90%' : (productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                    : `${productBlockHeight}px`)
+                                : 'auto'),
+                              minHeight: layout === 'single' ? '90%' : (productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                    : `${productBlockHeight}px`)
+                                : 'auto'),
                                overflow: (layout === 'single' || imageSize > 100) ? 'visible' : 'hidden'
                              }}
                          >
                              <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible z-10">
-                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: layout === 'single' ? '350px' : '140px' }}>
+                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: layout === 'single' ? '450px' : '140px' }}>
                                 <img 
                                   src={p.image_url} 
                                    crossOrigin="anonymous"
@@ -1947,16 +1947,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <div className="p-8 flex justify-center w-full">
                     <div 
                       className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
-                       style={{
-                         backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                         backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                         backgroundSize: '100% 100%',
-                         backgroundPosition: 'center',
-                         backgroundRepeat: 'no-repeat',
-                       }}
+                      style={{
+                        backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                      }}
                     >
-                      {/* Render same content as flyer-content */}
-                      <FlyerContentInner />
+                      {/* Dedicated Background Layer for better print reliability */}
+                      <div 
+                        className="absolute inset-0 z-0 pointer-events-none"
+                        style={{
+                          backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                          backgroundSize: '100% 100%',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          opacity: removeFlyerBg ? 0 : 1
+                        }}
+                      />
+                      
+                      <div className="relative z-10 w-full h-full flex flex-col">
+                        <FlyerContentInner />
+                      </div>
                     </div>
                   </div>
                 </DialogContent>
@@ -1967,7 +1976,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           </div>
 
             <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
-              <div 
+              <div
                 id="flyer-content"
                 className={cn(
                   "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
@@ -1975,14 +1984,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 )}
                 style={{
                   backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                  backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                  backgroundSize: '100% 100%',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
                 }}
-           >
-            <FlyerContentInner />
-           </div>
+              >
+                {/* Dedicated Background Layer for better print reliability */}
+                <div 
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    opacity: removeFlyerBg ? 0 : 1
+                  }}
+                />
+                
+                <div className="relative z-10 w-full h-full flex flex-col">
+                  <FlyerContentInner />
+                </div>
+              </div>
          </div>
         </div>
       </div>
