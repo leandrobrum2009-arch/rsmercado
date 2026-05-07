@@ -1,3 +1,28 @@
+  -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM)
+  CREATE TABLE IF NOT EXISTS public.orders (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES auth.users(id),
+      customer_name TEXT,
+      customer_phone TEXT,
+      total_amount DECIMAL(10,2) NOT NULL,
+      delivery_fee DECIMAL(10,2) DEFAULT 0,
+      payment_method TEXT,
+      status TEXT DEFAULT 'pending',
+      delivery_address JSONB,
+      points_earned INTEGER DEFAULT 0,
+      coupon_code TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  CREATE TABLE IF NOT EXISTS public.order_items (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+      product_id UUID,
+      quantity INTEGER NOT NULL,
+      unit_price DECIMAL(10,2) NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+
  import { createFileRoute } from '@tanstack/react-router'
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
@@ -182,7 +207,26 @@ BEGIN
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
           CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
       END IF;
- END $$;
+
+      -- Pedidos (Qualquer um pode criar, Admin gerencia tudo, Usuário vê os seus)
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Anyone can insert orders') THEN
+          CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Users view own orders') THEN
+          CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR customer_phone IS NOT NULL);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Admin manage orders') THEN
+          CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
+      END IF;
+
+      -- Itens do Pedido
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='order_items' AND policyname='Anyone can insert order items') THEN
+          CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='order_items' AND policyname='Anyone can view order items') THEN
+          CREATE POLICY "Anyone can view order items" ON public.order_items FOR SELECT USING (true);
+      END IF;
+  END $$;
  
  -- 9. REPARAR CATEGORIAS E PRODUTOS
  ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
