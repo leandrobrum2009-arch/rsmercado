@@ -570,7 +570,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+           priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+           nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -694,7 +695,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       if (config.validityText !== undefined) setValidityText(config.validityText)
       if (config.validityPosition !== undefined) setValidityPosition(config.validityPosition)
       if (config.validityBgColor !== undefined) setValidityBgColor(config.validityBgColor)
-      if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
+       if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
+       if (config.nameOffsetY !== undefined) setNameOffsetY(config.nameOffsetY)
+       if (config.priceOffsetY !== undefined) setPriceOffsetY(config.priceOffsetY)
+       if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
+       if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
       toast.success('Template aplicado!')
     }
 
