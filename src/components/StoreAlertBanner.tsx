@@ -6,33 +6,41 @@
  export function StoreAlertBanner() {
    const [alert, setAlert] = useState<any>(null)
  
-   useEffect(() => {
-     const fetchAlert = async () => {
-       const { data, error } = await supabase
-         .from('store_alerts')
-         .select('*')
-         .eq('is_active', true)
-         .order('created_at', { ascending: false })
-         .limit(1)
-         .maybeSingle()
- 
-       if (!error && data) {
-         setAlert(data)
-       }
-     }
- 
-     fetchAlert()
+    useEffect(() => {
+      const fetchAlerts = async () => {
+        const { data, error } = await supabase
+          .from('store_alerts')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+  
+        if (!error && data && data.length > 0) {
+          // Prioritize by type: danger > warning > success > info
+          const priorityMap: Record<string, number> = { danger: 0, warning: 1, success: 2, info: 3 }
+          const sortedAlerts = [...data].sort((a, b) => {
+            const pA = priorityMap[a.type] ?? 99
+            const pB = priorityMap[b.type] ?? 99
+            if (pA !== pB) return pA - pB
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          })
+          setAlert(sortedAlerts[0])
+        } else {
+          setAlert(null)
+        }
+      }
+  
+      fetchAlerts()
  
      // Subscribe to alert changes
      const channel = supabase
        .channel('store-alerts')
-       .on('postgres_changes', { 
-         event: '*', 
-         schema: 'public', 
-         table: 'store_alerts' 
-       }, () => {
-         fetchAlert()
-       })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'store_alerts' 
+        }, () => {
+          fetchAlerts()
+        })
        .subscribe()
  
      return () => {
