@@ -1947,16 +1947,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <div className="p-8 flex justify-center w-full">
                     <div 
                       className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
-                       style={{
-                         backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                         backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                         backgroundSize: '100% 100%',
-                         backgroundPosition: 'center',
-                         backgroundRepeat: 'no-repeat',
-                       }}
+                      style={{
+                        backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                      }}
                     >
-                      {/* Render same content as flyer-content */}
-                      <FlyerContentInner />
+                      {/* Dedicated Background Layer for better print reliability */}
+                      <div 
+                        className="absolute inset-0 z-0 pointer-events-none"
+                        style={{
+                          backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                          backgroundSize: '100% 100%',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          opacity: removeFlyerBg ? 0 : 1
+                        }}
+                      />
+                      
+                      <div className="relative z-10 w-full h-full flex flex-col">
+                        <FlyerContentInner />
+                      </div>
                     </div>
                   </div>
                 </DialogContent>
