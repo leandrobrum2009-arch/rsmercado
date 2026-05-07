@@ -48,6 +48,14 @@
   -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
   CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
   ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+  DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Anyone can insert visits') THEN
+          CREATE POLICY "Anyone can insert visits" ON public.site_visits FOR INSERT WITH CHECK (true);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='site_visits' AND policyname='Admins view all visits') THEN
+          CREATE POLICY "Admins view all visits" ON public.site_visits FOR SELECT USING (public.is_admin());
+      END IF;
+  END $$;
 
   -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM)
   CREATE TABLE IF NOT EXISTS public.orders (
