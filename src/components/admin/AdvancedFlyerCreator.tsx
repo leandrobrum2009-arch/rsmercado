@@ -1127,29 +1127,54 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             <Save className="w-4 h-4 mr-1" /> Salvar
                           </Button>
                         </div>
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                          {templates.length === 0 ? (
-                            <p className="text-center py-8 text-zinc-400 text-xs">Nenhum template salvo</p>
-                          ) : (
-                            <div className="grid grid-cols-1 gap-2">
-                              {templates.map((t, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
-                                  <div className="flex flex-col">
-                                    <span className="font-bold text-sm">{t.name}</span>
-                                    {t.timestamp && (
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          {dbTemplates.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-black uppercase text-zinc-400 px-1">Modelos no Banco de Dados</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {dbTemplates.map((t) => (
+                                  <div key={t.id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-100 group shadow-sm hover:border-primary/30 transition-all">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-sm">{t.template_name || t.title}</span>
                                       <span className="text-[8px] text-zinc-400 flex items-center">
-                                        <Clock className="w-2 h-2 mr-1" /> {new Date(t.timestamp).toLocaleString()}
+                                        <Clock className="w-2 h-2 mr-1" /> {new Date(t.created_at).toLocaleString()}
                                       </span>
-                                    )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-bold" onClick={() => applyTemplate(t.config)}>Aplicar</Button>
+                                      <Button size="sm" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-600 p-0" onClick={() => deleteDbTemplate(t.id)}><Trash2 className="w-3 h-3" /></Button>
+                                    </div>
                                   </div>
-                                  <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => applyTemplate(t.config)}>Usar</Button>
-                                    <Button size="sm" variant="ghost" className="h-7 w-7 text-red-500 p-0" onClick={() => deleteTemplate(idx)}><Trash2 className="w-3 h-3" /></Button>
-                                  </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
                           )}
+
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-zinc-400 px-1">Modelos Locais (Neste Navegador)</p>
+                            {templates.length === 0 && dbTemplates.length === 0 ? (
+                              <p className="text-center py-8 text-zinc-400 text-xs">Nenhum modelo salvo</p>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-2">
+                                {templates.map((t, idx) => (
+                                  <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50/50 rounded-xl border border-dashed border-zinc-200 group">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-sm">{t.name}</span>
+                                      {t.timestamp && (
+                                        <span className="text-[8px] text-zinc-400 flex items-center">
+                                          <Clock className="w-2 h-2 mr-1" /> {new Date(t.timestamp).toLocaleString()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => applyTemplate(t.config)}>Aplicar</Button>
+                                      <Button size="sm" variant="ghost" className="h-7 w-7 text-red-500 p-0" onClick={() => deleteTemplate(idx)}><Trash2 className="w-3 h-3" /></Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </TabsContent>
                       <TabsContent value="history" className="space-y-4 py-4">
