@@ -727,25 +727,35 @@
                      : backgroundColor
                }}
            >
-               {/* Top Reserved Zone (15%) */}
-               <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/50">
-               {showLogo && storeSettings?.logo_url && (
-                 <div 
-                   className={cn(
-                     "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
-                     logoPosition === 'left' && "justify-start",
-                     logoPosition === 'center' && "justify-center",
-                     logoPosition === 'right' && "justify-end"
-                   )}
-                 >
-                   <img 
-                     src={storeSettings.logo_url} 
-                     style={{ width: `${logoSize}px` }}
-                     className="object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" 
-                     alt="Logo" 
-                   />
-                 </div>
-               )}
+                {/* Top Reserved Zone (15%) */}
+                <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30">
+                  {showLogo && storeSettings?.logo_url && (
+                    <div 
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
+                        logoPosition === 'left' && "justify-start",
+                        logoPosition === 'center' && "justify-center",
+                        logoPosition === 'right' && "justify-end"
+                      )}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <img 
+                          src={storeSettings.logo_url} 
+                          style={{ width: `${logoSize}px` }}
+                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
+                          alt="Logo" 
+                        />
+                        {showSubtitle && subtitleText && (
+                          <p 
+                            className="font-black uppercase italic text-center drop-shadow-sm animate-in slide-in-from-top-2 duration-700"
+                            style={{ color: titleColor, fontSize: `${logoSize / 8}px` }}
+                          >
+                            {subtitleText}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                      Topo Reservado (15%)
@@ -789,7 +799,7 @@
                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
                             layout === 'single' ? 'p-12' : '',
                             columns === 4 ? 'p-1.5' : '',
-                            showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
+                             showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
                           style={{ 
@@ -801,7 +811,7 @@
                             src={p.image_url} 
                             className={cn(
                               "object-contain transition-all duration-300",
-                              p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : "drop-shadow-sm",
+                               p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
                               layout === 'single' ? 'w-80 h-80' : 
                               (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
                               columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
@@ -859,14 +869,22 @@
              </div>
            </div>
  
-               {/* Bottom Reserved Zone (5%) */}
-               <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/50">
-               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
-                 <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                     Rodapé Reservado (5%)
-                 </div>
-               </div>
-             </div>
+                {/* Bottom Reserved Zone (5%) */}
+                <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12">
+                  {showFooter && footerText && (
+                    <div 
+                      className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
+                      style={{ color: titleColor, fontSize: `${footerFontSize}px` }}
+                    >
+                      {footerText}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
+                    <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
+                        Rodapé Reservado (5%)
+                    </div>
+                  </div>
+                </div>
          </div>
        </div>
  
