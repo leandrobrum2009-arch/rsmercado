@@ -92,7 +92,8 @@
       }
     }, [globalRemoveBg])
 
-    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
+    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
  
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
@@ -101,7 +102,7 @@
      'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
    ]
 
-    const processImageBackground = (url: string): Promise<string> => {
+     const processImageBackground = (url: string, threshold = bgRemovalThreshold, smoothing = bgRemovalSmoothing): Promise<string> => {
       return new Promise((resolve) => {
         const img = new Image()
         img.crossOrigin = "anonymous"
@@ -117,16 +118,58 @@
              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
              const data = imageData.data
              
-             for (let i = 0; i < data.length; i += 4) {
-               const r = data[i], g = data[i+1], b = data[i+2]
-               const max = Math.max(r, g, b)
-               const min = Math.min(r, g, b)
-               const diff = max - min
-               
-               if (max > bgRemovalThreshold && diff < 20) {
-                 data[i+3] = 0
-               }
-             }
+              // Helper to check if a color is "background-like" (very light/white)
+              const isWhite = (r: number, g: number, b: number) => {
+                const avg = (r + g + b) / 3
+                const diff = Math.max(r, g, b) - Math.min(r, g, b)
+                return avg > threshold && diff < 30
+              }
+
+              // Create a mask for background pixels
+              const width = canvas.width
+              const height = canvas.height
+              const mask = new Uint8Array(width * height)
+              
+              // Simple flood fill from edges to avoid removing white inside the product
+              const queue: [number, number][] = []
+              
+              // Add edge pixels to queue
+              for (let x = 0; x < width; x++) {
+                queue.push([x, 0], [x, height - 1])
+              }
+              for (let y = 1; y < height - 1; y++) {
+                queue.push([0, y], [width - 1, y])
+              }
+              
+              while (queue.length > 0) {
+                const [x, y] = queue.shift()!
+                const idx = y * width + x
+                if (mask[idx]) continue
+                
+                const pIdx = idx * 4
+                if (isWhite(data[pIdx], data[pIdx+1], data[pIdx+2])) {
+                  mask[idx] = 1
+                  // Check neighbors
+                  if (x > 0) queue.push([x - 1, y])
+                  if (x < width - 1) queue.push([x + 1, y])
+                  if (y > 0) queue.push([x, y - 1])
+                  if (y < height - 1) queue.push([x, y + 1])
+                }
+              }
+              
+              // Apply mask with smoothing/feathering
+              for (let i = 0; i < data.length; i += 4) {
+                const idx = i / 4
+                if (mask[idx]) {
+                  data[i+3] = 0
+                } else {
+                  // Optional: additional very-white removal even if not connected (riskier)
+                  const r = data[i], g = data[i+1], b = data[i+2]
+                  if (r > 250 && g > 250 && b > 250) {
+                    data[i+3] = 0
+                  }
+                }
+              }
              ctx.putImageData(imageData, 0, 0)
              resolve(canvas.toDataURL('image/png'))
            } catch (e) {
