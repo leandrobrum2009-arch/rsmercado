@@ -1101,10 +1101,10 @@
              </div>
    
                {/* Content Middle Zone (80%) */}
-               <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
+                <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
                <div 
                  className={cn(
-                   "grid h-full max-h-full transition-all duration-300",
+                    "grid h-fit max-h-full transition-all duration-300 items-start",
                    layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                    layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
@@ -1139,14 +1139,22 @@
                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
-                           style={{ 
-                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
-                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
-                             overflow: imageSize > 120 ? 'visible' : 'hidden'
-                           }}
+                            style={{
+                              backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                              height: productBlockHeight > 0 
+                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                                    : `${productBlockHeight}px`)
+                                : 'auto',
+                              minHeight: productBlockHeight > 0 
+                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                                    : `${productBlockHeight}px`)
+                                : 'auto',
+                              overflow: imageSize > 100 ? 'visible' : 'hidden'
+                            }}
                         >
-                           <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
+                            <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
                              <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
                                <img 
                                  src={p.image_url} 
@@ -1158,13 +1166,14 @@
                                    (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
                                  )} 
                                  style={{
-                                   width: `${(layout === 'single' ? 80 : 
-                                            (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
-                                            columns === 4 ? 20 : 30) * (imageSize / 100)}%`,
+                                    width: `${layout === 'single' ? 80 : 
+                                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 60 : 
+                                             columns === 4 ? 70 : 80}%`,
                                    height: 'auto',
-                                   maxHeight: imageSize > 120 ? 'none' : '100%',
+                                   maxHeight: '100%',
                                    transform: `scale(${imageSize / 100})`,
-                                   position: imageSize > 120 ? 'absolute' : 'relative',
+                                   position: 'relative',
+                                   zIndex: 10,
                                  }}
                                />
                              </div>
