@@ -117,20 +117,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               availableWidth = width - 40
             }
             
-            // Altura disponível: altura da tela menos topo e controles
-            // Precisamos que o A4 caiba inteiro se possível (sem rolar)
-            const availableHeight = height - 200 // 200px para o cabeçalho e margens
+             // Área de prévia expandida: usamos mais altura para permitir um zoom maior
+             // O usuário quer ver o encarte grande, então damos mais "espaço virtual"
+             const availableHeight = height - 100 // Menos respiro no topo
             
             // A4 tem 794x1123 em 96dpi
             const scaleW = availableWidth / 794
             const scaleH = availableHeight / 1123
             
-            // Queremos o maior tamanho possível que caiba na tela "inteira"
-            // mas com um limite mínimo para não ficar minúsculo
-            let calculatedScale = Math.min(scaleW, scaleH)
-            
-            // Ajuste para não ficar muito pequeno nem absurdamente grande
-            calculatedScale = Math.max(Math.min(calculatedScale, 1.1), 0.4)
+             // O usuário quer a imagem grande ocupando o lado direito
+             // Se houver espaço na largura, priorizamos preencher a largura
+             // mas mantendo um limite para não estourar demais a tela verticalmente sem necessidade
+             let calculatedScale = scaleW * 0.95 // 95% da largura disponível
+             
+             // Mas não deixamos ficar maior que o necessário para caber na altura com algum scroll suave
+             // ou menor que o legível
+             calculatedScale = Math.max(Math.min(calculatedScale, 1.2), 0.5)
             
             setFlyerScale(calculatedScale)
           }
@@ -1187,7 +1189,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start h-full", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 h-fit pr-2 pb-20">
+        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 h-[calc(100vh-40px)] overflow-y-auto no-scrollbar pr-2 pb-20">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
@@ -2019,7 +2021,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  </Dialog>
                </div>
  
-               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                  {selectedProducts.map((p, idx) => (
                    <div key={idx} className="flex items-center gap-3 bg-zinc-50 p-3 rounded-xl border border-zinc-100 group">
                      <img src={p.image_url} className="w-10 h-10 object-contain" />
@@ -2174,7 +2176,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
  
          {/* Preview Area */}
-          <div className="lg:col-span-8 lg:sticky lg:top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-[calc(100vh-100px)] lg:max-h-[calc(100vh-100px)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden">
+          <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-screen print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 no-scrollbar">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -2251,10 +2253,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full flex justify-center print:block p-2">
-              <div 
-                className="relative bg-zinc-200/50 p-4 md:p-10 rounded-2xl shadow-inner overflow-auto max-h-[calc(100vh-180px)] w-full flex justify-center no-scrollbar scroll-smooth"
-              >
+            <div className="w-full flex justify-center print:block p-0 md:p-2">
+              <div className="relative w-full flex justify-center no-scrollbar">
                 <div
                   id="flyer-content"
                   className={cn(
