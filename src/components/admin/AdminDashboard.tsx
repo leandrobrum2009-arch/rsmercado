@@ -107,7 +107,7 @@
  
          const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount, created_at, status, delivery_address, delivery_neighborhood_id')
+           .select('total_amount, created_at, status, delivery_address')
           .neq('status', 'cancelled')
 
         if (ordersError) {
@@ -144,9 +144,15 @@
        }
  
        // 2. Get top products
-        const { data: productsData, error: productsError } = await supabase
+         // Using a safer selection for products to handle potential relationship name differences
+         const { data: productsData, error: productsError } = await supabase
           .from('order_items')
-          .select('quantity, unit_price, products(name), orders(delivery_address)')
+          .select(`
+            quantity, 
+            unit_price, 
+            products:product_id(name), 
+            orders:order_id(delivery_address)
+          `)
 
        if (productsError) {
          console.error('Error fetching products data for dashboard:', productsError)
