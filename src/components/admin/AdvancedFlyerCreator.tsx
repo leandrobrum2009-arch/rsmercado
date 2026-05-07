@@ -97,23 +97,44 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
-     const [showPreviewModal, setShowPreviewModal] = useState(false)
+      const [showPreviewModal, setShowPreviewModal] = useState(false)
+      const [printImage, setPrintImage] = useState<string | null>(null)
+      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
      const [flyerScale, setFlyerScale] = useState(0.8)
  
-     useEffect(() => {
-       const handleResize = () => {
-         if (typeof window !== 'undefined') {
-           const width = window.innerWidth
-           if (width < 640) setFlyerScale((width - 40) / 794)
-           else if (width < 1024) setFlyerScale((width - 100) / 794)
-           else if (width < 1400) setFlyerScale(0.7)
-           else setFlyerScale(0.85)
-         }
-       }
-       handleResize()
-       window.addEventListener('resize', handleResize)
-       return () => window.removeEventListener('resize', handleResize)
-     }, [])
+      useEffect(() => {
+        const handleResize = () => {
+          if (typeof window !== 'undefined') {
+            const width = window.innerWidth
+            if (width < 640) setFlyerScale((width - 40) / 794)
+            else if (width < 1024) setFlyerScale((width - 100) / 794)
+            else if (width < 1400) setFlyerScale(0.7)
+            else setFlyerScale(0.85)
+          }
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+      }, [])
+
+      useEffect(() => {
+        if (printImage) {
+          const handleAfterPrint = () => {
+            setPrintImage(null)
+            window.removeEventListener('afterprint', handleAfterPrint)
+          }
+          window.addEventListener('afterprint', handleAfterPrint)
+          
+          const timer = setTimeout(() => {
+            window.print()
+          }, 1000)
+          
+          return () => {
+            clearTimeout(timer)
+            window.removeEventListener('afterprint', handleAfterPrint)
+          }
+        }
+      }, [printImage])
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -866,16 +887,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
-    const handlePrint = () => {
+    const handlePrint = async () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro')
         return
       }
 
-      toast.info('Preparando impressão... A janela abrirá em instantes.', {
-        duration: 3000
-      })
-      
+      const flyerElement = document.getElementById('flyer-content');
+      if (!flyerElement) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+
+      try {
       // Save history and to database in background to avoid blocking the print UI
       const historyItem = {
         id: Math.random().toString(36).substring(7),
@@ -887,7 +914,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
           priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle
+          showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
+          imageOffsetX, imageOffsetY, blurAmount
         },
         products: selectedProducts
       }
@@ -897,27 +925,36 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       
       // Non-blocking save
       saveToDatabase().catch(err => console.error("Auto-save failed:", err))
-      
-      // Trigger print with a delay for layout and font rendering
-      // We also temporarily disable transitions to ensure static capture
-      const flyerElement = document.getElementById('flyer-content');
-      if (flyerElement) {
-        flyerElement.style.transition = 'none';
-        flyerElement.style.transform = 'none';
-        flyerElement.style.margin = '0';
-        // Force reflow
-        void flyerElement.offsetHeight;
-      }
 
-      setTimeout(() => {
-        window.print();
-        if (flyerElement) {
-          // Re-enable transitions after a delay
-          setTimeout(() => {
-            flyerElement.style.transition = '';
-          }, 1000);
-        }
-      }, 800);
+        // Ensure all images are loaded before capture
+        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        // Capture as image for perfect print reproduction
+        const canvas = await html2canvas(flyerElement, {
+          useCORS: true,
+          scale: 3, // High quality for print
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          logging: false,
+          imageTimeout: 30000,
+        })
+
+        const dataUrl = canvas.toDataURL('image/png')
+        setPrintImage(dataUrl)
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error preparing print:', error)
+        toast.error('Erro ao preparar impressão')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
     }
 
     const handleDownloadImage = async () => {
@@ -1116,7 +1153,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
+      {printImage && (
+        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static flyer-print-overlay">
+          <img 
+            src={printImage} 
+            className="w-[210mm] h-[297mm] object-contain mx-auto" 
+            alt="Print Preview" 
+          />
+        </div>
+      )}
+      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
@@ -1988,8 +2034,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
                     <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
                   </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" onClick={handlePrint}>
-                    <Printer className="w-4 h-4 mr-2" /> Imprimir Encarte (A4)
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" 
+                    onClick={handlePrint}
+                    disabled={isPreparingPrint}
+                  >
+                    {isPreparingPrint ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Printer className="w-4 h-4 mr-2" />
+                    )}
+                    Imprimir Encarte (A4)
                   </Button>
                 </div>
            </CardContent>
@@ -2106,8 +2162,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       <Button size="sm" variant="secondary" onClick={() => { setShowPreviewModal(false); setTimeout(handleDownloadPDF, 300); }}>
                         <Download className="w-3 h-3 mr-1" /> Baixar PDF
                       </Button>
-                      <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
-                        <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
+                      <Button 
+                        size="sm" 
+                        className="bg-primary text-white" 
+                        onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}
+                        disabled={isPreparingPrint}
+                      >
+                        {isPreparingPrint ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <Printer className="w-3 h-3 mr-1" />
+                        )}
+                        Imprimir Agora
                       </Button>
                     </div>
                   </div>
@@ -2137,8 +2203,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
-                <Printer className="w-3 h-3 mr-2" /> Salvar e Imprimir
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                className="rounded-full h-8 px-4 text-[10px] font-black uppercase" 
+                onClick={handlePrint}
+                disabled={isPreparingPrint}
+              >
+                {isPreparingPrint ? (
+                  <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                ) : (
+                  <Printer className="w-3 h-3 mr-2" />
+                )}
+                Salvar e Imprimir
               </Button>
           </div>
 
@@ -2200,9 +2277,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             print-color-adjust: exact !important;
           }
           body * { visibility: hidden !important; }
-          #flyer-content, #flyer-content * { 
+          
+          /* Show the captured image if it exists, otherwise fall back to content */
+          .flyer-print-overlay, 
+          .flyer-print-overlay img,
+          #flyer-content, 
+          #flyer-content * { 
             visibility: visible !important; 
           }
+
           #flyer-content {
             position: fixed !important;
             left: 0 !important;
@@ -2219,11 +2302,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             transform: none !important;
             transition: none !important;
             box-shadow: none !important;
-            z-index: 99999 !important;
-            /* Remove white background override to allow custom backgrounds in print */
+            z-index: 99998 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          
+          .flyer-print-overlay {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          
           .print\:hidden { display: none !important; }
         }
       `}</style>
