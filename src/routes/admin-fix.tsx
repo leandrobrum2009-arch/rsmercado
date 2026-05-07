@@ -83,6 +83,15 @@
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   );
 
+  CREATE TABLE IF NOT EXISTS public.app_feedback (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES auth.users(id),
+      rating INTEGER,
+      comment TEXT,
+      page_url TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+
  -- 5. TABELAS DE WHATSAPP (MALA DIRETA)
  CREATE TABLE IF NOT EXISTS public.whatsapp_campaigns (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), message TEXT NOT NULL, status TEXT DEFAULT 'pending', total_recipients INTEGER DEFAULT 0, sent_count INTEGER DEFAULT 0, target_audience TEXT, scheduled_for TIMESTAMP WITH TIME ZONE, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
  ALTER TABLE public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
@@ -234,6 +243,14 @@ BEGIN
       END IF;
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='order_items' AND policyname='Anyone can view order items') THEN
           CREATE POLICY "Anyone can view order items" ON public.order_items FOR SELECT USING (true);
+      END IF;
+
+      -- Feedback
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_feedback' AND policyname='Anyone can insert feedback') THEN
+          CREATE POLICY "Anyone can insert feedback" ON public.app_feedback FOR INSERT WITH CHECK (true);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_feedback' AND policyname='Admins view all feedback') THEN
+          CREATE POLICY "Admins view all feedback" ON public.app_feedback FOR SELECT USING (public.is_admin());
       END IF;
   END $$;
  
