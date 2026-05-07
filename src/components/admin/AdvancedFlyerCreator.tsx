@@ -1056,10 +1056,10 @@ import html2canvas from 'html2canvas'
                     <div className="flex gap-2">
                       <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
                       <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
-                    </div>
-                 </div>
-               </div>
- 
+                </div>
+              </div>
+            </div>
+          </div>
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold uppercase">Tamanho Fonte ({fontSize}px)</Label>
                  <Slider value={[fontSize]} min={8} max={32} step={1} onValueChange={([val]) => setFontSize(val)} />
