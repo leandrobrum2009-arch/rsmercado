@@ -1164,7 +1164,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start h-full", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden overflow-y-auto no-scrollbar lg:max-h-[calc(100vh-120px)] pr-2">
+        <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 h-fit pr-2 pb-20">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
