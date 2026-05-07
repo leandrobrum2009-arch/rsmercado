@@ -477,7 +477,7 @@
      const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20)
      setFlyerHistory(updatedHistory)
      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
-      saveToDatabase()
+      await saveToDatabase()
      window.print()
    }
  
