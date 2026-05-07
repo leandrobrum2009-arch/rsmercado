@@ -552,15 +552,20 @@
                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : '100%'
                           }}
                         >
-                         <img 
-                           src={p.image_url} 
-                           className={cn(
-                             "object-contain mix-blend-multiply drop-shadow-sm",
-                             layout === 'single' ? 'w-80 h-80' : 
-                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
-                             columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
-                           )} 
-                         />
+                          <img 
+                            src={p.image_url} 
+                            className={cn(
+                              "object-contain transition-all duration-300",
+                              p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : "drop-shadow-sm",
+                              layout === 'single' ? 'w-80 h-80' : 
+                              (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
+                              columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
+                            )} 
+                            style={{
+                              // Alternative for truly transparent backgrounds if the browser supports it
+                              // but mix-blend-multiply is generally the "effective" way for white backgrounds
+                            }}
+                          />
                          <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
                          <h3 
                            className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
