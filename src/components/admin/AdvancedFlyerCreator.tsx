@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
@@ -874,9 +875,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        document.body.appendChild(link)
+        link.click()
         document.body.removeChild(link)
         
         toast.dismiss(loadingToast)
@@ -885,6 +885,67 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         console.error('Error generating image:', err)
         toast.dismiss(loadingToast)
         toast.error('Erro ao gerar imagem. Verifique se as imagens dos produtos estão carregando corretamente ou use a opção PDF.')
+      } finally {
+        setUploading(false)
+      }
+    }
+
+    const handleDownloadPDF = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setUploading(true)
+      const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
+
+      try {
+        // Ensure all images are loaded
+        const images = Array.from(element.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        const originalTransform = element.style.transform
+        const originalTransition = element.style.transition
+        element.style.transform = 'none'
+        element.style.transition = 'none'
+
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 3,
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          imageTimeout: 30000,
+        })
+
+        element.style.transform = originalTransform
+        element.style.transition = originalTransition
+
+        const imgData = canvas.toDataURL('image/png')
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        })
+
+        const imgProps = pdf.getImageProperties(imgData)
+        const pdfWidth = pdf.internal.pageSize.getWidth()
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
+
+        toast.dismiss(loadingToast)
+        toast.success('PDF baixado com sucesso!')
+      } catch (err) {
+        console.error('Error generating PDF:', err)
+        toast.dismiss(loadingToast)
+        toast.error('Erro ao gerar PDF.')
       } finally {
         setUploading(false)
       }
@@ -1742,29 +1803,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-               <div className="flex flex-col gap-2">
-                 <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-                   <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handleDownloadPDF} disabled={uploading}>
+                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
                  </Button>
-                 <Button 
-                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" 
-                   onClick={handleShareWhatsApp}
-                 >
-                   <MessageCircle className="w-4 h-4 mr-2" /> Compartilhar WhatsApp
-                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
-                  onClick={handleDownloadImage}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4 mr-2" />
-                  )}
-                  Baixar como Imagem (PNG)
-                </Button>
+                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
+                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
+                    <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handlePrint}>
+                    <Printer className="w-4 h-4 mr-2" /> Imprimir
+                  </Button>
               </div>
            </CardContent>
           </Card>
@@ -1877,6 +1928,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => setShowPreviewModal(false)}>Fechar</Button>
+                      <Button size="sm" variant="secondary" onClick={() => { setShowPreviewModal(false); setTimeout(handleDownloadPDF, 300); }}>
+                        <Download className="w-3 h-3 mr-1" /> Baixar PDF
+                      </Button>
                       <Button size="sm" className="bg-primary text-white" onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}>
                         <Printer className="w-3 h-3 mr-1" /> Imprimir Agora
                       </Button>
