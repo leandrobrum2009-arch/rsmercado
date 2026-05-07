@@ -435,11 +435,24 @@
                    </div>
                  </div>
                  <div className="space-y-2">
-                   <Label className="text-[10px] font-bold uppercase">Cor Preço</Label>
-                   <div className="flex gap-2">
-                     <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
-                     <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
-                   </div>
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold uppercase">Cor Preço</Label>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-4 w-4" 
+                        onClick={() => {
+                          if (storeSettings?.colors?.primary) setPriceColor(storeSettings.colors.primary)
+                        }}
+                        title="Usar cor da marca"
+                      >
+                        <RefreshCcw className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
+                      <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
+                    </div>
                  </div>
                </div>
  
