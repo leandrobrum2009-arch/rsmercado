@@ -105,7 +105,8 @@
        price: product.price,
        original_price: product.old_price,
        image_url: product.image_url,
-       unit: product.unit
+       unit: product.unit,
+       removeBg: globalRemoveBg
      }
      setSelectedProducts([...selectedProducts, newProduct])
      toast.success('Produto adicionado')
@@ -114,6 +115,12 @@
    const removeProduct = (idx: number) => {
      const updated = [...selectedProducts]
      updated.splice(idx, 1)
+     setSelectedProducts(updated)
+   }
+
+   const toggleProductBg = (idx: number) => {
+     const updated = [...selectedProducts]
+     updated[idx].removeBg = !updated[idx].removeBg
      setSelectedProducts(updated)
    }
  
