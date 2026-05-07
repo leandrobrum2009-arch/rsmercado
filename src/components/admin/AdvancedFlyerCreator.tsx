@@ -392,6 +392,13 @@
                    >
                      Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
                    </Button>
+                   <Button 
+                     variant={globalRemoveBg ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
+                   >
+                     <Eraser className="w-3 h-3 mr-1" /> Remover Fundo
+                   </Button>
                  </div>
                </div>
              </div>
