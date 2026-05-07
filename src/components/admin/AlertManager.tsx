@@ -11,7 +11,8 @@
  
  export function AlertManager() {
    const [alerts, setAlerts] = useState<any[]>([])
-   const [message, setMessage] = useState('')
+    const [message, setMessage] = useState('')
+    const [targetUrl, setTargetUrl] = useState('')
    const [type, setType] = useState('info')
    const [loading, setLoading] = useState(false)
    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
@@ -28,21 +29,24 @@
      setAlerts(data || [])
    }
  
-   const createAlert = async () => {
-     if (!message) return
-     setLoading(true)
-     const { error } = await supabase
-       .from('store_alerts')
-       .insert({ message, type, is_active: true })
-     
-     if (error) toast.error('Erro ao criar alerta')
-     else {
-       toast.success('Alerta enviado em tempo real!')
-       setMessage('')
-       fetchAlerts()
-     }
-     setLoading(false)
-   }
+    const createAlert = async () => {
+      if (!message) return
+      setLoading(true)
+      const { error } = await supabase
+        .from('store_alerts')
+        .insert({ message, type, is_active: true, target_url: targetUrl || null })
+      
+      if (error) {
+        console.error(error)
+        toast.error('Erro ao criar alerta. Tente executar o script de reparo.')
+      } else {
+        toast.success('Alerta enviado em tempo real!')
+        setMessage('')
+        setTargetUrl('')
+        fetchAlerts()
+      }
+      setLoading(false)
+    }
  
    const toggleAlert = async (id: string, current: boolean) => {
      const { error } = await supabase
@@ -167,13 +171,20 @@
            <h4 className="text-[10px] font-black uppercase text-zinc-400">Alertas Recentes</h4>
            {alerts.map(a => (
              <div key={a.id} className="flex items-center justify-between p-3 border rounded-xl bg-zinc-50">
-               <div className="flex items-center gap-3">
-                 <div className={`w-2 h-2 rounded-full ${a.is_active ? 'bg-green-500 animate-pulse' : 'bg-zinc-300'}`} />
-                 <div>
-                   <p className="text-xs font-bold text-zinc-800">{a.message}</p>
-                   <Badge variant="outline" className="text-[8px] uppercase mt-1">{a.type}</Badge>
-                 </div>
-               </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.is_active ? 'bg-green-500 animate-pulse' : 'bg-zinc-300'}`} />
+                  <div>
+                    <p className="text-xs font-bold text-zinc-800">{a.message}</p>
+                    <div className="flex gap-2 items-center mt-1">
+                      <Badge variant="outline" className="text-[8px] uppercase">{a.type}</Badge>
+                      {a.target_url && (
+                        <span className="text-[8px] font-black text-blue-500 uppercase flex items-center gap-1">
+                          <Eye size={8} /> Link: {a.target_url}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
                <div className="flex gap-2">
                  <Button variant="ghost" size="icon" onClick={() => toggleAlert(a.id, a.is_active)} className="text-zinc-400 hover:text-zinc-900">
                    {a.is_active ? 'Pausar' : 'Ativar'}
