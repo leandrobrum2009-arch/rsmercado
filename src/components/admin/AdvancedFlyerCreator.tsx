@@ -2176,7 +2176,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
  
          {/* Preview Area */}
-          <div className="lg:col-span-8 lg:sticky lg:top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-[calc(100vh-100px)] lg:max-h-[calc(100vh-100px)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden">
+          <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-screen print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -2253,10 +2253,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full flex justify-center print:block p-2">
-              <div 
-                className="relative bg-zinc-200/50 p-4 md:p-10 rounded-2xl shadow-inner overflow-auto max-h-[calc(100vh-180px)] w-full flex justify-center no-scrollbar scroll-smooth"
-              >
+            <div className="w-full flex justify-center print:block p-0 md:p-2">
+              <div className="relative w-full flex justify-center no-scrollbar">
                 <div
                   id="flyer-content"
                   className={cn(
