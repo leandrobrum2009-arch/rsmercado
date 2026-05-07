@@ -8,7 +8,7 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
  
@@ -39,11 +39,14 @@
    const [logoSize, setLogoSize] = useState(120)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
-   const [allProducts, setAllProducts] = useState<any[]>([])
+    const [allProducts, setAllProducts] = useState<any[]>([])
+    const [templates, setTemplates] = useState<any[]>([])
+    const [templateName, setTemplateName] = useState('')
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
    const [priceColor, setPriceColor] = useState('#e11d48')
+   const [secondaryColor, setSecondaryColor] = useState('#facc15')
    const [fontSize, setFontSize] = useState(14)
    const [priceSize, setPriceSize] = useState(24)
    const [fontFamily, setFontFamily] = useState('font-sans')
@@ -84,9 +87,78 @@
      return canvas.toDataURL()
    }
  
+    useEffect(() => {
+      fetchProducts()
+      loadTemplates()
+    }, [])
+
+    const loadTemplates = () => {
+      const saved = localStorage.getItem('flyer_templates')
+      if (saved) setTemplates(JSON.parse(saved))
+    }
+
+    const saveTemplate = () => {
+      if (!templateName) {
+        toast.error('Dê um nome ao template')
+        return
+      }
+      const newTemplate = {
+        name: templateName,
+        config: {
+          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg
+        }
+      }
+      const updated = [...templates, newTemplate]
+      localStorage.setItem('flyer_templates', JSON.stringify(updated))
+      setTemplates(updated)
+      setTemplateName('')
+      toast.success('Template salvo!')
+    }
+
+    const applyTemplate = (config: any) => {
+      if (config.layout) setLayout(config.layout)
+      if (config.backgroundType) setBackgroundType(config.backgroundType)
+      if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+      if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
+      if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+      if (config.columns) setColumns(config.columns)
+      if (config.gridGap !== undefined) setGridGap(config.gridGap)
+      if (config.showLogo !== undefined) setShowLogo(config.showLogo)
+      if (config.logoPosition) setLogoPosition(config.logoPosition)
+      if (config.logoSize) setLogoSize(config.logoSize)
+      if (config.titleColor) setTitleColor(config.titleColor)
+      if (config.priceColor) setPriceColor(config.priceColor)
+      if (config.fontSize) setFontSize(config.fontSize)
+      if (config.priceSize) setPriceSize(config.priceSize)
+      if (config.fontFamily) setFontFamily(config.fontFamily)
+      if (config.productBgColor) setProductBgColor(config.productBgColor)
+      if (config.productBgOpacity !== undefined) setProductBgOpacity(config.productBgOpacity)
+      if (config.productBlockHeight !== undefined) setProductBlockHeight(config.productBlockHeight)
+      if (config.showPriceBg !== undefined) setShowPriceBg(config.showPriceBg)
+      if (config.priceBgColor) setPriceBgColor(config.priceBgColor)
+      if (config.showShadows !== undefined) setShowShadows(config.showShadows)
+      if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
+      if (config.priceLayout) setPriceLayout(config.priceLayout)
+      if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+      toast.success('Template aplicado!')
+    }
+
+    const deleteTemplate = (idx: number) => {
+      const updated = templates.filter((_, i) => i !== idx)
+      localStorage.setItem('flyer_templates', JSON.stringify(updated))
+      setTemplates(updated)
+    }
+
    useEffect(() => {
-     fetchProducts()
-   }, [])
+     if (storeSettings) {
+       if (storeSettings.colors?.primary) setPriceColor(storeSettings.colors.primary)
+       if (storeSettings.colors?.secondary) setSecondaryColor(storeSettings.colors.secondary)
+     }
+   }, [storeSettings])
  
    const fetchProducts = async () => {
      const { data } = await supabase.from('products').select('*').limit(100)
@@ -168,9 +240,53 @@
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
-             <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
-               <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
-             </CardTitle>
+             <div className="flex items-center justify-between">
+               <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
+                 <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
+               </CardTitle>
+               <Dialog>
+                 <DialogTrigger asChild>
+                   <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
+                     <FolderOpen className="w-3 h-3 mr-1" /> Templates
+                   </Button>
+                 </DialogTrigger>
+                 <DialogContent>
+                   <DialogHeader>
+                     <DialogTitle>Templates de Encarte</DialogTitle>
+                   </DialogHeader>
+                   <div className="space-y-4 py-4">
+                     <div className="flex gap-2">
+                       <Input 
+                         placeholder="Nome do novo template..." 
+                         value={templateName} 
+                         onChange={(e) => setTemplateName(e.target.value)} 
+                       />
+                       <Button onClick={saveTemplate} size="sm">
+                         <Save className="w-4 h-4 mr-1" /> Salvar Atual
+                       </Button>
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Templates Salvos</Label>
+                       {templates.length === 0 ? (
+                         <p className="text-center py-8 text-zinc-400 text-xs">Nenhum template salvo</p>
+                       ) : (
+                         <div className="grid grid-cols-1 gap-2">
+                           {templates.map((t, idx) => (
+                             <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
+                               <span className="font-bold text-sm">{t.name}</span>
+                               <div className="flex gap-2">
+                                 <Button size="sm" variant="outline" onClick={() => applyTemplate(t.config)}>Usar</Button>
+                                 <Button size="sm" variant="ghost" className="text-red-500" onClick={() => deleteTemplate(idx)}><Trash2 className="w-4 h-4" /></Button>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 </DialogContent>
+               </Dialog>
+             </div>
            </CardHeader>
            <CardContent className="space-y-6 pt-6">
              {/* Layout Selection */}
@@ -187,10 +303,9 @@
                      key={l.id}
                      variant={layout === l.id ? 'default' : 'outline'}
                      className="h-20 flex flex-col gap-2 rounded-xl text-[10px] font-bold"
-                     onClick={() => {
-                       setLayout(l.id as LayoutType)
-                       setSelectedProducts([])
-                     }}
+                       onClick={() => {
+                         setLayout(l.id as LayoutType)
+                       }}
                    >
                      <l.icon className="w-5 h-5" />
                      {l.label}
@@ -320,11 +435,24 @@
                    </div>
                  </div>
                  <div className="space-y-2">
-                   <Label className="text-[10px] font-bold uppercase">Cor Preço</Label>
-                   <div className="flex gap-2">
-                     <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
-                     <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
-                   </div>
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-bold uppercase">Cor Preço</Label>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-4 w-4" 
+                        onClick={() => {
+                          if (storeSettings?.colors?.primary) setPriceColor(storeSettings.colors.primary)
+                        }}
+                        title="Usar cor da marca"
+                      >
+                        <RefreshCcw className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input type="color" value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="w-8 h-8 p-0 border-none" />
+                      <Input value={priceColor} onChange={(e) => setPriceColor(e.target.value)} className="h-8 text-[10px]" />
+                    </div>
                  </div>
                </div>
  
@@ -494,7 +622,17 @@
        </div>
  
        {/* Preview Area */}
-       <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+        <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+          <div className="mb-4 flex gap-4 print:hidden">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Preview Real A4
+            </div>
+            <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
+              <Download className="w-3 h-3 mr-2" /> Download / Salvar PDF
+            </Button>
+          </div>
+
          <div 
            id="flyer-content"
                className={cn(
@@ -509,8 +647,8 @@
                      : backgroundColor
                }}
            >
-             {/* Top Reserved Zone (25%) */}
-             <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
+               {/* Top Reserved Zone (15%) */}
+               <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/50">
                {showLogo && storeSettings?.logo_url && (
                  <div 
                    className={cn(
@@ -530,13 +668,13 @@
                )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                   Topo Reservado (25%)
+                     Topo Reservado (15%)
                  </div>
                </div>
              </div>
    
-             {/* Content Middle Zone (60%) */}
-             <div className="h-[60%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
+               {/* Content Middle Zone (80%) */}
+               <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
                <div 
                  className={cn(
                    "grid h-full max-h-full transition-all duration-300",
@@ -641,11 +779,11 @@
              </div>
            </div>
  
-             {/* Bottom Reserved Zone (15%) */}
-             <div className="h-[15%] w-full flex items-center justify-center relative">
+               {/* Bottom Reserved Zone (5%) */}
+               <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/50">
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                   Rodapé Reservado (15%)
+                     Rodapé Reservado (5%)
                  </div>
                </div>
              </div>
