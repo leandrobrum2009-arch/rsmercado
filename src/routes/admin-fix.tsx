@@ -24,6 +24,7 @@
     ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
     DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
     DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
+    DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
     DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
     
     CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
