@@ -28,9 +28,10 @@
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
-import { createFileRoute, redirect, useSearch, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
  import { CategoryManagement } from '@/components/admin/CategoryManagement'
@@ -69,7 +70,8 @@ export const Route = createFileRoute('/admin')({
      // Access to actual data is protected by RLS and components checks
      return true;
   },
-  component: RouteComponent,
+   component: RouteComponent,
+   errorComponent: (props: ErrorComponentProps) => <AdminErrorComponent {...props} />,
   validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
     const tab = Array.isArray(search.tab) ? search.tab[0] : search.tab;
     const edit = Array.isArray(search.edit) ? search.edit[0] : search.edit;
@@ -80,6 +82,41 @@ export const Route = createFileRoute('/admin')({
     }
   },
 })
+
+ function AdminErrorComponent({ error, reset }: ErrorComponentProps) {
+   return (
+     <div className="flex flex-col items-center justify-center min-h-[400px] p-8 bg-red-50 rounded-[40px] border-2 border-red-100 animate-in fade-in zoom-in">
+       <div className="w-20 h-20 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mb-6">
+         <AlertTriangle size={40} />
+       </div>
+       <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Ops! Algo deu errado</h2>
+       <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest mb-8 text-center max-w-md">
+         Ocorreu um erro ao carregar esta seção do painel. Isso pode ser devido a uma falha na conexão ou um erro no banco de dados.
+       </p>
+       
+       <div className="bg-white/50 p-4 rounded-2xl mb-8 w-full max-w-lg border border-red-100 overflow-auto max-h-40">
+         <p className="text-[10px] font-mono text-red-800 break-all">{error.message || 'Erro desconhecido'}</p>
+         {error.stack && <pre className="text-[8px] text-red-600/60 mt-2">{error.stack.substring(0, 500)}...</pre>}
+       </div>
+
+       <div className="flex gap-4">
+         <Button 
+           onClick={() => reset()}
+           className="h-12 px-6 rounded-xl font-black uppercase tracking-wider text-xs flex gap-2"
+         >
+           <RefreshCcw size={16} /> Tentar Novamente
+         </Button>
+         <Button 
+           variant="outline"
+           onClick={() => window.location.href = '/'}
+           className="h-12 px-6 rounded-xl font-black uppercase tracking-wider text-xs flex gap-2"
+         >
+           <HomeIcon size={16} /> Ir para a Loja
+         </Button>
+       </div>
+     </div>
+   );
+ }
 
  function RouteComponent() {
    const { tab, edit } = useSearch({ from: '/admin' })
