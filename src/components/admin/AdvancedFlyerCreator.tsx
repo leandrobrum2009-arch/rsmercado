@@ -57,7 +57,7 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // 0 means auto
+     const [productBlockHeight, setProductBlockHeight] = useState<number>(240) // Default to a reasonable height
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -65,7 +65,33 @@
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
-    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+     const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+     const [processingBg, setProcessingBg] = useState<string | null>(null)
+    useEffect(() => {
+      if (globalRemoveBg && selectedProducts.length > 0) {
+        const processAll = async () => {
+          const updated = [...selectedProducts]
+          let hasChanges = false
+          for (let i = 0; i < updated.length; i++) {
+            if (!updated[i].image_url.startsWith('data:image')) {
+              setProcessingBg(updated[i].id)
+              const processed = await processImageBackground(updated[i].image_url)
+              if (processed !== updated[i].image_url) {
+                updated[i].image_url = processed
+                updated[i].removeBg = true
+                hasChanges = true
+              }
+            }
+          }
+          if (hasChanges) {
+            setSelectedProducts(updated)
+          }
+          setProcessingBg(null)
+        }
+        processAll()
+      }
+    }, [globalRemoveBg])
+
     const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
  
    const PREDEFINED_BGS = [
@@ -230,22 +256,36 @@
      if (layout === 'featured-side') max = 8
      if (layout === 'featured-top') max = 10
  
-     if (selectedProducts.length >= max) {
-       toast.error(`Limite de ${max} produtos para este layout`)
-       return
-     }
-     const newProduct: FlyerProduct = {
-       id: product.id,
-       name: product.name,
-       price: product.price,
-       original_price: product.old_price,
-       image_url: product.image_url,
-       unit: product.unit,
-       removeBg: globalRemoveBg
-     }
-     setSelectedProducts([...selectedProducts, newProduct])
-     toast.success('Produto adicionado')
-   }
+      if (selectedProducts.length >= max) {
+        toast.error(`Limite de ${max} produtos para este layout`)
+        return
+      }
+      
+      let imageUrl = product.image_url
+      const newProduct: FlyerProduct = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        original_price: product.old_price,
+        image_url: imageUrl,
+        unit: product.unit,
+        removeBg: globalRemoveBg
+      }
+
+      setSelectedProducts([...selectedProducts, newProduct])
+      toast.success('Produto adicionado')
+
+      // If global removal is on, process it immediately
+      if (globalRemoveBg) {
+        processImageBackground(imageUrl).then(processed => {
+          if (processed !== imageUrl) {
+            setSelectedProducts(prev => prev.map(p => 
+              p.id === product.id ? { ...p, image_url: processed, removeBg: true } : p
+            ))
+          }
+        })
+      }
+    }
  
    const removeProduct = (idx: number) => {
      const updated = [...selectedProducts]
