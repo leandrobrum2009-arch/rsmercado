@@ -145,11 +145,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   )}
                 <div 
                   className={cn(
-                     "grid h-fit max-h-full transition-all duration-300 items-stretch",
+                    "grid transition-all duration-300 items-stretch",
+                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1" : "h-fit max-h-full",
                     layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                     layout === 'featured-side' && "grid-cols-4 grid-rows-3",
-                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
-                    layout === 'single' && "grid-cols-1 grid-rows-1"
+                    layout === 'featured-top' && "grid-cols-2 grid-rows-5"
                   )}
                   style={{ gap: `${gridGap}px` }}
                 >
@@ -190,16 +190,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            )}
                              style={{
                                backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                               height: productBlockHeight > 0
+                               height: layout === 'single' ? '100%' : (productBlockHeight > 0
                                  ? (layout === 'featured-side' && (i === 0 || i === 1)
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
-                                 : 'auto',
-                               minHeight: productBlockHeight > 0
+                                 : 'auto'),
+                               minHeight: layout === 'single' ? '400px' : (productBlockHeight > 0
                                  ? (layout === 'featured-side' && (i === 0 || i === 1)
                                      ? `${productBlockHeight * 3 + gridGap * 2}px`
                                      : `${productBlockHeight}px`)
-                                 : 'auto',
+                                 : 'auto'),
                                overflow: imageSize > 100 ? 'visible' : 'hidden'
                              }}
                          >
@@ -249,7 +249,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
                              style={{ 
                                color: titleColor, 
-                               fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px`
+                                fontSize: `${layout === 'single' ? fontSize * 3.5 : fontSize}px`
                              }}
                            >
                              {p.name}
@@ -272,7 +272,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              {priceLayout === 'traditional' ? (
                                <div 
                                  className="font-black italic flex items-baseline drop-shadow-sm"
-                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 3 : priceSize}px` }}
                                >
                                  <span className="text-[0.4em] self-start mt-1 mr-0.5">R$</span>
                                  <span className="leading-none">{p.price.toFixed(2).split('.')[0]}</span>
@@ -284,7 +284,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              ) : (
                                <div 
                                  className="font-black italic flex items-center drop-shadow-sm"
-                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 2 : priceSize}px` }}
+                                 style={{ color: priceColor, fontSize: `${layout === 'single' ? priceSize * 3 : priceSize}px` }}
                                >
                                  <span className="text-[0.5em] mr-1">R$</span>
                                  <span>{p.price.toFixed(2).replace('.', ',')}</span>
@@ -852,11 +852,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: false, // Security: false to avoid tainted canvas
-          scale: 3, // Even higher quality for printing/sharing
+          allowTaint: true, // Permitir taint para evitar erro imediato, embora possa impedir toDataURL
+          scale: 3, 
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: false,
-          imageTimeout: 30000,
+          logging: true, // Habilitar logs para depuração
+          imageTimeout: 60000, // Aumentar timeout para 60s
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -864,6 +864,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.transition = 'none';
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
+              clonedElement.style.display = 'flex';
             }
           }
         })
@@ -1804,19 +1805,26 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
              </div>
  
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handleDownloadPDF} disabled={uploading}>
-                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
-                 </Button>
+                  <Button 
+                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
+                    onClick={saveToDatabase}
+                    disabled={uploading}
+                  >
+                    <Save className="w-4 h-4 mr-2" /> Salvar no Banco
+                  </Button>
                   <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                     <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
+                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
                   </Button>
                   <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
                     <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
                   </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handlePrint}>
-                    <Printer className="w-4 h-4 mr-2" /> Imprimir
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" onClick={handlePrint}>
+                    <Printer className="w-4 h-4 mr-2" /> Imprimir Encarte (A4)
                   </Button>
-              </div>
+                </div>
            </CardContent>
           </Card>
 
