@@ -1,28 +1,3 @@
-  -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM)
-  CREATE TABLE IF NOT EXISTS public.orders (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id UUID REFERENCES auth.users(id),
-      customer_name TEXT,
-      customer_phone TEXT,
-      total_amount DECIMAL(10,2) NOT NULL,
-      delivery_fee DECIMAL(10,2) DEFAULT 0,
-      payment_method TEXT,
-      status TEXT DEFAULT 'pending',
-      delivery_address JSONB,
-      points_earned INTEGER DEFAULT 0,
-      coupon_code TEXT,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-  );
-  
-  CREATE TABLE IF NOT EXISTS public.order_items (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
-      product_id UUID,
-      quantity INTEGER NOT NULL,
-      unit_price DECIMAL(10,2) NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-  );
-
  import { createFileRoute } from '@tanstack/react-router'
  import { useState } from 'react'
  import { supabase } from '@/lib/supabase'
