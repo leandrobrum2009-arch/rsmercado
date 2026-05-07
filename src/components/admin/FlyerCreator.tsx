@@ -324,19 +324,23 @@ export function FlyerCreator() {
 
       <style>{`
         @media print {
+          @page { size: A4 portrait; margin: 0; }
           body * { visibility: hidden; }
-          #flyer-content, #flyer-content * { visibility: visible; }
+          #flyer-content, #flyer-content * { visibility: visible !important; }
           #flyer-content { 
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 210mm; 
-            height: 297mm;
-            margin: 0;
-            padding: 0;
+            position: absolute !important; 
+            left: 0 !important; 
+            top: 0 !important; 
+            width: 210mm !important; 
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
             border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+            transition: none !important;
           }
-          @page { size: A4; margin: 0; }
+          html, body { height: 297mm; width: 210mm; overflow: hidden; }
         }
       `}</style>
     </div>
