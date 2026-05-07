@@ -566,10 +566,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       // Non-blocking save
       saveToDatabase().catch(err => console.error("Auto-save failed:", err))
       
-      // Trigger print with a small delay for any layout settling
+      // Trigger print with a delay for layout and font rendering
+      // We also temporarily disable transitions to ensure static capture
+      const flyerElement = document.getElementById('flyer-content');
+      if (flyerElement) {
+        flyerElement.style.transition = 'none';
+        // Force reflow
+        void flyerElement.offsetHeight;
+      }
+
       setTimeout(() => {
-        window.print()
-      }, 300)
+        window.print();
+        if (flyerElement) {
+          // Re-enable transitions after a delay
+          setTimeout(() => {
+            flyerElement.style.transition = '';
+          }, 1000);
+        }
+      }, 800);
     }
 
     const handleDownloadImage = async () => {
@@ -593,21 +607,40 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           })
         }))
 
+        // Temporary styles for capture to ensure best result
+        const originalTransform = element.style.transform;
+        const originalTransition = element.style.transition;
+        element.style.transform = 'none';
+        element.style.transition = 'none';
+
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true,
-          scale: 2, // High quality
+          allowTaint: false, // Security: false to avoid tainted canvas
+          scale: 3, // Even higher quality for printing/sharing
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: true, // Helpful for debugging
-          imageTimeout: 15000, // Wait up to 15s for images
+          logging: false,
+          imageTimeout: 30000,
+          onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById('flyer-content');
+            if (clonedElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.transition = 'none';
+              clonedElement.style.margin = '0';
+              clonedElement.style.boxShadow = 'none';
+            }
+          }
         })
+
+        element.style.transform = originalTransform;
+        element.style.transition = originalTransition;
 
         const image = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
-        document.body.appendChild(link)
-        link.click()
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         document.body.removeChild(link)
         
         toast.dismiss(loadingToast)
@@ -1714,23 +1747,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                           )}
                             style={{
                               backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                              height: productBlockHeight > 0 
-                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
-                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                              height: productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
                                     : `${productBlockHeight}px`)
                                 : 'auto',
-                              minHeight: productBlockHeight > 0 
-                                ? (layout === 'featured-side' && (i === 0 || i === 1) 
-                                    ? `${productBlockHeight * 3 + gridGap * 2}px` 
+                              minHeight: productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
                                     : `${productBlockHeight}px`)
                                 : 'auto',
-                              overflow: 'visible'
+                              overflow: 'hidden' // Garante que imagens não vazem do bloco
                             }}
                         >
                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
-                             <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
+                              <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")} style={{ minHeight: '120px' }}>
                                <img 
                                  src={p.image_url} 
+                                  crossOrigin="anonymous"
                                  className={cn(
                                    "object-contain transition-all duration-300 z-10",
                                    (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
@@ -1849,11 +1883,26 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
 
         <style>{`
-         @media print {
-           body * { visibility: hidden; }
-           #flyer-content, #flyer-content * { visibility: visible; }
+          @media print {
+            @page { 
+              size: A4 portrait; 
+              margin: 0mm !important; 
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              height: 297mm !important;
+              width: 210mm !important;
+              overflow: hidden !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body * { visibility: hidden; }
+            #flyer-content, #flyer-content * { 
+              visibility: visible !important; 
+            }
             #flyer-content {
-              position: fixed !important;
+              position: absolute !important;
               left: 0 !important;
               top: 0 !important;
               width: 210mm !important;
@@ -1863,17 +1912,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               border: none !important;
               overflow: hidden !important;
               box-sizing: border-box !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
+              display: flex !important;
+              flex-direction: column !important;
+              transform: none !important;
+              transition: none !important;
+              box-shadow: none !important;
+              z-index: 9999 !important;
               page-break-after: avoid !important;
               page-break-before: avoid !important;
             }
-            html, body { height: 297mm; overflow: hidden; }
-           @page { 
-             size: A4; 
-             margin: 0; 
-           }
-         }
+          }
        `}</style>
      </div>
    )
