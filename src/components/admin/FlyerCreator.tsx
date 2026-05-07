@@ -328,33 +328,77 @@ export function FlyerCreator() {
               </div>
             </div>
 
-             <div className="grid grid-cols-2 gap-2 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={handlePrint}
-                disabled={isPreparingPrint}
-              >
-                {isPreparingPrint ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Printer className="w-4 h-4 mr-2" />
-                )}
-                Imprimir
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={handleDownloadImage}
-                disabled={isPreparingPrint}
-              >
-                <Download className="w-4 h-4 mr-2" /> Baixar Imagem
-              </Button>
-               <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
-                 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
+              <div className="grid grid-cols-2 gap-2 pt-4">
+               <div className="flex gap-2">
+                 <Button 
+                   variant="outline" 
+                   onClick={handlePrint}
+                   disabled={isPreparingPrint}
+                   className="flex-1"
+                 >
+                   {isPreparingPrint ? (
+                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                   ) : (
+                     <Printer className="w-4 h-4 mr-2" />
+                   )}
+                   Imprimir
+                 </Button>
+                 <Dialog>
+                   <DialogTrigger asChild>
+                     <Button 
+                       variant="outline" 
+                       onClick={async () => {
+                         const element = document.getElementById('flyer-content')
+                         if (!element) return
+                         setIsPreparingPrint(true)
+                         try {
+                           const canvas = await html2canvas(element, { useCORS: true, scale: 2 })
+                           setPrintImage(canvas.toDataURL('image/png'))
+                         } finally {
+                           setIsPreparingPrint(false)
+                         }
+                       }}
+                       disabled={isPreparingPrint}
+                     >
+                       <ImageIcon className="w-4 h-4 mr-2" /> Prévia
+                     </Button>
+                   </DialogTrigger>
+                   <DialogContent className="max-w-3xl">
+                     <DialogHeader>
+                       <DialogTitle>Prévia do Encarte (Imagem)</DialogTitle>
+                     </DialogHeader>
+                     <div className="flex justify-center p-4 bg-zinc-100 rounded-xl overflow-auto max-h-[70vh]">
+                       {printImage ? (
+                         <img src={printImage} className="max-w-full shadow-2xl" alt="Flyer Preview" />
+                       ) : (
+                         <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
+                       )}
+                     </div>
+                     <div className="flex justify-end gap-2 mt-4">
+                       <Button variant="outline" onClick={() => setPrintImage(null)}>Fechar</Button>
+                       <Button onClick={handlePrint}><Printer className="w-4 h-4 mr-2" /> Imprimir</Button>
+                     </div>
+                   </DialogContent>
+                 </Dialog>
+               </div>
+               <Button 
+                 variant="outline"
+                 onClick={handleDownloadImage}
+                 disabled={isPreparingPrint}
+               >
+                 <Download className="w-4 h-4 mr-2" /> Baixar Imagem
                </Button>
-               <Button variant="outline">
-                 <Instagram className="w-4 h-4 mr-2" /> Stories
-               </Button>
-            </div>
+                <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
+                  <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleDownloadImage}
+                  disabled={isPreparingPrint}
+                >
+                  <Instagram className="w-4 h-4 mr-2" /> Stories
+                </Button>
+             </div>
           </CardContent>
         </Card>
       </div>
