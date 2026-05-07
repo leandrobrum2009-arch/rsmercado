@@ -919,9 +919,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
+          allowTaint: true,
           scale: 3,
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          imageTimeout: 30000,
+          imageTimeout: 60000,
         })
 
         element.style.transform = originalTransform
@@ -934,11 +935,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           format: 'a4'
         })
 
-        const imgProps = pdf.getImageProperties(imgData)
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+        const pdfWidth = 210
+        const pdfHeight = 297
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
         pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
 
         toast.dismiss(loadingToast)
@@ -1946,7 +1946,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   </div>
                   <div className="p-8 flex justify-center w-full">
                     <div 
-                      className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
+                      className="bg-white shadow-2xl relative flex flex-col aspect-[210/297] w-full max-w-[600px] overflow-hidden"
                       style={{
                         backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
                       }}
@@ -1979,7 +1979,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               <div
                 id="flyer-content"
                 className={cn(
-                  "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
+                  "relative flex flex-col aspect-[210/297] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
                   removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
                 )}
                 style={{
