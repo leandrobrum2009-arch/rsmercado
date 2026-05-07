@@ -21,25 +21,26 @@
   UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
-  -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
-  CREATE OR REPLACE FUNCTION public.is_admin() 
-  RETURNS BOOLEAN 
-  LANGUAGE plpgsql 
-  SECURITY DEFINER 
-  SET search_path = public, auth 
-  AS $$
-  DECLARE
-    user_role TEXT;
-  BEGIN
-    -- Master bypass (Securely checking JWT claim)
-    IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
-      RETURN TRUE;
-    END IF;
-
-    -- Fetch role directly (SECURITY DEFINER bypasses RLS on user_roles)
-    SELECT role INTO user_role FROM public.user_roles WHERE user_id = auth.uid() LIMIT 1;
-    RETURN COALESCE(user_role = 'admin', FALSE);
-  END; $$;
+   -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
+   CREATE OR REPLACE FUNCTION public.is_admin() 
+   RETURNS BOOLEAN 
+   LANGUAGE plpgsql 
+   SECURITY DEFINER 
+   SET search_path = public, auth 
+   AS $$
+   BEGIN
+     -- 1. Master bypass (JWT check is extremely fast)
+     IF (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com') THEN
+       RETURN TRUE;
+     END IF;
+ 
+     -- 2. Check roles table
+     RETURN EXISTS (
+       SELECT 1 FROM public.user_roles 
+       WHERE user_id = auth.uid() 
+       AND role = 'admin'
+     );
+   END; $$;
  
  -- 3. PROMOVER USUÁRIO A ADMIN
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
@@ -57,24 +58,30 @@
       END IF;
   END $$;
 
-   -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM E ESTEJAM ATUALIZADAS)
-   CREATE TABLE IF NOT EXISTS public.orders (
-       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-       user_id UUID REFERENCES auth.users(id),
-       customer_name TEXT,
-       customer_phone TEXT,
-       total_amount DECIMAL(10,2) NOT NULL,
-       delivery_fee DECIMAL(10,2) DEFAULT 0,
-       payment_method TEXT,
-       status TEXT DEFAULT 'pending',
-       delivery_address JSONB,
-       points_earned INTEGER DEFAULT 0,
-       coupon_code TEXT,
-       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-   
-   -- Garantir colunas novas se a tabela já existia
-   ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS change_for DECIMAL(10,2);
+    -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM E ESTEJAM ATUALIZADAS)
+    CREATE TABLE IF NOT EXISTS public.orders (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES auth.users(id),
+        customer_name TEXT,
+        customer_phone TEXT,
+        total_amount DECIMAL(10,2) NOT NULL,
+        delivery_fee DECIMAL(10,2) DEFAULT 0,
+        payment_method TEXT,
+        status TEXT DEFAULT 'pending',
+        delivery_address JSONB,
+        points_earned INTEGER DEFAULT 0,
+        coupon_code TEXT,
+        change_for DECIMAL(10,2),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    
+    -- Garantir colunas novas se a tabela já existia
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS change_for DECIMAL(10,2);
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_address JSONB;
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS points_earned INTEGER DEFAULT 0;
+    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
    
    CREATE TABLE IF NOT EXISTS public.order_items (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
