@@ -600,19 +600,35 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       await saveToDatabase()
 
-      let message = `🚀 *OFERTAS DO DIA - ${storeSettings?.site_name || 'RS SUPERMERCADO'}* 🚀\n\n`
-      if (validityText) message += `📅 _${validityText}_\n\n`
+      let message = `🚀 *${(storeSettings?.site_name || 'RS SUPERMERCADO').toUpperCase()}* 🚀\n`
+      message += `━━━━━━━━━━━━━━━━━━━━\n\n`
+      
+      if (validityText) {
+        message += `📅 *VALIDADE:* _${validityText}_\n\n`
+      }
 
-      selectedProducts.forEach(p => {
-        message += `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*${p.unit ? ` / ${p.unit}` : ''}\n`
-        if (p.original_price) message += `❌ ~~De R$ ${p.original_price.toFixed(2)}~~\n`
+      selectedProducts.forEach((p, index) => {
+        message += `${index % 2 === 0 ? '🔸' : '🔹'} *${p.name.toUpperCase()}*\n`
+        message += `💰 *APENAS R$ ${p.price.toFixed(2).replace('.', ',')}* ${p.unit ? `(${p.unit})` : ''}\n`
+        if (p.original_price && p.original_price > p.price) {
+          message += `<s>❌ De: R$ ${p.original_price.toFixed(2).replace('.', ',')}</s>\n`
+        }
         message += `\n`
       })
 
-      message += `🛒 *Peça agora pelo site:* ${window.location.origin}\n`
-      message += `📍 ${storeSettings?.address || ''}`
+      message += `━━━━━━━━━━━━━━━━━━━━\n`
+      message += `🛒 *PEÇA PELO SITE:* ${window.location.origin}\n`
+      if (storeSettings?.address) {
+        message += `📍 *LOJA:* ${storeSettings.address}\n`
+      }
+      message += `\n*Aproveite antes que acabe!* ⚡`
 
-      const encoded = encodeURIComponent(message)
+      // Use correct WhatsApp formatting for strikethrough (~) and bold (*)
+      // Note: <s> is just a placeholder for me to remember to use ~ in the final string if needed
+      // Actually, for WhatsApp it's ~text~
+      const finalMessage = message.replace(/<s>/g, '~').replace(/<\/s>/g, '~');
+
+      const encoded = encodeURIComponent(finalMessage)
       window.open(`https://wa.me/?text=${encoded}`, '_blank')
       toast.success('Compartilhando no WhatsApp...')
     }
@@ -1503,15 +1519,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             variant="ghost" 
                             className="h-7 w-7 text-green-600" 
                             title="WhatsApp"
-                            onClick={() => {
-                               // Set context then share
+                             onClick={() => {
                                if (f.products_data) {
-                                 const msg = `🚀 *OFERTAS DE ${new Date(f.created_at).toLocaleDateString('pt-BR')}* 🚀\n\n` + 
-                                   f.products_data.map((p: any) => `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*\n`).join('\n') +
-                                   `\n🛒 ${window.location.origin}`;
+                                 const storeName = storeSettings?.site_name || 'RS SUPERMERCADO';
+                                 let msg = `🚀 *OFERTAS - ${storeName.toUpperCase()}* 🚀\n`;
+                                 msg += `📅 *DATA:* ${new Date(f.created_at).toLocaleDateString('pt-BR')}\n`;
+                                 msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+                                 
+                                 f.products_data.forEach((p: any) => {
+                                   msg += `✅ *${p.name.toUpperCase()}*\n`;
+                                   msg += `💰 *R$ ${p.price.toFixed(2).replace('.', ',')}* ${p.unit ? `(${p.unit})` : ''}\n\n`;
+                                 });
+                                 
+                                 msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+                                 msg += `🛒 *PEÇA AQUI:* ${window.location.origin}`;
+                                 
                                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                                }
-                            }}
+                             }}
                           >
                             <MessageCircle className="w-4 h-4" />
                           </Button>
