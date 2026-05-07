@@ -8,7 +8,7 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2 } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
  
@@ -19,6 +19,7 @@
    original_price?: number
    image_url: string
    unit?: string
+   removeBg?: boolean
  }
  
  type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
@@ -34,6 +35,8 @@
    const [columns, setColumns] = useState(3)
    const [gridGap, setGridGap] = useState(16)
    const [showLogo, setShowLogo] = useState(true)
+   const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
+   const [logoSize, setLogoSize] = useState(120)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
@@ -52,6 +55,34 @@
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
+   const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+
+   // Background removal helper (for white backgrounds)
+   const removeWhiteBackground = (imgElement: HTMLImageElement) => {
+     const canvas = document.createElement('canvas')
+     const ctx = canvas.getContext('2d')
+     if (!ctx) return imgElement.src
+
+     canvas.width = imgElement.naturalWidth
+     canvas.height = imgElement.naturalHeight
+     ctx.drawImage(imgElement, 0, 0)
+
+     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+     const data = imageData.data
+
+     for (let i = 0; i < data.length; i += 4) {
+       const r = data[i]
+       const g = data[i + 1]
+       const b = data[i + 2]
+       // If pixel is close to white, make it transparent
+       if (r > 240 && g > 240 && b > 240) {
+         data[i + 3] = 0
+       }
+     }
+
+     ctx.putImageData(imageData, 0, 0)
+     return canvas.toDataURL()
+   }
  
    useEffect(() => {
      fetchProducts()
@@ -101,7 +132,8 @@
        price: product.price,
        original_price: product.old_price,
        image_url: product.image_url,
-       unit: product.unit
+       unit: product.unit,
+       removeBg: globalRemoveBg
      }
      setSelectedProducts([...selectedProducts, newProduct])
      toast.success('Produto adicionado')
@@ -110,6 +142,12 @@
    const removeProduct = (idx: number) => {
      const updated = [...selectedProducts]
      updated.splice(idx, 1)
+     setSelectedProducts(updated)
+   }
+
+   const toggleProductBg = (idx: number) => {
+     const updated = [...selectedProducts]
+     updated[idx].removeBg = !updated[idx].removeBg
      setSelectedProducts(updated)
    }
  
@@ -195,6 +233,34 @@
                    {showLogo ? 'Sim' : 'Não'}
                  </Button>
                </div>
+
+               {showLogo && (
+                 <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 animate-in fade-in slide-in-from-top-2">
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Posição do Logo</Label>
+                     <div className="flex gap-2">
+                       {[
+                         { id: 'left', icon: AlignLeft },
+                         { id: 'center', icon: AlignCenter },
+                         { id: 'right', icon: AlignRight },
+                       ].map(pos => (
+                         <Button
+                           key={pos.id}
+                           variant={logoPosition === pos.id ? 'default' : 'outline'}
+                           className="flex-1 h-8"
+                           onClick={() => setLogoPosition(pos.id as any)}
+                         >
+                           <pos.icon className="w-4 h-4" />
+                         </Button>
+                       ))}
+                     </div>
+                   </div>
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho do Logo ({logoSize}px)</Label>
+                     <Slider value={[logoSize]} min={40} max={400} step={10} onValueChange={([val]) => setLogoSize(val)} />
+                   </div>
+                 </div>
+               )}
  
                {/* Background Settings */}
                <div className="space-y-3">
@@ -353,6 +419,13 @@
                    >
                      Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
                    </Button>
+                   <Button 
+                     variant={globalRemoveBg ? 'default' : 'outline'} 
+                     size="sm" className="h-8 text-[10px]"
+                     onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
+                   >
+                      <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
+                   </Button>
                  </div>
                </div>
              </div>
@@ -391,7 +464,16 @@
                        <p className="text-[10px] font-bold truncate">{p.name}</p>
                        <p className="text-[10px] font-black text-primary">R$ {p.price.toFixed(2)}</p>
                      </div>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-300 group-hover:text-red-500 transition-colors" onClick={() => removeProduct(idx)}>
+                     <Button 
+                       variant={p.removeBg ? 'default' : 'ghost'} 
+                       size="icon" 
+                       className={cn("h-8 w-8", p.removeBg ? "" : "text-zinc-300")} 
+                       onClick={() => toggleProductBg(idx)}
+                       title="Remover fundo branco"
+                     >
+                       <Eraser className="w-4 h-4" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-300 hover:text-red-500 transition-colors" onClick={() => removeProduct(idx)}>
                        <Trash2 className="w-4 h-4" />
                      </Button>
                    </div>
@@ -430,7 +512,21 @@
              {/* Top Reserved Zone (25%) */}
              <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
                {showLogo && storeSettings?.logo_url && (
-                 <img src={storeSettings.logo_url} className="h-24 object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" alt="Logo" />
+                 <div 
+                   className={cn(
+                     "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
+                     logoPosition === 'left' && "justify-start",
+                     logoPosition === 'center' && "justify-center",
+                     logoPosition === 'right' && "justify-end"
+                   )}
+                 >
+                   <img 
+                     src={storeSettings.logo_url} 
+                     style={{ width: `${logoSize}px` }}
+                     className="object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" 
+                     alt="Logo" 
+                   />
+                 </div>
                )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
@@ -476,22 +572,27 @@
                             layout === 'single' ? 'p-12' : '',
                             columns === 4 ? 'p-1.5' : '',
                             showShadows ? "shadow-md hover:shadow-lg" : "shadow-none",
-                            productBlockHeight === 0 ? "h-full" : ""
+                             productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
                           style={{ 
                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                            height: productBlockHeight > 0 ? `${productBlockHeight}px` : '100%'
+                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
                           }}
                         >
-                         <img 
-                           src={p.image_url} 
-                           className={cn(
-                             "object-contain mix-blend-multiply drop-shadow-sm",
-                             layout === 'single' ? 'w-80 h-80' : 
-                             (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
-                             columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
-                           )} 
-                         />
+                          <img 
+                            src={p.image_url} 
+                            className={cn(
+                              "object-contain transition-all duration-300",
+                              p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : "drop-shadow-sm",
+                              layout === 'single' ? 'w-80 h-80' : 
+                              (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
+                              columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
+                            )} 
+                            style={{
+                              // Alternative for truly transparent backgrounds if the browser supports it
+                              // but mix-blend-multiply is generally the "effective" way for white backgrounds
+                            }}
+                          />
                          <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
                          <h3 
                            className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
