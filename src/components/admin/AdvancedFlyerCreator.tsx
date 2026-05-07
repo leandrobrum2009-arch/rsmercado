@@ -44,6 +44,7 @@
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
    const [priceColor, setPriceColor] = useState('#e11d48')
+   const [secondaryColor, setSecondaryColor] = useState('#facc15')
    const [fontSize, setFontSize] = useState(14)
    const [priceSize, setPriceSize] = useState(24)
    const [fontFamily, setFontFamily] = useState('font-sans')
@@ -87,6 +88,13 @@
    useEffect(() => {
      fetchProducts()
    }, [])
+
+   useEffect(() => {
+     if (storeSettings) {
+       if (storeSettings.colors?.primary) setPriceColor(storeSettings.colors.primary)
+       if (storeSettings.colors?.secondary) setSecondaryColor(storeSettings.colors.secondary)
+     }
+   }, [storeSettings])
  
    const fetchProducts = async () => {
      const { data } = await supabase.from('products').select('*').limit(100)
@@ -187,10 +195,9 @@
                      key={l.id}
                      variant={layout === l.id ? 'default' : 'outline'}
                      className="h-20 flex flex-col gap-2 rounded-xl text-[10px] font-bold"
-                     onClick={() => {
-                       setLayout(l.id as LayoutType)
-                       setSelectedProducts([])
-                     }}
+                       onClick={() => {
+                         setLayout(l.id as LayoutType)
+                       }}
                    >
                      <l.icon className="w-5 h-5" />
                      {l.label}
