@@ -65,41 +65,42 @@
             initial={{ height: 0, opacity: 0, y: -20 }}
             animate={{ height: 'auto', opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
-            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-lg z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-2 ring-red-500 ring-inset' : ''}`}
+            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-4 ring-red-500/50 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/10`}
           >
-            <div className="container mx-auto px-4 py-4 md:py-3.5 flex flex-col md:flex-row items-center md:justify-between gap-4 relative z-10">
+            <div className="container mx-auto px-4 py-4 md:py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 relative z-10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
               
               <div className="flex items-center gap-4 w-full md:w-auto">
-                <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm shadow-inner ring-1 ring-white/30 flex-shrink-0 animate-pulse">
-                  <Icon size={24} className="animate-bounce md:w-[18px] md:h-[18px] text-white" />
+                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-inner ring-2 ring-white/30 flex-shrink-0 animate-bounce">
+                  <Icon size={28} className="md:w-[20px] md:h-[20px] text-white drop-shadow-lg" />
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70 leading-none">
                       Aviso Importante
                     </span>
-                    <span className="flex h-2 w-2 rounded-full bg-white animate-ping" />
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-white animate-ping" />
                   </div>
-                  <p className="text-[13px] md:text-sm font-black uppercase tracking-tight italic leading-tight break-words">
+                  <p className="text-[15px] md:text-sm font-black uppercase tracking-tight italic leading-[1.1] break-words drop-shadow-sm">
                     {alert.message}
                   </p>
                 </div>
+              </div>
+              <div className="flex items-center justify-between w-full md:w-auto gap-2 md:gap-4 mt-1 md:mt-0">
+                <div className="md:hidden flex-1 h-1 rounded-full bg-white/20 overflow-hidden">
+                   <div className="h-full bg-white/60 animate-[shimmer_2s_infinite] w-full" />
+                </div>
                 <button 
                   onClick={() => setAlert(null)}
-                  className="p-2.5 hover:bg-white/20 active:scale-90 rounded-2xl transition-all border border-white/10 backdrop-blur-md md:hidden bg-black/10"
+                  className="p-3 md:p-2 bg-white/10 hover:bg-white/20 active:scale-90 rounded-2xl transition-all border border-white/20 backdrop-blur-md shadow-lg"
                 >
-                  <X size={24} />
+                  <X size={24} className="md:w-[20px] md:h-[20px]" />
                 </button>
               </div>
-              <button 
-                onClick={() => setAlert(null)}
-                className="p-2 hover:bg-white/20 active:bg-white/30 rounded-xl transition-all border border-white/10 backdrop-blur-md hidden md:block"
-              >
-                <X size={20} />
-              </button>
             </div>
-            <div className="absolute bottom-0 left-0 h-1.5 bg-white/40 shadow-[0_0_15px_rgba(255,255,255,0.7)]" style={{ width: '100%' }} />
+            <div className="absolute bottom-0 left-0 h-1.5 bg-white/30" style={{ width: '100%' }}>
+               <div className="h-full bg-white/60 shadow-[0_0_15px_rgba(255,255,255,1)] animate-progress" />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
