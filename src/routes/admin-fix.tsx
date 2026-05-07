@@ -13,9 +13,9 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
-  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - RS SUPERMERCADO
-  
+   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V3 (SEM BLOCOS DO) - RS SUPERMERCADO
+  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
+
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
   -- Note: We use email_confirmed_at. confirmed_at is a generated column.
    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
