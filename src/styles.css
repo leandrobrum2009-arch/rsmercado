@@ -1,3 +1,9 @@
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes bounce-subtle {
   0%, 100% {
     transform: translateY(-2%);
