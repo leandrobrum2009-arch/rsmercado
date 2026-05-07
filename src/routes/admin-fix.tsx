@@ -376,11 +376,35 @@ BEGIN
   GRANT SELECT ON public.banners TO anon, authenticated;
   GRANT SELECT ON public.store_alerts TO anon, authenticated;
   GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
-  
+
+  -- 12. SISTEMA DE AUDITORIA DE MIGRAÇÕES
+  CREATE TABLE IF NOT EXISTS public.migration_audit_logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      migration_name TEXT NOT NULL,
+      step_name TEXT NOT NULL,
+      status TEXT NOT NULL,
+      details JSONB DEFAULT '{}',
+      executed_by UUID DEFAULT auth.uid(),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  ALTER TABLE public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
+  CREATE POLICY "Admins view audit logs" ON public.migration_audit_logs FOR SELECT USING (public.is_admin());
+
+  CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
+  RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS \$\$
+  BEGIN
+      INSERT INTO public.migration_audit_logs (migration_name, step_name, status, details)
+      VALUES (p_migration_name, p_step_name, p_status, p_details);
+  END; \$\$;
+
   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
   GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
-  GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;`
+  GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;
+  GRANT EXECUTE ON FUNCTION public.log_migration_step(TEXT, TEXT, TEXT, JSONB) TO authenticated;
+
+  SELECT public.log_migration_step('ADMIN_FIX_UI', 'Repair Script Execution', 'completed', '{"source": "admin-fix-page"}');`
  
    const copyToClipboard = () => {
      navigator.clipboard.writeText(sqlToRun)
