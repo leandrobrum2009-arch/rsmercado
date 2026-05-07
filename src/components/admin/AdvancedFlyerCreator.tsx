@@ -633,11 +633,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       toast.success('Compartilhando no WhatsApp...')
     }
 
-      const encoded = encodeURIComponent(message)
-      window.open(`https://wa.me/?text=${encoded}`, '_blank')
-      toast.success('Compartilhando no WhatsApp...')
-    }
-
    const hexToRgba = (hex: string, opacity: number) => {
      const r = parseInt(hex.slice(1, 3), 16)
      const g = parseInt(hex.slice(3, 5), 16)
