@@ -225,10 +225,58 @@
       if (savedHistory) setFlyerHistory(JSON.parse(savedHistory))
     }
 
+    const fetchSavedFlyers = async () => {
+      setLoadingSaved(true)
+      try {
+        const { data, error } = await supabase
+          .from('flyers')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        setSavedFlyers(data || [])
+      } catch (error: any) {
+        console.error('Error fetching saved flyers:', error)
+      } finally {
+        setLoadingSaved(false)
+      }
+    }
+
     useEffect(() => {
       fetchProducts()
       loadData()
+      fetchSavedFlyers()
     }, [])
+
+    const saveToDatabase = async () => {
+      try {
+        const config = {
+          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+        }
+
+        const { error } = await supabase.from('flyers').insert({
+          title: `Encarte ${new Date().toLocaleDateString('pt-BR')}`,
+          layout_type: layout,
+          primary_color: priceColor,
+          secondary_color: secondaryColor,
+          products_data: selectedProducts,
+          config: config,
+          image_url: selectedProducts[0]?.image_url || ''
+        })
+
+        if (error) throw error
+        toast.success('Encarte salvo com sucesso no banco de dados!')
+        fetchSavedFlyers()
+      } catch (error: any) {
+        toast.error('Erro ao salvar no banco: ' + error.message)
+      }
+    }
 
     const saveTemplate = () => {
       if (!templateName) {
