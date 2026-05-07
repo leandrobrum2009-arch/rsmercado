@@ -1,4 +1,5 @@
- import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
@@ -77,6 +78,7 @@
      const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
+    const [productPadding, setProductPadding] = useState(8)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
 
@@ -256,7 +258,7 @@
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -329,6 +331,7 @@
       if (config.showShadows !== undefined) setShowShadows(config.showShadows)
       if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
       if (config.priceLayout) setPriceLayout(config.priceLayout)
+      if (config.productPadding !== undefined) setProductPadding(config.productPadding)
        if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
        if (config.imageSize !== undefined) setImageSize(config.imageSize)
        if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
@@ -460,6 +463,10 @@
     }
  
     const handlePrint = async () => {
+      toast.info('Preparando impressão... Selecione "Salvar como PDF" no destino da impressão.', {
+        duration: 5000
+      })
+      
      const historyItem = {
        id: Math.random().toString(36).substring(7),
        timestamp: new Date().toISOString(),
@@ -478,9 +485,41 @@
      setFlyerHistory(updatedHistory)
      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
       await saveToDatabase()
-     window.print()
-   }
- 
+      // Give time for the toast and any rendering to settle
+      setTimeout(() => {
+        window.print()
+      }, 500)
+    }
+
+    const handleDownloadImage = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) return
+
+      setUploading(true)
+      toast.info('Gerando imagem para download...')
+
+      try {
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 2, // Better quality
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          logging: false,
+        })
+
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = image
+        link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
+        link.click()
+        toast.success('Imagem baixada com sucesso!')
+      } catch (err) {
+        console.error('Error generating image:', err)
+        toast.error('Erro ao gerar imagem. Tente usar a opção de imprimir PDF.')
+      } finally {
+        setUploading(false)
+      }
+    }
+
    const hexToRgba = (hex: string, opacity: number) => {
      const r = parseInt(hex.slice(1, 3), 16)
      const g = parseInt(hex.slice(3, 5), 16)
@@ -686,10 +725,16 @@
                  </div>
                )}
  
-               <div className="space-y-3">
-                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento entre Blocos ({gridGap}px)</Label>
-                 <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
-               </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Espaçamento ({gridGap}px)</Label>
+                    <Slider value={[gridGap]} min={0} max={40} step={2} onValueChange={([val]) => setGridGap(val)} />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Padding ({productPadding}px)</Label>
+                    <Slider value={[productPadding]} min={0} max={20} step={1} onValueChange={([val]) => setProductPadding(val)} />
+                  </div>
+                </div>
  
                <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Logotipo no Topo</Label>
@@ -1200,9 +1245,24 @@
                </div>
              </div>
  
-             <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-               <Printer className="w-4 h-4 mr-2" /> Gerar PDF / Imprimir
-             </Button>
+              <div className="flex flex-col gap-2">
+                <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
+                  <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
+                  onClick={handleDownloadImage}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Baixar como Imagem (PNG)
+                </Button>
+              </div>
            </CardContent>
          </Card>
        </div>
@@ -1312,14 +1372,15 @@
                         <ValidityBanner isLine={true} />
                       </div>
                     )}
-                   <div 
-                     key={i} 
-                     className={cn(
-                       "flex flex-col items-center justify-center text-center space-y-2 p-2 relative",
-                       spanClass,
-                       fontFamily
-                     )}
-                   >
+                    <div
+                      key={i}
+                      className={cn(
+                        "flex flex-col items-center justify-center text-center space-y-2 relative",
+                        spanClass,
+                        fontFamily
+                      )}
+                      style={{ padding: `${productPadding}px` }}
+                    >
                         <div 
                           className={cn(
                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
