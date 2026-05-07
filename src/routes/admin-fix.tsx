@@ -13,7 +13,7 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V3 (SEM BLOCOS DO) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V4 (FIX TRANSLATION) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
@@ -25,6 +25,8 @@
     DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
     DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
     DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
+    DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
+    DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
     DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
     DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
     DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
@@ -439,7 +441,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
                >
                  <Copy size={16} />
                </button>
-               <pre className="whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto" translate="no">
                  {sqlToRun}
                </pre>
              </div>
