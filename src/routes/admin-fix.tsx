@@ -22,14 +22,15 @@
 
     -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
     ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
-    DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
-    DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
-    DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
-    DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
-    DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
-    DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
-    DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
+     DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Admin manage flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
+     DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
+     DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
+     DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
     
     CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
     
