@@ -1,4 +1,5 @@
- import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
@@ -460,6 +461,10 @@
     }
  
     const handlePrint = async () => {
+      toast.info('Preparando impressão... Selecione "Salvar como PDF" no destino da impressão.', {
+        duration: 5000
+      })
+      
      const historyItem = {
        id: Math.random().toString(36).substring(7),
        timestamp: new Date().toISOString(),
@@ -478,9 +483,41 @@
      setFlyerHistory(updatedHistory)
      localStorage.setItem('flyer_history', JSON.stringify(updatedHistory))
       await saveToDatabase()
-     window.print()
-   }
- 
+      // Give time for the toast and any rendering to settle
+      setTimeout(() => {
+        window.print()
+      }, 500)
+    }
+
+    const handleDownloadImage = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) return
+
+      setUploading(true)
+      toast.info('Gerando imagem para download...')
+
+      try {
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 2, // Better quality
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          logging: false,
+        })
+
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = image
+        link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
+        link.click()
+        toast.success('Imagem baixada com sucesso!')
+      } catch (err) {
+        console.error('Error generating image:', err)
+        toast.error('Erro ao gerar imagem. Tente usar a opção de imprimir PDF.')
+      } finally {
+        setUploading(false)
+      }
+    }
+
    const hexToRgba = (hex: string, opacity: number) => {
      const r = parseInt(hex.slice(1, 3), 16)
      const g = parseInt(hex.slice(3, 5), 16)
