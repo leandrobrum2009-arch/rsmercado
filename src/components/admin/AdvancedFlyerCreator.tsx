@@ -486,8 +486,17 @@
      return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
-   return (
-     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    const ValidityBanner = () => (
+      <div 
+        className="w-full py-1.5 px-4 text-center font-black uppercase italic text-[11px] shadow-md z-[45] tracking-tight"
+        style={{ backgroundColor: validityBgColor, color: validityTextColor }}
+      >
+        {validityText}
+      </div>
+    )
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
