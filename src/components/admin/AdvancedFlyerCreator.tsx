@@ -87,7 +87,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
-    const [productPadding, setProductPadding] = useState(8)
+     const [productPadding, setProductPadding] = useState(8)
+     const [nameOffsetY, setNameOffsetY] = useState(0)
+     const [priceOffsetY, setPriceOffsetY] = useState(0)
+     const [imageOffsetY, setImageOffsetY] = useState(0)
+     const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
     const [showPreviewModal, setShowPreviewModal] = useState(false)
