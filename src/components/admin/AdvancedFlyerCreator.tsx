@@ -1761,9 +1761,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             }}
                         >
                             <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible">
-                             <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
+                              <div className={cn("relative flex items-center justify-center w-full h-full", imageSize > 100 ? "overflow-visible" : "overflow-hidden")} style={{ minHeight: '120px' }}>
                                <img 
                                  src={p.image_url} 
+                                  crossOrigin="anonymous"
                                  className={cn(
                                    "object-contain transition-all duration-300 z-10",
                                    (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
