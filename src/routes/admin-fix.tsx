@@ -235,30 +235,40 @@ BEGIN
           CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
       END IF;
 
-      -- Pedidos (Qualquer um pode criar, Admin gerencia tudo, Usuário vê os seus)
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Anyone can insert orders') THEN
-          CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK ((user_id IS NULL) OR (auth.uid() = user_id));
-      END IF;
-       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Users view own orders') THEN
-           -- Segurança aprimorada: Usuários veem os seus, Admins veem tudo. 
-           -- Para visitantes, permitimos apenas se houver um match de telefone (ainda permissivo, mas melhor que IS NOT NULL)
-           CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (
-             auth.uid() = user_id 
-             OR customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
-             OR public.is_admin()
-           );
-       END IF;
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='Admin manage orders') THEN
-          CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
-      END IF;
+      -- Pedidos (LIMPEZA COMPLETA DE POLÍTICAS CONFLITANTES)
+      DROP POLICY IF EXISTS "Anyone can insert orders" ON public.orders;
+      DROP POLICY IF EXISTS "Users view own orders" ON public.orders;
+      DROP POLICY IF EXISTS "Admin manage orders" ON public.orders;
+      DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
+      DROP POLICY IF EXISTS "Users can insert their own orders" ON public.orders;
+      DROP POLICY IF EXISTS "Admins can view all orders" ON public.orders;
+      
+      CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
+      CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (
+        auth.uid() = user_id 
+        OR customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
+        OR public.is_admin()
+      );
+      CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
 
       -- Itens do Pedido
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='order_items' AND policyname='Anyone can insert order items') THEN
-          CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
-      END IF;
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='order_items' AND policyname='Anyone can view order items') THEN
-          CREATE POLICY "Anyone can view order items" ON public.order_items FOR SELECT USING (true);
-      END IF;
+      DROP POLICY IF EXISTS "Anyone can insert order items" ON public.order_items;
+      DROP POLICY IF EXISTS "Anyone can view order items" ON public.order_items;
+      DROP POLICY IF EXISTS "Users view own order items" ON public.order_items;
+      DROP POLICY IF EXISTS "Users can view their own order items" ON public.order_items;
+      
+      CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
+      CREATE POLICY "Users view own order items" ON public.order_items FOR SELECT USING (
+        EXISTS (
+          SELECT 1 FROM public.orders 
+          WHERE public.orders.id = order_id 
+          AND (
+            public.orders.user_id = auth.uid() 
+            OR public.orders.customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
+            OR public.is_admin()
+          )
+        )
+      );
 
       -- Feedback
       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_feedback' AND policyname='Anyone can insert feedback') THEN
