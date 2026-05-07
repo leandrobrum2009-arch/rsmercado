@@ -204,8 +204,20 @@ export function FlyerCreator() {
      toast.success('WhatsApp aberto para compartilhamento!')
    }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+   return (
+     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+       {printImage && (
+         <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static">
+           <img 
+             src={printImage} 
+             className="max-w-full max-h-full object-contain print:w-[210mm] print:h-[297mm] print:object-fill" 
+             alt="Print Preview" 
+           />
+         </div>
+       )}
+ 
+       <div className={`contents ${printImage ? 'print:hidden' : ''}`}>
+         {/* Controls Sidebar */}
       {/* Controls Sidebar */}
       <div className="lg:col-span-4 space-y-6 print:hidden">
         <Card>
@@ -317,11 +329,24 @@ export function FlyerCreator() {
             </div>
 
              <div className="grid grid-cols-2 gap-2 pt-4">
-              <Button variant="outline" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" /> Imprimir
+              <Button 
+                variant="outline" 
+                onClick={handlePrint}
+                disabled={isPreparingPrint}
+              >
+                {isPreparingPrint ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Printer className="w-4 h-4 mr-2" />
+                )}
+                Imprimir
               </Button>
-              <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+              <Button 
+                variant="outline"
+                onClick={handleDownloadImage}
+                disabled={isPreparingPrint}
+              >
+                <Download className="w-4 h-4 mr-2" /> Baixar Imagem
               </Button>
                <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
                  <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
@@ -335,7 +360,7 @@ export function FlyerCreator() {
       </div>
 
       {/* Preview Area */}
-      <div className="lg:col-span-8 flex justify-center bg-gray-200 p-8 rounded-xl overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+      <div className="lg:col-span-8 flex justify-center bg-gray-200 p-8 rounded-xl overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none no-scrollbar">
         <div 
           id="flyer-content"
           className={`bg-white shadow-2xl overflow-hidden flex flex-col ${layout === 'story' ? 'aspect-[9/16] w-[400px]' : 'aspect-[1/1.414] w-[700px]'} print:w-full print:shadow-none`}
