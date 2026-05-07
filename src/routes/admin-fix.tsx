@@ -323,9 +323,13 @@ BEGIN
       type TEXT DEFAULT 'info',
       is_active BOOLEAN DEFAULT TRUE,
       target_url TEXT,
+      duration_seconds INTEGER DEFAULT 10,
+      shimmer_speed_seconds DECIMAL(4,1) DEFAULT 2.0,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   );
   ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS target_url TEXT;
+  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS duration_seconds INTEGER DEFAULT 10;
+  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS shimmer_speed_seconds DECIMAL(4,1) DEFAULT 2.0;
  ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
  DO $$ BEGIN
      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_alerts' AND policyname='Public view alerts') THEN
