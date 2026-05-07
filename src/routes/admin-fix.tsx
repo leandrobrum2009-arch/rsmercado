@@ -61,7 +61,9 @@
   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
 
   -- 5. REPARAR PERMISSÕES DE ENCARTES (FLYERS)
-  ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.flyers ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.flyers ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT FALSE;
+   ALTER TABLE IF EXISTS public.flyers ADD COLUMN IF NOT EXISTS template_name TEXT;
   CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
   CREATE POLICY "Admin manage flyers" ON public.flyers FOR ALL TO authenticated 
   USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
