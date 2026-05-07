@@ -2,7 +2,8 @@
    import { registerServiceWorker } from "../lib/webpush";
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
      import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell, Trophy, ShoppingBag } from "lucide-react";
-   import { NotificationCenter } from "../components/NotificationCenter";
+    import { NotificationCenter } from "../components/NotificationCenter";
+    import { FeedbackButton } from "../components/FeedbackButton";
  import { CartProvider, useCart } from "../contexts/CartContext";
   import { useState, useEffect } from "react";
   import { supabase } from "@/lib/supabase";
@@ -351,9 +352,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
        </header>
  
  
-       <main className="flex-1 pb-20 md:pb-0">
-         <Outlet />
-       </main>
+        <main className="flex-1 pb-20 md:pb-0">
+          <Outlet />
+          {!isAdminPage && <FeedbackButton />}
+        </main>
  
        {/* Mobile Bottom Navigation */}
        {!isAdminPage && (
