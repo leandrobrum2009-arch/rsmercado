@@ -696,6 +696,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setTemplates(updated)
     }
 
+    const deleteDbTemplate = async (id: string) => {
+      try {
+        const { error } = await supabase.from('flyers').delete().eq('id', id)
+        if (error) throw error
+        toast.success('Modelo removido')
+        fetchSavedFlyers()
+      } catch (error: any) {
+        toast.error('Erro ao remover modelo')
+      }
+    }
+
     useEffect(() => {
       if (storeSettings) {
          if (storeSettings.colors?.primary) {
