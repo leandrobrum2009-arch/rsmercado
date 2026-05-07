@@ -1164,7 +1164,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-       <div className="lg:col-span-4 space-y-6 print:hidden">
+        <div className="lg:col-span-4 space-y-6 print:hidden no-scrollbar">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
@@ -1189,7 +1189,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
                       <TabsContent value="presets" className="space-y-4 py-4">
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                           <div className="grid grid-cols-1 gap-2">
                             {PRESET_TEMPLATES.map((t, idx) => (
                               <div key={idx} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-primary/30 transition-colors">
@@ -2059,7 +2059,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-[400px] overflow-y-auto divide-y divide-zinc-50">
+              <div className="max-h-[400px] overflow-y-auto divide-y divide-zinc-50 no-scrollbar">
                 {loadingSaved ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : savedFlyers.length === 0 ? (
@@ -2142,7 +2142,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
  
         {/* Preview Area */}
-          <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden">
+          <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden no-scrollbar">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -2154,7 +2154,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     <Eye className="w-3 h-3 mr-2" /> Prévia
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar">
                   <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
                     <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
                     <div className="flex gap-2">
@@ -2219,10 +2219,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full flex justify-center print:block overflow-hidden p-4">
+            <div className="w-full flex justify-center print:block overflow-hidden p-4 no-scrollbar">
               <div 
-                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center"
-                style={{ scrollbarWidth: 'thin' }}
+                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center no-scrollbar"
               >
                 <div
                   id="flyer-content"
@@ -2262,6 +2261,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
 
         <style>{`
+        /* Hide scrollbars but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
         @media print {
           @page { 
             size: A4 portrait; 
