@@ -64,6 +64,13 @@
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+ 
+   const PREDEFINED_BGS = [
+     'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
+     'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
+   ]
 
     const processImageBackground = (url: string): Promise<string> => {
       return new Promise((resolve) => {
@@ -378,43 +385,77 @@
                        ))}
                      </div>
                    </div>
-                   <div className="space-y-2">
-                     <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho do Logo ({logoSize}px)</Label>
-                     <Slider value={[logoSize]} min={40} max={400} step={10} onValueChange={([val]) => setLogoSize(val)} />
-                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho Logo ({logoSize}px)</Label>
+                      <Slider value={[logoSize]} min={40} max={400} step={5} onValueChange={([val]) => setLogoSize(val)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Frase..." 
+                          value={subtitleText} 
+                          onChange={(e) => setSubtitleText(e.target.value)} 
+                          className="h-8 text-[10px]" 
+                        />
+                        <Button 
+                          variant={showSubtitle ? 'default' : 'outline'} 
+                          size="sm" 
+                          className="h-8" 
+                          onClick={() => setShowSubtitle(!showSubtitle)}
+                        >
+                          {showSubtitle ? 'On' : 'Off'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                  </div>
                )}
  
-               {/* Background Settings */}
-               <div className="space-y-3">
-                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
-                 <div className="flex gap-2 mb-2">
-                   {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
-                     <Button
-                       key={type}
-                       variant={backgroundType === type ? 'default' : 'outline'}
-                       className="flex-1 h-8 text-[10px] font-bold capitalize"
-                       onClick={() => setBackgroundType(type)}
-                     >
-                       {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
-                     </Button>
-                   ))}
-                 </div>
- 
-                 {backgroundType === 'image' && (
-                   <div className="flex gap-4 items-center">
-                     {backgroundUrl && (
-                       <img src={backgroundUrl} className="w-16 h-20 object-cover rounded border" alt="BG Preview" />
-                     )}
-                     <div className="flex-1">
-                       <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                       <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                         {uploading ? <Loader2 className="animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                         <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Arte'}</span>
-                       </label>
-                     </div>
-                   </div>
-                 )}
+              {/* Background Settings */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
+                <div className="flex gap-2 mb-2">
+                  {(['image', 'gradient', 'color'] as BackgroundType[]).map(type => (
+                    <Button
+                      key={type}
+                      variant={backgroundType === type ? 'default' : 'outline'}
+                      className="flex-1 h-8 text-[10px] font-bold capitalize"
+                      onClick={() => setBackgroundType(type)}
+                    >
+                      {type === 'image' ? 'Img' : type === 'gradient' ? 'Deg' : 'Cor'}
+                    </Button>
+                  ))}
+                </div>
+
+                {backgroundType === 'image' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="grid grid-cols-4 gap-2">
+                      {PREDEFINED_BGS.map((bg, idx) => (
+                        <button
+                          key={idx}
+                          className={cn(
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
+                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                          )}
+                          onClick={() => setBackgroundUrl(bg)}
+                        >
+                          <img src={bg} className="w-full h-full object-cover" alt={`BG ${idx}`} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex-1">
+                        <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
+                        <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Minha Arte'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
  
                  {backgroundType === 'color' && (
                    <div className="flex gap-2">
