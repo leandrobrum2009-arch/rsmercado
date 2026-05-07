@@ -106,10 +106,33 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const handleResize = () => {
           if (typeof window !== 'undefined') {
             const width = window.innerWidth
-            if (width < 640) setFlyerScale((width - 40) / 794)
-            else if (width < 1024) setFlyerScale((width - 100) / 794)
-            else if (width < 1400) setFlyerScale(0.7)
-            else setFlyerScale(0.85)
+            const height = window.innerHeight
+            
+            // Área de prévia no desktop (lg) ocupa aprox 8/12 colunas
+            // No mobile ocupa a largura total
+            let availableWidth = width
+            if (width >= 1024) {
+              availableWidth = (width * 8 / 12) - 120 // 120px de respiro/padding
+            } else {
+              availableWidth = width - 40
+            }
+            
+            // Altura disponível: altura da tela menos topo e controles
+            // Precisamos que o A4 caiba inteiro se possível (sem rolar)
+            const availableHeight = height - 200 // 200px para o cabeçalho e margens
+            
+            // A4 tem 794x1123 em 96dpi
+            const scaleW = availableWidth / 794
+            const scaleH = availableHeight / 1123
+            
+            // Queremos o maior tamanho possível que caiba na tela "inteira"
+            // mas com um limite mínimo para não ficar minúsculo
+            let calculatedScale = Math.min(scaleW, scaleH)
+            
+            // Ajuste para não ficar muito pequeno nem absurdamente grande
+            calculatedScale = Math.max(Math.min(calculatedScale, 1.1), 0.4)
+            
+            setFlyerScale(calculatedScale)
           }
         }
         handleResize()
@@ -2151,7 +2174,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         </div>
  
          {/* Preview Area */}
-          <div className="lg:col-span-8 lg:sticky lg:top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-120px)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden no-scrollbar">
+          <div className="lg:col-span-8 lg:sticky lg:top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-[calc(100vh-100px)] lg:max-h-[calc(100vh-100px)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -2228,9 +2251,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full flex justify-center print:block overflow-hidden p-4 no-scrollbar">
+            <div className="w-full flex justify-center print:block p-2">
               <div 
-                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center no-scrollbar"
+                className="relative bg-zinc-200/50 p-4 md:p-10 rounded-2xl shadow-inner overflow-auto max-h-[calc(100vh-180px)] w-full flex justify-center no-scrollbar scroll-smooth"
               >
                 <div
                   id="flyer-content"
