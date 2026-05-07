@@ -289,17 +289,34 @@
       setTemplates(updated)
     }
 
-   useEffect(() => {
-     if (storeSettings) {
-        if (storeSettings.colors?.primary) {
-          setPriceColor(storeSettings.colors.primary)
-          setTitleColor(storeSettings.colors.primary)
-        }
-        if (storeSettings.colors?.secondary) {
-          setSecondaryColor(storeSettings.colors.secondary)
-        }
-     }
-   }, [storeSettings])
+    useEffect(() => {
+      if (storeSettings) {
+         if (storeSettings.colors?.primary) {
+           setPriceColor(storeSettings.colors.primary)
+           setTitleColor(storeSettings.colors.primary)
+         }
+         if (storeSettings.colors?.secondary) {
+           setSecondaryColor(storeSettings.colors.secondary)
+         }
+         
+         // Auto-fill footer if empty
+         if (!footerText) {
+           const info = []
+           if (storeSettings.address) info.push(storeSettings.address)
+           if (storeSettings.whatsapp) info.push(`WhatsApp: ${storeSettings.whatsapp}`)
+           if (info.length > 0) {
+             setFooterText(info.join(' | '))
+             setShowFooter(true)
+           }
+         }
+
+         // Auto-fill subtitle if empty
+         if (!subtitleText && storeSettings.store_description) {
+           setSubtitleText(storeSettings.store_description)
+           setShowSubtitle(true)
+         }
+      }
+    }, [storeSettings])
  
    const fetchProducts = async () => {
      const { data } = await supabase.from('products').select('*').limit(100)
@@ -598,9 +615,25 @@
                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tamanho Logo ({logoSize}px)</Label>
                       <Slider value={[logoSize]} min={40} max={400} step={5} onValueChange={([val]) => setLogoSize(val)} />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
-                      <div className="flex gap-2">
+                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                       <div className="flex justify-between items-center mb-1">
+                         <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Legenda Topo</Label>
+                         {storeSettings?.store_description && (
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-5 text-[7px] px-1 font-black uppercase"
+                             onClick={() => {
+                               setSubtitleText(storeSettings.store_description)
+                               setShowSubtitle(true)
+                               toast.success('Descrição importada')
+                             }}
+                           >
+                             <RefreshCcw className="w-2 h-2 mr-1" /> Usar Descrição
+                           </Button>
+                         )}
+                       </div>
+                       <div className="flex gap-2">
                         <Input 
                           placeholder="Frase..." 
                           value={subtitleText} 
@@ -849,8 +882,25 @@
                    </div>
                     
                     <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
-                      <div className="flex gap-2 mb-2">
+                       <div className="flex justify-between items-center mb-2">
+                         <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Dados do Rodapé</Label>
+                         <Button 
+                           variant="ghost" 
+                           size="sm" 
+                           className="h-6 text-[8px] font-black uppercase"
+                           onClick={() => {
+                             const info = []
+                             if (storeSettings?.address) info.push(storeSettings.address)
+                             if (storeSettings?.whatsapp) info.push(`WhatsApp: ${storeSettings.whatsapp}`)
+                             setFooterText(info.join(' | '))
+                             setShowFooter(true)
+                             toast.success('Dados importados da loja')
+                           }}
+                         >
+                           <RefreshCcw className="w-3 h-3 mr-1" /> Sincronizar
+                         </Button>
+                       </div>
+                       <div className="flex gap-2 mb-2">
                         <Input 
                           placeholder="Endereço, Telefone, Observações..." 
                           value={footerText} 
