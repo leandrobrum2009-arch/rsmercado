@@ -61,12 +61,20 @@
     return (
       <AnimatePresence>
         {alert && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0, y: -20 }}
-            animate={{ height: 'auto', opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -20 }}
-            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-4 ring-red-500/50 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/10`}
-          >
+           <motion.div 
+             initial={{ height: 0, opacity: 0, y: -20 }}
+             animate={{ height: 'auto', opacity: 1, y: 0 }}
+             exit={{ height: 0, opacity: 0, y: -20, scale: 0.95 }}
+             drag="y"
+             dragConstraints={{ top: 0, bottom: 0 }}
+             dragElastic={{ top: 0.1, bottom: 0.1 }}
+             onDragEnd={(_, info) => {
+               if (info.offset.y < -50) {
+                 setAlert(null);
+               }
+             }}
+             className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-pulse ring-4 ring-red-500/50 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/10 cursor-grab active:cursor-grabbing touch-none`}
+           >
             <div className="container mx-auto px-4 py-4 md:py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 relative z-10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
               
