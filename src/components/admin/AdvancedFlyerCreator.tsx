@@ -94,7 +94,23 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
-    const [showPreviewModal, setShowPreviewModal] = useState(false)
+     const [showPreviewModal, setShowPreviewModal] = useState(false)
+     const [flyerScale, setFlyerScale] = useState(0.8)
+ 
+     useEffect(() => {
+       const handleResize = () => {
+         if (typeof window !== 'undefined') {
+           const width = window.innerWidth
+           if (width < 640) setFlyerScale((width - 40) / 794)
+           else if (width < 1024) setFlyerScale((width - 100) / 794)
+           else if (width < 1400) setFlyerScale(0.7)
+           else setFlyerScale(0.85)
+         }
+       }
+       handleResize()
+       window.addEventListener('resize', handleResize)
+       return () => window.removeEventListener('resize', handleResize)
+     }, [])
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -2107,8 +2123,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     width: '794px', // A4 em 96dpi
                     height: '1123px',
                     backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                    transform: `scale(${typeof window !== 'undefined' && window.innerWidth < 1000 ? (window.innerWidth - 100) / 794 : 0.8})`,
-                    marginBottom: '-200px' // Compensar o espaço do scale
+                    transform: `scale(${flyerScale})`,
+                    marginBottom: `${(1123 * (flyerScale - 1))}px`,
+                    marginRight: `${(794 * (flyerScale - 1)) / 2}px`,
+                    marginLeft: `${(794 * (flyerScale - 1)) / 2}px`
                   }}
                 >
                 {/* Dedicated Background Layer for better print reliability */}
@@ -2123,15 +2141,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   }}
                 />
                 
-                <div className="relative z-10 w-full h-full flex flex-col">
-                  <FlyerContentInner />
+                  <div className="relative z-10 w-full h-full flex flex-col">
+                    <FlyerContentInner />
+                  </div>
                 </div>
               </div>
-         </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <style>{`
+        <style>{`
         @media print {
           @page { 
             size: A4 portrait; 
