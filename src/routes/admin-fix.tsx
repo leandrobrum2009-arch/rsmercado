@@ -286,18 +286,16 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Public can view products" ON public.products;
   CREATE POLICY "Public can view products" ON public.products FOR SELECT USING (true);
   
-  -- POLÍTICAS PARA USER_ROLES
-  DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
-  CREATE POLICY "Users can view own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
-  
   -- 3. POLÍTICAS DE SEGURANÇA NÃO RECURSIVAS
   -- Fix recursion on user_roles
   ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Admins manage roles" ON public.user_roles;
+   DROP POLICY IF EXISTS "Users view own role" ON public.user_roles;
+   DROP POLICY IF EXISTS "Users can view own role" ON public.user_roles;
+   
   CREATE POLICY "Admins manage roles" ON public.user_roles 
   FOR ALL USING ((auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
   
-  DROP POLICY IF EXISTS "Users view own role" ON public.user_roles;
   CREATE POLICY "Users view own role" ON public.user_roles 
   FOR SELECT USING (auth.uid() = user_id);
 
