@@ -154,7 +154,7 @@ function CartPage() {
         </div>
         <h2 className="text-xl font-bold text-gray-800">Seu carrinho está vazio</h2>
         <p className="text-gray-500 text-center mt-2 max-w-[250px]">
-          Adicione produtos para começar suas compras no SuperLoja.
+           Adicione produtos para começar suas compras no RS SUPERMERCADO.
         </p>
         <Link to="/" className="mt-8 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg">
           Ir para as compras
