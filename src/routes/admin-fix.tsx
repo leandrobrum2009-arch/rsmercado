@@ -20,27 +20,19 @@
   -- Note: We use email_confirmed_at. confirmed_at is a generated column.
    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
 
-   -- 1.1 GARANTIR TABELA DE ENCARTES (FLYERS)
-   CREATE TABLE IF NOT EXISTS public.flyers (
-       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-       title TEXT NOT NULL,
-       layout_type TEXT DEFAULT 'grid',
-       primary_color TEXT,
-       secondary_color TEXT,
-       products_data JSONB DEFAULT '[]',
-       config JSONB DEFAULT '{}',
-       image_url TEXT,
-       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-   ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
-   DO $$ BEGIN
-       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='flyers' AND policyname='Anyone can view flyers') THEN
-           CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
-       END IF;
-       IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='flyers' AND policyname='Admin can manage flyers') THEN
-           CREATE POLICY "Admin can manage flyers" ON public.flyers FOR ALL USING (public.is_admin());
-       END IF;
-   END $$;
+    -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
+    ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
+    DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
+    DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
+    
+    CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
+    
+    CREATE POLICY "Admin manage flyers" ON public.flyers 
+    FOR ALL 
+    TO authenticated 
+    USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
+    WITH CHECK (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
    -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
