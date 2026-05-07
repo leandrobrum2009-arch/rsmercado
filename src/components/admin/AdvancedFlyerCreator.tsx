@@ -33,7 +33,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
    const [backgroundUrl, setBackgroundUrl] = useState('')
    const [backgroundColor, setBackgroundColor] = useState('#ffffff')
-   const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+  const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+  const [gradientStart, setGradientStart] = useState('#ffffff')
+  const [gradientEnd, setGradientEnd] = useState('#f3f4f6')
+  const [gradientDirection, setGradientDirection] = useState('to bottom')
+    useEffect(() => {
+      setBackgroundGradient(`linear-gradient(${gradientDirection}, ${gradientStart}, ${gradientEnd})`)
+    }, [gradientStart, gradientEnd, gradientDirection])
+
    const [columns, setColumns] = useState(3)
     const [gridGap, setGridGap] = useState(10)
    const [showLogo, setShowLogo] = useState(true)
@@ -1042,11 +1049,56 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    </div>
                  )}
  
-                 {backgroundType === 'gradient' && (
-                   <div className="space-y-2">
-                     <Input value={backgroundGradient} onChange={(e) => setBackgroundGradient(e.target.value)} className="h-10 text-xs font-mono" />
-                   </div>
-                 )}
+                  {backgroundType === 'gradient' && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[8px] font-bold uppercase text-zinc-400">Cor Inicial</Label>
+                          <div className="flex gap-1">
+                            <Input type="color" value={gradientStart} onChange={(e) => setGradientStart(e.target.value)} className="w-8 h-8 p-0 border-none rounded-lg" />
+                            <Input value={gradientStart} onChange={(e) => setGradientStart(e.target.value)} className="h-8 text-[10px]" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[8px] font-bold uppercase text-zinc-400">Cor Final</Label>
+                          <div className="flex gap-1">
+                            <Input type="color" value={gradientEnd} onChange={(e) => setGradientEnd(e.target.value)} className="w-8 h-8 p-0 border-none rounded-lg" />
+                            <Input value={gradientEnd} onChange={(e) => setGradientEnd(e.target.value)} className="h-8 text-[10px]" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase text-zinc-400">Direção do Degradê</Label>
+                        <div className="grid grid-cols-4 gap-1">
+                          {[
+                            { id: 'to bottom', label: '↓' },
+                            { id: 'to top', label: '↑' },
+                            { id: 'to right', label: '→' },
+                            { id: 'to bottom right', label: '↘' },
+                          ].map(dir => (
+                            <Button
+                              key={dir.id}
+                              variant={gradientDirection === dir.id ? 'default' : 'outline'}
+                              className="h-7 text-xs font-bold"
+                              onClick={() => setGradientDirection(dir.id)}
+                            >
+                              {dir.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase text-zinc-400">Código CSS (Manual)</Label>
+                        <Input 
+                          value={backgroundGradient} 
+                          onChange={(e) => setBackgroundGradient(e.target.value)} 
+                          className="h-8 text-[9px] font-mono bg-zinc-50" 
+                        />
+                      </div>
+                    </div>
+                  )}
                </div>
  
              {/* Styling */}
