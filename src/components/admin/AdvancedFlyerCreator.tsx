@@ -1153,7 +1153,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
+      {printImage && (
+        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static">
+          <img 
+            src={printImage} 
+            className="w-[210mm] h-[297mm] object-contain mx-auto" 
+            alt="Print Preview" 
+          />
+        </div>
+      )}
+      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
