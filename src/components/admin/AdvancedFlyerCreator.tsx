@@ -1429,7 +1429,6 @@
                     <div className="absolute bottom-full left-0 w-full mb-1">
                       <ValidityBanner />
                     </div>
-                    </>
                   )}
                   {showFooter && footerText && (
                     <div 
