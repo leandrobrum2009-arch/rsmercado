@@ -57,7 +57,9 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-   const [productBlockHeight, setProductBlockHeight] = useState(0) // 0 means auto
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // 0 means auto
+    const [imageSize, setImageSize] = useState(100)
+    const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
    const [priceBgColor, setPriceBgColor] = useState('#ffff00')
    const [showShadows, setShowShadows] = useState(true)
@@ -86,10 +88,21 @@
           ctx.drawImage(img, 0, 0)
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           const data = imageData.data
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2]
-            if (r > 230 && g > 230 && b > 230) data[i+3] = 0
-          }
+         // Improved background removal algorithm
+         // Instead of just pure white, we look for anything close to white
+         // and handle edge case artifacts better
+         for (let i = 0; i < data.length; i += 4) {
+           const r = data[i], g = data[i+1], b = data[i+2]
+           // If pixel is light enough (above 220), make it transparent
+           // We use a slightly more complex check to avoid catching light colors that aren't gray
+           const max = Math.max(r, g, b)
+           const min = Math.min(r, g, b)
+           const diff = max - min
+           
+           if (max > 220 && diff < 20) {
+             data[i+3] = 0
+           }
+         }
           ctx.putImageData(imageData, 0, 0)
           resolve(canvas.toDataURL())
         }
@@ -119,7 +132,7 @@
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg
+          priceLayout, globalRemoveBg, imageSize, nameOnTop
         }
       }
       const updated = [...templates, newTemplate]
@@ -154,6 +167,8 @@
       if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
       if (config.priceLayout) setPriceLayout(config.priceLayout)
       if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+      if (config.imageSize !== undefined) setImageSize(config.imageSize)
+      if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
       toast.success('Template aplicado!')
     }
 
@@ -569,10 +584,37 @@
                  </div>
  
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                      <Slider value={[productBlockHeight]} min={0} max={400} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
-                    </div>
+                   <div className="space-y-2">
+                     <div className="flex justify-between items-center">
+                       <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                       <Input 
+                         type="number" 
+                         value={productBlockHeight} 
+                         onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
+                         className="w-16 h-6 text-[10px] p-1 text-center"
+                         min={0}
+                         max={800}
+                       />
+                     </div>
+                     <Slider value={[productBlockHeight]} min={0} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                   </div>
+                   
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
+                     <Slider value={[imageSize]} min={50} max={300} step={1} onValueChange={([val]) => setImageSize(val)} />
+                   </div>
+
+                   <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-200">
+                     <Label className="text-[10px] font-bold uppercase">Nome Sobre Foto</Label>
+                     <Button 
+                       variant={nameOnTop ? 'default' : 'outline'} 
+                       size="sm" 
+                       className="h-7 text-[10px]"
+                       onClick={() => setNameOnTop(!nameOnTop)}
+                     >
+                       {nameOnTop ? 'Sim' : 'Não'}
+                     </Button>
+                   </div>
                     
                     <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
@@ -812,27 +854,45 @@
                              height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
                           }}
                         >
-                          <img 
-                            src={p.image_url} 
-                            className={cn(
-                              "object-contain transition-all duration-300",
-                               p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
-                              layout === 'single' ? 'w-80 h-80' : 
-                              (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
-                              columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
-                            )} 
-                            style={{
-                              // Alternative for truly transparent backgrounds if the browser supports it
-                              // but mix-blend-multiply is generally the "effective" way for white backgrounds
-                            }}
-                          />
-                         <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
-                         <h3 
-                           className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
-                           style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
-                         >
-                           {p.name}
-                         </h3>
+                           <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
+                            <img 
+                              src={p.image_url} 
+                              className={cn(
+                                "object-contain transition-all duration-300 z-10",
+                                 p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
+                              )} 
+                              style={{
+                                width: `${(layout === 'single' ? 80 : 
+                                         (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
+                                         columns === 4 ? 16 : 24) * (imageSize / 100)}%`,
+                                height: 'auto',
+                                maxHeight: '100%',
+                              }}
+                            />
+                            {nameOnTop && (
+                              <h3 
+                                className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
+                                style={{ 
+                                  color: titleColor, 
+                                  fontSize: `${layout === 'single' ? fontSize * 2 : fontSize}px`,
+                                  backgroundColor: hexToRgba(productBgColor, 40),
+                                  padding: '2px 4px'
+                                }}
+                              >
+                                {p.name}
+                              </h3>
+                            )}
+                           </div>
+
+                          <div className={cn("space-y-0.5 mt-1 w-full z-30", columns === 4 ? "scale-90" : "")}>
+                          {!nameOnTop && (
+                            <h3 
+                              className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
+                              style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
+                            >
+                              {p.name}
+                            </h3>
+                          )}
                           <div className={cn(
                             "flex flex-col items-center mt-auto",
                             showPriceBg ? "px-3 py-1 rounded-lg" : ""
