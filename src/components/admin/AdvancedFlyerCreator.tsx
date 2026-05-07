@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -573,6 +573,29 @@ import html2canvas from 'html2canvas'
       } finally {
         setUploading(false)
       }
+    }
+
+    const handleShareWhatsApp = () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
+      }
+
+      let message = `🚀 *OFERTAS DO DIA - ${storeSettings?.site_name || 'RS SUPERMERCADO'}* 🚀\n\n`
+      if (validityText) message += `📅 _${validityText}_\n\n`
+
+      selectedProducts.forEach(p => {
+        message += `✅ *${p.name}*\n💰 *R$ ${p.price.toFixed(2)}*${p.unit ? ` / ${p.unit}` : ''}\n`
+        if (p.original_price) message += `❌ ~~De R$ ${p.original_price.toFixed(2)}~~\n`
+        message += `\n`
+      })
+
+      message += `🛒 *Peça agora pelo site:* ${window.location.origin}\n`
+      message += `📍 ${storeSettings?.address || ''}`
+
+      const encoded = encodeURIComponent(message)
+      window.open(`https://wa.me/?text=${encoded}`, '_blank')
+      toast.success('Compartilhando no WhatsApp...')
     }
 
    const hexToRgba = (hex: string, opacity: number) => {
