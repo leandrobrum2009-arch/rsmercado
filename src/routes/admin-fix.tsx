@@ -13,7 +13,7 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V7 (FINAL CLEANUP) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V8 (FIX PARAMETERS) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
@@ -301,6 +301,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
+    DROP FUNCTION IF EXISTS public.notify_all_users(text,text,text);
     CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
     RETURNS VOID 
     LANGUAGE plpgsql 
@@ -391,8 +392,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   );
   ALTER TABLE public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
-  CREATE POLICY "Admins view audit logs" ON public.migration_audit_logs FOR SELECT USING (public.is_admin());
-
+  DROP FUNCTION IF EXISTS public.log_migration_step(text,text,text,jsonb);
   CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
   RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $BODY$
   BEGIN
