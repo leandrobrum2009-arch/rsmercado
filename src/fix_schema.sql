@@ -34,8 +34,12 @@
  DROP POLICY IF EXISTS "Anyone can insert orders" ON public.orders;
  CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK ((user_id IS NULL) OR (auth.uid() = user_id));
  
- DROP POLICY IF EXISTS "Users view own orders" ON public.orders;
- CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR customer_phone IS NOT NULL);
+DROP POLICY IF EXISTS "Users view own orders" ON public.orders;
+CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (
+  auth.uid() = user_id 
+  OR customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
+  OR public.is_admin()
+);
  
  DROP POLICY IF EXISTS "Admin manage orders" ON public.orders;
  CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
