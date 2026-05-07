@@ -566,10 +566,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       // Non-blocking save
       saveToDatabase().catch(err => console.error("Auto-save failed:", err))
       
-      // Trigger print with a small delay for any layout settling
+      // Trigger print with a delay for layout and font rendering
+      // We also temporarily disable transitions to ensure static capture
+      const flyerElement = document.getElementById('flyer-content');
+      if (flyerElement) {
+        flyerElement.style.transition = 'none';
+        // Force reflow
+        void flyerElement.offsetHeight;
+      }
+
       setTimeout(() => {
-        window.print()
-      }, 300)
+        window.print();
+        if (flyerElement) {
+          // Re-enable transitions after a delay
+          setTimeout(() => {
+            flyerElement.style.transition = '';
+          }, 1000);
+        }
+      }, 800);
     }
 
     const handleDownloadImage = async () => {
@@ -593,21 +607,40 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           })
         }))
 
+        // Temporary styles for capture to ensure best result
+        const originalTransform = element.style.transform;
+        const originalTransition = element.style.transition;
+        element.style.transform = 'none';
+        element.style.transition = 'none';
+
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true,
-          scale: 2, // High quality
+          allowTaint: false, // Security: false to avoid tainted canvas
+          scale: 3, // Even higher quality for printing/sharing
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: true, // Helpful for debugging
-          imageTimeout: 15000, // Wait up to 15s for images
+          logging: false,
+          imageTimeout: 30000,
+          onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById('flyer-content');
+            if (clonedElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.transition = 'none';
+              clonedElement.style.margin = '0';
+              clonedElement.style.boxShadow = 'none';
+            }
+          }
         })
+
+        element.style.transform = originalTransform;
+        element.style.transition = originalTransition;
 
         const image = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
-        document.body.appendChild(link)
-        link.click()
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         document.body.removeChild(link)
         
         toast.dismiss(loadingToast)
