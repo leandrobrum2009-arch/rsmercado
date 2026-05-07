@@ -297,6 +297,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
   -- 10. NOTIFICAÇÕES E ALERTAS
    -- FUNÇÃO PARA NOTIFICAR TODOS
+     DROP FUNCTION IF EXISTS public.notify_all_users(text,text,text);
      CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
     RETURNS VOID 
     LANGUAGE plpgsql 
@@ -387,6 +388,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   );
   ALTER TABLE public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
    DROP POLICY IF EXISTS "Admins view audit logs" ON public.migration_audit_logs;
+   DROP FUNCTION IF EXISTS public.log_migration_step(text,text,text,jsonb);
    CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
   RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $BODY$
   BEGIN
