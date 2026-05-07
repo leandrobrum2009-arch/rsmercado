@@ -1372,14 +1372,15 @@ import html2canvas from 'html2canvas'
                         <ValidityBanner isLine={true} />
                       </div>
                     )}
-                   <div 
-                     key={i} 
-                     className={cn(
-                       "flex flex-col items-center justify-center text-center space-y-2 p-2 relative",
-                       spanClass,
-                       fontFamily
-                     )}
-                   >
+                    <div
+                      key={i}
+                      className={cn(
+                        "flex flex-col items-center justify-center text-center space-y-2 relative",
+                        spanClass,
+                        fontFamily
+                      )}
+                      style={{ padding: `${productPadding}px` }}
+                    >
                         <div 
                           className={cn(
                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
