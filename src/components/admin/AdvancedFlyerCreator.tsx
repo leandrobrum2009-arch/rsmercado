@@ -890,6 +890,67 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }
 
+    const handleDownloadPDF = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setUploading(true)
+      const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
+
+      try {
+        // Ensure all images are loaded
+        const images = Array.from(element.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        const originalTransform = element.style.transform
+        const originalTransition = element.style.transition
+        element.style.transform = 'none'
+        element.style.transition = 'none'
+
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 3,
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          imageTimeout: 30000,
+        })
+
+        element.style.transform = originalTransform
+        element.style.transition = originalTransition
+
+        const imgData = canvas.toDataURL('image/png')
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        })
+
+        const imgProps = pdf.getImageProperties(imgData)
+        const pdfWidth = pdf.internal.pageSize.getWidth()
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
+
+        toast.dismiss(loadingToast)
+        toast.success('PDF baixado com sucesso!')
+      } catch (err) {
+        console.error('Error generating PDF:', err)
+        toast.dismiss(loadingToast)
+        toast.error('Erro ao gerar PDF.')
+      } finally {
+        setUploading(false)
+      }
+    }
+
     const handleShareWhatsApp = async () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro')
