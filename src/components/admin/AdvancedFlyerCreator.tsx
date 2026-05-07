@@ -345,9 +345,9 @@ import html2canvas from 'html2canvas'
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle
+          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
       }
       const updated = [newTemplate, ...templates]
@@ -390,8 +390,13 @@ import html2canvas from 'html2canvas'
        if (config.footerText !== undefined) setFooterText(config.footerText)
        if (config.showFooter !== undefined) setShowFooter(config.showFooter)
        if (config.footerFontSize !== undefined) setFooterFontSize(config.footerFontSize)
-       if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
-       if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
+      if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
+      if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
+      if (config.showValidity !== undefined) setShowValidity(config.showValidity)
+      if (config.validityText !== undefined) setValidityText(config.validityText)
+      if (config.validityPosition !== undefined) setValidityPosition(config.validityPosition)
+      if (config.validityBgColor !== undefined) setValidityBgColor(config.validityBgColor)
+      if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
       toast.success('Template aplicado!')
     }
 
