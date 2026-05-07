@@ -8,7 +8,7 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -69,6 +69,16 @@
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
      const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
      const [processingBg, setProcessingBg] = useState<string | null>(null)
+    
+    // Validity phrase states
+    const [showValidity, setShowValidity] = useState(true)
+    const [validityText, setValidityText] = useState(`Ofertas válidas de ${new Date().toLocaleDateString('pt-BR')} até as 21h`)
+    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer'>('bottom')
+    const [validityBgColor, setValidityBgColor] = useState('#fbbf24') // yellow-400
+    const [validityTextColor, setValidityTextColor] = useState('#000000')
+    const [savedFlyers, setSavedFlyers] = useState<any[]>([])
+    const [loadingSaved, setLoadingSaved] = useState(false)
+
     useEffect(() => {
       if (globalRemoveBg && selectedProducts.length > 0) {
         const processAll = async () => {
@@ -215,10 +225,58 @@
       if (savedHistory) setFlyerHistory(JSON.parse(savedHistory))
     }
 
+    const fetchSavedFlyers = async () => {
+      setLoadingSaved(true)
+      try {
+        const { data, error } = await supabase
+          .from('flyers')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        setSavedFlyers(data || [])
+      } catch (error: any) {
+        console.error('Error fetching saved flyers:', error)
+      } finally {
+        setLoadingSaved(false)
+      }
+    }
+
     useEffect(() => {
       fetchProducts()
       loadData()
+      fetchSavedFlyers()
     }, [])
+
+    const saveToDatabase = async () => {
+      try {
+        const config = {
+          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+        }
+
+        const { error } = await supabase.from('flyers').insert({
+          title: `Encarte ${new Date().toLocaleDateString('pt-BR')}`,
+          layout_type: layout,
+          primary_color: priceColor,
+          secondary_color: secondaryColor,
+          products_data: selectedProducts,
+          config: config,
+          image_url: selectedProducts[0]?.image_url || ''
+        })
+
+        if (error) throw error
+        toast.success('Encarte salvo com sucesso no banco de dados!')
+        fetchSavedFlyers()
+      } catch (error: any) {
+        toast.error('Erro ao salvar no banco: ' + error.message)
+      }
+    }
 
     const saveTemplate = () => {
       if (!templateName) {
@@ -428,8 +486,17 @@
      return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
-   return (
-     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    const ValidityBanner = () => (
+      <div 
+        className="w-full py-1.5 px-4 text-center font-black uppercase italic text-[11px] shadow-md z-[45] tracking-tight"
+        style={{ backgroundColor: validityBgColor, color: validityTextColor }}
+      >
+        {validityText}
+      </div>
+    )
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
        {/* Controls Sidebar */}
        <div className="lg:col-span-4 space-y-6 print:hidden">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
@@ -449,9 +516,10 @@
                      <DialogTitle>Templates de Encarte</DialogTitle>
                    </DialogHeader>
                     <Tabs defaultValue="templates" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
+                      <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="templates">Templates</TabsTrigger>
                         <TabsTrigger value="history">Histórico</TabsTrigger>
+                        <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
                       <TabsContent value="templates" className="space-y-4 py-4">
                         <div className="flex gap-2">
@@ -515,6 +583,42 @@
                                       }}
                                     >
                                       Restaurar
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="saved" className="space-y-4 py-4">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                          {loadingSaved ? (
+                            <div className="flex justify-center py-8"><Loader2 className="animate-spin" /></div>
+                          ) : savedFlyers.length === 0 ? (
+                            <p className="text-center py-8 text-zinc-400 text-xs">Nenhum encarte salvo no banco</p>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                              {savedFlyers.map((h) => (
+                                <div key={h.id} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-xs">{h.title}</span>
+                                    <span className="text-[8px] text-zinc-400 flex items-center">
+                                      <Calendar className="w-2 h-2 mr-1" /> {new Date(h.created_at).toLocaleDateString()} {new Date(h.created_at).toLocaleTimeString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      className="h-7 text-[10px]" 
+                                      onClick={() => {
+                                        if (h.config) applyTemplate(h.config)
+                                        if (h.products_data) setSelectedProducts(h.products_data)
+                                        toast.success('Encarte carregado!')
+                                      }}
+                                    >
+                                      Abrir
                                     </Button>
                                   </div>
                                 </div>
@@ -654,6 +758,54 @@
                  </div>
                )}
  
+              {/* Validity Phrase Settings */}
+              <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Frase de Validade</Label>
+                  <Button 
+                    variant={showValidity ? 'default' : 'outline'} 
+                    size="sm" 
+                    className="h-7 text-[10px]"
+                    onClick={() => setShowValidity(!showValidity)}
+                  >
+                    {showValidity ? 'On' : 'Off'}
+                  </Button>
+                </div>
+
+                {showValidity && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <Input 
+                      placeholder="Ex: Ofertas válidas até..." 
+                      value={validityText} 
+                      onChange={(e) => setValidityText(e.target.value)}
+                      className="h-8 text-[10px]"
+                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['top', 'bottom', 'footer'] as const).map(pos => (
+                        <Button
+                          key={pos}
+                          variant={validityPosition === pos ? 'default' : 'outline'}
+                          className="h-7 text-[8px] font-bold uppercase"
+                          onClick={() => setValidityPosition(pos)}
+                        >
+                          {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Meio' : 'Rodapé'}
+                        </Button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase">Fundo</Label>
+                        <Input type="color" value={validityBgColor} onChange={(e) => setValidityBgColor(e.target.value)} className="h-7 w-full p-0 border-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] font-bold uppercase">Texto</Label>
+                        <Input type="color" value={validityTextColor} onChange={(e) => setValidityTextColor(e.target.value)} className="h-7 w-full p-0 border-none" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Background Settings */}
               <div className="space-y-3">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Fundo do Encarte</Label>
@@ -1038,16 +1190,19 @@
          </Card>
        </div>
  
-       {/* Preview Area */}
-        <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+        {/* Preview Area */}
+        <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Preview Real A4
             </div>
-            <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
-              <Download className="w-3 h-3 mr-2" /> Download / Salvar PDF
-            </Button>
+              <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={() => {
+                handlePrint()
+                saveToDatabase()
+              }}>
+                <Save className="w-3 h-3 mr-2" /> Salvar e Imprimir
+              </Button>
           </div>
 
          <div 
@@ -1065,7 +1220,7 @@
                }}
            >
                 {/* Top Reserved Zone (15%) */}
-                <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30">
+                 <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/30 overflow-visible">
                   {showLogo && storeSettings?.logo_url && (
                     <div 
                       className={cn(
@@ -1093,18 +1248,28 @@
                       </div>
                     </div>
                   )}
-               <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
+                  {showValidity && validityPosition === 'top' && (
+                    <div className="absolute -bottom-4 left-0 w-full z-50">
+                      <ValidityBanner />
+                    </div>
+                  )}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                      Topo Reservado (15%)
                  </div>
                </div>
              </div>
    
-               {/* Content Middle Zone (80%) */}
+                {/* Content Middle Zone (80%) */}
                 <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
+                  {showValidity && validityPosition === 'bottom' && (
+                    <div className="mb-4">
+                      <ValidityBanner />
+                    </div>
+                  )}
                <div 
                  className={cn(
-                    "grid h-fit max-h-full transition-all duration-300 items-start",
+                    "grid h-fit max-h-full transition-all duration-300 items-stretch",
                    layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                    layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
@@ -1250,7 +1415,12 @@
            </div>
  
                 {/* Bottom Reserved Zone (5%) */}
-                <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12">
+                <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
+                  {showValidity && validityPosition === 'footer' && (
+                    <div className="absolute bottom-full left-0 w-full mb-1">
+                      <ValidityBanner />
+                    </div>
+                  )}
                   {showFooter && footerText && (
                     <div 
                       className="text-center font-bold uppercase italic animate-in fade-in slide-in-from-bottom-2"
