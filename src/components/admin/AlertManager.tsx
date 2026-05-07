@@ -13,6 +13,8 @@
    const [alerts, setAlerts] = useState<any[]>([])
     const [message, setMessage] = useState('')
     const [targetUrl, setTargetUrl] = useState('')
+    const [duration, setDuration] = useState('10')
+    const [shimmerSpeed, setShimmerSpeed] = useState('2.0')
    const [type, setType] = useState('info')
    const [loading, setLoading] = useState(false)
    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
@@ -32,9 +34,16 @@
     const createAlert = async () => {
       if (!message) return
       setLoading(true)
-      const { error } = await supabase
-        .from('store_alerts')
-        .insert({ message, type, is_active: true, target_url: targetUrl || null })
+       const { error } = await supabase
+         .from('store_alerts')
+         .insert({ 
+           message, 
+           type, 
+           is_active: true, 
+           target_url: targetUrl || null,
+           duration_seconds: parseInt(duration),
+           shimmer_speed_seconds: parseFloat(shimmerSpeed)
+         })
       
       if (error) {
         console.error(error)
@@ -90,6 +99,26 @@
                 placeholder="Ex: /promocoes ou https://..." 
                 value={targetUrl} 
                 onChange={(e) => setTargetUrl(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Duração da Barra (s)</label>
+              <Input 
+                type="number"
+                value={duration} 
+                onChange={(e) => setDuration(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-zinc-500">Velocidade do Brilho (s)</label>
+              <Input 
+                type="number"
+                step="0.1"
+                value={shimmerSpeed} 
+                onChange={(e) => setShimmerSpeed(e.target.value)}
               />
             </div>
           </div>
