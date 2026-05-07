@@ -875,9 +875,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        document.body.appendChild(link)
+        link.click()
         document.body.removeChild(link)
         
         toast.dismiss(loadingToast)
