@@ -13,9 +13,9 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER - RS SUPERMERCADO
-  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - RS SUPERMERCADO
-  
+   const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V3 (SEM BLOCOS DO) - RS SUPERMERCADO
+  -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
+
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
   -- Note: We use email_confirmed_at. confirmed_at is a generated column.
    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
@@ -56,9 +56,9 @@
       );
     END; $BODY$;
  
- -- 3. PROMOVER USUÁRIO A ADMIN
- INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
- ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+  -- 3. PROMOVER USUÁRIO A ADMIN (IDEMPOTENTE SEM DO UPDATE)
+  DELETE FROM public.user_roles WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'leandrobrum2009@gmail.com');
+  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com';
  
   -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
   CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
@@ -292,17 +292,16 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
  -- 10. NOTIFICAÇÕES E ALERTAS
   -- FUNÇÃO PARA NOTIFICAR TODOS
-   CREATE OR REPLACE FUNCTION public.notify_all_users(title TEXT, message TEXT, type TEXT DEFAULT 'info')
-   RETURNS VOID 
-   LANGUAGE plpgsql 
-   SECURITY DEFINER 
-   SET search_path = public, auth
-   AS $$
-   BEGIN
-     INSERT INTO public.notifications (user_id, title, message, type)
-     SELECT id, title, message, type FROM auth.users;
-   END;
-   $$;
+    CREATE OR REPLACE FUNCTION public.notify_all_users(p_title TEXT, p_message TEXT, p_type TEXT DEFAULT 'info')
+    RETURNS VOID 
+    LANGUAGE plpgsql 
+    SECURITY DEFINER 
+    SET search_path = public, auth
+    AS $BODY$
+    BEGIN
+      INSERT INTO public.notifications (user_id, title, message, type)
+      SELECT id, p_title, p_message, p_type FROM auth.users;
+    END; $BODY$;
 
  CREATE TABLE IF NOT EXISTS public.notifications (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -334,17 +333,29 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
   CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
  
-  -- 4. HARDENING E PERMISSÕES GERAIS
-   -- Enable RLS on all sensitive tables
-   DO $RLS$ 
-   DECLARE 
-     t TEXT;
-   BEGIN
-     FOR t IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-       EXECUTE 'ALTER TABLE public.' || quote_ident(t) || ' ENABLE ROW LEVEL SECURITY;';
-     END LOOP;
-   END $RLS$;
-
+   -- 4. HARDENING E PERMISSÕES GERAIS
+   -- Enable RLS on all sensitive tables manually to avoid DO block syntax issues
+   ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.user_roles ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.categories ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.products ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.orders ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.order_items ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.flyers ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.banners ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.site_visits ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.notifications ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.store_alerts ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.app_feedback ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.loyalty_rewards ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.weekly_challenges ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.delivery_neighborhoods ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE IF EXISTS public.migration_audit_logs ENABLE ROW LEVEL SECURITY;
   -- Secure store_settings (Protect secrets)
   DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
   CREATE POLICY "Public read settings" ON public.store_settings 
@@ -374,11 +385,11 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   CREATE POLICY "Admins view audit logs" ON public.migration_audit_logs FOR SELECT USING (public.is_admin());
 
   CREATE OR REPLACE FUNCTION public.log_migration_step(p_migration_name TEXT, p_step_name TEXT, p_status TEXT, p_details JSONB DEFAULT '{}')
-  RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS \$\$
+  RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth AS $BODY$
   BEGIN
       INSERT INTO public.migration_audit_logs (migration_name, step_name, status, details)
       VALUES (p_migration_name, p_step_name, p_status, p_details);
-  END; \$\$;
+  END; $BODY$;
 
   GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
