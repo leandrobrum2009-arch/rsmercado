@@ -884,7 +884,7 @@
                             )}
                            </div>
 
-                          <div className={cn("space-y-0.5 mt-1 w-full z-30", columns === 4 ? "scale-90" : "")}>
+                          <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
                           {!nameOnTop && (
                             <h3 
                               className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
@@ -893,12 +893,16 @@
                               {p.name}
                             </h3>
                           )}
-                          <div className={cn(
-                            "flex flex-col items-center mt-auto",
-                            showPriceBg ? "px-3 py-1 rounded-lg" : ""
-                          )}
-                          style={{ backgroundColor: showPriceBg ? priceBgColor : 'transparent' }}
-                          >
+                           <div 
+                             className={cn(
+                               "flex flex-col items-center mt-auto relative",
+                               showPriceBg ? "px-3 py-1 rounded-lg" : ""
+                             )}
+                             style={{ 
+                               backgroundColor: showPriceBg ? priceBgColor : 'transparent',
+                               zIndex: 40
+                             }}
+                           >
                             {p.original_price && (
                               <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
                             )}
