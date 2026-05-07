@@ -227,8 +227,10 @@
           layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop
+           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+           priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+           showSubtitle
         }
       }
       const updated = [...templates, newTemplate]
@@ -262,9 +264,16 @@
       if (config.showShadows !== undefined) setShowShadows(config.showShadows)
       if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
       if (config.priceLayout) setPriceLayout(config.priceLayout)
-      if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
-      if (config.imageSize !== undefined) setImageSize(config.imageSize)
-      if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
+       if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+       if (config.imageSize !== undefined) setImageSize(config.imageSize)
+       if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
+       if (config.bgRemovalThreshold !== undefined) setBgRemovalThreshold(config.bgRemovalThreshold)
+       if (config.bgRemovalSmoothing !== undefined) setBgRemovalSmoothing(config.bgRemovalSmoothing)
+       if (config.footerText !== undefined) setFooterText(config.footerText)
+       if (config.showFooter !== undefined) setShowFooter(config.showFooter)
+       if (config.footerFontSize !== undefined) setFooterFontSize(config.footerFontSize)
+       if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
+       if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
       toast.success('Template aplicado!')
     }
 
