@@ -88,13 +88,32 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
      const [productPadding, setProductPadding] = useState(8)
-     const [nameOffsetY, setNameOffsetY] = useState(0)
-     const [priceOffsetY, setPriceOffsetY] = useState(0)
-     const [imageOffsetY, setImageOffsetY] = useState(0)
+      const [nameOffsetY, setNameOffsetY] = useState(0)
+      const [nameOffsetX, setNameOffsetX] = useState(0)
+      const [priceOffsetY, setPriceOffsetY] = useState(0)
+      const [priceOffsetX, setPriceOffsetX] = useState(0)
+      const [imageOffsetY, setImageOffsetY] = useState(0)
+      const [imageOffsetX, setImageOffsetX] = useState(0)
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
-    const [showPreviewModal, setShowPreviewModal] = useState(false)
+     const [showPreviewModal, setShowPreviewModal] = useState(false)
+     const [flyerScale, setFlyerScale] = useState(0.8)
+ 
+     useEffect(() => {
+       const handleResize = () => {
+         if (typeof window !== 'undefined') {
+           const width = window.innerWidth
+           if (width < 640) setFlyerScale((width - 40) / 794)
+           else if (width < 1024) setFlyerScale((width - 100) / 794)
+           else if (width < 1400) setFlyerScale(0.7)
+           else setFlyerScale(0.85)
+         }
+       }
+       handleResize()
+       window.addEventListener('resize', handleResize)
+       return () => window.removeEventListener('resize', handleResize)
+     }, [])
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -190,13 +209,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               "relative rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
                                layout === 'single' ? 'p-16' : '',
                              columns === 4 ? 'p-1.5' : '',
-                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
+                              (showShadows && productBgOpacity > 0) ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                               productBlockHeight === 0 ? "h-fit min-h-full" : ""
                            )}
                              style={{
                                 backgroundColor: productBgOpacity > 0 ? hexToRgba(productBgColor, productBgOpacity) : 'transparent',
-                                backdropFilter: productBgOpacity > 0 ? `blur(${blurAmount}px)` : 'none',
-                                borderColor: productBgOpacity > 0 ? 'rgba(255,255,255,0.3)' : 'transparent',
+                                backdropFilter: (productBgOpacity > 0 && blurAmount > 0) ? `blur(${blurAmount}px)` : 'none',
+                                border: productBgOpacity > 0 ? '1px solid rgba(255,255,255,0.3)' : 'none',
                               height: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
@@ -229,7 +248,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                     height: imageSize > 100 ? 'auto' : '100%',
                                     maxHeight: imageSize > 100 ? 'none' : '100%',
                                     objectFit: 'contain',
-                                    transform: `scale(${imageSize / 100}) translateY(${imageOffsetY}px)`,
+                                    transform: `scale(${imageSize / 100}) translate(${imageOffsetX}px, ${imageOffsetY}px)`,
                                     position: 'relative',
                                     zIndex: 10,
                                   }}
@@ -257,7 +276,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               style={{ 
                                 color: titleColor, 
                                 fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`,
-                                transform: `translateY(${nameOffsetY}px)`
+                                 transform: `translate(${nameOffsetX}px, ${nameOffsetY}px)`
                               }}
                            >
                              {p.name}
@@ -271,7 +290,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               style={{ 
                                 backgroundColor: showPriceBg ? priceBgColor : 'transparent',
                                 zIndex: 40,
-                                transform: `translateY(${priceOffsetY}px)`
+                                 transform: `translate(${priceOffsetX}px, ${priceOffsetY}px)`
                               }}
                             >
                              {p.original_price && (
@@ -416,6 +435,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           fontFamily: 'font-serif', productBgColor: '#fafafa', productBgOpacity: 100,
           productBlockHeight: 300, showPriceBg: false, showShadows: false,
           priceLayout: 'inline', imageSize: 85, nameOnTop: false, showValidity: false
+        }
+      },
+      {
+        name: '🎯 Produto Único Destaque',
+        config: {
+          layout: 'single', backgroundType: 'gradient', backgroundGradient: 'radial-gradient(circle, #ffffff, #f1f5f9)',
+          columns: 1, gridGap: 0, productPadding: 40, showLogo: true, logoPosition: 'center', logoSize: 150,
+          titleColor: '#000000', priceColor: '#e11d48', fontSize: 18, priceSize: 40,
+          fontFamily: 'font-sans font-black italic', productBgColor: '#ffffff', productBgOpacity: 0,
+          productBlockHeight: 0, showPriceBg: false, showShadows: false,
+          priceLayout: 'traditional', imageSize: 150, nameOnTop: false, showValidity: true,
+          nameOffsetY: -50, priceOffsetY: 50, imageOffsetY: 0, blurAmount: 0
         }
       }
     ];
@@ -571,7 +602,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-          nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
+          nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -616,7 +647,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
         productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-        nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
+        nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
         showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
@@ -699,7 +730,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
        if (config.nameOffsetY !== undefined) setNameOffsetY(config.nameOffsetY)
        if (config.priceOffsetY !== undefined) setPriceOffsetY(config.priceOffsetY)
+       if (config.priceOffsetX !== undefined) setPriceOffsetX(config.priceOffsetX)
+       if (config.nameOffsetX !== undefined) setNameOffsetX(config.nameOffsetX)
        if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
+       if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
        if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
       toast.success('Template aplicado!')
     }
@@ -869,6 +903,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const flyerElement = document.getElementById('flyer-content');
       if (flyerElement) {
         flyerElement.style.transition = 'none';
+        flyerElement.style.transform = 'none';
+        flyerElement.style.margin = '0';
         // Force reflow
         void flyerElement.offsetHeight;
       }
@@ -1741,23 +1777,37 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Modelo Único)</Label>
                         <div className="space-y-3">
                           <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Nome ({nameOffsetY}px)</span>
-                            </div>
-                            <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                             <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                               <div className="space-y-1">
+                                 <span>Subir/Descer Nome ({nameOffsetY}px)</span>
+                                 <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                               </div>
+                               <div className="space-y-1">
+                                 <span>Esq/Dir Nome ({nameOffsetX}px)</span>
+                                 <Slider value={[nameOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setNameOffsetX(val)} />
+                               </div>
+                             </div>
                           </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Preço ({priceOffsetY}px)</span>
-                            </div>
-                            <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px] font-bold uppercase">
-                              <span>Subir/Descer Foto ({imageOffsetY}px)</span>
-                            </div>
-                            <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
-                          </div>
+                           <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                             <div className="space-y-1">
+                               <span>Subir/Descer Preço ({priceOffsetY}px)</span>
+                               <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
+                             </div>
+                             <div className="space-y-1">
+                               <span>Esq/Dir Preço ({priceOffsetX}px)</span>
+                               <Slider value={[priceOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setPriceOffsetX(val)} />
+                             </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
+                             <div className="space-y-1">
+                               <span>Subir/Descer Foto ({imageOffsetY}px)</span>
+                               <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
+                             </div>
+                             <div className="space-y-1">
+                               <span>Esq/Dir Foto ({imageOffsetX}px)</span>
+                               <Slider value={[imageOffsetX]} min={-300} max={300} step={2} onValueChange={([val]) => setImageOffsetX(val)} />
+                             </div>
+                           </div>
                         </div>
                       </div>
                     )}
@@ -2092,17 +2142,27 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               </Button>
           </div>
 
-            <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
-              <div
-                id="flyer-content"
-                className={cn(
-                  "relative flex flex-col aspect-[210/297] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
-                  removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
-                )}
-                style={{
-                  backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                }}
+            <div className="w-full flex justify-center print:block overflow-hidden p-4">
+              <div 
+                className="relative bg-zinc-200/50 p-8 rounded-2xl shadow-inner overflow-auto max-h-[85vh] w-full flex justify-center"
+                style={{ scrollbarWidth: 'thin' }}
               >
+                <div
+                  id="flyer-content"
+                  className={cn(
+                    "relative flex flex-col shrink-0 print:w-[210mm] print:h-[297mm] print:shadow-none overflow-hidden transition-all duration-500 origin-top shadow-2xl",
+                    removeFlyerBg ? "bg-transparent" : "bg-white border border-zinc-100"
+                  )}
+                  style={{
+                    width: '794px', // A4 em 96dpi
+                    height: '1123px',
+                    backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                    transform: `scale(${flyerScale})`,
+                    marginBottom: `${(1123 * (flyerScale - 1))}px`,
+                    marginRight: `${(794 * (flyerScale - 1)) / 2}px`,
+                    marginLeft: `${(794 * (flyerScale - 1)) / 2}px`
+                  }}
+                >
                 {/* Dedicated Background Layer for better print reliability */}
                 <div 
                   className="absolute inset-0 z-0 pointer-events-none"
@@ -2115,15 +2175,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   }}
                 />
                 
-                <div className="relative z-10 w-full h-full flex flex-col">
-                  <FlyerContentInner />
+                  <div className="relative z-10 w-full h-full flex flex-col">
+                    <FlyerContentInner />
+                  </div>
                 </div>
               </div>
-         </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <style>{`
+        <style>{`
         @media print {
           @page { 
             size: A4 portrait; 
