@@ -117,20 +117,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               availableWidth = width - 40
             }
             
-            // Altura disponível: altura da tela menos topo e controles
-            // Precisamos que o A4 caiba inteiro se possível (sem rolar)
-            const availableHeight = height - 200 // 200px para o cabeçalho e margens
+             // Área de prévia expandida: usamos mais altura para permitir um zoom maior
+             // O usuário quer ver o encarte grande, então damos mais "espaço virtual"
+             const availableHeight = height - 100 // Menos respiro no topo
             
             // A4 tem 794x1123 em 96dpi
             const scaleW = availableWidth / 794
             const scaleH = availableHeight / 1123
             
-            // Queremos o maior tamanho possível que caiba na tela "inteira"
-            // mas com um limite mínimo para não ficar minúsculo
-            let calculatedScale = Math.min(scaleW, scaleH)
-            
-            // Ajuste para não ficar muito pequeno nem absurdamente grande
-            calculatedScale = Math.max(Math.min(calculatedScale, 1.1), 0.4)
+             // O usuário quer a imagem grande ocupando o lado direito
+             // Se houver espaço na largura, priorizamos preencher a largura
+             // mas mantendo um limite para não estourar demais a tela verticalmente sem necessidade
+             let calculatedScale = scaleW * 0.95 // 95% da largura disponível
+             
+             // Mas não deixamos ficar maior que o necessário para caber na altura com algum scroll suave
+             // ou menor que o legível
+             calculatedScale = Math.max(Math.min(calculatedScale, 1.2), 0.5)
             
             setFlyerScale(calculatedScale)
           }
