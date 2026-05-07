@@ -447,6 +447,7 @@ export function FlyerCreator() {
             </div>
           </div>
         </div>
+        </div>
        </div>
  
        <style>{`
