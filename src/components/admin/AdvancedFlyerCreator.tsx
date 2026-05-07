@@ -1236,10 +1236,8 @@ import html2canvas from 'html2canvas'
                           <span>{footerFontSize}px</span>
                         </div>
                         <Slider value={[footerFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setFooterFontSize(val)} />
-                      </div>
-                    </div>
-                  </div>
- 
+                </div>
+              </div>
                  <div className="grid grid-cols-2 gap-4">
                    <div className="flex items-center gap-2">
                      <Button 
