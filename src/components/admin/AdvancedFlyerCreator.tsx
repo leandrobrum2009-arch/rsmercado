@@ -614,12 +614,37 @@ import html2canvas from 'html2canvas'
                    <DialogHeader>
                      <DialogTitle>Templates de Encarte</DialogTitle>
                    </DialogHeader>
-                    <Tabs defaultValue="templates" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="templates">Templates</TabsTrigger>
+                    <Tabs defaultValue="presets" className="w-full">
+                      <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="presets">Prontos</TabsTrigger>
+                        <TabsTrigger value="templates">Meus</TabsTrigger>
                         <TabsTrigger value="history">Histórico</TabsTrigger>
                         <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
+                      <TabsContent value="presets" className="space-y-4 py-4">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                          <div className="grid grid-cols-1 gap-2">
+                            {PRESET_TEMPLATES.map((t, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-primary/30 transition-colors">
+                                <div className="flex flex-col">
+                                  <span className="font-black uppercase italic text-sm tracking-tight">{t.name}</span>
+                                  <span className="text-[10px] text-zinc-400 font-bold uppercase">Design Profissional</span>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  className="h-8 rounded-xl font-black uppercase text-[10px]" 
+                                  onClick={() => {
+                                    applyTemplate(t.config)
+                                    toast.success(`Estilo "${t.name}" aplicado!`)
+                                  }}
+                                >
+                                  Aplicar
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </TabsContent>
                       <TabsContent value="templates" className="space-y-4 py-4">
                         <div className="flex gap-2">
                           <Input 
