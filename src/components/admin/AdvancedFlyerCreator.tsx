@@ -397,7 +397,7 @@
                      size="sm" className="h-8 text-[10px]"
                      onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
                    >
-                     <Eraser className="w-3 h-3 mr-1" /> Remover Fundo
+                      <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
                    </Button>
                  </div>
                </div>
