@@ -45,7 +45,18 @@ function CartPage() {
      }
    };
    const [profile, setProfile] = useState<any>(null);
-   const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '' });
+    const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '', neighborhood: '' });
+   const [neighborhoods, setNeighborhoods] = useState<any[]>([]);
+   const [changeFor, setChangeFor] = useState("");
+
+   useEffect(() => {
+     const fetchNeighborhoods = async () => {
+       const { data } = await supabase.from('delivery_neighborhoods').select('*').eq('active', true).order('name');
+       setNeighborhoods(data || []);
+     };
+     fetchNeighborhoods();
+   }, []);
+
    const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
@@ -54,35 +65,37 @@ function CartPage() {
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchDeliveryFee = async () => {
-      if (selectedAddress?.neighborhood) {
-        const { data } = await supabase
-          .from('delivery_neighborhoods')
-          .select('fee')
-          .eq('name', selectedAddress.neighborhood)
-          .eq('active', true)
-          .maybeSingle();
-        
-        if (data) {
-          setDeliveryFee(data.fee);
-          setIsValidDeliveryArea(true);
-          if (data.fee > 0) {
-            toast.success(`Taxa de entrega para ${selectedAddress.neighborhood}: ${formatCurrency(data.fee)}`);
-          } else {
-            toast.success(`Entrega grátis para ${selectedAddress.neighborhood}!`);
-          }
-        } else {
-          setDeliveryFee(0);
-          setIsValidDeliveryArea(false);
-        }
-      } else {
-        setDeliveryFee(0);
-        setIsValidDeliveryArea(null);
-      }
-    };
-    fetchDeliveryFee();
-  }, [selectedAddress]);
+   useEffect(() => {
+     const fetchDeliveryFee = async () => {
+       const neighborhoodName = useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood;
+       
+       if (neighborhoodName) {
+         const { data } = await supabase
+           .from('delivery_neighborhoods')
+           .select('fee')
+           .eq('name', neighborhoodName)
+           .eq('active', true)
+           .maybeSingle();
+         
+         if (data) {
+           setDeliveryFee(data.fee);
+           setIsValidDeliveryArea(true);
+           if (data.fee > 0) {
+             toast.success(`Taxa de entrega para ${neighborhoodName}: ${formatCurrency(data.fee)}`);
+           } else {
+             toast.success(`Entrega grátis para ${neighborhoodName}!`);
+           }
+         } else {
+           setDeliveryFee(0);
+           setIsValidDeliveryArea(false);
+         }
+       } else {
+         setDeliveryFee(0);
+         setIsValidDeliveryArea(null);
+       }
+     };
+     fetchDeliveryFee();
+   }, [selectedAddress, guestInfo.neighborhood, useSimplifiedAddress]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -153,7 +166,9 @@ function CartPage() {
    const handleCheckout = async () => {
      const customerName = profile?.full_name || guestInfo.name;
      const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
-     const deliveryAddress = useSimplifiedAddress ? { street: guestInfo.address, label: 'Simplificado' } : selectedAddress;
+     const deliveryAddress = useSimplifiedAddress 
+       ? { street: guestInfo.address, neighborhood: guestInfo.neighborhood, label: 'Simplificado' } 
+       : selectedAddress;
  
      if (!customerName || !customerPhone) {
        toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
@@ -232,8 +247,8 @@ function CartPage() {
            const adminSummary = formatWhatsAppMessage('order_summary', {
              id: order.id,
              customer_name: customerName,
-             address: useSimplifiedAddress ? deliveryAddress.street : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
-             payment_method: paymentMethod,
+              address: useSimplifiedAddress ? `${deliveryAddress.street} - ${deliveryAddress.neighborhood}` : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
+              payment_method: paymentMethod === 'money' ? `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ' (Sem troco)'}` : paymentMethod,
              items: items, // use cart items
              subtotal: total,
              delivery_fee: deliveryFee,
@@ -397,7 +412,28 @@ function CartPage() {
           </div>
 
           {useSimplifiedAddress ? (
-            <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+            <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16 blur-2xl animate-pulse" />
+              
+              <div className="space-y-1 animate-in fade-in slide-in-from-top-4 duration-500">
+                <label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-1">
+                  Selecione seu Bairro <span className="text-red-500 animate-ping">*</span>
+                </label>
+                <select 
+                  value={guestInfo.neighborhood}
+                  onChange={(e) => setGuestInfo({ ...guestInfo, neighborhood: e.target.value })}
+                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all appearance-none"
+                >
+                  <option value="">-- Escolha seu bairro --</option>
+                  {neighborhoods.map(n => (
+                    <option key={n.id} value={n.name}>{n.name} (Taxa: {n.fee > 0 ? formatCurrency(n.fee) : 'Grátis'})</option>
+                  ))}
+                </select>
+                {guestInfo.neighborhood && isValidDeliveryArea === false && (
+                  <p className="text-[9px] font-bold text-red-500 uppercase mt-1">⚠️ Não atendemos este bairro no momento</p>
+                )}
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-zinc-400">Endereço Completo</label>
                 <textarea 
@@ -480,8 +516,8 @@ function CartPage() {
               { id: 'sipag', label: 'Cartão (SIPAG)', icon: CreditCard },
               { id: 'money', label: 'Dinheiro na Entrega', icon: Banknote },
             ].map((method) => (
-              <button
-                key={method.id}
+              <div key={method.id} className="space-y-2">
+                <button
                 onClick={() => setPaymentMethod(method.id)}
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                   paymentMethod === method.id 
@@ -496,6 +532,22 @@ function CartPage() {
                   {method.label}
                 </span>
               </button>
+                {method.id === 'money' && paymentMethod === 'money' && (
+                  <div className="px-4 py-3 bg-white border-x-2 border-b-2 border-green-600/20 rounded-b-2xl -mt-2 space-y-2 animate-in slide-in-from-top-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-400">Precisa de troco para quanto?</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="number" 
+                        placeholder="Valor em R$ (ex: 50.00)" 
+                        value={changeFor}
+                        onChange={(e) => setChangeFor(e.target.value)}
+                        className="flex-1 h-10 bg-zinc-50 border-zinc-100 rounded-lg px-3 text-sm font-bold focus:ring-2 focus:ring-green-500"
+                      />
+                      <button onClick={() => setChangeFor("")} className="px-3 text-[10px] font-black uppercase text-zinc-400">Não</button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -509,7 +561,7 @@ function CartPage() {
           <div className="flex justify-between items-center text-gray-500">
             <span className="flex items-center gap-1">
               Entrega 
-              <span className="text-[10px] font-bold text-zinc-400">({selectedAddress?.neighborhood || 'Escolha o endereço'})</span>
+              <span className="text-[10px] font-bold text-zinc-400">({(useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood) || 'Escolha o bairro'})</span>
             </span>
             {isValidDeliveryArea === false ? (
               <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>
@@ -535,7 +587,7 @@ function CartPage() {
           
           <button 
             onClick={handleCheckout}
-            disabled={isProcessing || isValidDeliveryArea !== true || !selectedAddress}
+            disabled={isProcessing || isValidDeliveryArea !== true || (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood)}
             className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
           >
             {isProcessing ? (
@@ -545,7 +597,7 @@ function CartPage() {
               </>
             ) : (
               <>
-                {isValidDeliveryArea === false ? 'Área não atendida' : !selectedAddress ? 'Selecione o endereço' : 'Finalizar Pedido'}
+                {isValidDeliveryArea === false ? 'Área não atendida' : (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood) ? 'Selecione o endereço/bairro' : 'Finalizar Pedido'}
                 <ArrowRight size={20} />
               </>
             )}
