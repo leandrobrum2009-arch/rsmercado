@@ -157,16 +157,37 @@
                 }
               }
               
-              // Apply mask with smoothing/feathering
-              for (let i = 0; i < data.length; i += 4) {
-                const idx = i / 4
-                if (mask[idx]) {
-                  data[i+3] = 0
-                } else {
-                  // Optional: additional very-white removal even if not connected (riskier)
-                  const r = data[i], g = data[i+1], b = data[i+2]
-                  if (r > 250 && g > 250 && b > 250) {
-                    data[i+3] = 0
+              // Apply mask with edge smoothing
+              for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                  const idx = y * width + x
+                  const pIdx = idx * 4
+                  
+                  if (mask[idx]) {
+                    data[pIdx + 3] = 0
+                  } else {
+                    // Check if it's an edge pixel for smoothing
+                    let isEdge = false
+                    if (x > 0 && mask[idx - 1]) isEdge = true
+                    else if (x < width - 1 && mask[idx + 1]) isEdge = true
+                    else if (y > 0 && mask[idx - width]) isEdge = true
+                    else if (y < height - 1 && mask[idx + width]) isEdge = true
+                    
+                    if (isEdge) {
+                      // Calculate average of neighbors to "soften" the edge
+                      let count = 0
+                      let totalAlpha = 0
+                      for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                          const nx = x + dx, ny = y + dy
+                          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                            totalAlpha += mask[ny * width + nx] ? 0 : 255
+                            count++
+                          }
+                        }
+                      }
+                      data[pIdx + 3] = totalAlpha / count
+                    }
                   }
                 }
               }
