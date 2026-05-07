@@ -805,9 +805,6 @@ import html2canvas from 'html2canvas'
                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
                {layout === 'grid' && (
                  <div className="space-y-3">
                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Colunas na Grade</Label>
@@ -1621,10 +1618,10 @@ import html2canvas from 'html2canvas'
                     <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                         Rodapé Reservado (5%)
                     </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
        <style>{`
          @media print {
            body * { visibility: hidden; }
