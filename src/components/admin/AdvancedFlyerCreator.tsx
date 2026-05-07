@@ -39,7 +39,9 @@
    const [logoSize, setLogoSize] = useState(120)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
-   const [allProducts, setAllProducts] = useState<any[]>([])
+    const [allProducts, setAllProducts] = useState<any[]>([])
+    const [templates, setTemplates] = useState<any[]>([])
+    const [templateName, setTemplateName] = useState('')
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
@@ -85,9 +87,71 @@
      return canvas.toDataURL()
    }
  
-   useEffect(() => {
-     fetchProducts()
-   }, [])
+    useEffect(() => {
+      fetchProducts()
+      loadTemplates()
+    }, [])
+
+    const loadTemplates = () => {
+      const saved = localStorage.getItem('flyer_templates')
+      if (saved) setTemplates(JSON.parse(saved))
+    }
+
+    const saveTemplate = () => {
+      if (!templateName) {
+        toast.error('Dê um nome ao template')
+        return
+      }
+      const newTemplate = {
+        name: templateName,
+        config: {
+          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg
+        }
+      }
+      const updated = [...templates, newTemplate]
+      localStorage.setItem('flyer_templates', JSON.stringify(updated))
+      setTemplates(updated)
+      setTemplateName('')
+      toast.success('Template salvo!')
+    }
+
+    const applyTemplate = (config: any) => {
+      if (config.layout) setLayout(config.layout)
+      if (config.backgroundType) setBackgroundType(config.backgroundType)
+      if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+      if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
+      if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+      if (config.columns) setColumns(config.columns)
+      if (config.gridGap !== undefined) setGridGap(config.gridGap)
+      if (config.showLogo !== undefined) setShowLogo(config.showLogo)
+      if (config.logoPosition) setLogoPosition(config.logoPosition)
+      if (config.logoSize) setLogoSize(config.logoSize)
+      if (config.titleColor) setTitleColor(config.titleColor)
+      if (config.priceColor) setPriceColor(config.priceColor)
+      if (config.fontSize) setFontSize(config.fontSize)
+      if (config.priceSize) setPriceSize(config.priceSize)
+      if (config.fontFamily) setFontFamily(config.fontFamily)
+      if (config.productBgColor) setProductBgColor(config.productBgColor)
+      if (config.productBgOpacity !== undefined) setProductBgOpacity(config.productBgOpacity)
+      if (config.productBlockHeight !== undefined) setProductBlockHeight(config.productBlockHeight)
+      if (config.showPriceBg !== undefined) setShowPriceBg(config.showPriceBg)
+      if (config.priceBgColor) setPriceBgColor(config.priceBgColor)
+      if (config.showShadows !== undefined) setShowShadows(config.showShadows)
+      if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
+      if (config.priceLayout) setPriceLayout(config.priceLayout)
+      if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+      toast.success('Template aplicado!')
+    }
+
+    const deleteTemplate = (idx: number) => {
+      const updated = templates.filter((_, i) => i !== idx)
+      localStorage.setItem('flyer_templates', JSON.stringify(updated))
+      setTemplates(updated)
+    }
 
    useEffect(() => {
      if (storeSettings) {
