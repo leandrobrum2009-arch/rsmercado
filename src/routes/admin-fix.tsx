@@ -77,20 +77,13 @@
    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS change_for DECIMAL(10,2);
    
    CREATE TABLE IF NOT EXISTS public.order_items (
-      user_id UUID REFERENCES auth.users(id),
-      customer_name TEXT,
-      customer_phone TEXT,
-      total_amount DECIMAL(10,2) NOT NULL,
-      delivery_fee DECIMAL(10,2) DEFAULT 0,
-      payment_method TEXT,
-      status TEXT DEFAULT 'pending',
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
       product_id UUID,
       quantity INTEGER NOT NULL,
       unit_price DECIMAL(10,2) NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-  );
+   );
 
   CREATE TABLE IF NOT EXISTS public.app_feedback (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
