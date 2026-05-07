@@ -1947,13 +1947,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <div className="p-8 flex justify-center w-full">
                     <div 
                       className="bg-white shadow-2xl relative flex flex-col aspect-[1/1.414] w-full max-w-[600px] overflow-hidden"
-                      style={{ 
-                        background: backgroundType === 'image' 
-                          ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
-                          : backgroundType === 'gradient'
-                            ? backgroundGradient
-                            : backgroundColor
-                      }}
+                       style={{
+                         backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                         backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                         backgroundSize: '100% 100%',
+                         backgroundPosition: 'center',
+                         backgroundRepeat: 'no-repeat',
+                       }}
                     >
                       {/* Render same content as flyer-content */}
                       <FlyerContentInner />
@@ -1973,13 +1973,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
                   removeFlyerBg ? "bg-transparent" : "bg-white shadow-2xl border border-zinc-100"
                 )}
-               style={{ 
-                 background: backgroundType === 'image' 
-                   ? (backgroundUrl ? `url(${backgroundUrl}) center/100% 100% no-repeat` : (removeFlyerBg ? 'transparent' : 'white'))
-                   : backgroundType === 'gradient'
-                     ? backgroundGradient
-                     : backgroundColor
-               }}
+                style={{
+                  backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                  backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
            >
             <FlyerContentInner />
            </div>
