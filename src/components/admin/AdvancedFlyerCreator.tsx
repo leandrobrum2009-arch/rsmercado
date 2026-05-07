@@ -208,15 +208,17 @@
       })
     }
  
+    const loadData = () => {
+      const savedTemplates = localStorage.getItem('flyer_templates')
+      if (savedTemplates) setTemplates(JSON.parse(savedTemplates))
+      const savedHistory = localStorage.getItem('flyer_history')
+      if (savedHistory) setFlyerHistory(JSON.parse(savedHistory))
+    }
+
     useEffect(() => {
       fetchProducts()
-      loadTemplates()
+      loadData()
     }, [])
-
-    const loadTemplates = () => {
-      const saved = localStorage.getItem('flyer_templates')
-      if (saved) setTemplates(JSON.parse(saved))
-    }
 
     const saveTemplate = () => {
       if (!templateName) {
