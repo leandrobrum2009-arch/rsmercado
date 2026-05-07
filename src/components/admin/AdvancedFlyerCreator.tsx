@@ -55,7 +55,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
-    const [templates, setTemplates] = useState<any[]>([])
+    const [templates, setTemplates] = useState<any[]>([]) // Local templates
+    const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
     const [templateName, setTemplateName] = useState('')
    
@@ -528,10 +529,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const { data, error } = await supabase
           .from('flyers')
           .select('*')
+          .eq('is_template', false)
           .order('created_at', { ascending: false })
         
         if (error) throw error
         setSavedFlyers(data || [])
+
+        const { data: tData, error: tError } = await supabase
+          .from('flyers')
+          .select('*')
+          .eq('is_template', true)
+          .order('created_at', { ascending: false })
+        
+        if (!tError) setDbTemplates(tData || [])
       } catch (error: any) {
         console.error('Error fetching saved flyers:', error)
       } finally {
@@ -585,30 +595,56 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }
 
-    const saveTemplate = () => {
+    const saveTemplate = async () => {
       if (!templateName) {
-        toast.error('Dê um nome ao template')
+        toast.error('Dê um nome ao modelo')
         return
       }
-      const newTemplate = {
-        id: Math.random().toString(36).substring(7),
-        name: templateName,
-        timestamp: new Date().toISOString(),
-        config: {
-          layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-          columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-          fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
-        }
+
+      const config = {
+        layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+        columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+        fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+        productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+        priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+        bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
-      const updated = [newTemplate, ...templates]
-      localStorage.setItem('flyer_templates', JSON.stringify(updated))
-      setTemplates(updated)
-      setTemplateName('')
-      toast.success('Template salvo!')
+
+      try {
+        setUploading(true)
+        const { error } = await supabase.from('flyers').insert({
+          title: templateName,
+          template_name: templateName,
+          is_template: true,
+          layout_type: layout,
+          primary_color: priceColor,
+          config: config,
+          products_data: [] // Templates save the style, not necessarily the products
+        })
+
+        if (error) throw error
+
+        toast.success(`Modelo "${templateName}" salvo com sucesso!`)
+        setTemplateName('')
+        fetchSavedFlyers()
+        
+        // Also save to local storage as fallback
+        const newTemplate = {
+          id: Math.random().toString(36).substring(7),
+          name: templateName,
+          timestamp: new Date().toISOString(),
+          config: config
+        }
+        const updated = [newTemplate, ...templates]
+        localStorage.setItem('flyer_templates', JSON.stringify(updated))
+        setTemplates(updated)
+      } catch (error: any) {
+        console.error('Error saving template:', error)
+        toast.error('Erro ao salvar modelo: ' + error.message)
+      } finally {
+        setUploading(false)
+      }
     }
 
     const applyTemplate = (config: any) => {
@@ -658,6 +694,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const updated = templates.filter((_, i) => i !== idx)
       localStorage.setItem('flyer_templates', JSON.stringify(updated))
       setTemplates(updated)
+    }
+
+    const deleteDbTemplate = async (id: string) => {
+      try {
+        const { error } = await supabase.from('flyers').delete().eq('id', id)
+        if (error) throw error
+        toast.success('Modelo removido')
+        fetchSavedFlyers()
+      } catch (error: any) {
+        toast.error('Erro ao remover modelo')
+      }
     }
 
     useEffect(() => {
@@ -1080,29 +1127,54 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             <Save className="w-4 h-4 mr-1" /> Salvar
                           </Button>
                         </div>
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                          {templates.length === 0 ? (
-                            <p className="text-center py-8 text-zinc-400 text-xs">Nenhum template salvo</p>
-                          ) : (
-                            <div className="grid grid-cols-1 gap-2">
-                              {templates.map((t, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 group">
-                                  <div className="flex flex-col">
-                                    <span className="font-bold text-sm">{t.name}</span>
-                                    {t.timestamp && (
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          {dbTemplates.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-black uppercase text-zinc-400 px-1">Modelos no Banco de Dados</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {dbTemplates.map((t) => (
+                                  <div key={t.id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-100 group shadow-sm hover:border-primary/30 transition-all">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-sm">{t.template_name || t.title}</span>
                                       <span className="text-[8px] text-zinc-400 flex items-center">
-                                        <Clock className="w-2 h-2 mr-1" /> {new Date(t.timestamp).toLocaleString()}
+                                        <Clock className="w-2 h-2 mr-1" /> {new Date(t.created_at).toLocaleString()}
                                       </span>
-                                    )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-bold" onClick={() => applyTemplate(t.config)}>Aplicar</Button>
+                                      <Button size="sm" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-600 p-0" onClick={() => deleteDbTemplate(t.id)}><Trash2 className="w-3 h-3" /></Button>
+                                    </div>
                                   </div>
-                                  <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => applyTemplate(t.config)}>Usar</Button>
-                                    <Button size="sm" variant="ghost" className="h-7 w-7 text-red-500 p-0" onClick={() => deleteTemplate(idx)}><Trash2 className="w-3 h-3" /></Button>
-                                  </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
                           )}
+
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-zinc-400 px-1">Modelos Locais (Neste Navegador)</p>
+                            {templates.length === 0 && dbTemplates.length === 0 ? (
+                              <p className="text-center py-8 text-zinc-400 text-xs">Nenhum modelo salvo</p>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-2">
+                                {templates.map((t, idx) => (
+                                  <div key={idx} className="flex items-center justify-between p-3 bg-zinc-50/50 rounded-xl border border-dashed border-zinc-200 group">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-sm">{t.name}</span>
+                                      {t.timestamp && (
+                                        <span className="text-[8px] text-zinc-400 flex items-center">
+                                          <Clock className="w-2 h-2 mr-1" /> {new Date(t.timestamp).toLocaleString()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" variant="outline" className="h-7 text-[10px]" onClick={() => applyTemplate(t.config)}>Aplicar</Button>
+                                      <Button size="sm" variant="ghost" className="h-7 w-7 text-red-500 p-0" onClick={() => deleteTemplate(idx)}><Trash2 className="w-3 h-3" /></Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </TabsContent>
                       <TabsContent value="history" className="space-y-4 py-4">
