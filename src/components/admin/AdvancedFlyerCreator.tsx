@@ -934,11 +934,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           format: 'a4'
         })
 
-        const imgProps = pdf.getImageProperties(imgData)
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+        const pdfWidth = 210
+        const pdfHeight = 297
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
         pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
 
         toast.dismiss(loadingToast)
