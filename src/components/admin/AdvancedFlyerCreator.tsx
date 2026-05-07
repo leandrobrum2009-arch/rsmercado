@@ -92,7 +92,8 @@
       }
     }, [globalRemoveBg])
 
-    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
+    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
  
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
@@ -101,7 +102,7 @@
      'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
    ]
 
-    const processImageBackground = (url: string): Promise<string> => {
+     const processImageBackground = (url: string, threshold = bgRemovalThreshold, smoothing = bgRemovalSmoothing): Promise<string> => {
       return new Promise((resolve) => {
         const img = new Image()
         img.crossOrigin = "anonymous"
@@ -117,16 +118,79 @@
              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
              const data = imageData.data
              
-             for (let i = 0; i < data.length; i += 4) {
-               const r = data[i], g = data[i+1], b = data[i+2]
-               const max = Math.max(r, g, b)
-               const min = Math.min(r, g, b)
-               const diff = max - min
-               
-               if (max > bgRemovalThreshold && diff < 20) {
-                 data[i+3] = 0
-               }
-             }
+              // Helper to check if a color is "background-like" (very light/white)
+              const isWhite = (r: number, g: number, b: number) => {
+                const avg = (r + g + b) / 3
+                const diff = Math.max(r, g, b) - Math.min(r, g, b)
+                return avg > threshold && diff < 30
+              }
+
+              // Create a mask for background pixels
+              const width = canvas.width
+              const height = canvas.height
+              const mask = new Uint8Array(width * height)
+              
+              // Simple flood fill from edges to avoid removing white inside the product
+              const queue: [number, number][] = []
+              
+              // Add edge pixels to queue
+              for (let x = 0; x < width; x++) {
+                queue.push([x, 0], [x, height - 1])
+              }
+              for (let y = 1; y < height - 1; y++) {
+                queue.push([0, y], [width - 1, y])
+              }
+              
+              while (queue.length > 0) {
+                const [x, y] = queue.shift()!
+                const idx = y * width + x
+                if (mask[idx]) continue
+                
+                const pIdx = idx * 4
+                if (isWhite(data[pIdx], data[pIdx+1], data[pIdx+2])) {
+                  mask[idx] = 1
+                  // Check neighbors
+                  if (x > 0) queue.push([x - 1, y])
+                  if (x < width - 1) queue.push([x + 1, y])
+                  if (y > 0) queue.push([x, y - 1])
+                  if (y < height - 1) queue.push([x, y + 1])
+                }
+              }
+              
+              // Apply mask with edge smoothing
+              for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                  const idx = y * width + x
+                  const pIdx = idx * 4
+                  
+                  if (mask[idx]) {
+                    data[pIdx + 3] = 0
+                  } else {
+                    // Check if it's an edge pixel for smoothing
+                    let isEdge = false
+                    if (x > 0 && mask[idx - 1]) isEdge = true
+                    else if (x < width - 1 && mask[idx + 1]) isEdge = true
+                    else if (y > 0 && mask[idx - width]) isEdge = true
+                    else if (y < height - 1 && mask[idx + width]) isEdge = true
+                    
+                    if (isEdge) {
+                      // Calculate average of neighbors to "soften" the edge
+                      let count = 0
+                      let totalAlpha = 0
+                      for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                          const nx = x + dx, ny = y + dy
+                          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                            totalAlpha += mask[ny * width + nx] ? 0 : 255
+                            count++
+                          }
+                        }
+                      }
+                      data[pIdx + 3] = totalAlpha / count
+                    }
+                  }
+                }
+              }
              ctx.putImageData(imageData, 0, 0)
              resolve(canvas.toDataURL('image/png'))
            } catch (e) {
@@ -664,11 +728,28 @@
                     {globalRemoveBg && (
                       <div className="space-y-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 animate-in fade-in zoom-in-95">
                         <div className="flex justify-between items-center">
-                          <Label className="text-[9px] font-black uppercase">Sensibilidade Remoção ({bgRemovalThreshold})</Label>
-                          <RefreshCcw className={cn("w-3 h-3 text-zinc-400 cursor-pointer", processingBg ? "animate-spin" : "")} onClick={() => setGlobalRemoveBg(!globalRemoveBg)} />
-                        </div>
-                        <Slider value={[bgRemovalThreshold]} min={150} max={255} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
-                        <p className="text-[7px] text-zinc-500">Valores menores removem mais fundos escuros.</p>
+                       <Label className="text-[9px] font-black uppercase">Refinar Recorte Inteligente ({bgRemovalThreshold})</Label>
+                       <Button 
+                         variant="ghost" 
+                         size="icon" 
+                         className="h-4 w-4" 
+                         onClick={() => {
+                           // Re-process all images with new threshold
+                           const updated = [...selectedProducts]
+                           updated.forEach(async (p, i) => {
+                             if (p.removeBg) {
+                               const processed = await processImageBackground(p.image_url, bgRemovalThreshold)
+                               updated[i].image_url = processed
+                               setSelectedProducts([...updated])
+                             }
+                           })
+                         }}
+                       >
+                         <RefreshCcw className={cn("w-3 h-3", processingBg ? "animate-spin" : "")} />
+                       </Button>
+                     </div>
+                     <Slider value={[bgRemovalThreshold]} min={180} max={254} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                     <p className="text-[7px] text-zinc-500">Aumente se o fundo não estiver saindo totalmente. Diminua se estiver cortando o produto.</p>
                       </div>
                     )}
                    
