@@ -516,8 +516,8 @@
                      : backgroundColor
                }}
            >
-             {/* Top Reserved Zone (25%) */}
-             <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
+               {/* Top Reserved Zone (15%) */}
+               <div className="h-[15%] w-full flex flex-col items-center justify-center relative border-b border-dashed border-zinc-100/50">
                {showLogo && storeSettings?.logo_url && (
                  <div 
                    className={cn(
@@ -537,13 +537,13 @@
                )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                   Topo Reservado (25%)
+                     Topo Reservado (15%)
                  </div>
                </div>
              </div>
    
-             {/* Content Middle Zone (60%) */}
-             <div className="h-[60%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
+               {/* Content Middle Zone (80%) */}
+               <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
                <div 
                  className={cn(
                    "grid h-full max-h-full transition-all duration-300",
@@ -648,11 +648,11 @@
              </div>
            </div>
  
-             {/* Bottom Reserved Zone (15%) */}
-             <div className="h-[15%] w-full flex items-center justify-center relative">
+               {/* Bottom Reserved Zone (5%) */}
+               <div className="h-[5%] w-full flex items-center justify-center relative border-t border-dashed border-zinc-100/50">
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
-                   Rodapé Reservado (15%)
+                     Rodapé Reservado (5%)
                  </div>
                </div>
              </div>
