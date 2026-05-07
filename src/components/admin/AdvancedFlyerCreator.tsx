@@ -571,8 +571,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-         nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
-           nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
+          nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -617,6 +616,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
         productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+        nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
         showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
