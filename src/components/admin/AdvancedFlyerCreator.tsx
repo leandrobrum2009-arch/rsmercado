@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
@@ -115,7 +115,57 @@ import html2canvas from 'html2canvas'
      'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
-   ]
+    ];
+
+    const PRESET_TEMPLATES = [
+      {
+        name: '🔥 Oferta Explosiva',
+        config: {
+          layout: 'grid', backgroundType: 'color', backgroundColor: '#ffffff',
+          columns: 3, gridGap: 12, productPadding: 8, showLogo: true, logoPosition: 'center', logoSize: 120,
+          titleColor: '#e11d48', priceColor: '#ffffff', fontSize: 14, priceSize: 28,
+          fontFamily: 'font-sans', productBgColor: '#ffffff', productBgOpacity: 100,
+          productBlockHeight: 220, showPriceBg: true, priceBgColor: '#e11d48', showShadows: true,
+          priceLayout: 'traditional', imageSize: 100, nameOnTop: false, showValidity: true,
+          validityBgColor: '#facc15', validityTextColor: '#000000'
+        }
+      },
+      {
+        name: '🥗 Hortifruti Fresco',
+        config: {
+          layout: 'grid', backgroundType: 'gradient', backgroundGradient: 'linear-gradient(to bottom, #f0fdf4, #dcfce7)',
+          columns: 3, gridGap: 10, productPadding: 10, showLogo: true, logoPosition: 'left', logoSize: 100,
+          titleColor: '#166534', priceColor: '#16a34a', fontSize: 13, priceSize: 24,
+          fontFamily: 'font-sans', productBgColor: '#ffffff', productBgOpacity: 80,
+          productBlockHeight: 200, showPriceBg: false, showShadows: false,
+          priceLayout: 'traditional', imageSize: 110, nameOnTop: false, showValidity: true,
+          validityBgColor: '#16a34a', validityTextColor: '#ffffff'
+        }
+      },
+      {
+        name: '🌑 Black Friday / Noturno',
+        config: {
+          layout: 'featured-side', backgroundType: 'color', backgroundColor: '#09090b',
+          columns: 3, gridGap: 15, productPadding: 12, showLogo: true, logoPosition: 'center', logoSize: 150,
+          titleColor: '#ffffff', priceColor: '#facc15', fontSize: 14, priceSize: 32,
+          fontFamily: 'font-sans', productBgColor: '#18181b', productBgOpacity: 100,
+          productBlockHeight: 240, showPriceBg: true, priceBgColor: '#27272a', showShadows: true,
+          priceLayout: 'traditional', imageSize: 90, nameOnTop: true, showValidity: true,
+          validityBgColor: '#facc15', validityTextColor: '#000000'
+        }
+      },
+      {
+        name: '✨ Premium Minimalista',
+        config: {
+          layout: 'grid', backgroundType: 'color', backgroundColor: '#ffffff',
+          columns: 2, gridGap: 20, productPadding: 15, showLogo: true, logoPosition: 'center', logoSize: 80,
+          titleColor: '#18181b', priceColor: '#18181b', fontSize: 16, priceSize: 30,
+          fontFamily: 'font-serif', productBgColor: '#fafafa', productBgOpacity: 100,
+          productBlockHeight: 300, showPriceBg: false, showShadows: false,
+          priceLayout: 'inline', imageSize: 85, nameOnTop: false, showValidity: false
+        }
+      }
+    ];
 
      const processImageBackground = (url: string, threshold = bgRemovalThreshold, smoothing = bgRemovalSmoothing): Promise<string> => {
       return new Promise((resolve) => {
@@ -295,9 +345,9 @@ import html2canvas from 'html2canvas'
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle
+          showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
       }
       const updated = [newTemplate, ...templates]
@@ -340,8 +390,13 @@ import html2canvas from 'html2canvas'
        if (config.footerText !== undefined) setFooterText(config.footerText)
        if (config.showFooter !== undefined) setShowFooter(config.showFooter)
        if (config.footerFontSize !== undefined) setFooterFontSize(config.footerFontSize)
-       if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
-       if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
+      if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
+      if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
+      if (config.showValidity !== undefined) setShowValidity(config.showValidity)
+      if (config.validityText !== undefined) setValidityText(config.validityText)
+      if (config.validityPosition !== undefined) setValidityPosition(config.validityPosition)
+      if (config.validityBgColor !== undefined) setValidityBgColor(config.validityBgColor)
+      if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
       toast.success('Template aplicado!')
     }
 
@@ -564,12 +619,37 @@ import html2canvas from 'html2canvas'
                    <DialogHeader>
                      <DialogTitle>Templates de Encarte</DialogTitle>
                    </DialogHeader>
-                    <Tabs defaultValue="templates" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="templates">Templates</TabsTrigger>
+                    <Tabs defaultValue="presets" className="w-full">
+                      <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="presets">Prontos</TabsTrigger>
+                        <TabsTrigger value="templates">Meus</TabsTrigger>
                         <TabsTrigger value="history">Histórico</TabsTrigger>
                         <TabsTrigger value="saved">Salvos (DB)</TabsTrigger>
                       </TabsList>
+                      <TabsContent value="presets" className="space-y-4 py-4">
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                          <div className="grid grid-cols-1 gap-2">
+                            {PRESET_TEMPLATES.map((t, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-primary/30 transition-colors">
+                                <div className="flex flex-col">
+                                  <span className="font-black uppercase italic text-sm tracking-tight">{t.name}</span>
+                                  <span className="text-[10px] text-zinc-400 font-bold uppercase">Design Profissional</span>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  className="h-8 rounded-xl font-black uppercase text-[10px]" 
+                                  onClick={() => {
+                                    applyTemplate(t.config)
+                                    toast.success(`Estilo "${t.name}" aplicado!`)
+                                  }}
+                                >
+                                  Aplicar
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </TabsContent>
                       <TabsContent value="templates" className="space-y-4 py-4">
                         <div className="flex gap-2">
                           <Input 
@@ -681,8 +761,28 @@ import html2canvas from 'html2canvas'
                </Dialog>
              </div>
            </CardHeader>
-           <CardContent className="space-y-6 pt-6">
-             {/* Layout Selection */}
+            <CardContent className="space-y-6 pt-6">
+              {/* Quick Presets Section */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelos Rápidos</Label>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+                  {PRESET_TEMPLATES.map((t, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      className="flex-shrink-0 h-10 px-4 rounded-xl text-[10px] font-black uppercase border-2 hover:border-primary transition-all"
+                      onClick={() => {
+                        applyTemplate(t.config)
+                        toast.success(`Estilo "${t.name}" aplicado!`)
+                      }}
+                    >
+                      {t.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Layout Selection */}
              <div className="space-y-3">
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
                <div className="grid grid-cols-2 gap-2">
