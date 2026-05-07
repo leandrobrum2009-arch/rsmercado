@@ -1162,9 +1162,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           />
         </div>
       )}
-      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
+      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start h-full", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
-        <div className="lg:col-span-4 space-y-6 print:hidden no-scrollbar">
+        <div className="lg:col-span-4 space-y-6 print:hidden overflow-y-auto no-scrollbar lg:max-h-[calc(100vh-120px)] pr-2">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl overflow-hidden">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
@@ -1368,6 +1368,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  ))}
                </div>
              </div>
+               {/* Scale Control */}
+               <div className="space-y-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                 <div className="flex justify-between items-center">
+                   <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Zoom do Encarte ({Math.round(flyerScale * 100)}%)</Label>
+                   <Button variant="ghost" size="sm" className="h-6 text-[8px]" onClick={() => setFlyerScale(0.7)}>RESET</Button>
+                 </div>
+                 <Slider value={[flyerScale * 100]} min={20} max={150} step={1} onValueChange={([val]) => setFlyerScale(val / 100)} />
+               </div>
+
               {/* Layout Selection */}
              <div className="space-y-3">
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
@@ -2141,8 +2150,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           </Card>
         </div>
  
-        {/* Preview Area */}
-          <div className="lg:col-span-8 sticky top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-2rem)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden no-scrollbar">
+         {/* Preview Area */}
+          <div className="lg:col-span-8 lg:sticky lg:top-4 h-fit flex flex-col items-center bg-zinc-200/50 p-4 md:p-8 rounded-[32px] min-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-120px)] print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 overflow-hidden no-scrollbar">
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
