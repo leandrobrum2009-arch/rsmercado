@@ -263,7 +263,7 @@ function RecipesPage() {
           <h1 className="text-4xl font-black uppercase italic tracking-tighter text-zinc-900 mb-2">Feed de Notícias</h1>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <p className="text-zinc-500 font-medium text-sm max-w-xl">
-              Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade SuperLoja em formato de notícias.
+               Acompanhe as últimas criações da nossa IA e as receitas mais amadas da comunidade RS SUPERMERCADO em formato de notícias.
             </p>
             <Button 
               onClick={() => {
