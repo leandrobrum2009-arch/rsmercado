@@ -485,7 +485,21 @@
              {/* Top Reserved Zone (25%) */}
              <div className="h-[25%] w-full flex flex-col items-center justify-center relative">
                {showLogo && storeSettings?.logo_url && (
-                 <img src={storeSettings.logo_url} className="h-24 object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" alt="Logo" />
+                 <div 
+                   className={cn(
+                     "absolute top-1/2 -translate-y-1/2 w-full px-12 flex",
+                     logoPosition === 'left' && "justify-start",
+                     logoPosition === 'center' && "justify-center",
+                     logoPosition === 'right' && "justify-end"
+                   )}
+                 >
+                   <img 
+                     src={storeSettings.logo_url} 
+                     style={{ width: `${logoSize}px` }}
+                     className="object-contain drop-shadow-lg animate-in fade-in zoom-in duration-500" 
+                     alt="Logo" 
+                   />
+                 </div>
                )}
                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
                  <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
