@@ -239,7 +239,7 @@ export function FlyerCreator() {
        <div className={`contents ${printImage ? 'print:hidden' : ''}`}>
          {/* Controls Sidebar */}
       {/* Controls Sidebar */}
-          <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
+          <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
