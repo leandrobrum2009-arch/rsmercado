@@ -417,14 +417,17 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
  
        <div className="grid gap-8">
          <Card className="border-2 border-red-100 shadow-xl overflow-hidden">
-           <CardHeader className="bg-red-50 border-b border-red-100">
-             <CardTitle className="flex items-center gap-2 text-red-900">
-               <AlertTriangle className="text-red-600" /> Erro Detectado: Tabela Faltando
-             </CardTitle>
-             <CardDescription className="text-red-700 font-medium">
-               Algumas tabelas essenciais (como endereços de entrega) não foram encontradas no seu banco de dados Supabase.
-             </CardDescription>
-           </CardHeader>
+            <CardHeader className="bg-red-50 border-b border-red-100">
+              <CardTitle className="flex items-center gap-2 text-red-900">
+                <AlertTriangle className="text-red-600" /> Reparação do Banco de Dados
+              </CardTitle>
+              <CardDescription className="text-red-700 font-medium">
+                Este script repara permissões (RLS) e garante que todas as tabelas e colunas necessárias existam.
+              </CardDescription>
+              <div className="mt-2 p-2 bg-amber-100 border border-amber-200 rounded text-amber-800 text-[10px] font-bold uppercase">
+                ⚠️ ATENÇÃO: Certifique-se de que a tradução automática do seu navegador esteja DESATIVADA para esta página antes de copiar o código.
+              </div>
+            </CardHeader>
            <CardContent className="pt-6 space-y-6">
              <div className="bg-zinc-900 rounded-xl p-6 text-zinc-400 font-mono text-sm relative group">
                <button 
