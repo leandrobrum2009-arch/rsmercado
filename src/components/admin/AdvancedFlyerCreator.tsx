@@ -592,10 +592,10 @@
                         <SelectItem value="font-sans">Inter (Sans)</SelectItem>
                         <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
                         <SelectItem value="font-mono">Fira (Mono)</SelectItem>
-                       <SelectItem value="font-black">Impact (Bold)</SelectItem>
-                       <SelectItem value="font-sans uppercase tracking-tighter">Arial (Caps)</SelectItem>
-                       <SelectItem value="italic font-serif">Merriweather (Serif)</SelectItem>
-                       <SelectItem value="font-['Montserrat']">Montserrat</SelectItem>
+                        <SelectItem value="font-sans font-black italic">Impact (Black)</SelectItem>
+                        <SelectItem value="font-sans font-bold">Arial Bold</SelectItem>
+                        <SelectItem value="font-serif italic font-bold">Traditional Serif</SelectItem>
+                        <SelectItem value="font-['Montserrat',sans-serif]">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -930,10 +930,11 @@
                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
-                           style={{
+                           style={{ 
                              backgroundColor: hexToRgba(productBgColor, productBgOpacity),
                              height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
-                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
+                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
+                             overflow: imageSize > 120 ? 'visible' : 'hidden'
                            }}
                         >
                            <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
