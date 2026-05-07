@@ -904,26 +904,34 @@
                              showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                              productBlockHeight === 0 ? "h-fit min-h-full" : ""
                           )}
-                          style={{ 
-                            backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
-                          }}
+                           style={{
+                             backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                             height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto',
+                             minHeight: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
+                           }}
                         >
                            <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
-                            <img 
-                              src={p.image_url} 
-                              className={cn(
-                                "object-contain transition-all duration-300 z-10",
-                                 p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
-                              )} 
-                              style={{
-                                width: `${(layout === 'single' ? 80 : 
-                                         (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
-                                         columns === 4 ? 16 : 24) * (imageSize / 100)}%`,
-                                height: 'auto',
-                                maxHeight: '100%',
-                              }}
-                            />
+                             <div className={cn("relative flex items-center justify-center", imageSize > 100 ? "overflow-visible" : "overflow-hidden")}>
+                               <img 
+                                 src={p.image_url} 
+                                 className={cn(
+                                   "object-contain transition-all duration-300 z-10",
+                                   (p.removeBg || globalRemoveBg) && !p.image_url.startsWith('data:image') && (productBgColor.toLowerCase() === '#ffffff' || productBgColor.toLowerCase() === '#fff')
+                                     ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" 
+                                     : "brightness-[1.02] contrast-[1.05]",
+                                   (showShadows && !p.removeBg && !globalRemoveBg) ? "drop-shadow-2xl" : ""
+                                 )} 
+                                 style={{
+                                   width: `${(layout === 'single' ? 80 : 
+                                            (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
+                                            columns === 4 ? 20 : 30) * (imageSize / 100)}%`,
+                                   height: 'auto',
+                                   maxHeight: imageSize > 120 ? 'none' : '100%',
+                                   transform: `scale(${imageSize / 100})`,
+                                   position: imageSize > 120 ? 'absolute' : 'relative',
+                                 }}
+                               />
+                             </div>
                             {nameOnTop && (
                               <h3 
                                 className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
