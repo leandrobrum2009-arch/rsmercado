@@ -1,4 +1,5 @@
- import { useState, useEffect } from 'react'
+ import { useState, useEffect, useRef } from 'react'
+ import html2canvas from 'html2canvas'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,29 @@ export function FlyerCreator() {
   const [primaryColor, setPrimaryColor] = useState('#e11d48')
   const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
    const { settings: storeSettings } = useStoreSettings()
-   const [title, setTitle] = useState('Ofertas Especiais')
+    const [title, setTitle] = useState('Ofertas Especiais')
+    const [printImage, setPrintImage] = useState<string | null>(null)
+    const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+ 
+    useEffect(() => {
+      if (printImage) {
+        const handleAfterPrint = () => {
+          setPrintImage(null)
+          window.removeEventListener('afterprint', handleAfterPrint)
+        }
+        window.addEventListener('afterprint', handleAfterPrint)
+        
+        const timer = setTimeout(() => {
+          window.print()
+        }, 1000)
+        
+        return () => {
+          clearTimeout(timer)
+          window.removeEventListener('afterprint', handleAfterPrint)
+        }
+      }
+    }, [printImage])
+ 
    useEffect(() => {
      if (storeSettings.site_name) {
        setTitle(`Ofertas - ${storeSettings.site_name}`)
@@ -69,14 +92,93 @@ export function FlyerCreator() {
     setSelectedProducts(selectedProducts.filter(p => p.id !== id))
   }
 
-    const handlePrint = () => {
-      const element = document.getElementById('flyer-content');
-      if (element) {
-        element.style.transition = 'none';
+    const handlePrint = async () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
       }
-      setTimeout(() => {
-        window.print();
-      }, 500);
+
+      const flyerElement = document.getElementById('flyer-content');
+      if (!flyerElement) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+
+      try {
+        // Ensure all images are loaded before capture
+        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        // Capture as image for perfect print reproduction
+        const canvas = await html2canvas(flyerElement, {
+          useCORS: true,
+          scale: 3, // High quality for print
+          backgroundColor: '#ffffff',
+          logging: false,
+          imageTimeout: 30000,
+        })
+
+        const dataUrl = canvas.toDataURL('image/png')
+        setPrintImage(dataUrl)
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error preparing print:', error)
+        toast.error('Erro ao preparar impressão')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
+    }
+
+    const handleDownloadImage = async () => {
+      const element = document.getElementById('flyer-content')
+      if (!element) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
+
+      try {
+        const images = Array.from(element.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        const canvas = await html2canvas(element, {
+          useCORS: true,
+          scale: 3,
+          backgroundColor: '#ffffff',
+        })
+
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = image
+        link.download = `encarte-${new Date().getTime()}.png`
+        link.click()
+        toast.success('Imagem baixada com sucesso!')
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error downloading image:', error)
+        toast.error('Erro ao baixar imagem')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
     }
  
    const handleWhatsAppShare = async () => {
@@ -102,10 +204,22 @@ export function FlyerCreator() {
      toast.success('WhatsApp aberto para compartilhamento!')
    }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+   return (
+     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+       {printImage && (
+         <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static">
+           <img 
+             src={printImage} 
+             className="max-w-full max-h-full object-contain print:w-[210mm] print:h-[297mm] print:object-fill" 
+             alt="Print Preview" 
+           />
+         </div>
+       )}
+ 
+       <div className={`contents ${printImage ? 'print:hidden' : ''}`}>
+         {/* Controls Sidebar */}
       {/* Controls Sidebar */}
-      <div className="lg:col-span-4 space-y-6 print:hidden">
+          <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -214,26 +328,83 @@ export function FlyerCreator() {
               </div>
             </div>
 
-             <div className="grid grid-cols-2 gap-2 pt-4">
-              <Button variant="outline" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" /> Imprimir
-              </Button>
-              <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" /> Baixar PDF
-              </Button>
-               <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
-                 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
+              <div className="grid grid-cols-2 gap-2 pt-4">
+               <div className="flex gap-2">
+                 <Button 
+                   variant="outline" 
+                   onClick={handlePrint}
+                   disabled={isPreparingPrint}
+                   className="flex-1"
+                 >
+                   {isPreparingPrint ? (
+                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                   ) : (
+                     <Printer className="w-4 h-4 mr-2" />
+                   )}
+                   Imprimir
+                 </Button>
+                 <Dialog>
+                   <DialogTrigger asChild>
+                     <Button 
+                       variant="outline" 
+                       onClick={async () => {
+                         const element = document.getElementById('flyer-content')
+                         if (!element) return
+                         setIsPreparingPrint(true)
+                         try {
+                           const canvas = await html2canvas(element, { useCORS: true, scale: 2 })
+                           setPrintImage(canvas.toDataURL('image/png'))
+                         } finally {
+                           setIsPreparingPrint(false)
+                         }
+                       }}
+                       disabled={isPreparingPrint}
+                     >
+                       <ImageIcon className="w-4 h-4 mr-2" /> Prévia
+                     </Button>
+                   </DialogTrigger>
+                   <DialogContent className="max-w-3xl">
+                     <DialogHeader>
+                       <DialogTitle>Prévia do Encarte (Imagem)</DialogTitle>
+                     </DialogHeader>
+                     <div className="flex justify-center p-4 bg-zinc-100 rounded-xl overflow-auto max-h-[70vh]">
+                       {printImage ? (
+                         <img src={printImage} className="max-w-full shadow-2xl" alt="Flyer Preview" />
+                       ) : (
+                         <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
+                       )}
+                     </div>
+                     <div className="flex justify-end gap-2 mt-4">
+                       <Button variant="outline" onClick={() => setPrintImage(null)}>Fechar</Button>
+                       <Button onClick={handlePrint}><Printer className="w-4 h-4 mr-2" /> Imprimir</Button>
+                     </div>
+                   </DialogContent>
+                 </Dialog>
+               </div>
+               <Button 
+                 variant="outline"
+                 onClick={handleDownloadImage}
+                 disabled={isPreparingPrint}
+               >
+                 <Download className="w-4 h-4 mr-2" /> Baixar Imagem
                </Button>
-               <Button variant="outline">
-                 <Instagram className="w-4 h-4 mr-2" /> Stories
-               </Button>
-            </div>
+                <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
+                  <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleDownloadImage}
+                  disabled={isPreparingPrint}
+                >
+                  <Instagram className="w-4 h-4 mr-2" /> Stories
+                </Button>
+             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Preview Area */}
-      <div className="lg:col-span-8 flex justify-center bg-gray-200 p-8 rounded-xl overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+      <div className="lg:col-span-8 flex justify-center bg-gray-200 p-8 rounded-xl overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none no-scrollbar">
         <div 
           id="flyer-content"
           className={`bg-white shadow-2xl overflow-hidden flex flex-col ${layout === 'story' ? 'aspect-[9/16] w-[400px]' : 'aspect-[1/1.414] w-[700px]'} print:w-full print:shadow-none`}
@@ -320,31 +491,30 @@ export function FlyerCreator() {
             </div>
           </div>
         </div>
-      </div>
-
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 0; }
-          body * { visibility: hidden !important; }
-          #flyer-content, #flyer-content * { visibility: visible !important; }
-          #flyer-content { 
-            position: fixed !important; 
-            left: 0 !important; 
-            top: 0 !important; 
-            width: 210mm !important; 
-            height: 297mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-            transition: none !important;
-            z-index: 99999 !important;
-            background: white !important;
-          }
-          html, body { height: 297mm !important; width: 210mm !important; overflow: hidden !important; }
-        }
-      `}</style>
+        </div>
+       </div>
+ 
+       <style>{`
+         @media print {
+           @page { size: A4 portrait; margin: 0; }
+           body { background: white !important; }
+           .print\:hidden { display: none !important; }
+           #flyer-content { 
+             position: fixed !important; 
+             left: 0 !important; 
+             top: 0 !important; 
+             width: 210mm !important; 
+             height: 297mm !important;
+             margin: 0 !important;
+             padding: 0 !important;
+             border: none !important;
+             box-shadow: none !important;
+             transform: none !important;
+             transition: none !important;
+             background: white !important;
+           }
+         }
+       `}</style>
     </div>
   )
 }
