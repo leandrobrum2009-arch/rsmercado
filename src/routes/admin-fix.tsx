@@ -45,10 +45,35 @@
  INSERT INTO public.user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email = 'leandrobrum2009@gmail.com'
  ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
  
- -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
- CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
- ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
- 
+  -- 4. CRIAR TABELA DE SITE VISITS (EVITA CRASH NO DASHBOARD)
+  CREATE TABLE IF NOT EXISTS public.site_visits (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID, path TEXT, user_agent TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
+  ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+
+  -- 11. TABELAS DE PEDIDOS (GARANTIR QUE EXISTAM)
+  CREATE TABLE IF NOT EXISTS public.orders (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES auth.users(id),
+      customer_name TEXT,
+      customer_phone TEXT,
+      total_amount DECIMAL(10,2) NOT NULL,
+      delivery_fee DECIMAL(10,2) DEFAULT 0,
+      payment_method TEXT,
+      status TEXT DEFAULT 'pending',
+      delivery_address JSONB,
+      points_earned INTEGER DEFAULT 0,
+      coupon_code TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  CREATE TABLE IF NOT EXISTS public.order_items (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+      product_id UUID,
+      quantity INTEGER NOT NULL,
+      unit_price DECIMAL(10,2) NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+
  -- 5. TABELAS DE WHATSAPP (MALA DIRETA)
  CREATE TABLE IF NOT EXISTS public.whatsapp_campaigns (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), message TEXT NOT NULL, status TEXT DEFAULT 'pending', total_recipients INTEGER DEFAULT 0, sent_count INTEGER DEFAULT 0, target_audience TEXT, scheduled_for TIMESTAMP WITH TIME ZONE, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());
  ALTER TABLE public.whatsapp_campaigns ENABLE ROW LEVEL SECURITY;
