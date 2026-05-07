@@ -2034,8 +2034,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
                     <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
                   </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" onClick={handlePrint}>
-                    <Printer className="w-4 h-4 mr-2" /> Imprimir Encarte (A4)
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" 
+                    onClick={handlePrint}
+                    disabled={isPreparingPrint}
+                  >
+                    {isPreparingPrint ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Printer className="w-4 h-4 mr-2" />
+                    )}
+                    Imprimir Encarte (A4)
                   </Button>
                 </div>
            </CardContent>
@@ -2246,9 +2256,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             print-color-adjust: exact !important;
           }
           body * { visibility: hidden !important; }
-          #flyer-content, #flyer-content * { 
+          
+          /* Show the captured image if it exists, otherwise fall back to content */
+          div[class*="z-[99999]"], 
+          div[class*="z-[99999]"] img,
+          #flyer-content, 
+          #flyer-content * { 
             visibility: visible !important; 
           }
+
           #flyer-content {
             position: fixed !important;
             left: 0 !important;
@@ -2265,11 +2281,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             transform: none !important;
             transition: none !important;
             box-shadow: none !important;
-            z-index: 99999 !important;
-            /* Remove white background override to allow custom backgrounds in print */
+            z-index: 99998 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          
+          div[class*="z-[99999]"] {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            z-index: 99999 !important;
+            background: white !important;
+          }
+          
           .print\:hidden { display: none !important; }
         }
       `}</style>
