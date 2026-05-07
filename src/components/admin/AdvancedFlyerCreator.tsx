@@ -437,7 +437,16 @@
                        <p className="text-[10px] font-bold truncate">{p.name}</p>
                        <p className="text-[10px] font-black text-primary">R$ {p.price.toFixed(2)}</p>
                      </div>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-300 group-hover:text-red-500 transition-colors" onClick={() => removeProduct(idx)}>
+                     <Button 
+                       variant={p.removeBg ? 'default' : 'ghost'} 
+                       size="icon" 
+                       className={cn("h-8 w-8", p.removeBg ? "" : "text-zinc-300")} 
+                       onClick={() => toggleProductBg(idx)}
+                       title="Remover fundo branco"
+                     >
+                       <Eraser className="w-4 h-4" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-300 hover:text-red-500 transition-colors" onClick={() => removeProduct(idx)}>
                        <Trash2 className="w-4 h-4" />
                      </Button>
                    </div>
