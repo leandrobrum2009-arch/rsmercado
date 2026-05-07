@@ -8,7 +8,7 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
- import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -69,6 +69,16 @@
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
      const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
      const [processingBg, setProcessingBg] = useState<string | null>(null)
+    
+    // Validity phrase states
+    const [showValidity, setShowValidity] = useState(true)
+    const [validityText, setValidityText] = useState(`Ofertas válidas de ${new Date().toLocaleDateString('pt-BR')} até as 21h`)
+    const [validityPosition, setValidityPosition] = useState<'top' | 'bottom' | 'footer'>('bottom')
+    const [validityBgColor, setValidityBgColor] = useState('#fbbf24') // yellow-400
+    const [validityTextColor, setValidityTextColor] = useState('#000000')
+    const [savedFlyers, setSavedFlyers] = useState<any[]>([])
+    const [loadingSaved, setLoadingSaved] = useState(false)
+
     useEffect(() => {
       if (globalRemoveBg && selectedProducts.length > 0) {
         const processAll = async () => {
