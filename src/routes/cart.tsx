@@ -183,7 +183,8 @@ function CartPage() {
      setIsProcessing(true);
     try {
       // 1. Create Order
-       const orderPayload: any = {
+         const orderPayload: any = {
+          change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
          user_id: profile?.id || null,
          total_amount: total + deliveryFee,
          delivery_fee: deliveryFee,
