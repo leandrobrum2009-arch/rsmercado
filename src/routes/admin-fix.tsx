@@ -13,32 +13,30 @@
  function AdminFixPage() {
    const [loading, setLoading] = useState(false)
  
-  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V5 (POLICY DUPLICATE FIX) - RS SUPERMERCADO
+  const sqlToRun = `-- 🛠️ SCRIPT DE REPARAÇÃO MASTER V6 (CLEANUP POLICIES) - RS SUPERMERCADO
   -- 🛡️ ULTIMATE SECURITY & REPAIR SCRIPT - ATUALIZADO EM ${new Date().toLocaleString('pt-BR')}
 
   -- 1. FORÇAR CONFIRMAÇÃO DE E-MAIL (CORRIGE BLOQUEIO DE LOGIN)
   -- Note: We use email_confirmed_at. confirmed_at is a generated column.
    UPDATE auth.users SET email_confirmed_at = NOW() WHERE email = 'leandrobrum2009@gmail.com';
 
-    -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
-    ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
-     DROP POLICY IF EXISTS "Anyone can view flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admin can manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admin manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Administrador gerencia flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Admin gerenciar flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Administradores gerenciam encartes" ON public.flyers;
-     DROP POLICY IF EXISTS "Admins can manage flyers" ON public.flyers;
-     DROP POLICY IF EXISTS "Flyers viewable by everyone" ON public.flyers;
-     DROP POLICY IF EXISTS "Flyers are viewable by everyone" ON public.flyers;
-    
-    CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
-    
-    CREATE POLICY "Admin manage flyers" ON public.flyers 
-    FOR ALL 
-    TO authenticated 
-    USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
-    WITH CHECK (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
+     -- 0. LIMPEZA TOTAL DE POLÍTICAS ANTIGAS (EVITA ERRO 42710)
+     -- Esta seção remove qualquer política existente antes de recriar as novas
+     DO $CLEANUP$
+     DECLARE
+         p RECORD;
+     BEGIN
+         FOR p IN (SELECT policyname, tablename FROM pg_policies WHERE schemaname = 'public') LOOP
+             EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(p.policyname) || ' ON public.' || quote_ident(p.tablename);
+         END LOOP;
+     END $CLEANUP$;
+
+     -- 🛡️ REPARAR PERMISSÕES DE ENCARTES (FLYERS)
+     ALTER TABLE public.flyers ENABLE ROW LEVEL SECURITY;
+     CREATE POLICY "Anyone can view flyers" ON public.flyers FOR SELECT USING (true);
+     CREATE POLICY "Admin manage flyers" ON public.flyers FOR ALL TO authenticated 
+     USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'))
+     WITH CHECK (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
  
  -- 2. GARANTIR FUNÇÃO IS_ADMIN (CORRIGE O ACESSO AO PAINEL)
    -- 2. GARANTIR FUNÇÃO IS_ADMIN SEGURA E NÃO RECURSIVA
