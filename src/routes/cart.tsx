@@ -405,9 +405,13 @@ function CartPage() {
             <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Endereço</h3>
             <button 
               onClick={() => setUseSimplifiedAddress(!useSimplifiedAddress)}
-              className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100"
+              className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border transition-all ${
+                useSimplifiedAddress 
+                ? "text-zinc-500 bg-zinc-50 border-zinc-100" 
+                : "text-green-600 bg-green-50 border-green-100 animate-pulse shadow-lg shadow-green-100 ring-2 ring-green-500/20"
+              }`}
             >
-              {useSimplifiedAddress ? "Usar Meus Endereços" : "Digitação Rápida"}
+              {useSimplifiedAddress ? "Usar Meus Endereços" : "🚚 Entrega Rápida (Clique Aqui)"}
             </button>
           </div>
 
@@ -588,7 +592,11 @@ function CartPage() {
           <button 
             onClick={handleCheckout}
             disabled={isProcessing || isValidDeliveryArea !== true || (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood)}
-            className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ${
+              !isProcessing && isValidDeliveryArea === true && (selectedAddress || (useSimplifiedAddress && guestInfo.neighborhood))
+              ? "bg-green-600 text-white shadow-green-100 animate-bounce-subtle"
+              : "bg-zinc-200 text-zinc-500 shadow-none"
+            }`}
           >
             {isProcessing ? (
               <>
