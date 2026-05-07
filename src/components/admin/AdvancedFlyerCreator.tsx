@@ -57,13 +57,16 @@
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-   const [productBlockHeight, setProductBlockHeight] = useState(0) // 0 means auto
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // 0 means auto
+    const [imageSize, setImageSize] = useState(100)
+    const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
    const [priceBgColor, setPriceBgColor] = useState('#ffff00')
    const [showShadows, setShowShadows] = useState(true)
    const [removeFlyerBg, setRemoveFlyerBg] = useState(false)
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
-   const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(220)
  
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
@@ -77,23 +80,39 @@
         const img = new Image()
         img.crossOrigin = "anonymous"
         img.src = url
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          if (!ctx) { resolve(url); return; }
-          canvas.width = img.width
-          canvas.height = img.height
-          ctx.drawImage(img, 0, 0)
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const data = imageData.data
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i+1], b = data[i+2]
-            if (r > 230 && g > 230 && b > 230) data[i+3] = 0
-          }
-          ctx.putImageData(imageData, 0, 0)
-          resolve(canvas.toDataURL())
-        }
-        img.onerror = () => resolve(url)
+         img.onload = () => {
+           try {
+             const canvas = document.createElement('canvas')
+             const ctx = canvas.getContext('2d', { willReadFrequently: true })
+             if (!ctx) { resolve(url); return; }
+             canvas.width = img.width
+             canvas.height = img.height
+             ctx.drawImage(img, 0, 0)
+             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+             const data = imageData.data
+             
+             for (let i = 0; i < data.length; i += 4) {
+               const r = data[i], g = data[i+1], b = data[i+2]
+               const max = Math.max(r, g, b)
+               const min = Math.min(r, g, b)
+               const diff = max - min
+               
+               if (max > bgRemovalThreshold && diff < 20) {
+                 data[i+3] = 0
+               }
+             }
+             ctx.putImageData(imageData, 0, 0)
+             resolve(canvas.toDataURL('image/png'))
+           } catch (e) {
+             console.error('Error removing background:', e)
+             toast.error('Erro ao processar imagem (CORS/Segurança). Tente outra imagem.')
+             resolve(url)
+           }
+         }
+         img.onerror = () => {
+           toast.error('Erro ao carregar imagem do produto.')
+           resolve(url)
+         }
       })
     }
  
@@ -119,7 +138,7 @@
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg
+          priceLayout, globalRemoveBg, imageSize, nameOnTop
         }
       }
       const updated = [...templates, newTemplate]
@@ -154,6 +173,8 @@
       if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
       if (config.priceLayout) setPriceLayout(config.priceLayout)
       if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+      if (config.imageSize !== undefined) setImageSize(config.imageSize)
+      if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
       toast.success('Template aplicado!')
     }
 
@@ -531,9 +552,10 @@
                         <SelectItem value="font-sans">Inter (Sans)</SelectItem>
                         <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
                         <SelectItem value="font-mono">Fira (Mono)</SelectItem>
-                        <SelectItem value="font-black text-6xl">Impact (Bold)</SelectItem>
-                        <SelectItem value="font-sans uppercase">Arial (Caps)</SelectItem>
-                        <SelectItem value="italic font-serif">Italic Serif</SelectItem>
+                       <SelectItem value="font-black">Impact (Bold)</SelectItem>
+                       <SelectItem value="font-sans uppercase tracking-tighter">Arial (Caps)</SelectItem>
+                       <SelectItem value="italic font-serif">Merriweather (Serif)</SelectItem>
+                       <SelectItem value="font-['Montserrat']">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -569,10 +591,37 @@
                  </div>
  
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                      <Slider value={[productBlockHeight]} min={0} max={400} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
-                    </div>
+                   <div className="space-y-2">
+                     <div className="flex justify-between items-center">
+                       <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                       <Input 
+                         type="number" 
+                         value={productBlockHeight} 
+                         onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
+                         className="w-16 h-6 text-[10px] p-1 text-center"
+                         min={0}
+                         max={800}
+                       />
+                     </div>
+                     <Slider value={[productBlockHeight]} min={0} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                   </div>
+                   
+                   <div className="space-y-2">
+                     <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
+                     <Slider value={[imageSize]} min={50} max={300} step={1} onValueChange={([val]) => setImageSize(val)} />
+                   </div>
+
+                   <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-200">
+                     <Label className="text-[10px] font-bold uppercase">Nome Sobre Foto</Label>
+                     <Button 
+                       variant={nameOnTop ? 'default' : 'outline'} 
+                       size="sm" 
+                       className="h-7 text-[10px]"
+                       onClick={() => setNameOnTop(!nameOnTop)}
+                     >
+                       {nameOnTop ? 'Sim' : 'Não'}
+                     </Button>
+                   </div>
                     
                     <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
@@ -632,13 +681,21 @@
                    >
                      Fundo Branco: {removeFlyerBg ? 'Não' : 'Sim'}
                    </Button>
-                   <Button 
-                     variant={globalRemoveBg ? 'default' : 'outline'} 
-                     size="sm" className="h-8 text-[10px]"
-                     onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
-                   >
-                      <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
-                   </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        variant={globalRemoveBg ? 'default' : 'outline'} 
+                        size="sm" className="w-full h-8 text-[10px]"
+                        onClick={() => setGlobalRemoveBg(!globalRemoveBg)}
+                      >
+                         <Eraser className="w-3 h-3 mr-1" /> Remover Fundo Branco
+                      </Button>
+                      {globalRemoveBg && (
+                        <div className="px-2">
+                          <Label className="text-[8px] font-bold uppercase mb-1 block">Sensibilidade ({bgRemovalThreshold})</Label>
+                          <Slider value={[bgRemovalThreshold]} min={150} max={250} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                        </div>
+                      )}
+                    </div>
                  </div>
                </div>
              </div>
@@ -812,33 +869,58 @@
                              height: productBlockHeight > 0 ? `${productBlockHeight}px` : 'auto'
                           }}
                         >
-                          <img 
-                            src={p.image_url} 
-                            className={cn(
-                              "object-contain transition-all duration-300",
-                               p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
-                              layout === 'single' ? 'w-80 h-80' : 
-                              (layout === 'featured-side' && (i === 0 || i === 1)) ? 'w-48 h-64' : 
-                              columns === 4 ? 'w-16 h-16' : 'w-24 h-24'
-                            )} 
-                            style={{
-                              // Alternative for truly transparent backgrounds if the browser supports it
-                              // but mix-blend-multiply is generally the "effective" way for white backgrounds
+                           <div className="relative w-full flex-1 flex items-center justify-center overflow-visible">
+                            <img 
+                              src={p.image_url} 
+                              className={cn(
+                                "object-contain transition-all duration-300 z-10",
+                                 p.removeBg || globalRemoveBg ? "mix-blend-multiply brightness-[1.02] contrast-[1.05]" : (showShadows ? "drop-shadow-2xl" : ""),
+                              )} 
+                              style={{
+                                width: `${(layout === 'single' ? 80 : 
+                                         (layout === 'featured-side' && (i === 0 || i === 1)) ? 48 : 
+                                         columns === 4 ? 16 : 24) * (imageSize / 100)}%`,
+                                height: 'auto',
+                                maxHeight: '100%',
+                              }}
+                            />
+                            {nameOnTop && (
+                              <h3 
+                                className="absolute top-0 left-0 w-full font-black uppercase italic leading-tight line-clamp-2 drop-shadow-md z-20 text-center"
+                                style={{ 
+                                  color: titleColor, 
+                                  fontSize: `${layout === 'single' ? fontSize * 2 : fontSize}px`,
+                                  backgroundColor: hexToRgba(productBgColor, 40),
+                                  padding: '2px 4px'
+                                }}
+                              >
+                                {p.name}
+                              </h3>
+                            )}
+                           </div>
+
+                          <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
+                          {!nameOnTop && (
+                          <h3 
+                            className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
+                            style={{ 
+                              color: titleColor, 
+                              fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px`
                             }}
-                          />
-                         <div className={cn("space-y-0.5 mt-1", columns === 4 ? "scale-90" : "")}>
-                         <h3 
-                           className="font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm"
-                           style={{ color: titleColor, fontSize: `${layout === 'single' ? fontSize * 2.5 : fontSize}px` }}
-                         >
-                           {p.name}
-                         </h3>
-                          <div className={cn(
-                            "flex flex-col items-center mt-auto",
-                            showPriceBg ? "px-3 py-1 rounded-lg" : ""
-                          )}
-                          style={{ backgroundColor: showPriceBg ? priceBgColor : 'transparent' }}
                           >
+                            {p.name}
+                          </h3>
+                          )}
+                           <div 
+                             className={cn(
+                               "flex flex-col items-center mt-auto relative",
+                               showPriceBg ? "px-3 py-1 rounded-lg" : ""
+                             )}
+                             style={{ 
+                               backgroundColor: showPriceBg ? priceBgColor : 'transparent',
+                               zIndex: 40
+                             }}
+                           >
                             {p.original_price && (
                               <span className="text-[8px] line-through text-zinc-500 opacity-60">R$ {p.original_price.toFixed(2)}</span>
                             )}
