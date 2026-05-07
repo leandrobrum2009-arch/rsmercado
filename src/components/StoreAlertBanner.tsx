@@ -67,23 +67,30 @@
            exit={{ height: 0, opacity: 0 }}
            className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden`}
          >
-           <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div className="container mx-auto px-4 py-3.5 flex items-center justify-between gap-4 relative z-10">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
+              
              <div className="flex items-center gap-3">
-               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                 <Icon size={18} className="animate-pulse" />
+                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm shadow-inner ring-1 ring-white/30">
+                  <Icon size={18} className="animate-bounce" />
                </div>
-               <p className="text-xs md:text-sm font-black uppercase tracking-tight italic">
-                 {alert.message}
-               </p>
+                <div className="flex flex-col">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">
+                    Aviso Importante
+                  </p>
+                  <p className="text-xs md:text-sm font-black uppercase tracking-tight italic leading-tight">
+                    {alert.message}
+                  </p>
+                </div>
              </div>
              <button 
                onClick={() => setAlert(null)}
-               className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 active:bg-white/30 rounded-xl transition-all border border-white/10 backdrop-blur-md"
              >
-               <X size={18} />
+                <X size={20} />
              </button>
            </div>
-           <div className="absolute bottom-0 left-0 h-1 bg-white/30 animate-progress" style={{ width: '100%' }} />
+            <div className="absolute bottom-0 left-0 h-1 bg-white/40 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style={{ width: '100%' }} />
          </motion.div>
        )}
      </AnimatePresence>
