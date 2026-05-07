@@ -87,7 +87,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [validityBgColor, setValidityBgColor] = useState('#facc15') // yellow-400
      const [validityFontSize, setValidityFontSize] = useState(11)
     const [validityTextColor, setValidityTextColor] = useState('#000000')
-    const [productPadding, setProductPadding] = useState(8)
+     const [productPadding, setProductPadding] = useState(8)
+     const [nameOffsetY, setNameOffsetY] = useState(0)
+     const [priceOffsetY, setPriceOffsetY] = useState(0)
+     const [imageOffsetY, setImageOffsetY] = useState(0)
+     const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
     const [showPreviewModal, setShowPreviewModal] = useState(false)
@@ -182,15 +186,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                        style={{ padding: `${productPadding}px` }}
                      >
                          <div 
-                           className={cn(
-                             "relative backdrop-blur-[2px] rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
-                              layout === 'single' ? 'p-16' : '',
+                            className={cn(
+                              "relative rounded-xl p-3 w-full flex flex-col items-center justify-center border border-white/30 transition-all",
+                               layout === 'single' ? 'p-16' : '',
                              columns === 4 ? 'p-1.5' : '',
                               showShadows ? "shadow-[0_8px_30px_rgb(0,0,0,0.15)] border-white/50" : "shadow-none",
                               productBlockHeight === 0 ? "h-fit min-h-full" : ""
                            )}
                              style={{
-                               backgroundColor: hexToRgba(productBgColor, productBgOpacity),
+                                backgroundColor: productBgOpacity > 0 ? hexToRgba(productBgColor, productBgOpacity) : 'transparent',
+                                backdropFilter: productBgOpacity > 0 ? `blur(${blurAmount}px)` : 'none',
+                                borderColor: productBgOpacity > 0 ? 'rgba(255,255,255,0.3)' : 'transparent',
                               height: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
@@ -223,7 +229,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                     height: imageSize > 100 ? 'auto' : '100%',
                                     maxHeight: imageSize > 100 ? 'none' : '100%',
                                     objectFit: 'contain',
-                                    transform: `scale(${imageSize / 100})`,
+                                    transform: `scale(${imageSize / 100}) translateY(${imageOffsetY}px)`,
                                     position: 'relative',
                                     zIndex: 10,
                                   }}
@@ -248,10 +254,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            {!nameOnTop && (
                            <h3 
                              className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
-                             style={{ 
-                               color: titleColor, 
-                                    fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`
-                             }}
+                              style={{ 
+                                color: titleColor, 
+                                fontSize: `${layout === 'single' ? fontSize * 4.5 : fontSize}px`,
+                                transform: `translateY(${nameOffsetY}px)`
+                              }}
                            >
                              {p.name}
                            </h3>
@@ -263,7 +270,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               )}
                               style={{ 
                                 backgroundColor: showPriceBg ? priceBgColor : 'transparent',
-                                zIndex: 40
+                                zIndex: 40,
+                                transform: `translateY(${priceOffsetY}px)`
                               }}
                             >
                              {p.original_price && (
@@ -562,7 +570,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+          nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
           showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
         }
@@ -607,6 +616,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
         productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+        nameOffsetY, priceOffsetY, imageOffsetY, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
         showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
@@ -686,7 +696,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       if (config.validityText !== undefined) setValidityText(config.validityText)
       if (config.validityPosition !== undefined) setValidityPosition(config.validityPosition)
       if (config.validityBgColor !== undefined) setValidityBgColor(config.validityBgColor)
-      if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
+       if (config.validityTextColor !== undefined) setValidityTextColor(config.validityTextColor)
+       if (config.nameOffsetY !== undefined) setNameOffsetY(config.nameOffsetY)
+       if (config.priceOffsetY !== undefined) setPriceOffsetY(config.priceOffsetY)
+       if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
+       if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
       toast.success('Template aplicado!')
     }
 
@@ -1650,6 +1664,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase">Opacidade ({productBgOpacity}%)</Label>
                      <Slider value={[productBgOpacity]} min={0} max={100} step={1} onValueChange={([val]) => setProductBgOpacity(val)} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Nível de Desfoque ({blurAmount}px)</Label>
+                      <Slider value={[blurAmount]} min={0} max={10} step={1} onValueChange={([val]) => setBlurAmount(val)} />
                    </div>
                  </div>
  
@@ -1712,10 +1731,36 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       </div>
                     )}
                    
-                   <div className="space-y-2">
-                     <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
-                     <Slider value={[imageSize]} min={50} max={300} step={1} onValueChange={([val]) => setImageSize(val)} />
-                   </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
+                      <Slider value={[imageSize]} min={50} max={400} step={1} onValueChange={([val]) => setImageSize(val)} />
+                    </div>
+
+                    {layout === 'single' && (
+                      <div className="space-y-4 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95 duration-300">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Modelo Único)</Label>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Nome ({nameOffsetY}px)</span>
+                            </div>
+                            <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Preço ({priceOffsetY}px)</span>
+                            </div>
+                            <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Foto ({imageOffsetY}px)</span>
+                            </div>
+                            <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                    <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-200">
                      <Label className="text-[10px] font-bold uppercase">Nome Sobre Foto</Label>
