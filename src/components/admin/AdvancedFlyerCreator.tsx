@@ -1101,10 +1101,10 @@
              </div>
    
                {/* Content Middle Zone (80%) */}
-               <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-hidden relative">
+                <div className="h-[80%] px-8 py-4 flex flex-col justify-center overflow-visible relative">
                <div 
                  className={cn(
-                   "grid h-full max-h-full transition-all duration-300",
+                    "grid h-fit max-h-full transition-all duration-300 items-start",
                    layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                    layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                    layout === 'featured-top' && "grid-cols-2 grid-rows-5",
