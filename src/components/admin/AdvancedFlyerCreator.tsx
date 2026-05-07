@@ -1803,29 +1803,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-               <div className="flex flex-col gap-2">
-                 <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handlePrint}>
-                   <Printer className="w-4 h-4 mr-2" /> Exportar PDF / Imprimir
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg" onClick={handleDownloadPDF} disabled={uploading}>
+                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
                  </Button>
-                 <Button 
-                   className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" 
-                   onClick={handleShareWhatsApp}
-                 >
-                   <MessageCircle className="w-4 h-4 mr-2" /> Compartilhar WhatsApp
-                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
-                  onClick={handleDownloadImage}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4 mr-2" />
-                  )}
-                  Baixar como Imagem (PNG)
-                </Button>
+                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
+                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
+                    <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handlePrint}>
+                    <Printer className="w-4 h-4 mr-2" /> Imprimir
+                  </Button>
               </div>
            </CardContent>
           </Card>
