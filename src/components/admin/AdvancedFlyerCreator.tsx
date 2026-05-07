@@ -37,6 +37,11 @@
    const [showLogo, setShowLogo] = useState(true)
    const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'right'>('center')
    const [logoSize, setLogoSize] = useState(120)
+   const [subtitleText, setSubtitleText] = useState('')
+   const [showSubtitle, setShowSubtitle] = useState(false)
+   const [footerText, setFooterText] = useState('')
+   const [showFooter, setShowFooter] = useState(false)
+   const [footerFontSize, setFooterFontSize] = useState(10)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
@@ -60,32 +65,30 @@
    const [priceLayout, setPriceLayout] = useState<'traditional' | 'inline'>('traditional')
    const [globalRemoveBg, setGlobalRemoveBg] = useState(false)
 
-   // Background removal helper (for white backgrounds)
-   const removeWhiteBackground = (imgElement: HTMLImageElement) => {
-     const canvas = document.createElement('canvas')
-     const ctx = canvas.getContext('2d')
-     if (!ctx) return imgElement.src
-
-     canvas.width = imgElement.naturalWidth
-     canvas.height = imgElement.naturalHeight
-     ctx.drawImage(imgElement, 0, 0)
-
-     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-     const data = imageData.data
-
-     for (let i = 0; i < data.length; i += 4) {
-       const r = data[i]
-       const g = data[i + 1]
-       const b = data[i + 2]
-       // If pixel is close to white, make it transparent
-       if (r > 240 && g > 240 && b > 240) {
-         data[i + 3] = 0
-       }
-     }
-
-     ctx.putImageData(imageData, 0, 0)
-     return canvas.toDataURL()
-   }
+    const processImageBackground = (url: string): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.src = url
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          if (!ctx) { resolve(url); return; }
+          canvas.width = img.width
+          canvas.height = img.height
+          ctx.drawImage(img, 0, 0)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imageData.data
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2]
+            if (r > 230 && g > 230 && b > 230) data[i+3] = 0
+          }
+          ctx.putImageData(imageData, 0, 0)
+          resolve(canvas.toDataURL())
+        }
+        img.onerror = () => resolve(url)
+      })
+    }
  
     useEffect(() => {
       fetchProducts()
@@ -217,11 +220,16 @@
      setSelectedProducts(updated)
    }
 
-   const toggleProductBg = (idx: number) => {
-     const updated = [...selectedProducts]
-     updated[idx].removeBg = !updated[idx].removeBg
-     setSelectedProducts(updated)
-   }
+    const toggleProductBg = async (idx: number) => {
+      const updated = [...selectedProducts]
+      const product = updated[idx]
+      product.removeBg = !product.removeBg
+      if (product.removeBg && !product.image_url.startsWith('data:image')) {
+        const processed = await processImageBackground(product.image_url)
+        product.image_url = processed
+      }
+      setSelectedProducts(updated)
+    }
  
    const handlePrint = () => {
      window.print()
