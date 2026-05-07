@@ -146,7 +146,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 <div 
                   className={cn(
                     "grid transition-all duration-300 items-stretch",
-                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1" : "h-fit max-h-full",
+                    layout === 'single' ? "h-full grid-cols-1 grid-rows-1 flex items-center justify-center" : "h-fit max-h-full",
                     layout === 'grid' && (columns === 2 ? "grid-cols-2" : columns === 3 ? "grid-cols-3" : "grid-cols-4"),
                     layout === 'featured-side' && "grid-cols-4 grid-rows-3",
                     layout === 'featured-top' && "grid-cols-2 grid-rows-5"
@@ -190,12 +190,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            )}
                              style={{
                                backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                              height: layout === 'single' ? '70%' : (productBlockHeight > 0
+                              height: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
                                     : `${productBlockHeight}px`)
                                 : 'auto'),
-                              minHeight: layout === 'single' ? '70%' : (productBlockHeight > 0
+                              minHeight: layout === 'single' ? '90%' : (productBlockHeight > 0
                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
                                     : `${productBlockHeight}px`)
@@ -204,7 +204,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              }}
                          >
                              <div className="relative w-full flex-1 flex items-center justify-center min-h-0 overflow-visible z-10">
-                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: layout === 'single' ? '350px' : '140px' }}>
+                               <div className="relative flex items-center justify-center w-full h-full overflow-visible" style={{ minHeight: layout === 'single' ? '450px' : '140px' }}>
                                 <img 
                                   src={p.image_url} 
                                    crossOrigin="anonymous"
