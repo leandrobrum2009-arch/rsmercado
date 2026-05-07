@@ -47,6 +47,7 @@
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
     const [templates, setTemplates] = useState<any[]>([])
+    const [flyerHistory, setFlyerHistory] = useState<any[]>([])
     const [templateName, setTemplateName] = useState('')
    
    // Styling states
