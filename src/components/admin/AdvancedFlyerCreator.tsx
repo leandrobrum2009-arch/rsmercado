@@ -68,7 +68,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [fontFamily, setFontFamily] = useState('font-sans')
    const [productBgColor, setProductBgColor] = useState('#ffffff')
    const [productBgOpacity, setProductBgOpacity] = useState(60)
-    const [productBlockHeight, setProductBlockHeight] = useState<number>(220) // Default to a reasonable height
+    const [productBlockHeight, setProductBlockHeight] = useState<number>(0) // Default to auto
     const [imageSize, setImageSize] = useState(100)
     const [nameOnTop, setNameOnTop] = useState(false)
    const [showPriceBg, setShowPriceBg] = useState(false)
@@ -190,16 +190,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            )}
                              style={{
                                backgroundColor: hexToRgba(productBgColor, productBgOpacity),
-                               height: layout === 'single' ? 'auto' : (productBlockHeight > 0
-                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                     : `${productBlockHeight}px`)
-                                 : 'auto'),
-                               minHeight: layout === 'single' ? '60%' : (productBlockHeight > 0
-                                 ? (layout === 'featured-side' && (i === 0 || i === 1)
-                                     ? `${productBlockHeight * 3 + gridGap * 2}px`
-                                     : `${productBlockHeight}px`)
-                                 : 'auto'),
+                              height: layout === 'single' ? '70%' : (productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                    : `${productBlockHeight}px`)
+                                : 'auto'),
+                              minHeight: layout === 'single' ? '70%' : (productBlockHeight > 0
+                                ? (layout === 'featured-side' && (i === 0 || i === 1)
+                                    ? `${productBlockHeight * 3 + gridGap * 2}px`
+                                    : `${productBlockHeight}px`)
+                                : 'auto'),
                                overflow: (layout === 'single' || imageSize > 100) ? 'visible' : 'hidden'
                              }}
                          >
@@ -1968,6 +1968,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
             <div className="w-full max-w-[700px] flex justify-center print:max-w-none print:transform-none print:perspective-none">
               <div 
+              <div 
                 id="flyer-content"
                 className={cn(
                   "relative flex flex-col aspect-[1/1.414] w-full print:w-full print:shadow-none overflow-hidden transition-all duration-500 origin-center",
@@ -1975,14 +1976,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 )}
                 style={{
                   backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                  backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                  backgroundSize: '100% 100%',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
                 }}
-           >
-            <FlyerContentInner />
-           </div>
+              >
+                {/* Dedicated Background Layer for better print reliability */}
+                <div 
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    opacity: removeFlyerBg ? 0 : 1
+                  }}
+                />
+                
+                <div className="relative z-10 w-full h-full flex flex-col">
+                  <FlyerContentInner />
+                </div>
+              </div>
          </div>
         </div>
       </div>
