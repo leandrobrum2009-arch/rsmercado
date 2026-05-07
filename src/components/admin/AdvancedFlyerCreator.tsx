@@ -707,11 +707,28 @@
                     {globalRemoveBg && (
                       <div className="space-y-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 animate-in fade-in zoom-in-95">
                         <div className="flex justify-between items-center">
-                          <Label className="text-[9px] font-black uppercase">Sensibilidade Remoção ({bgRemovalThreshold})</Label>
-                          <RefreshCcw className={cn("w-3 h-3 text-zinc-400 cursor-pointer", processingBg ? "animate-spin" : "")} onClick={() => setGlobalRemoveBg(!globalRemoveBg)} />
-                        </div>
-                        <Slider value={[bgRemovalThreshold]} min={150} max={255} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
-                        <p className="text-[7px] text-zinc-500">Valores menores removem mais fundos escuros.</p>
+                       <Label className="text-[9px] font-black uppercase">Refinar Recorte ({bgRemovalThreshold})</Label>
+                       <Button 
+                         variant="ghost" 
+                         size="icon" 
+                         className="h-4 w-4" 
+                         onClick={() => {
+                           // Re-process all images with new threshold
+                           const updated = [...selectedProducts]
+                           updated.forEach(async (p, i) => {
+                             if (p.removeBg) {
+                               const processed = await processImageBackground(p.image_url, bgRemovalThreshold)
+                               updated[i].image_url = processed
+                               setSelectedProducts([...updated])
+                             }
+                           })
+                         }}
+                       >
+                         <RefreshCcw className={cn("w-3 h-3", processingBg ? "animate-spin" : "")} />
+                       </Button>
+                     </div>
+                     <Slider value={[bgRemovalThreshold]} min={180} max={254} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                     <p className="text-[7px] text-zinc-500">Aumente se o fundo não estiver saindo totalmente. Diminua se estiver cortando o produto.</p>
                       </div>
                     )}
                    
