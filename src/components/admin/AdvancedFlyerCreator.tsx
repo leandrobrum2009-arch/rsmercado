@@ -523,10 +523,12 @@
                        <SelectValue />
                      </SelectTrigger>
                      <SelectContent>
-                       <SelectItem value="font-sans">Sans</SelectItem>
-                       <SelectItem value="font-serif">Serif</SelectItem>
-                       <SelectItem value="font-mono">Mono</SelectItem>
-                       <SelectItem value="font-black">Black</SelectItem>
+                        <SelectItem value="font-sans">Inter (Sans)</SelectItem>
+                        <SelectItem value="font-serif">Merriweather (Serif)</SelectItem>
+                        <SelectItem value="font-mono">Fira (Mono)</SelectItem>
+                        <SelectItem value="font-black text-6xl">Impact (Bold)</SelectItem>
+                        <SelectItem value="font-sans uppercase">Arial (Caps)</SelectItem>
+                        <SelectItem value="italic font-serif">Italic Serif</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -561,10 +563,39 @@
                    </div>
                  </div>
  
-                 <div className="space-y-2">
-                   <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                   <Slider value={[productBlockHeight]} min={0} max={400} step={10} onValueChange={([val]) => setProductBlockHeight(val)} />
-                 </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                      <Slider value={[productBlockHeight]} min={0} max={400} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                    </div>
+                    
+                    <div className="space-y-2 p-3 bg-white rounded-xl border border-zinc-200">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">Dados do Rodapé</Label>
+                      <div className="flex gap-2 mb-2">
+                        <Input 
+                          placeholder="Endereço, Telefone, Observações..." 
+                          value={footerText} 
+                          onChange={(e) => setFooterText(e.target.value)} 
+                          className="h-8 text-[10px]" 
+                        />
+                        <Button 
+                          variant={showFooter ? 'default' : 'outline'} 
+                          size="sm" 
+                          className="h-8" 
+                          onClick={() => setShowFooter(!showFooter)}
+                        >
+                          {showFooter ? 'On' : 'Off'}
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-bold uppercase">
+                          <span>Tam. Fonte</span>
+                          <span>{footerFontSize}px</span>
+                        </div>
+                        <Slider value={[footerFontSize]} min={6} max={24} step={1} onValueChange={([val]) => setFooterFontSize(val)} />
+                      </div>
+                    </div>
+                  </div>
  
                  <div className="grid grid-cols-2 gap-4">
                    <div className="flex items-center gap-2">
