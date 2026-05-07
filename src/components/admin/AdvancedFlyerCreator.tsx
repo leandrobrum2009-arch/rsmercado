@@ -226,18 +226,20 @@
         return
       }
       const newTemplate = {
+        id: Math.random().toString(36).substring(7),
         name: templateName,
+        timestamp: new Date().toISOString(),
         config: {
           layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
           columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
           fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-           priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
-           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-           showSubtitle
+          productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+          priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
+          bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+          showSubtitle
         }
       }
-      const updated = [...templates, newTemplate]
+      const updated = [newTemplate, ...templates]
       localStorage.setItem('flyer_templates', JSON.stringify(updated))
       setTemplates(updated)
       setTemplateName('')
