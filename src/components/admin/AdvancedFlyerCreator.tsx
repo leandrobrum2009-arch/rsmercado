@@ -622,7 +622,17 @@
        </div>
  
        {/* Preview Area */}
-       <div className="lg:col-span-8 flex justify-center bg-zinc-200 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+        <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-8 rounded-[32px] overflow-hidden min-h-[1000px] print:p-0 print:bg-white print:rounded-none">
+          <div className="mb-4 flex gap-4 print:hidden">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Preview Real A4
+            </div>
+            <Button size="sm" variant="secondary" className="rounded-full h-8 px-4 text-[10px] font-black uppercase" onClick={handlePrint}>
+              <Download className="w-3 h-3 mr-2" /> Download / Salvar PDF
+            </Button>
+          </div>
+
          <div 
            id="flyer-content"
                className={cn(
