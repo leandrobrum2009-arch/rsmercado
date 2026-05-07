@@ -887,16 +887,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
-    const handlePrint = () => {
+    const handlePrint = async () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro')
         return
       }
 
-      toast.info('Preparando impressão... A janela abrirá em instantes.', {
-        duration: 3000
-      })
-      
+      const flyerElement = document.getElementById('flyer-content');
+      if (!flyerElement) {
+        toast.error('Conteúdo do encarte não encontrado')
+        return
+      }
+
+      setIsPreparingPrint(true)
+      const loadingToast = toast.loading('Gerando imagem para impressão perfeita...')
+
+      try {
       // Save history and to database in background to avoid blocking the print UI
       const historyItem = {
         id: Math.random().toString(36).substring(7),
@@ -908,7 +914,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
           priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
           bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-          showSubtitle
+          showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
+          imageOffsetX, imageOffsetY, blurAmount
         },
         products: selectedProducts
       }
@@ -918,27 +925,36 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       
       // Non-blocking save
       saveToDatabase().catch(err => console.error("Auto-save failed:", err))
-      
-      // Trigger print with a delay for layout and font rendering
-      // We also temporarily disable transitions to ensure static capture
-      const flyerElement = document.getElementById('flyer-content');
-      if (flyerElement) {
-        flyerElement.style.transition = 'none';
-        flyerElement.style.transform = 'none';
-        flyerElement.style.margin = '0';
-        // Force reflow
-        void flyerElement.offsetHeight;
-      }
 
-      setTimeout(() => {
-        window.print();
-        if (flyerElement) {
-          // Re-enable transitions after a delay
-          setTimeout(() => {
-            flyerElement.style.transition = '';
-          }, 1000);
-        }
-      }, 800);
+        // Ensure all images are loaded before capture
+        const images = Array.from(flyerElement.getElementsByTagName('img'))
+        await Promise.all(images.map(img => {
+          if (img.complete) return Promise.resolve()
+          return new Promise((resolve) => {
+            img.onload = resolve
+            img.onerror = resolve
+          })
+        }))
+
+        // Capture as image for perfect print reproduction
+        const canvas = await html2canvas(flyerElement, {
+          useCORS: true,
+          scale: 3, // High quality for print
+          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          logging: false,
+          imageTimeout: 30000,
+        })
+
+        const dataUrl = canvas.toDataURL('image/png')
+        setPrintImage(dataUrl)
+        toast.dismiss(loadingToast)
+      } catch (error) {
+        console.error('Error preparing print:', error)
+        toast.error('Erro ao preparar impressão')
+        toast.dismiss(loadingToast)
+      } finally {
+        setIsPreparingPrint(false)
+      }
     }
 
     const handleDownloadImage = async () => {
