@@ -1617,12 +1617,14 @@ import html2canvas from 'html2canvas'
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden pointer-events-none">
                     <div className="bg-primary/10 border-2 border-dashed border-primary text-primary font-black uppercase text-[10px] px-4 py-2 rounded-full">
                         Rodapé Reservado (5%)
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
-       <style>{`
+          </div>
+        </div>
+
+        <style>{`
          @media print {
            body * { visibility: hidden; }
            #flyer-content, #flyer-content * { visibility: visible; }
