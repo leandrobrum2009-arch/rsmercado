@@ -1658,6 +1658,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase">Opacidade ({productBgOpacity}%)</Label>
                      <Slider value={[productBgOpacity]} min={0} max={100} step={1} onValueChange={([val]) => setProductBgOpacity(val)} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Nível de Desfoque ({blurAmount}px)</Label>
+                      <Slider value={[blurAmount]} min={0} max={10} step={1} onValueChange={([val]) => setBlurAmount(val)} />
                    </div>
                  </div>
  
@@ -1720,10 +1725,36 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       </div>
                     )}
                    
-                   <div className="space-y-2">
-                     <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
-                     <Slider value={[imageSize]} min={50} max={300} step={1} onValueChange={([val]) => setImageSize(val)} />
-                   </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
+                      <Slider value={[imageSize]} min={50} max={400} step={1} onValueChange={([val]) => setImageSize(val)} />
+                    </div>
+
+                    {layout === 'single' && (
+                      <div className="space-y-4 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95 duration-300">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Modelo Único)</Label>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Nome ({nameOffsetY}px)</span>
+                            </div>
+                            <Slider value={[nameOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setNameOffsetY(val)} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Preço ({priceOffsetY}px)</span>
+                            </div>
+                            <Slider value={[priceOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setPriceOffsetY(val)} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px] font-bold uppercase">
+                              <span>Subir/Descer Foto ({imageOffsetY}px)</span>
+                            </div>
+                            <Slider value={[imageOffsetY]} min={-500} max={500} step={2} onValueChange={([val]) => setImageOffsetY(val)} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                    <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-zinc-200">
                      <Label className="text-[10px] font-bold uppercase">Nome Sobre Foto</Label>
