@@ -628,6 +628,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       // Actually, for WhatsApp it's ~text~
       const finalMessage = message.replace(/<s>/g, '~').replace(/<\/s>/g, '~');
 
+      const encoded = encodeURIComponent(finalMessage)
+      window.open(`https://wa.me/?text=${encoded}`, '_blank')
+      toast.success('Compartilhando no WhatsApp...')
+    }
+
       const encoded = encodeURIComponent(message)
       window.open(`https://wa.me/?text=${encoded}`, '_blank')
       toast.success('Compartilhando no WhatsApp...')
