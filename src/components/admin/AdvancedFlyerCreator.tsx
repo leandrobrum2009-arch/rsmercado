@@ -631,20 +631,46 @@
                  </div>
  
                   <div className="space-y-4">
-                   <div className="space-y-2">
-                     <div className="flex justify-between items-center">
-                       <Label className="text-[10px] font-bold uppercase">Altura Fixa ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
-                       <Input 
-                         type="number" 
-                         value={productBlockHeight} 
-                         onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
-                         className="w-16 h-6 text-[10px] p-1 text-center"
-                         min={0}
-                         max={800}
-                       />
-                     </div>
-                     <Slider value={[productBlockHeight]} min={0} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
-                   </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-black uppercase tracking-tighter">Altura do Bloco ({productBlockHeight === 0 ? 'Auto' : `${productBlockHeight}px`})</Label>
+                        <div className="flex gap-1">
+                           <Button variant="outline" size="sm" className="h-6 px-1 text-[8px]" onClick={() => setProductBlockHeight(0)}>AUTO</Button>
+                           <Input 
+                             type="number" 
+                             value={productBlockHeight} 
+                             onChange={(e) => setProductBlockHeight(Number(e.target.value))} 
+                             className="w-12 h-6 text-[10px] p-1 text-center"
+                             min={0}
+                             max={800}
+                           />
+                        </div>
+                      </div>
+                      <div className="flex gap-1 mb-2">
+                        {[180, 220, 260, 300, 350].map(h => (
+                          <Button 
+                            key={h} 
+                            variant={productBlockHeight === h ? "default" : "outline"} 
+                            className="flex-1 h-7 text-[8px] font-bold px-0"
+                            onClick={() => setProductBlockHeight(h)}
+                          >
+                            {h}px
+                          </Button>
+                        ))}
+                      </div>
+                      <Slider value={[productBlockHeight]} min={100} max={600} step={1} onValueChange={([val]) => setProductBlockHeight(val)} />
+                    </div>
+                    
+                    {globalRemoveBg && (
+                      <div className="space-y-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 animate-in fade-in zoom-in-95">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[9px] font-black uppercase">Sensibilidade Remoção ({bgRemovalThreshold})</Label>
+                          <RefreshCcw className={cn("w-3 h-3 text-zinc-400 cursor-pointer", processingBg ? "animate-spin" : "")} onClick={() => setGlobalRemoveBg(!globalRemoveBg)} />
+                        </div>
+                        <Slider value={[bgRemovalThreshold]} min={150} max={255} step={1} onValueChange={([val]) => setBgRemovalThreshold(val)} />
+                        <p className="text-[7px] text-zinc-500">Valores menores removem mais fundos escuros.</p>
+                      </div>
+                    )}
                    
                    <div className="space-y-2">
                      <Label className="text-[10px] font-bold uppercase">Tamanho Foto ({imageSize}%)</Label>
