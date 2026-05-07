@@ -205,93 +205,57 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_logs (
 ALTER TABLE public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
--- 8. POLÍTICAS DE SEGURANÇA (RLS)
-DO $$ 
-BEGIN
     -- Endereços
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='user_addresses' AND policyname='Users manage own addresses') THEN
-        CREATE POLICY "Users manage own addresses" ON public.user_addresses FOR ALL USING (auth.uid() = user_id);
-    END IF;
+    DROP POLICY IF EXISTS "Users manage own addresses" ON public.user_addresses;
+    CREATE POLICY "Users manage own addresses" ON public.user_addresses FOR ALL USING (auth.uid() = user_id);
     
     -- Configurações (Público lê, Admin altera)
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_settings' AND policyname='Public read settings') THEN
-        CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config'));
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='store_settings' AND policyname='Admin manage settings') THEN
-        CREATE POLICY "Admin manage settings" ON public.store_settings FOR ALL USING (public.is_admin());
-    END IF;
+    DROP POLICY IF EXISTS "Public read settings" ON public.store_settings;
+    CREATE POLICY "Public read settings" ON public.store_settings FOR SELECT USING (key NOT IN ('whatsapp_config', 'api_keys', 'secret_config'));
+    DROP POLICY IF EXISTS "Admin manage settings" ON public.store_settings;
+    CREATE POLICY "Admin manage settings" ON public.store_settings FOR ALL USING (public.is_admin());
 
      -- Fidelidade
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='loyalty_rewards' AND policyname='Admin manage rewards') THEN
-         CREATE POLICY "Admin manage rewards" ON public.loyalty_rewards FOR ALL USING (public.is_admin());
-     END IF;
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='loyalty_rewards' AND policyname='Public read rewards') THEN
-         CREATE POLICY "Public read rewards" ON public.loyalty_rewards FOR SELECT USING (active = true);
-     END IF;
+     DROP POLICY IF EXISTS "Admin manage rewards" ON public.loyalty_rewards;
+     CREATE POLICY "Admin manage rewards" ON public.loyalty_rewards FOR ALL USING (public.is_admin());
+     DROP POLICY IF EXISTS "Public read rewards" ON public.loyalty_rewards;
+     CREATE POLICY "Public read rewards" ON public.loyalty_rewards FOR SELECT USING (active = true);
  
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='weekly_challenges' AND policyname='Admin manage challenges') THEN
-         CREATE POLICY "Admin manage challenges" ON public.weekly_challenges FOR ALL USING (public.is_admin());
-     END IF;
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='weekly_challenges' AND policyname='Public read challenges') THEN
-         CREATE POLICY "Public read challenges" ON public.weekly_challenges FOR SELECT USING (active = true);
-     END IF;
+     DROP POLICY IF EXISTS "Admin manage challenges" ON public.weekly_challenges;
+     CREATE POLICY "Admin manage challenges" ON public.weekly_challenges FOR ALL USING (public.is_admin());
+     DROP POLICY IF EXISTS "Public read challenges" ON public.weekly_challenges;
+     CREATE POLICY "Public read challenges" ON public.weekly_challenges FOR SELECT USING (active = true);
  
      -- Bairros
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='delivery_neighborhoods' AND policyname='Admin manage neighborhoods') THEN
-         CREATE POLICY "Admin manage neighborhoods" ON public.delivery_neighborhoods FOR ALL USING (public.is_admin());
-     END IF;
-     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='delivery_neighborhoods' AND policyname='Public read neighborhoods') THEN
-         CREATE POLICY "Public read neighborhoods" ON public.delivery_neighborhoods FOR SELECT USING (active = true);
-     END IF;
+     DROP POLICY IF EXISTS "Admin manage neighborhoods" ON public.delivery_neighborhoods;
+     CREATE POLICY "Admin manage neighborhoods" ON public.delivery_neighborhoods FOR ALL USING (public.is_admin());
+     DROP POLICY IF EXISTS "Public read neighborhoods" ON public.delivery_neighborhoods;
+     CREATE POLICY "Public read neighborhoods" ON public.delivery_neighborhoods FOR SELECT USING (active = true);
  
      -- WhatsApp
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='whatsapp_templates' AND policyname='Admin manage templates') THEN
-          CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
-      END IF;
+     DROP POLICY IF EXISTS "Admin manage templates" ON public.whatsapp_templates;
+     CREATE POLICY "Admin manage templates" ON public.whatsapp_templates FOR ALL USING (public.is_admin());
 
-      -- Pedidos (LIMPEZA COMPLETA DE POLÍTICAS CONFLITANTES)
+      -- Pedidos
       DROP POLICY IF EXISTS "Anyone can insert orders" ON public.orders;
       DROP POLICY IF EXISTS "Users view own orders" ON public.orders;
       DROP POLICY IF EXISTS "Admin manage orders" ON public.orders;
-      DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
-      DROP POLICY IF EXISTS "Users can insert their own orders" ON public.orders;
-      DROP POLICY IF EXISTS "Admins can view all orders" ON public.orders;
-      
       CREATE POLICY "Anyone can insert orders" ON public.orders FOR INSERT WITH CHECK (true);
-      CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (
-        auth.uid() = user_id 
-        OR customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
-        OR public.is_admin()
-      );
+      CREATE POLICY "Users view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', '')) OR public.is_admin());
       CREATE POLICY "Admin manage orders" ON public.orders FOR ALL USING (public.is_admin());
 
       -- Itens do Pedido
       DROP POLICY IF EXISTS "Anyone can insert order items" ON public.order_items;
       DROP POLICY IF EXISTS "Anyone can view order items" ON public.order_items;
       DROP POLICY IF EXISTS "Users view own order items" ON public.order_items;
-      DROP POLICY IF EXISTS "Users can view their own order items" ON public.order_items;
-      
       CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT WITH CHECK (true);
-      CREATE POLICY "Users view own order items" ON public.order_items FOR SELECT USING (
-        EXISTS (
-          SELECT 1 FROM public.orders 
-          WHERE public.orders.id = order_id 
-          AND (
-            public.orders.user_id = auth.uid() 
-            OR public.orders.customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', ''))
-            OR public.is_admin()
-          )
-        )
-      );
+      CREATE POLICY "Users view own order items" ON public.order_items FOR SELECT USING (EXISTS (SELECT 1 FROM public.orders WHERE public.orders.id = order_id AND (public.orders.user_id = auth.uid() OR public.orders.customer_phone = (SELECT COALESCE(auth.jwt()->>'phone', '')) OR public.is_admin())));
 
       -- Feedback
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_feedback' AND policyname='Anyone can insert feedback') THEN
-          CREATE POLICY "Anyone can insert feedback" ON public.app_feedback FOR INSERT WITH CHECK (true);
-      END IF;
-      IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_feedback' AND policyname='Admins view all feedback') THEN
-          CREATE POLICY "Admins view all feedback" ON public.app_feedback FOR SELECT USING (public.is_admin());
-      END IF;
-  END $$;
+      DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.app_feedback;
+      CREATE POLICY "Anyone can insert feedback" ON public.app_feedback FOR INSERT WITH CHECK (true);
+      DROP POLICY IF EXISTS "Admins view all feedback" ON public.app_feedback;
+      CREATE POLICY "Admins view all feedback" ON public.app_feedback FOR SELECT USING (public.is_admin());
  
  -- 9. REPARAR CATEGORIAS E PRODUTOS
  ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS icon_name TEXT;
