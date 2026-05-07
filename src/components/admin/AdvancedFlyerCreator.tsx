@@ -761,8 +761,28 @@ import html2canvas from 'html2canvas'
                </Dialog>
              </div>
            </CardHeader>
-           <CardContent className="space-y-6 pt-6">
-             {/* Layout Selection */}
+            <CardContent className="space-y-6 pt-6">
+              {/* Quick Presets Section */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelos Rápidos</Label>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+                  {PRESET_TEMPLATES.map((t, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      className="flex-shrink-0 h-10 px-4 rounded-xl text-[10px] font-black uppercase border-2 hover:border-primary transition-all"
+                      onClick={() => {
+                        applyTemplate(t.config)
+                        toast.success(`Estilo "${t.name}" aplicado!`)
+                      }}
+                    >
+                      {t.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Layout Selection */}
              <div className="space-y-3">
                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Modelo de Layout</Label>
                <div className="grid grid-cols-2 gap-2">
