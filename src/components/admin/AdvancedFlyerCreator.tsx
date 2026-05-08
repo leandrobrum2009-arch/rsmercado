@@ -1233,7 +1233,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           scale: 2,
           backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
           logging: true,
-          imageTimeout: 20000,
+          imageTimeout: 30000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1243,7 +1243,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.flexDirection = 'column';
               clonedElement.style.visibility = 'visible';
+              clonedElement.style.width = '794px';
+              clonedElement.style.height = '1123px';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
@@ -1251,6 +1254,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 el.style.animation = 'none';
                 el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.className && typeof el.className === 'string') {
+                  el.className = el.className.replace(/\banimate-\S+/g, '');
+                }
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
                   el.style.display = 'block';
@@ -1316,7 +1322,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           allowTaint: false,
           scale: 2,
           backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-          imageTimeout: 20000,
+          imageTimeout: 30000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1326,7 +1332,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.flexDirection = 'column';
               clonedElement.style.visibility = 'visible';
+              clonedElement.style.width = '794px';
+              clonedElement.style.height = '1123px';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
@@ -1334,6 +1343,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 el.style.animation = 'none';
                 el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.className && typeof el.className === 'string') {
+                  el.className = el.className.replace(/\banimate-\S+/g, '');
+                }
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
                   el.style.display = 'block';
