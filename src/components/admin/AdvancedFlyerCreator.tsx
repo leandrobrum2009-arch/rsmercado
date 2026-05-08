@@ -2941,18 +2941,23 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
                           <Button 
                             size="sm" 
-                            className="bg-primary text-white" 
+                            className="bg-primary text-white font-black uppercase text-[10px]" 
                             onClick={async () => { 
-                              setIsPreparingPrint(true);
-                              await handlePrint(false); 
-                              setIsPreparingPrint(false);
-                              setShowPreviewModal(false); 
-                              setPreviewImageUrl(null);
+                              if (useHtmlMode) {
+                                setShowPreviewModal(false);
+                                handleDirectPrint();
+                              } else {
+                                setIsPreparingPrint(true);
+                                await handlePrint(false); 
+                                setIsPreparingPrint(false);
+                                setShowPreviewModal(false); 
+                                setPreviewImageUrl(null);
+                              }
                             }}
                             disabled={isPreparingPrint}
                           >
                             {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
-                            Imprimir Agora
+                            {useHtmlMode ? 'Imprimir HTML' : 'Imprimir Agora'}
                           </Button>
                         </div>
                         </div>
