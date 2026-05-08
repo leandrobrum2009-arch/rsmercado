@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { toast } from '@/lib/toast'
-import { Loader2, Plus, MapPin, Trash2, Home, User, Phone, Info } from 'lucide-react'
+ import { Loader2, Plus, MapPin, Trash2, Home, User, Phone, Info, CheckCircle, Circle } from 'lucide-react'
 
 export function AddressManager({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true)
@@ -37,59 +37,88 @@ export function AddressManager({ userId }: { userId: string }) {
     if (data) setNeighborhoodList(data)
   }
 
-  const fetchAddresses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_addresses')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+   const fetchAddresses = async () => {
+     try {
+       const { data, error } = await supabase
+         .from('user_addresses')
+         .select('*')
+         .eq('user_id', userId)
+         .order('is_default', { ascending: false })
+         .order('created_at', { ascending: false })
+ 
+       if (error) throw error
+       setAddresses(data || [])
+     } catch (error: any) {
+       console.error('Error fetching addresses:', error)
+     } finally {
+       setLoading(false)
+     }
+   }
 
-      if (error) throw error
-      setAddresses(data || [])
-    } catch (error: any) {
-      console.error('Error fetching addresses:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSave = async () => {
-    if (!formData.recipient_name || !formData.street || !formData.neighborhood) {
-      return toast.error('Por favor, preencha os campos obrigatórios (Nome, Rua e Bairro)')
-    }
-
-    setSaving(true)
-    try {
-      const { error } = await supabase
-        .from('user_addresses')
-        .insert([{ ...formData, user_id: userId }])
-
-      if (error) throw error
-      
-      toast.success('Endereço salvo com sucesso!')
-      setShowForm(false)
-      setFormData({
-        recipient_name: '',
-        contact_phone: '',
-        street: '',
-        number: '',
-        neighborhood: '',
-        city: 'Piraí',
-        state: 'RJ',
-        zip_code: '',
-        reference_point: '',
-        observations: '',
-        label: 'Casa'
-      })
-      fetchAddresses()
-    } catch (error: any) {
-       console.error('Save error details:', error)
-       toast.error('Erro ao salvar endereço. Por favor, verifique os dados e tente novamente.')
-    } finally {
-      setSaving(false)
-    }
-  }
+   const handleSave = async () => {
+     if (!formData.recipient_name || !formData.street || !formData.neighborhood) {
+       return toast.error('Por favor, preencha os campos obrigatórios (Nome, Rua e Bairro)')
+     }
+ 
+     setSaving(true)
+     try {
+       const isFirstAddress = addresses.length === 0;
+       
+       const { error } = await supabase
+         .from('user_addresses')
+         .insert([{ 
+           ...formData, 
+           user_id: userId,
+           is_default: isFirstAddress // First address is default by default
+         }])
+ 
+       if (error) throw error
+       
+       toast.success('Endereço salvo com sucesso!')
+       setShowForm(false)
+       setFormData({
+         recipient_name: '',
+         contact_phone: '',
+         street: '',
+         number: '',
+         neighborhood: '',
+         city: 'Ibiúna',
+         state: 'SP',
+         zip_code: '',
+         reference_point: '',
+         observations: '',
+         label: 'Casa'
+       })
+       fetchAddresses()
+     } catch (error: any) {
+        console.error('Save error details:', error)
+        toast.error('Erro ao salvar endereço. Por favor, verifique os dados e tente novamente.')
+     } finally {
+       setSaving(false)
+     }
+   }
+ 
+   const handleSetDefault = async (id: string) => {
+     try {
+       // Remove default from all
+       await supabase
+         .from('user_addresses')
+         .update({ is_default: false })
+         .eq('user_id', userId)
+ 
+       // Set new default
+       const { error } = await supabase
+         .from('user_addresses')
+         .update({ is_default: true })
+         .eq('id', id)
+ 
+       if (error) throw error
+       toast.success('Endereço padrão atualizado!')
+       fetchAddresses()
+     } catch (error: any) {
+       toast.error('Erro ao definir padrão: ' + error.message)
+     }
+   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Deseja realmente excluir este endereço?')) return
@@ -263,11 +292,26 @@ export function AddressManager({ userId }: { userId: string }) {
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(addr.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50">
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
+                 <div className="flex flex-col gap-2">
+                   {addr.is_default ? (
+                     <div className="bg-green-100 text-green-600 p-2 rounded-xl" title="Endereço Padrão">
+                       <CheckCircle size={16} />
+                     </div>
+                   ) : (
+                     <Button 
+                       variant="ghost" 
+                       size="icon" 
+                       onClick={() => handleSetDefault(addr.id)} 
+                       className="text-zinc-300 hover:text-green-500 hover:bg-green-50"
+                       title="Definir como padrão"
+                     >
+                       <Circle size={16} />
+                     </Button>
+                   )}
+                   <Button variant="ghost" size="icon" onClick={() => handleDelete(addr.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50">
+                     <Trash2 size={16} />
+                   </Button>
+                 </div>
               </div>
             ))
           )}
