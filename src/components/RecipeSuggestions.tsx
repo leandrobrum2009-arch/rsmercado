@@ -149,17 +149,21 @@ export function RecipeSuggestions({ cartItems }: { cartItems: any[] }) {
                       <p className="text-[9px] font-bold text-amber-600 uppercase flex items-center gap-1">
                         <AlertCircle size={10} /> Itens Faltantes:
                       </p>
-                      <div className="flex flex-wrap gap-1">
-                        {recipe.missing.map((m: any) => (
-                          <Badge 
-                            key={m.name} 
-                            variant="secondary" 
-                            className={`text-[8px] px-1 py-0 h-4 border-0 ${stockStatus[m.name] ? 'bg-zinc-100 text-zinc-600' : 'bg-red-50 text-red-500 line-through'}`}
-                          >
-                            {m.name}
-                          </Badge>
-                        ))}
-                      </div>
+                       <div className="flex flex-wrap gap-1">
+                         {recipe.missing.map((m: any) => {
+                           const isInStock = stockStatus[m.name];
+                           return (
+                             <Badge 
+                               key={m.name} 
+                               variant="secondary" 
+                               className={`text-[8px] px-1 py-0 h-4 border-0 ${isInStock ? 'bg-green-100 text-green-700 font-black' : 'bg-zinc-100 text-zinc-400'}`}
+                             >
+                               {isInStock ? <Plus size={8} className="mr-1" /> : null}
+                               {m.name}
+                             </Badge>
+                           );
+                         })}
+                       </div>
                       <Button 
                         variant="default" 
                         size="sm" 
