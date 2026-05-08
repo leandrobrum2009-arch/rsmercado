@@ -115,7 +115,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
        const [generationProgress, setGenerationProgress] = useState(0)
        const [generationStep, setGenerationStep] = useState('')
-      const [flyerScale, setFlyerScale] = useState(0.8)
+        const [flyerScale, setFlyerScale] = useState(0.8)
+        const [useHtmlMode, setUseHtmlMode] = useState(false)
  
       useEffect(() => {
         const handleResize = () => {
