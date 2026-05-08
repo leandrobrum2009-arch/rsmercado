@@ -9,7 +9,7 @@
  import { Input } from '@/components/ui/input'
  import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
- import { formatCurrency } from '@/lib/whatsapp'
+ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
  
  export const Route = createFileRoute('/track/$orderId')({
    component: TrackingPage,
@@ -125,7 +125,20 @@ import { Badge } from '@/components/ui/badge'
         }
         
         logAttempt('payment_attempt', 'success', { order_id: orderId, type: order?.payment_method, simulation: true });
-       toast.success("Pagamento confirmado (Simulação)!")
+        
+        // Notify via WhatsApp if enabled
+        const config = await getWhatsAppConfig();
+        if (config?.notify_order_status !== false) {
+          const message = formatWhatsAppMessage('status_update', {
+            id: orderId,
+            status: 'approved',
+            customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
+          });
+          const phone = order?.customer_phone || order?.profiles?.whatsapp;
+          if (phone) await sendWhatsAppMessage(phone, message);
+        }
+
+        toast.success("Pagamento confirmado (Simulação)!")
         setPaymentStep('done')
      } catch (err: any) {
        toast.error("Erro ao processar: " + err.message)

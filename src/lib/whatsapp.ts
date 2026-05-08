@@ -79,7 +79,24 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
-export const formatWhatsAppMessage = (type: 'promotion' | 'order' | 'order_summary', data: any) => {
+ export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update';
+ 
+ export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any) => {
+   if (type === 'status_update') {
+     const statusLabels: Record<string, string> = {
+       pending: 'Aguardando Aprovação ⏳',
+       approved: 'Pedido Aprovado ✅',
+       collecting: 'Separando Produtos 🛒',
+       collected: 'Pronto para Envio 📦',
+       waiting_courier: 'Aguardando Entregador 🛵',
+       out_for_delivery: 'Saiu para Entrega 🚚',
+       delivered: 'Entregue com Sucesso 🏁',
+       cancelled: 'Pedido Cancelado ❌'
+     }
+ 
+     return `Olá *${data.customer_name}*!\n\n🚀 O status do seu pedido #${data.id.substring(0, 8)} mudou para: *${statusLabels[data.status] || data.status}*\n\n📍 *Acompanhe em tempo real:* ${window.location.origin}/track/${data.id}\n\nAgradecemos a preferência! 🛒`;
+   }
+ 
   if (type === 'promotion') {
     return `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*${data.title}*\n\n${data.description}\n\n👉 Confira aqui: ${window.location.origin}/produtos/${data.id}\n\n*Aproveite enquanto durarem os estoques!* 🛒`;
   }
