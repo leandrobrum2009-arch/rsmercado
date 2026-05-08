@@ -1322,7 +1322,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           logging: true,
           imageTimeout: 30000,
           onclone: (clonedDoc) => {
-            logStep('onclone: Clonando para PDF');
+            logStep('onclone: Clonando para Imagem');
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
               clonedElement.style.transform = 'none';
