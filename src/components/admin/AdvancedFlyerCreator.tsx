@@ -952,7 +952,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
       const logStep = (step: string, data?: any) => {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`[FlyerGen][${timestamp}] ${step}`, data || '');
+        const logLine = `[${timestamp}] ${step}${data ? ' ' + JSON.stringify(data) : ''}`;
+        console.log(`[FlyerGen]${logLine}`);
+        setLogHistory(prev => [...prev.slice(-49), logLine]);
       };
 
       const handlePrint = async (shouldSave = true, silentSave = false) => {
