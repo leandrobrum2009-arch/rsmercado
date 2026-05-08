@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone } from 'lucide-react'
+ import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
@@ -93,6 +93,36 @@ import { Badge } from '@/components/ui/badge'
     const [copied, setCopied] = useState(false)
    const [paying, setPaying] = useState(false)
    const [resendingProof, setResendingProof] = useState(false)
+   const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
+   const [pixExpired, setPixExpired] = useState(false)
+ 
+   useEffect(() => {
+     if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
+       const timer = setInterval(() => {
+         setPixTimeLeft(prev => {
+           if (prev <= 1) {
+             setPixExpired(true)
+             return 0
+           }
+           return prev - 1
+         })
+       }, 1000)
+       return () => clearInterval(timer)
+     }
+   }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+ 
+   const formatTime = (seconds: number) => {
+     const mins = Math.floor(seconds / 60)
+     const secs = seconds % 60
+     return `${mins}:${secs.toString().padStart(2, '0')}`
+   }
+ 
+   const handleRetryPix = () => {
+     setPixTimeLeft(600)
+     setPixExpired(false)
+     toast.success("Novo QR Code gerado!")
+     logAttempt('payment_attempt', 'success', { order_id: orderId, type: 'pix', action: 'retry' })
+   }
    const handleResendProof = async () => {
      setResendingProof(true)
      try {
@@ -205,37 +235,70 @@ import { Badge } from '@/components/ui/badge'
 
                 {order.payment_method === 'pix' ? (
                   <div className="space-y-6">
-                    <div className="bg-zinc-50 p-6 rounded-3xl flex flex-col items-center gap-4 border border-zinc-100">
-                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100">
-                        <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
-                          alt="PIX QR Code" 
-                          className="w-40 h-40"
-                        />
+                    {!pixExpired ? (
+                      <>
+                        <div className="bg-zinc-50 p-6 rounded-3xl flex flex-col items-center gap-4 border border-zinc-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock size={14} className="text-amber-500 animate-pulse" />
+                            <span className="text-xs font-black uppercase text-zinc-500">Expira em: <span className="text-amber-600">{formatTime(pixTimeLeft)}</span></span>
+                          </div>
+                          <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 relative">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
+                              alt="PIX QR Code" 
+                              className="w-40 h-40"
+                            />
+                          </div>
+                          <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-200 font-bold flex items-center justify-between px-6 hover:bg-zinc-50"
+                          onClick={handleCopyKey}
+                        >
+                          <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
+                          {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
+                        </Button>
+
+                        <div className="mt-8 space-y-3">
+                          <Button 
+                            className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
+                            onClick={handleSimulatePayment}
+                            disabled={paying}
+                          >
+                            {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
+                            SIMULAR RECEBIMENTO PIX
+                          </Button>
+                          <button 
+                            onClick={() => setPixTimeLeft(5)}
+                            className="w-full text-[8px] font-black uppercase text-zinc-300 hover:text-zinc-400 transition-colors"
+                          >
+                            (Simular Expiração Rápida para Teste)
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-red-50 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 border-2 border-red-100 animate-in fade-in zoom-in duration-300">
+                        <div className="w-20 h-20 bg-red-100 rounded-[30px] flex items-center justify-center text-red-600">
+                          <AlertTriangle size={40} />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-xl font-black uppercase italic tracking-tighter text-red-900">QR Code Expirado</h4>
+                          <p className="text-xs font-bold text-red-700/60 uppercase tracking-widest leading-relaxed">
+                            O tempo para pagamento via PIX acabou. Não se preocupe, você pode gerar um novo código abaixo.
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={handleRetryPix}
+                          className="w-full h-14 rounded-2xl bg-zinc-900 text-white font-black uppercase tracking-widest flex gap-2"
+                        >
+                          <RefreshCw size={18} /> GERAR NOVO QR CODE
+                        </Button>
                       </div>
-                      <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
-                    </div>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-200 font-bold flex items-center justify-between px-6 hover:bg-zinc-50"
-                      onClick={handleCopyKey}
-                    >
-                      <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
-                      {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
-                     </Button>
-                     <div className="mt-8 space-y-3">
-                       <Button 
-                         className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
-                         onClick={handleSimulatePayment}
-                         disabled={paying}
-                       >
-                         {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
-                         SIMULAR RECEBIMENTO PIX
-                       </Button>
-                     </div>
-                   </div>
-                 ) : (
+                    )}
+                  </div>
+                ) : (
                    <div className="space-y-6">
                      {paymentStep === 'info' && (
                        <div className="space-y-6">
