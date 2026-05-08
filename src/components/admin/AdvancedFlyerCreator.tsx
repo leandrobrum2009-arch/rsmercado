@@ -1291,9 +1291,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setUploading(true)
+      setGenerationProgress(10)
+      setGenerationStep('Iniciando PDF...')
       const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
 
       try {
+        setGenerationStep('Carregando recursos...')
+        setGenerationProgress(30)
         // Ensure all images are loaded
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
@@ -1306,6 +1310,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando páginas...')
+        setGenerationProgress(60)
 
         const originalTransform = element.style.transform
         const originalTransition = element.style.transition
@@ -1353,6 +1360,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform
         element.style.transition = originalTransition
 
+        setGenerationProgress(80)
+        setGenerationStep('Gerando documento PDF...')
         const imgData = canvas.toDataURL('image/png')
         const pdf = new jsPDF({
           orientation: 'portrait',
