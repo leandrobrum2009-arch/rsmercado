@@ -1117,14 +1117,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       try {
         // Ensure all images are loaded before capturing
-        const images = Array.from(element.getElementsByTagName('img'))
-        await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
-          return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve // Continue anyway if one image fails
-          })
-        }))
+        const images = Array.from(element.getElementsByTagName('img'));
+        await Promise.all([
+          ...images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }),
+          document.fonts?.ready || Promise.resolve()
+        ]);
 
         // Temporary styles for capture to ensure best result
         const originalTransform = element.style.transform;
@@ -1194,14 +1197,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       try {
         // Ensure all images are loaded
-        const images = Array.from(element.getElementsByTagName('img'))
-        await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
-          return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve
-          })
-        }))
+        const images = Array.from(element.getElementsByTagName('img'));
+        await Promise.all([
+          ...images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }),
+          document.fonts?.ready || Promise.resolve()
+        ]);
 
         const originalTransform = element.style.transform
         const originalTransition = element.style.transition
