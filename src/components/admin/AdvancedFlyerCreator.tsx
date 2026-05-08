@@ -1468,9 +1468,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         try {
           canvas = await generateImageCanvas(2);
         } catch (firstErr) {
-          logStep('Erro download imagem (escala 2). Tentando escala 1.5...', firstErr);
-          setGenerationStep('Otimizando download...');
-          canvas = await generateImageCanvas(1.5);
+          logStep('Erro download imagem (escala 2). Tentando escala 1.2...', firstErr);
+          setGenerationStep('Otimizando imagem...');
+          try {
+            canvas = await generateImageCanvas(1.2);
+          } catch (secondErr) {
+            logStep('Erro download imagem (escala 1.2). Tentando escala básica (1.0)...', secondErr);
+            setGenerationStep('Otimizando imagem (Final)...');
+            canvas = await generateImageCanvas(1.0);
+          }
         }
 
         element.style.transform = originalTransform;
@@ -1481,11 +1487,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationStep('Finalizando arquivo...')
         let image = ''
         try {
+          // Default to PNG for individual images as users expect transparency if background removed
           image = canvas.toDataURL('image/png')
-          logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+          logStep(`Download imagem DataURL (PNG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
         } catch (exportError: any) {
-          logStep('ERRO ao exportar imagem para download:', exportError);
-          throw new Error('CANVAS_TAINTED');
+          logStep('ERRO ao exportar PNG, tentando JPEG:', exportError);
+          try {
+            image = canvas.toDataURL('image/jpeg', 0.9);
+            logStep(`Download imagem DataURL (JPEG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+          } catch (jpegErr: any) {
+            logStep('ERRO crítico ao exportar imagem:', jpegErr);
+            throw new Error('CANVAS_TAINTED');
+          }
         }
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
