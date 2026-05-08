@@ -153,7 +153,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           
           const timer = setTimeout(() => {
             window.print()
-          }, 1000)
+          }, 600) // Fast trigger for the image-based print
           
           return () => {
             clearTimeout(timer)
@@ -965,11 +965,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
         setFlyerHistory(updatedHistory);
         localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-          if (shouldSave && !silentSave) {
-            await saveToDatabase();
-          } else if (shouldSave && silentSave) {
-            // Background save without toast
-            saveToDatabase();
+          // Save attempt - we try to save but don't let a save error block the print if possible
+          if (shouldSave) {
+            try {
+              await saveToDatabase();
+            } catch (saveError) {
+              console.error('Save failed but proceeding to print:', saveError);
+              // We already show a toast in saveToDatabase, so just continue here
+            }
           }
  
 
@@ -1004,8 +1007,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                clonedFlyer.style.top = '0';
                clonedFlyer.style.left = '0';
                clonedFlyer.style.boxShadow = 'none';
-               clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.flexDirection = 'column';
+                clonedFlyer.style.overflow = 'hidden';
                
+               // Fix for positions and layout shifting
                const allElements = clonedFlyer.querySelectorAll('*');
                allElements.forEach((el: any) => {
                  el.style.fontVariantNumeric = 'tabular-nums';
@@ -1014,18 +1020,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    el.style.overflow = 'visible';
                    el.style.display = 'block';
                    el.style.minWidth = '100%';
+                   el.style.position = 'relative';
                  }
                });
              }
            }
          });
  
-         // If we are removing the background (transparency), we MUST use PNG. 
-         // Otherwise, JPEG is much more efficient for storage.
-         const dataUrl = removeFlyerBg 
-           ? canvas.toDataURL('image/png') 
-           : canvas.toDataURL('image/jpeg', 0.92);
-        setPrintImage(dataUrl);
+          // Always use PNG for print to ensure maximum fidelity of positions and colors
+          const dataUrl = canvas.toDataURL('image/png');
+          setPrintImage(dataUrl);
         toast.dismiss(loadingToast);
         toast.success('Pronto para imprimir!');
       } catch (error) {
@@ -1054,7 +1058,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-           scale: 2,
+            scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            allowTaint: false,
@@ -1321,15 +1325,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-      {printImage && (
-        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static flyer-print-overlay">
-          <img 
-            src={printImage} 
-            className="w-[210mm] h-[297mm] object-contain mx-auto" 
-            alt="Print Preview" 
-          />
-        </div>
-      )}
+  {printImage && (
+    <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+      <img 
+        src={printImage} 
+        className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
+        alt="Print Preview" 
+        onLoad={() => {
+          // Safety check: sometimes the print triggers before the image is visually ready
+          console.log('Print image loaded in overlay');
+        }}
+      />
+    </div>
+  )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
@@ -2472,15 +2480,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
           body * { visibility: hidden !important; }
           
-          /* Show the captured image if it exists, otherwise fall back to content */
-          .flyer-print-overlay, 
-          .flyer-print-overlay img,
-          #flyer-content, 
-          #flyer-content * { 
-            visibility: visible !important; 
-          }
-
-          #flyer-content {
+          /* Priority visibility for the image overlay during print */
+          .flyer-print-overlay,
+          .flyer-print-overlay img {
+            visibility: visible !important;
+            display: block !important;
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
@@ -2488,27 +2492,27 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             height: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            border: none !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
-            transform: none !important;
-            transition: none !important;
-            box-shadow: none !important;
-            z-index: 99998 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            z-index: 99999 !important;
+            background: white !important;
+            object-fit: contain !important;
           }
-          
-          .flyer-print-overlay {
+
+          /* Fallback visibility for content if image is not yet generated */
+          #flyer-content:not(.print\:hidden) {
+            visibility: visible !important;
+            display: flex !important;
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             width: 210mm !important;
             height: 297mm !important;
-            z-index: 99999 !important;
+            z-index: 99998 !important;
+            transform: none !important;
             background: white !important;
+          }
+          
+          #flyer-content:not(.print\:hidden) * {
+            visibility: visible !important;
           }
           
           .print\:hidden { display: none !important; }
