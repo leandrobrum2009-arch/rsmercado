@@ -905,6 +905,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         removeBg: globalRemoveBg
       }
 
+      // Diagnostic CORS check
+      if (imageUrl && !imageUrl.startsWith('data:')) {
+        const checkImg = new Image();
+        checkImg.crossOrigin = "anonymous";
+        checkImg.src = imageUrl;
+        checkImg.onload = () => logStep(`CORS OK para: ${product.name}`);
+        checkImg.onerror = () => {
+          logStep(`AVISO CORS: Falha ao carregar com crossOrigin=anonymous para: ${product.name}. Isso pode afetar a geração da imagem de alta fidelidade.`);
+        };
+      }
+
       setSelectedProducts([...selectedProducts, newProduct])
       toast.success('Produto adicionado')
 
@@ -937,7 +948,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
+      const logStep = (step: string, data?: any) => {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`[FlyerGen][${timestamp}] ${step}`, data || '');
+      };
+
       const handlePrint = async (shouldSave = true, silentSave = false) => {
+      logStep('Iniciando handlePrint', { products: selectedProducts.length, shouldSave });
+      
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
@@ -945,6 +963,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
+        logStep('ERRO: flyer-content não encontrado');
         toast.error('Conteúdo do encarte não encontrado');
         return;
       }
@@ -955,6 +974,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
+        logStep('Passo 1: Sincronizando banco de dados');
         setGenerationStep('Sincronizando banco de dados...');
         setGenerationProgress(20);
 
@@ -988,27 +1008,39 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
  
 
-        // Wait for all images and fonts to load
+        logStep('Passo 2: Carregando recursos (imagens/fontes)');
         setGenerationStep('Carregando recursos...');
         setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
+        logStep(`Encontradas ${images.length} imagens no encarte`);
+        
         await Promise.all([
-          ...images.map(img => {
-            if (img.complete) return Promise.resolve();
+          ...images.map((img, i) => {
+            if (img.complete) {
+              logStep(`Imagem ${i+1} já carregada: ${img.src.substring(0, 50)}...`);
+              return Promise.resolve();
+            }
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => {
+                logStep(`Imagem ${i+1} carregada com sucesso`);
+                resolve(null);
+              };
+              img.onerror = () => {
+                logStep(`ERRO: Falha ao carregar imagem ${i+1}: ${img.src.substring(0, 50)}...`);
+                resolve(null);
+              };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes carregadas e prontas')) || Promise.resolve()
         ]);
 
+        logStep('Passo 3: Renderizando html2canvas');
         setGenerationStep('Renderizando em alta fidelidade...');
         setGenerationProgress(60);
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
-            console.log('[Print] Chamando html2canvas para impressão...');
+            logStep('Iniciando html2canvas interno (High Fidelity)');
             return await html2canvas(flyerElement, {
               useCORS: true,
               scale: 2, 
@@ -1017,6 +1049,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               imageTimeout: 30000,
               allowTaint: false,
               onclone: (clonedDoc) => {
+                logStep('onclone: Documento clonado, ajustando estilos');
                 const clonedFlyer = clonedDoc.getElementById('flyer-content');
                 if (clonedFlyer) {
                   clonedFlyer.style.transform = 'none';
@@ -1042,7 +1075,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.style.fontVariantNumeric = 'tabular-nums';
                     el.style.webkitFontSmoothing = 'antialiased';
                     
-                    // Remove Tailwind animate classes
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className.replace(/\banimate-\S+/g, '');
                     }
@@ -1054,6 +1086,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       el.style.position = 'relative';
                     }
                   });
+                } else {
+                  logStep('onclone: ERRO - flyer-content não encontrado no clone');
                 }
               }
             });
@@ -1063,6 +1097,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             setTimeout(() => reject(new Error('Tempo limite excedido ao preparar impressão')), 30000);
           });
 
+          logStep('Aguardando resultado do canvas ou timeout...');
           const printCanvasResult = await Promise.race([
             generatePrintCanvas(),
             printTimeoutPromise
@@ -1071,9 +1106,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setGenerationProgress(90);
           setGenerationStep('Preparando impressão...');
           const canvas = printCanvasResult as HTMLCanvasElement;
+          logStep(`Canvas gerado: ${canvas.width}x${canvas.height}`);
  
-          // Always use PNG for print to ensure maximum fidelity of positions and colors
+          logStep('Convertendo canvas para DataURL (PNG)');
           const dataUrl = canvas.toDataURL('image/png');
+          logStep(`DataURL gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          
           setGenerationProgress(100);
           setGenerationStep('Concluído!');
           setPrintImage(dataUrl);
@@ -1127,30 +1165,51 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     };
 
       const handleGeneratePreview = async () => {
+        logStep('Iniciando handleGeneratePreview');
         const flyerElement = document.getElementById('flyer-content');
-        if (!flyerElement) return;
+        if (!flyerElement) {
+          logStep('ERRO: flyer-content não encontrado para prévia');
+          return;
+        }
         
         setIsPreparingPrint(true);
         setGenerationProgress(10);
         setGenerationStep('Preparando ambiente...');
-        console.log('[Preview] Iniciando geração de prévia...');
         
+        logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
+        logStep(`Layout: ${layout}, Colunas: ${columns}`);
+        logStep(`Fundo: ${backgroundType}, Imagem: ${backgroundUrl ? 'Sim' : 'Não'}`);
+        logStep(`Total de Produtos: ${selectedProducts.length}`);
+        logStep('--- INICIANDO ---');
+
         try {
+          logStep('Passo 1: Delay de estabilização');
           await new Promise(resolve => setTimeout(resolve, 500));
+
+          logStep('Passo 2: Carregando recursos');
           setGenerationProgress(20);
           setGenerationStep('Carregando imagens e fontes...');
 
           const images = Array.from(flyerElement.querySelectorAll('img'));
+          logStep(`Aguardando ${images.length} imagens e fontes...`);
+          
           const loadResources = Promise.all([
             ...images.map((img, idx) => {
               if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
               return new Promise((resolve) => {
-                const timer = setTimeout(() => resolve(null), 3000);
+                const timer = setTimeout(() => {
+                  logStep(`[Preview] Timeout imagem ${idx + 1}: ${img.src.substring(0, 30)}...`);
+                  resolve(null);
+                }, 3000);
                 img.onload = () => { clearTimeout(timer); resolve(null); };
-                img.onerror = () => { clearTimeout(timer); resolve(null); };
+                img.onerror = () => { 
+                  logStep(`[Preview] ERRO imagem ${idx + 1}: ${img.src.substring(0, 30)}...`);
+                  clearTimeout(timer); 
+                  resolve(null); 
+                };
               });
             }),
-            document.fonts?.ready || Promise.resolve()
+            document.fonts?.ready.then(() => logStep('Fontes prontas para prévia')) || Promise.resolve()
           ]);
 
           await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
@@ -1162,14 +1221,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
           );
 
+          logStep('Passo 3: Renderizando html2canvas para prévia');
           const canvasPromise = html2canvas(flyerElement, {
             useCORS: true,
-            scale: 1.2, // Very safe scale for preview
+            scale: 1.2, 
             backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
             logging: true,
             allowTaint: false,
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
+              logStep('onclone: Ajustando estilos no clone da prévia');
               const clonedFlyer = clonedDoc.getElementById('flyer-content');
               if (clonedFlyer) {
                 clonedFlyer.style.transform = 'none';
@@ -1188,23 +1249,33 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.className = el.className.replace(/\banimate-\S+/g, '');
                   }
                 });
+              } else {
+                logStep('onclone: ERRO - flyer-content não encontrado no clone da prévia');
               }
             }
           });
 
+          logStep('Aguardando canvas da prévia...');
           const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          logStep(`Canvas da prévia gerado: ${canvas.width}x${canvas.height}`);
+          
           setGenerationProgress(80);
           setGenerationStep('Finalizando imagem...');
-          const dataUrl = canvas.toDataURL('image/png');
           
-          if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
+          logStep('Convertendo canvas da prévia para DataURL');
+          const dataUrl = canvas.toDataURL('image/png');
+          logStep(`DataURL da prévia gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          
+          if (!dataUrl || dataUrl === 'data:,') {
+            logStep('ERRO: Canvas da prévia gerou uma imagem vazia');
+            throw new Error('EMPTY_IMAGE');
+          }
           
           setGenerationProgress(100);
           setGenerationStep('Concluído!');
           setPreviewImageUrl(dataUrl);
-          console.log('[Preview] Prévia gerada com sucesso.');
         } catch (error: any) {
-          console.error('[Preview] Erro ao gerar prévia:', error);
+          logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
           if (error.message === 'TIMEOUT_EXCEEDED') {
             toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
             // Optionally retry with even lower settings or just show the DOM
@@ -1228,27 +1299,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return
       }
 
+      logStep('Iniciando handleDownloadImage');
       setUploading(true)
       setGenerationProgress(10)
       setGenerationStep('Iniciando captura...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
         setGenerationProgress(30)
-        // Ensure all images are loaded before capturing
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
-          ...images.map(img => {
+          ...images.map((img, i) => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => { logStep(`Imagem download ${i+1} OK`); resolve(null); };
+              img.onerror = () => { logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
         ]);
 
+        logStep('Passo 2: Renderizando html2canvas para download');
         setGenerationStep('Renderizando imagem...')
         setGenerationProgress(60)
 
@@ -1266,6 +1339,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           logging: true,
           imageTimeout: 30000,
           onclone: (clonedDoc) => {
+            logStep('onclone: Clonando para Imagem');
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
               clonedElement.style.transform = 'none';
@@ -1300,9 +1374,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform;
         element.style.transition = originalTransition;
 
+        logStep('Passo 3: Finalizando arquivo de imagem');
         setGenerationProgress(90)
         setGenerationStep('Finalizando arquivo...')
         const image = canvas.toDataURL('image/png')
+        logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         const link = document.createElement('a')
@@ -1334,27 +1410,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return
       }
 
+      logStep('Iniciando handleDownloadPDF');
       setUploading(true)
       setGenerationProgress(10)
       setGenerationStep('Iniciando PDF...')
       const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
 
       try {
+        logStep('Passo 1: Carregando recursos para PDF');
         setGenerationStep('Carregando recursos...')
         setGenerationProgress(30)
-        // Ensure all images are loaded
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
-          ...images.map(img => {
+          ...images.map((img, i) => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => { logStep(`Imagem PDF ${i+1} OK`); resolve(null); };
+              img.onerror = () => { logStep(`Imagem PDF ${i+1} FALHOU`); resolve(null); };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes PDF OK')) || Promise.resolve()
         ]);
 
+        logStep('Passo 2: Renderizando html2canvas para PDF');
         setGenerationStep('Renderizando páginas...')
         setGenerationProgress(60)
 
@@ -1404,9 +1482,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform
         element.style.transition = originalTransition
 
+        logStep('Passo 3: Gerando documento PDF');
         setGenerationProgress(80)
         setGenerationStep('Gerando documento PDF...')
         const imgData = canvas.toDataURL('image/png')
+        logStep(`PDF DataURL gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
         setGenerationProgress(100)
         setGenerationStep('Concluído!')
         const pdf = new jsPDF({
