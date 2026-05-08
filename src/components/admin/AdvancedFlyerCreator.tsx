@@ -1308,7 +1308,30 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           });
 
           logStep('Aguardando canvas da prévia...');
-          const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          let canvas: HTMLCanvasElement;
+          try {
+            canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          } catch (previewErr) {
+            logStep('Erro na prévia (escala 1.2). Tentando escala 1...', previewErr);
+            const canvasPromiseScale1 = html2canvas(flyerElement, {
+              useCORS: true,
+              scale: 1, 
+              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              imageTimeout: 10000,
+              onclone: (clonedDoc) => {
+                const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                if (clonedFlyer) {
+                  clonedFlyer.style.width = '794px';
+                  clonedFlyer.style.height = '1123px';
+                  clonedFlyer.querySelectorAll('*').forEach((el: any) => {
+                    el.style.setProperty('animation', 'none', 'important');
+                    el.style.setProperty('transition', 'none', 'important');
+                  });
+                }
+              }
+            });
+            canvas = await Promise.race([canvasPromiseScale1, timeoutPromise]) as HTMLCanvasElement;
+          }
           logStep(`Canvas da prévia gerado: ${canvas.width}x${canvas.height}`);
           
           setGenerationProgress(80);
