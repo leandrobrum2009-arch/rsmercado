@@ -10,7 +10,7 @@ import { jsPDF } from 'jspdf'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
-import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -991,12 +991,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
+            console.log('[Print] Chamando html2canvas para impressão...');
             return await html2canvas(flyerElement, {
               useCORS: true,
-              scale: 2, // Scale 2 is usually enough for A4 and more stable than 3
+              scale: 2, 
               backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
               logging: true,
-              imageTimeout: 20000,
+              imageTimeout: 30000,
               allowTaint: false,
               onclone: (clonedDoc) => {
                 const clonedFlyer = clonedDoc.getElementById('flyer-content');
@@ -1013,8 +1014,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   clonedFlyer.style.flexDirection = 'column';
                   clonedFlyer.style.overflow = 'hidden';
                   clonedFlyer.style.visibility = 'visible';
+                  clonedFlyer.style.width = '794px';
+                  clonedFlyer.style.height = '1123px';
                   
-                  // Fix for positions and layout shifting
                   const allElements = clonedFlyer.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.transition = 'none';
@@ -1022,6 +1024,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.style.backdropFilter = 'none';
                     el.style.fontVariantNumeric = 'tabular-nums';
                     el.style.webkitFontSmoothing = 'antialiased';
+                    
+                    // Remove Tailwind animate classes
+                    if (el.className && typeof el.className === 'string') {
+                      el.className = el.className.replace(/\banimate-\S+/g, '');
+                    }
+
                     if (el.classList.contains('price-container')) {
                       el.style.overflow = 'visible';
                       el.style.display = 'block';
@@ -1048,8 +1056,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           // Always use PNG for print to ensure maximum fidelity of positions and colors
           const dataUrl = canvas.toDataURL('image/png');
           setPrintImage(dataUrl);
-        toast.dismiss(loadingToast);
-        toast.success('Pronto para imprimir!');
+          toast.dismiss(loadingToast);
+          
+          // Trigger print after image is likely rendered in the overlay
+          setTimeout(() => {
+            window.print();
+            // Clear print image after a delay or on return to window
+            const clearPrint = () => {
+              setPrintImage(null);
+              window.removeEventListener('focus', clearPrint);
+            };
+            window.addEventListener('focus', clearPrint, { once: true });
+          }, 1000);
+
+          toast.success('Pronto para imprimir!');
       } catch (error) {
         console.error('Error preparing print:', error);
         toast.error('Erro ao preparar impressão');
@@ -1059,119 +1079,93 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        }
      };
  
-     const handleGeneratePreview = async () => {
-       const flyerElement = document.getElementById('flyer-content');
-       if (!flyerElement) return;
-       
-         setIsPreparingPrint(true);
-         console.log('[Preview] Iniciando geração de prévia...');
-         try {
-           // Wait for all images and fonts
-           const images = Array.from(flyerElement.querySelectorAll('img'));
-           console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
-           
-            // Add a timeout to the overall resource loading to prevent hanging
-            const loadResources = Promise.all([
-              ...images.map((img, idx) => {
-                if (img.complete && img.naturalWidth !== 0) {
-                  return Promise.resolve();
-                }
-                return new Promise((resolve) => {
-                  const timer = setTimeout(() => {
-                    console.warn(`[Preview] Timeout carregar imagem ${idx + 1}`);
-                    resolve(null);
-                  }, 5000);
-                  img.onload = () => {
-                    clearTimeout(timer);
-                    resolve(null);
-                  };
-                  img.onerror = () => {
-                    clearTimeout(timer);
-                    resolve(null);
-                  };
+      const handleGeneratePreview = async () => {
+        const flyerElement = document.getElementById('flyer-content');
+        if (!flyerElement) return;
+        
+        setIsPreparingPrint(true);
+        console.log('[Preview] Iniciando geração de prévia...');
+        
+        try {
+          // 1. Small delay to ensure Modal is rendered and DOM is stable
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // 2. Resource Loading with hard timeout
+          const images = Array.from(flyerElement.querySelectorAll('img'));
+          console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
+          
+          const loadResources = Promise.all([
+            ...images.map((img, idx) => {
+              if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+              return new Promise((resolve) => {
+                const timer = setTimeout(() => {
+                  console.warn(`[Preview] Timeout imagem ${idx + 1}`);
+                  resolve(null);
+                }, 3000);
+                img.onload = () => { clearTimeout(timer); resolve(null); };
+                img.onerror = () => { clearTimeout(timer); resolve(null); };
+              });
+            }),
+            document.fonts?.ready || Promise.resolve()
+          ]);
+
+          await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
+          
+          // 3. Generation with hard timeout
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
+          );
+
+          const canvasPromise = html2canvas(flyerElement, {
+            useCORS: true,
+            scale: 1.2, // Very safe scale for preview
+            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            logging: true,
+            allowTaint: false,
+            imageTimeout: 10000,
+            onclone: (clonedDoc) => {
+              const clonedFlyer = clonedDoc.getElementById('flyer-content');
+              if (clonedFlyer) {
+                clonedFlyer.style.transform = 'none';
+                clonedFlyer.style.transition = 'none';
+                clonedFlyer.style.animation = 'none';
+                clonedFlyer.style.margin = '0';
+                clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.flexDirection = 'column';
+                clonedFlyer.style.width = '794px';
+                clonedFlyer.style.height = '1123px';
+
+                clonedFlyer.querySelectorAll('*').forEach((el: any) => {
+                  el.style.transition = 'none';
+                  el.style.animation = 'none';
+                  if (el.className && typeof el.className === 'string') {
+                    el.className = el.className.replace(/\banimate-\S+/g, '');
+                  }
                 });
-              }),
-              document.fonts?.ready || Promise.resolve()
-            ]);
-
-            const resourceTimeout = new Promise(resolve => setTimeout(resolve, 10000));
-            await Promise.race([loadResources, resourceTimeout]);
-           
-           console.log('[Preview] Iniciando html2canvas...');
- 
-          // Create a promise for html2canvas with a timeout
-          const generateCanvas = async () => {
-            return await html2canvas(flyerElement, {
-              useCORS: true,
-              scale: 2, // Reduced from 3 to 2 for better performance and reliability
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-              logging: true,
-              allowTaint: false,
-              imageTimeout: 15000,
-              onclone: (clonedDoc) => {
-                console.log('[Preview] Documento clonado para renderização.');
-                const clonedFlyer = clonedDoc.getElementById('flyer-content');
-                if (clonedFlyer) {
-                  clonedFlyer.style.transform = 'none';
-                  clonedFlyer.style.transition = 'none';
-                  clonedFlyer.style.animation = 'none';
-                  clonedFlyer.style.margin = '0';
-                  clonedFlyer.style.position = 'relative';
-                  clonedFlyer.style.top = '0';
-                  clonedFlyer.style.left = '0';
-                  clonedFlyer.style.boxShadow = 'none';
-                  clonedFlyer.style.display = 'flex';
-                  clonedFlyer.style.visibility = 'visible';
-
-                  const allElements = clonedFlyer.querySelectorAll('*');
-                  allElements.forEach((el: any) => {
-                    el.style.transition = 'none';
-                    el.style.animation = 'none';
-                    el.style.backdropFilter = 'none';
-                    el.style.fontVariantNumeric = 'tabular-nums';
-                    if (el.classList.contains('price-container')) {
-                      el.style.overflow = 'visible';
-                      el.style.display = 'block';
-                    }
-                  });
-                } else {
-                  console.error('[Preview] Elemento flyer-content não encontrado no clone!');
-                }
               }
-            });
-          };
-
-          // Timeout promise
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Tempo limite excedido ao gerar prévia')), 25000);
+            }
           });
 
-          console.log('[Preview] Iniciando html2canvas com timeout...');
-          const canvasResult = await Promise.race([
-            generateCanvas(),
-            timeoutPromise
-          ]);
+          const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          const dataUrl = canvas.toDataURL('image/png');
           
-          const canvas = canvasResult as HTMLCanvasElement;
-
-         console.log('[Preview] Canvas gerado com sucesso.');
-         const dataUrl = canvas.toDataURL('image/png');
-         
-         if (!dataUrl || dataUrl === 'data:,') {
-           console.error('[Preview] Canvas gerou uma imagem vazia!');
-           throw new Error('Canvas rendering produced an empty image');
-         }
-         
-         console.log(`[Preview] DataURL gerado: ${dataUrl.substring(0, 50)}... (tamanho: ${dataUrl.length})`);
+          if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
+          
           setPreviewImageUrl(dataUrl);
-       } catch (error) {
-         console.error('Error generating preview:', error);
-         toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
-         setShowPreviewModal(false);
-       } finally {
-         setIsPreparingPrint(false);
-       }
-     };
+          console.log('[Preview] Prévia gerada com sucesso.');
+        } catch (error: any) {
+          console.error('[Preview] Erro ao gerar prévia:', error);
+          if (error.message === 'TIMEOUT_EXCEEDED') {
+            toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
+            // Optionally retry with even lower settings or just show the DOM
+          } else {
+            toast.error('Erro ao gerar prévia. Verifique sua conexão.');
+          }
+          setShowPreviewModal(false);
+        } finally {
+          setIsPreparingPrint(false);
+        }
+      };
  
      const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
@@ -1209,7 +1203,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           scale: 2,
           backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
           logging: true,
-          imageTimeout: 20000,
+          imageTimeout: 30000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1219,7 +1213,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.flexDirection = 'column';
               clonedElement.style.visibility = 'visible';
+              clonedElement.style.width = '794px';
+              clonedElement.style.height = '1123px';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
@@ -1227,6 +1224,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 el.style.animation = 'none';
                 el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.className && typeof el.className === 'string') {
+                  el.className = el.className.replace(/\banimate-\S+/g, '');
+                }
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
                   el.style.display = 'block';
@@ -1292,7 +1292,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           allowTaint: false,
           scale: 2,
           backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-          imageTimeout: 20000,
+          imageTimeout: 30000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1302,7 +1302,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.flexDirection = 'column';
               clonedElement.style.visibility = 'visible';
+              clonedElement.style.width = '794px';
+              clonedElement.style.height = '1123px';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
@@ -1310,6 +1313,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 el.style.animation = 'none';
                 el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.className && typeof el.className === 'string') {
+                  el.className = el.className.replace(/\banimate-\S+/g, '');
+                }
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
                   el.style.display = 'block';
@@ -1414,7 +1420,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     return (
       <>
   {printImage && (
-    <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+    <div className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="fixed top-4 right-4 z-[100000] print:hidden" 
+        onClick={() => setPrintImage(null)}
+      >
+        <X className="w-4 h-4 mr-2" /> Fechar
+      </Button>
       <img 
         src={printImage} 
         className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
