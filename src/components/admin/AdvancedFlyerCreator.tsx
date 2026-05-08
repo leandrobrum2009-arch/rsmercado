@@ -109,12 +109,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [logHistory, setLogHistory] = useState<string[]>([])
      const [showLogViewer, setShowLogHistory] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
-        const [showPreviewModal, setShowPreviewModal] = useState(false)
-        const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
-      const [printImage, setPrintImage] = useState<string | null>(null)
-       const [isPreparingPrint, setIsPreparingPrint] = useState(false)
-       const [generationProgress, setGenerationProgress] = useState(0)
-       const [generationStep, setGenerationStep] = useState('')
+         const [showPreviewModal, setShowPreviewModal] = useState(false)
+         const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+       const [printImage, setPrintImage] = useState<string | null>(null)
+        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+        const [generationProgress, setGenerationProgress] = useState(0)
+        const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
         const [useHtmlMode, setUseHtmlMode] = useState(true)
  
@@ -160,31 +160,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       // Effect to disable animations globally when preparing print
       useEffect(() => {
-        if (isPreparingPrint || printImage) {
-          document.body.classList.add('no-animations');
-        } else {
-          document.body.classList.remove('no-animations');
-        }
-        
-        if (printImage) {
-          const timer = setTimeout(() => {
-            window.print();
-          }, 1000);
-          return () => clearTimeout(timer);
-        }
-        
-        return () => document.body.classList.remove('no-animations');
-      }, [isPreparingPrint, printImage]);
-
-      // Effect to trigger preview generation after dialog animation
-      useEffect(() => {
-        if (showPreviewModal && !previewImageUrl && !isPreparingPrint && !useHtmlMode) {
-          const timer = setTimeout(() => {
-            handleGeneratePreview();
-          }, 800); // Allow dialog animation to complete
-          return () => clearTimeout(timer);
-        }
-      }, [showPreviewModal, previewImageUrl, isPreparingPrint, useHtmlMode]);
+       if (isPreparingPrint || uploading) {
+         document.body.classList.add('no-animations');
+       } else {
+         document.body.classList.remove('no-animations');
+       }
+       return () => document.body.classList.remove('no-animations');
+     }, [isPreparingPrint, uploading]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -1758,29 +1740,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-  {printImage && (
-    <div className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="fixed top-4 right-4 z-[100000] print:hidden" 
-        onClick={() => setPrintImage(null)}
-      >
-        <X className="w-4 h-4 mr-2" /> Fechar
-      </Button>
-      <img 
-        src={printImage} 
-        className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
-        alt="Print Preview" 
-        onLoad={() => {
-          console.log('Print image loaded in overlay');
-        }}
-      />
-    </div>
-  )}
-
-  {/* Global Progress Overlay for Print/Download */}
-  {(isPreparingPrint || uploading) && !showPreviewModal && !printImage && (
+   {/* Global Progress Overlay for Print/Download */}
+   {(isPreparingPrint || uploading) && (
     <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
       <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
         <CardContent className="p-8 flex flex-col items-center gap-6">
@@ -1808,7 +1769,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       </Card>
     </div>
   )}
-      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
@@ -2680,34 +2641,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-                 <div className="space-y-4">
-                    <div className="p-4 bg-zinc-900 text-white rounded-[24px]">
-                      <div className="flex justify-between items-center mb-3">
-                        <Label className="text-[10px] font-black uppercase italic tracking-widest text-primary">Preferência de Impressão</Label>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          variant={!useHtmlMode ? 'default' : 'outline'} 
-                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", !useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
-                          onClick={() => setUseHtmlMode(false)}
-                        >
-                          Alta Fidelidade
-                        </Button>
-                        <Button 
-                          variant={useHtmlMode ? 'default' : 'outline'} 
-                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
-                          onClick={() => setUseHtmlMode(true)}
-                        >
-                          Modo HTML (Rápido)
-                        </Button>
-                      </div>
-                      <p className="text-[8px] text-zinc-500 font-bold uppercase mt-2 px-1">
-                        {useHtmlMode 
-                          ? "O Modo HTML imprime o que você vê na tela instantaneamente." 
-                          : "O Modo Alta Fidelidade gera uma imagem em 300dpi antes de imprimir."}
-                      </p>
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <Button 
                         className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
@@ -2719,29 +2652,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
-                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
-                        <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                      <Button 
+                        className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
+                        onClick={handleDirectPrint}
+                        disabled={isPreparingPrint}
+                      >
+                        {isPreparingPrint ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Printer className="w-5 h-5 mr-2" />
+                        )}
+                        Imprimir Encarte (A4)
                       </Button>
-                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
-                        <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
-                      </Button>
-                      <div className="grid grid-cols-1 gap-2 col-span-1 md:col-span-2">
-                        <Button 
-                          className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white" 
-                          onClick={() => useHtmlMode ? handleDirectPrint() : handlePrint()}
-                          disabled={isPreparingPrint}
-                        >
-                          {isPreparingPrint ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Printer className="w-5 h-5 mr-2" />
-                          )}
-                          {useHtmlMode ? 'Imprimir Agora (HTML)' : 'Imprimir Alta Fidelidade'}
-                        </Button>
-                      </div>
                     </div>
-                 </div>
-           </CardContent>
+             </CardContent>
           </Card>
 
           {/* Lista por Data (Histórico) */}
@@ -2836,218 +2760,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
          {/* Preview Area */}
           <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-screen print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 no-scrollbar">
-          <div className="mb-4 flex gap-4 print:hidden">
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-               Preview Real A4
-             </div>
-             {corsWarningCount > 0 && (
-               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-red-500">
-                 <X className="w-3 h-3" />
-                 {corsWarningCount} Erro(s) de CORS Detectados
-               </div>
-             )}
-                <Dialog open={showPreviewModal} onOpenChange={(open) => {
-                  setShowPreviewModal(open);
-                  if (!open) {
-                    setPreviewImageUrl(null);
-                    setGenerationProgress(0);
-                  }
-                }}>
-                 <Button 
-                   size="sm" 
-                   variant="outline" 
-                   className="rounded-full h-8 px-4 text-[10px] font-black uppercase bg-white"
-                   onClick={() => setShowPreviewModal(true)}
-                 >
-                   <Eye className="w-3 h-3 mr-2" /> Prévia
-                 </Button>
-                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar no-scrollbar">
-                  <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
-                      {useHtmlMode && (
-                        <span className="bg-primary/20 text-primary text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-primary/30">
-                          Modo HTML Ativo
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                       <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => { setShowPreviewModal(false); setPreviewImageUrl(null); }}>Fechar</Button>
-                       <Button 
-                         size="sm" 
-                         variant="secondary" 
-                         onClick={async () => { 
-                           setIsPreparingPrint(true);
-                           await handleDownloadPDF(); 
-                           setIsPreparingPrint(false);
-                           setShowPreviewModal(false); 
-                           setPreviewImageUrl(null);
-                         }}
-                         disabled={isPreparingPrint}
-                       >
-                         {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Download className="w-3 h-3 mr-1" />}
-                         Baixar PDF
-                       </Button>
-                        <div className="flex gap-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            className="text-white hover:bg-white/10 text-[9px] font-bold"
-                            onClick={() => {
-                              setShowPreviewModal(false);
-                              handleDirectPrint();
-                            }}
-                          >
-                             Imprimir HTML
-                          </Button>
-                        <div className="flex gap-1">
-                          <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
-                            <DialogTrigger asChild>
-                              <Button size="sm" variant="ghost" className="text-white hover:bg-white/10 text-[9px] font-bold">
-                                <Settings2 className="w-3 h-3 mr-1" /> Diagnóstico
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md bg-zinc-900 text-white border-zinc-800">
-                              <DialogHeader>
-                                <DialogTitle className="text-white font-black uppercase italic italic tracking-tighter">Log de Diagnóstico</DialogTitle>
-                              </DialogHeader>
-                              <div className="bg-black/50 rounded-xl p-4 font-mono text-[10px] h-[300px] overflow-y-auto no-scrollbar space-y-1">
-                                {logHistory.length === 0 ? (
-                                  <p className="text-zinc-500 italic">Nenhum evento registrado ainda.</p>
-                                ) : (
-                                  logHistory.map((log, i) => (
-                                    <div key={i} className={cn(
-                                      "border-l-2 pl-2 py-0.5",
-                                      log.includes('ERRO') ? "border-red-500 text-red-400 bg-red-500/10" : 
-                                      log.includes('AVISO') ? "border-yellow-500 text-yellow-400 bg-yellow-500/10" : 
-                                      "border-blue-500/30 text-zinc-300"
-                                    )}>
-                                      {log}
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                              <Button 
-                                variant="outline" 
-                                className="w-full border-white/10 text-white hover:bg-white/5"
-                                onClick={() => {
-                                  const text = logHistory.join('\n');
-                                  navigator.clipboard.writeText(text);
-                                  toast.success('Log copiado!');
-                                }}
-                              >
-                                Copiar Log Completo
-                              </Button>
-                            </DialogContent>
-                          </Dialog>
 
-                          <Button 
-                            size="sm" 
-                            className="bg-primary text-white font-black uppercase text-[10px]" 
-                            onClick={async () => { 
-                              if (useHtmlMode) {
-                                setShowPreviewModal(false);
-                                handleDirectPrint();
-                              } else {
-                                setIsPreparingPrint(true);
-                                await handlePrint(false); 
-                                setIsPreparingPrint(false);
-                                setShowPreviewModal(false); 
-                                setPreviewImageUrl(null);
-                              }
-                            }}
-                            disabled={isPreparingPrint}
-                          >
-                            {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
-                            {useHtmlMode ? 'Imprimir HTML' : 'Imprimir Agora'}
-                          </Button>
-                        </div>
-                        </div>
-                    </div>
-                  </div>
-                    <div className="p-4 md:p-8 flex flex-col items-center justify-center w-full gap-6">
-                      {useHtmlMode ? (
-                        <div 
-                          className="bg-white shadow-2xl overflow-hidden origin-top scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8]"
-                          style={{
-                            width: '794px',
-                            height: '1123px',
-                            backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                            position: 'relative'
-                          }}
-                        >
-                          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
-                            {backgroundType === 'image' && backgroundUrl ? (
-                              <img src={backgroundUrl} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-fill" alt="" />
-                            ) : (
-                              <div className="absolute inset-0 w-full h-full" style={{ background: backgroundType === 'gradient' ? backgroundGradient : backgroundColor }} />
-                            )}
-                          </div>
-                          <div className="relative z-10 w-full h-full flex flex-col">
-                            <FlyerContentInner />
-                          </div>
-                        </div>
-                      ) : !previewImageUrl ? (
-                        <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-6 md:p-8 rounded-3xl border border-white/10">
-                         <div className="relative">
-                           <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                           <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                             {generationProgress}%
-                           </div>
-                         </div>
-                         <div className="w-full space-y-3">
-                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                             <span>{generationStep}</span>
-                             <span>{generationProgress}%</span>
-                           </div>
-                           <Progress value={generationProgress} className="h-2 bg-zinc-700" />
-                         </div>
-                  <div className="space-y-3 px-4">
-                    <p className="text-white/60 font-medium text-center text-xs">
-                      Isso pode levar alguns segundos dependendo da quantidade de produtos e qualidade das imagens.
-                    </p>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                      <p className="text-zinc-400 text-[10px] font-bold uppercase mb-2">Demorando muito?</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-7 text-[9px] font-black uppercase border-white/20 text-white hover:bg-white/10"
-                        onClick={() => setUseHtmlMode(true)}
-                      >
-                        Ativar Modo HTML (Instantâneo)
-                      </Button>
-                    </div>
-                  </div>
-                       </div>
-                     ) : (
-                       <img 
-                         src={previewImageUrl} 
-                         className="bg-white shadow-2xl aspect-[210/297] w-full max-w-[600px] object-contain animate-in fade-in zoom-in duration-500" 
-                         alt="Preview" 
-                       />
-                     )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="rounded-full h-8 px-4 text-[10px] font-black uppercase shadow-lg hover:scale-105 transition-all" 
-               onClick={() => handlePrint(true)}
-               disabled={isPreparingPrint}
-            >
-              {isPreparingPrint ? (
-                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-              ) : (
-                <Printer className="w-3 h-3 mr-2" />
-              )}
-              Salvar e Imprimir (A4)
-            </Button>
-          </div>
-
-            <div className="w-full flex justify-center print:block p-0 md:p-2">
-              <div className="relative w-full flex justify-center no-scrollbar">
+            <div className="w-full flex justify-center print:block p-0 md:p-2 flyer-print-wrapper">
+              <div className="relative w-full flex justify-center no-scrollbar print:m-0 print:p-0">
                 <div
                   id="flyer-content"
                   className={cn(
@@ -3067,11 +2782,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 {/* Dedicated Background Layer for better print reliability and CORS support */}
                 <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
                   {backgroundType === 'image' && backgroundUrl ? (
-                    <img 
-                      src={backgroundUrl} 
-                      crossOrigin="anonymous" 
-                      className="absolute inset-0 w-full h-full object-fill" 
-                      alt=""
+                    <img
+                      src={backgroundUrl}
+                      crossOrigin="anonymous"
+                      className="absolute inset-0 w-full h-full object-cover bg-layer-print"
+                      alt="Background"
                     />
                   ) : (
                     <div 
@@ -3103,31 +2818,71 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
 
         @media print {
-          @page { size: A4 portrait; margin: 0 !important; }
-          html, body { 
-            margin: 0 !important; padding: 0 !important; 
-            width: 210mm !important; height: 297mm !important;
-            overflow: visible !important;
+          @page { 
+            size: A4 portrait; 
+            margin: 0 !important; 
+          }
+          * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            box-sizing: border-box !important;
+          }
+          html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 210mm !important; 
+            height: 297mm !important;
+            overflow: hidden !important;
+            background: white !important;
           }
           
-          /* Surgical visibility approach */
-          body { visibility: hidden !important; background: white !important; }
-          
-          .flyer-print-overlay, .flyer-print-overlay *,
-          #flyer-content, #flyer-content * {
+          /* Hide everything by default, then show only the flyer path */
+          body {
+            visibility: hidden !important;
+          }
+
+          .flyer-print-wrapper,
+          .flyer-print-wrapper *,
+          #flyer-content,
+          #flyer-content * {
             visibility: visible !important;
           }
-          
-          .flyer-print-overlay, #flyer-content {
+
+          .flyer-print-wrapper {
             position: fixed !important;
-            left: 0 !important; top: 0 !important;
-            width: 210mm !important; height: 297mm !important;
-            margin: 0 !important; padding: 0 !important;
-            transform: none !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
             z-index: 99999 !important;
             background: white !important;
+          }
+
+          #flyer-content {
+            display: flex !important;
+            flex-direction: column !important;
+            position: absolute !important;
+            left: 0 !important; 
+            top: 0 !important;
+            width: 210mm !important; 
+            height: 297mm !important;
+            margin: 0 !important; 
+            padding: 0 !important;
+            transform: none !important;
+            visibility: visible !important;
+            box-shadow: none !important;
+            border: none !important;
+            z-index: 99999 !important;
+          }
+
+          /* Ensure background covers full page */
+          .bg-layer-print {
+            width: 210mm !important;
+            height: 297mm !important;
+            object-fit: cover !important;
           }
           
           .print\:hidden { display: none !important; }
