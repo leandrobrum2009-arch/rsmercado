@@ -3010,12 +3010,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         variant="outline" 
                         size="sm" 
                         className="h-7 text-[9px] font-black uppercase border-white/20 text-white hover:bg-white/10"
-                        onClick={() => {
-                          setShowPreviewModal(false);
-                          handleDirectPrint();
-                        }}
+                        onClick={() => setUseHtmlMode(true)}
                       >
-                        Usar Impressão Direta (Fallback)
+                        Ativar Modo HTML (Instantâneo)
                       </Button>
                     </div>
                   </div>
