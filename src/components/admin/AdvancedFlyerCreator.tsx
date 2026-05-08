@@ -2585,21 +2585,34 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                          {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Download className="w-3 h-3 mr-1" />}
                          Baixar PDF
                        </Button>
-                       <Button 
-                         size="sm" 
-                         className="bg-primary text-white" 
-                         onClick={async () => { 
-                           setIsPreparingPrint(true);
-                           await handlePrint(false); 
-                           setIsPreparingPrint(false);
-                           setShowPreviewModal(false); 
-                           setPreviewImageUrl(null);
-                         }}
-                         disabled={isPreparingPrint}
-                       >
-                         {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
-                         Imprimir Agora
-                       </Button>
+                        <div className="flex gap-1">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="text-white hover:bg-white/10 text-[9px] font-bold"
+                            onClick={() => {
+                              setShowPreviewModal(false);
+                              handleDirectPrint();
+                            }}
+                          >
+                            Fallback
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-primary text-white" 
+                            onClick={async () => { 
+                              setIsPreparingPrint(true);
+                              await handlePrint(false); 
+                              setIsPreparingPrint(false);
+                              setShowPreviewModal(false); 
+                              setPreviewImageUrl(null);
+                            }}
+                            disabled={isPreparingPrint}
+                          >
+                            {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
+                            Imprimir Agora
+                          </Button>
+                        </div>
                     </div>
                   </div>
                    <div className="p-8 flex flex-col items-center justify-center w-full gap-6">
