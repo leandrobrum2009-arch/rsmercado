@@ -1154,30 +1154,45 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     };
 
       const handleGeneratePreview = async () => {
+        logStep('Iniciando handleGeneratePreview');
         const flyerElement = document.getElementById('flyer-content');
-        if (!flyerElement) return;
+        if (!flyerElement) {
+          logStep('ERRO: flyer-content não encontrado para prévia');
+          return;
+        }
         
         setIsPreparingPrint(true);
         setGenerationProgress(10);
         setGenerationStep('Preparando ambiente...');
-        console.log('[Preview] Iniciando geração de prévia...');
         
         try {
+          logStep('Passo 1: Delay de estabilização');
           await new Promise(resolve => setTimeout(resolve, 500));
+
+          logStep('Passo 2: Carregando recursos');
           setGenerationProgress(20);
           setGenerationStep('Carregando imagens e fontes...');
 
           const images = Array.from(flyerElement.querySelectorAll('img'));
+          logStep(`Aguardando ${images.length} imagens e fontes...`);
+          
           const loadResources = Promise.all([
             ...images.map((img, idx) => {
               if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
               return new Promise((resolve) => {
-                const timer = setTimeout(() => resolve(null), 3000);
+                const timer = setTimeout(() => {
+                  logStep(`[Preview] Timeout imagem ${idx + 1}: ${img.src.substring(0, 30)}...`);
+                  resolve(null);
+                }, 3000);
                 img.onload = () => { clearTimeout(timer); resolve(null); };
-                img.onerror = () => { clearTimeout(timer); resolve(null); };
+                img.onerror = () => { 
+                  logStep(`[Preview] ERRO imagem ${idx + 1}: ${img.src.substring(0, 30)}...`);
+                  clearTimeout(timer); 
+                  resolve(null); 
+                };
               });
             }),
-            document.fonts?.ready || Promise.resolve()
+            document.fonts?.ready.then(() => logStep('Fontes prontas para prévia')) || Promise.resolve()
           ]);
 
           await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
