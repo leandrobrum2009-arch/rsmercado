@@ -100,6 +100,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [loadingSaved, setLoadingSaved] = useState(false)
      const [logHistory, setLogHistory] = useState<string[]>([])
      const [showLogViewer, setShowLogHistory] = useState(false)
+     const [corsWarningCount, setCorsWarningCount] = useState(0)
         const [showPreviewModal, setShowPreviewModal] = useState(false)
         const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
       const [printImage, setPrintImage] = useState<string | null>(null)
