@@ -1166,19 +1166,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         console.error('Error preparing print:', error);
         toast.dismiss(loadingToast);
         
-        if (error.message === 'CANVAS_TAINTED') {
-          toast.error('Erro de segurança (CORS): Algumas imagens não permitem exportação em alta qualidade. Tente o "Modo Fallback".', {
-            duration: 7000
-          });
-        } else if (error.message === 'Tempo limite excedido ao preparar impressão') {
-          toast.error('O processamento demorou muito. Tente com menos produtos ou use o "Modo Fallback".', {
-            duration: 7000
-          });
-        } else {
-          toast.error('Erro ao processar imagem de alta qualidade. Tente o "Modo Fallback".', {
-            duration: 5000
-          });
-        }
+        const isCORS = error.message === 'CANVAS_TAINTED';
+        const isTimeout = error.message === 'Tempo limite excedido ao preparar impressão';
+        
+        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isTimeout ? 'O processamento demorou muito.' : 'Erro na geração da imagem.'), {
+          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          duration: 10000,
+          action: {
+            label: 'Imprimir Direto',
+            onClick: () => handleDirectPrint()
+          }
+        });
        } finally {
          setIsPreparingPrint(false);
          setTimeout(() => {
