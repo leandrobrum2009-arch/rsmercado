@@ -347,10 +347,11 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                                 <div className="flex flex-col flex-1 gap-2">
                                   <Button 
                                     className="w-full bg-green-600 hover:bg-green-700 font-black uppercase text-[10px] h-12 rounded-2xl shadow-xl shadow-green-100"
-                                    onClick={() => sendManualOrderSummary(order)}
-                                  >
-                                    <Phone size={16} className="mr-2" /> Enviar Resumo Whats
-                                  </Button>
+                                     onClick={() => sendManualOrderSummary(order)}
+                                   >
+                                     {loadingItems ? <Loader2 className="animate-spin mr-2" size={16} /> : <Phone size={16} className="mr-2" />}
+                                     Enviar Comprovante (Whats)
+                                   </Button>
                                   <Button 
                                     variant="outline"
                                     className="w-full border-green-200 text-green-700 font-black uppercase text-[9px] h-8 rounded-xl"
