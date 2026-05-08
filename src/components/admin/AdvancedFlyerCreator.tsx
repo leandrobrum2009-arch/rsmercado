@@ -937,7 +937,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
+      const logStep = (step: string, data?: any) => {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`[FlyerGen][${timestamp}] ${step}`, data || '');
+      };
+
       const handlePrint = async (shouldSave = true, silentSave = false) => {
+      logStep('Iniciando handlePrint', { products: selectedProducts.length, shouldSave });
+      
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
@@ -945,6 +952,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
+        logStep('ERRO: flyer-content não encontrado');
         toast.error('Conteúdo do encarte não encontrado');
         return;
       }
@@ -955,6 +963,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
+        logStep('Passo 1: Sincronizando banco de dados');
         setGenerationStep('Sincronizando banco de dados...');
         setGenerationProgress(20);
 
