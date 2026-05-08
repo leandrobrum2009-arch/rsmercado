@@ -1046,28 +1046,43 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        if (!flyerElement) return;
        
          setIsPreparingPrint(true);
+         console.log('[Preview] Iniciando geração de prévia...');
          try {
            // Wait for all images and fonts
            const images = Array.from(flyerElement.querySelectorAll('img'));
+           console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
+           
            await Promise.all([
-             ...images.map(img => {
-               if (img.complete) return Promise.resolve();
+             ...images.map((img, idx) => {
+               if (img.complete) {
+                 console.log(`[Preview] Imagem ${idx + 1} já estava carregada: ${img.src.substring(0, 50)}...`);
+                 return Promise.resolve();
+               }
                return new Promise((resolve) => {
-                 img.onload = resolve;
-                 img.onerror = resolve;
+                 img.onload = () => {
+                   console.log(`[Preview] Imagem ${idx + 1} carregada com sucesso: ${img.src.substring(0, 50)}...`);
+                   resolve(null);
+                 };
+                 img.onerror = (e) => {
+                   console.error(`[Preview] Erro ao carregar imagem ${idx + 1}: ${img.src.substring(0, 50)}...`, e);
+                   resolve(null); // Prossegue mesmo com erro para tentar renderizar o que for possível
+                 };
                });
              }),
-             document.fonts?.ready || Promise.resolve()
+             document.fonts?.ready.then(() => console.log('[Preview] Fontes prontas.')) || Promise.resolve()
            ]);
+           
+           console.log('[Preview] Iniciando html2canvas...');
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-            scale: 3,
+           scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            allowTaint: false,
            imageTimeout: 30000,
            onclone: (clonedDoc) => {
+             console.log('[Preview] Documento clonado para renderização.');
              const clonedFlyer = clonedDoc.getElementById('flyer-content');
              if (clonedFlyer) {
                clonedFlyer.style.transform = 'none';
@@ -1087,15 +1102,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    el.style.display = 'block';
                  }
                });
+             } else {
+               console.error('[Preview] Elemento flyer-content não encontrado no clone!');
              }
            }
          });
 
+         console.log('[Preview] Canvas gerado com sucesso.');
          const dataUrl = canvas.toDataURL('image/png');
+         
          if (!dataUrl || dataUrl === 'data:,') {
+           console.error('[Preview] Canvas gerou uma imagem vazia!');
            throw new Error('Canvas rendering produced an empty image');
          }
-         setPreviewImageUrl(dataUrl);
+         
+         console.log(`[Preview] DataURL gerado: ${dataUrl.substring(0, 50)}... (tamanho: ${dataUrl.length})`);
+          setPreviewImageUrl(dataUrl);
        } catch (error) {
          console.error('Error generating preview:', error);
          toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
