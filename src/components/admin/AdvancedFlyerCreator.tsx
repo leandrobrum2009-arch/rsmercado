@@ -1356,9 +1356,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform;
         element.style.transition = originalTransition;
 
+        logStep('Passo 3: Finalizando arquivo de imagem');
         setGenerationProgress(90)
         setGenerationStep('Finalizando arquivo...')
         const image = canvas.toDataURL('image/png')
+        logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         const link = document.createElement('a')
