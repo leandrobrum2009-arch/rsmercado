@@ -245,12 +245,10 @@ export const Route = createFileRoute('/admin')({
           title: 'Controle de Acesso',
           items: [
              { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
-             { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
-             { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
-                    <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
-                      <SecurityLogViewer />
-                    </TabsContent>
-          ]
+              { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
+              { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
+              { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
+           ]
         }
     ];
 
@@ -427,9 +425,12 @@ export const Route = createFileRoute('/admin')({
                    <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
                      <AdminRoleManager />
                    </TabsContent>
-                   <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
-                     <FeedbackManager />
-                   </TabsContent>
+                    <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
+                      <SecurityLogViewer />
+                    </TabsContent>
+                    <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
+                      <FeedbackManager />
+                    </TabsContent>
             </Tabs>
           </div>
         </main>
