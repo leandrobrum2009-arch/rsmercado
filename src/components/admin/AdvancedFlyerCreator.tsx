@@ -991,12 +991,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
+            console.log('[Print] Chamando html2canvas para impressão...');
             return await html2canvas(flyerElement, {
               useCORS: true,
-              scale: 2, // Scale 2 is usually enough for A4 and more stable than 3
+              scale: 2, 
               backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
               logging: true,
-              imageTimeout: 20000,
+              imageTimeout: 30000,
               allowTaint: false,
               onclone: (clonedDoc) => {
                 const clonedFlyer = clonedDoc.getElementById('flyer-content');
@@ -1013,8 +1014,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   clonedFlyer.style.flexDirection = 'column';
                   clonedFlyer.style.overflow = 'hidden';
                   clonedFlyer.style.visibility = 'visible';
+                  clonedFlyer.style.width = '794px';
+                  clonedFlyer.style.height = '1123px';
                   
-                  // Fix for positions and layout shifting
                   const allElements = clonedFlyer.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.transition = 'none';
@@ -1022,6 +1024,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.style.backdropFilter = 'none';
                     el.style.fontVariantNumeric = 'tabular-nums';
                     el.style.webkitFontSmoothing = 'antialiased';
+                    
+                    // Remove Tailwind animate classes
+                    if (el.className && typeof el.className === 'string') {
+                      el.className = el.className.replace(/\banimate-\S+/g, '');
+                    }
+
                     if (el.classList.contains('price-container')) {
                       el.style.overflow = 'visible';
                       el.style.display = 'block';
