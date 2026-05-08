@@ -1117,13 +1117,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          }
          
          console.log(`[Preview] DataURL gerado: ${dataUrl.substring(0, 50)}... (tamanho: ${dataUrl.length})`);
-         setPreviewImageUrl(dataUrl);
-
-         const dataUrl = canvas.toDataURL('image/png');
-         if (!dataUrl || dataUrl === 'data:,') {
-           throw new Error('Canvas rendering produced an empty image');
-         }
-         setPreviewImageUrl(dataUrl);
+          setPreviewImageUrl(dataUrl);
        } catch (error) {
          console.error('Error generating preview:', error);
          toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
