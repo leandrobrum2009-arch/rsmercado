@@ -1047,28 +1047,46 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            });
          }));
  
-          const canvas = await html2canvas(flyerElement, {
-            useCORS: true,
-            scale: 2,
-            backgroundColor: removeFlyerBg ? null : '#ffffff',
-            logging: false,
-            allowTaint: false,
-            onclone: (clonedDoc) => {
-              const clonedFlyer = clonedDoc.getElementById('flyer-content');
-              if (clonedFlyer) {
-                clonedFlyer.style.transform = 'none';
-                clonedFlyer.style.transition = 'none';
-                clonedFlyer.style.margin = '0';
-                clonedFlyer.style.boxShadow = 'none';
-              }
-            }
-          });
-  
-          const dataUrl = canvas.toDataURL('image/png');
+         const canvas = await html2canvas(flyerElement, {
+           useCORS: true,
+           scale: 2,
+           backgroundColor: removeFlyerBg ? null : '#ffffff',
+           logging: true,
+           allowTaint: false,
+           imageTimeout: 30000,
+           onclone: (clonedDoc) => {
+             const clonedFlyer = clonedDoc.getElementById('flyer-content');
+             if (clonedFlyer) {
+               clonedFlyer.style.transform = 'none';
+               clonedFlyer.style.transition = 'none';
+               clonedFlyer.style.margin = '0';
+               clonedFlyer.style.position = 'relative';
+               clonedFlyer.style.top = '0';
+               clonedFlyer.style.left = '0';
+               clonedFlyer.style.boxShadow = 'none';
+               clonedFlyer.style.display = 'flex';
+
+               const allElements = clonedFlyer.querySelectorAll('*');
+               allElements.forEach((el: any) => {
+                 el.style.fontVariantNumeric = 'tabular-nums';
+                 if (el.classList.contains('price-container')) {
+                   el.style.overflow = 'visible';
+                   el.style.display = 'block';
+                 }
+               });
+             }
+           }
+         });
+
+         const dataUrl = canvas.toDataURL('image/png');
+         if (!dataUrl || dataUrl === 'data:,') {
+           throw new Error('Canvas rendering produced an empty image');
+         }
          setPreviewImageUrl(dataUrl);
        } catch (error) {
          console.error('Error generating preview:', error);
-         toast.error('Erro ao gerar prévia');
+         toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
+         setShowPreviewModal(false);
        } finally {
          setIsPreparingPrint(false);
        }
