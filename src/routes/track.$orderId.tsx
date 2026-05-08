@@ -164,8 +164,18 @@ import { Badge } from '@/components/ui/badge'
                     >
                       <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
                       {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
-                    </Button>
-                  </div>
+                     </Button>
+                     <div className="mt-8 space-y-3">
+                       <Button 
+                         className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
+                         onClick={handleSimulatePayment}
+                         disabled={paying}
+                       >
+                         {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
+                         SIMULAR RECEBIMENTO PIX
+                       </Button>
+                     </div>
+                   </div>
                  ) : (
                    <div className="space-y-6">
                      {paymentStep === 'info' && (
@@ -262,20 +272,6 @@ import { Badge } from '@/components/ui/badge'
                      )}
                    </div>
                  )}
-
-                <div className="mt-8 space-y-3">
-                  <Button 
-                    className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
-                    onClick={handleSimulatePayment}
-                    disabled={paying}
-                  >
-                    {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
-                    SIMULAR PAGAMENTO (TESTE)
-                  </Button>
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase text-center">
-                    ⚠️ BOTÃO DE TESTE: Clique para confirmar o recebimento do valor
-                  </p>
-                </div>
               </CardContent>
             </Card>
           )}
