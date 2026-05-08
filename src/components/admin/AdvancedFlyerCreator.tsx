@@ -905,6 +905,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         removeBg: globalRemoveBg
       }
 
+      // Diagnostic CORS check
+      if (imageUrl && !imageUrl.startsWith('data:')) {
+        const checkImg = new Image();
+        checkImg.crossOrigin = "anonymous";
+        checkImg.src = imageUrl;
+        checkImg.onload = () => logStep(`CORS OK para: ${product.name}`);
+        checkImg.onerror = () => {
+          logStep(`AVISO CORS: Falha ao carregar com crossOrigin=anonymous para: ${product.name}. Isso pode afetar a geração da imagem de alta fidelidade.`);
+        };
+      }
+
       setSelectedProducts([...selectedProducts, newProduct])
       toast.success('Produto adicionado')
 
