@@ -157,24 +157,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return () => window.removeEventListener('resize', handleResize)
       }, [])
 
+      // Effect to disable animations globally when preparing print
       useEffect(() => {
-        if (printImage) {
-          const handleAfterPrint = () => {
-            setPrintImage(null)
-            window.removeEventListener('afterprint', handleAfterPrint)
-          }
-          window.addEventListener('afterprint', handleAfterPrint)
-          
-          const timer = setTimeout(() => {
-            window.print()
-          }, 600) // Fast trigger for the image-based print
-          
-          return () => {
-            clearTimeout(timer)
-            window.removeEventListener('afterprint', handleAfterPrint)
-          }
+        if (isPreparingPrint || printImage) {
+          document.body.classList.add('no-animations');
+        } else {
+          document.body.classList.remove('no-animations');
         }
-      }, [printImage])
+        return () => document.body.classList.remove('no-animations');
+      }, [isPreparingPrint, printImage]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
