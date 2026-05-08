@@ -175,6 +175,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return () => document.body.classList.remove('no-animations');
       }, [isPreparingPrint, printImage]);
 
+      // Effect to trigger preview generation after dialog animation
+      useEffect(() => {
+        if (showPreviewModal && !previewImageUrl && !isPreparingPrint) {
+          const timer = setTimeout(() => {
+            handleGeneratePreview();
+          }, 800); // Allow dialog animation to complete
+          return () => clearTimeout(timer);
+        }
+      }, [showPreviewModal, previewImageUrl, isPreparingPrint]);
+
     // Extract content to a reusable component
     const FlyerContentInner = () => {
       return (
