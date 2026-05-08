@@ -15,7 +15,9 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
-  const [coupon, setCoupon] = useState("");
+   const [coupon, setCoupon] = useState("");
+   const [discount, setDiscount] = useState(0);
+   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("pix");
    const [isProcessing, setIsProcessing] = useState(false);
    const [lookupPhone, setLookupPhone] = useState('');
@@ -158,6 +160,41 @@ function CartPage() {
     );
   }
 
+   const handleApplyCoupon = async () => {
+     if (!session) {
+       toast.error("Faça login para aplicar o cupom.");
+       return;
+     }
+     
+     if (coupon.toUpperCase() === 'PRIMEIRA') {
+       setIsCheckingCoupon(true);
+       try {
+         const { count, error } = await supabase
+           .from('orders')
+           .select('*', { count: 'exact', head: true })
+           .eq('user_id', session.user.id);
+           
+         if (error) throw error;
+         
+         if (count && count > 0) {
+           toast.error("O cupom PRIMEIRA é válido apenas para a primeira compra.");
+           setDiscount(0);
+         } else {
+           const discountValue = total * 0.10;
+           setDiscount(discountValue);
+           toast.success(`Cupom PRIMEIRA aplicado! Desconto de ${formatCurrency(discountValue)}`);
+         }
+       } catch (err) {
+         toast.error("Erro ao validar cupom.");
+       } finally {
+         setIsCheckingCoupon(false);
+       }
+     } else if (coupon) {
+       toast.error("Cupom inválido.");
+       setDiscount(0);
+     }
+   };
+ 
      const handleCheckout = async () => {
        if (!session || !profile) {
          toast.error("Por favor, faça login para finalizar sua compra.");
@@ -182,7 +219,8 @@ function CartPage() {
        const orderPayload: any = {
          change_for: paymentMethod === 'money' && changeFor ? parseFloat(changeFor) : null,
          user_id: profile?.id || null,
-         total_amount: total + deliveryFee,
+         total_amount: total - discount + deliveryFee,
+         discount_amount: discount,
          delivery_fee: deliveryFee,
          payment_method: paymentMethod,
          status: 'pending',
@@ -255,8 +293,9 @@ function CartPage() {
               payment_method: paymentMethod === 'money' ? `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ' (Sem troco)'}` : paymentMethod,
              items: items, // use cart items
              subtotal: total,
+             discount: discount,
              delivery_fee: deliveryFee,
-             total_amount: total + deliveryFee
+             total_amount: total - discount + deliveryFee
            });
           
           const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
@@ -318,6 +357,43 @@ function CartPage() {
 
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
+
+        {/* Coupon Section */}
+        <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+          <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider flex items-center gap-2">
+            <Ticket size={16} className="text-primary" /> Cupom de Desconto
+          </h3>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input 
+                type="text" 
+                placeholder="Digite seu cupom" 
+                value={coupon}
+                onChange={(e) => setCoupon(e.target.value)}
+                className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all uppercase"
+              />
+              {discount > 0 && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <Ticket size={12} className="text-white" />
+                  </div>
+                </div>
+              )}
+            </div>
+            <Button 
+              onClick={handleApplyCoupon}
+              disabled={isCheckingCoupon || !coupon}
+              className="h-12 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 text-white"
+            >
+              {isCheckingCoupon ? <Loader2 className="animate-spin" size={14} /> : 'Aplicar'}
+            </Button>
+          </div>
+          {discount === 0 && (
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">
+              🎁 Primeira compra? Use o cupom <span className="text-primary font-black">PRIMEIRA</span> para 10% de desconto!
+            </p>
+          )}
+        </div>
 
           {/* Auth Section for non-logged in users */}
           {!session && (
@@ -447,10 +523,16 @@ function CartPage() {
 
         {/* Summary */}
         <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
-          <div className="flex justify-between text-gray-500">
-            <span>Subtotal</span>
-            <span>{formatCurrency(total)}</span>
-          </div>
+           <div className="flex justify-between text-gray-500 text-sm">
+             <span>Subtotal</span>
+             <span>{formatCurrency(total)}</span>
+           </div>
+           {discount > 0 && (
+             <div className="flex justify-between text-green-600 text-sm font-bold animate-in slide-in-from-right-2">
+               <span className="flex items-center gap-1"><Ticket size={14} /> Desconto (Cupom)</span>
+               <span>-{formatCurrency(discount)}</span>
+             </div>
+           )}
           <div className="flex justify-between items-center text-gray-500">
             <span className="flex items-center gap-1">
                Entrega 
@@ -466,7 +548,7 @@ function CartPage() {
           </div>
           <div className="border-t pt-4 flex justify-between items-center">
             <span className="text-xl font-bold text-gray-800">Total</span>
-            <span className="text-2xl font-black text-green-700">{formatCurrency(total + deliveryFee)}</span>
+             <span className="text-2xl font-black text-green-700">{formatCurrency(total - discount + deliveryFee)}</span>
           </div>
         </div>
 
