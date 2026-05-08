@@ -419,9 +419,21 @@ import { Badge } from '@/components/ui/badge'
                     <p className="text-[10px] font-bold opacity-50 uppercase">{order.payment_method || 'Pagamento'}</p>
                     <p className="text-2xl font-black italic tracking-tighter text-primary">{formatCurrency(order.total_amount)}</p>
                   </div>
-                  <Badge className="bg-primary/20 text-primary border-0 font-black uppercase text-[8px] py-1 px-3">
-                    {order.order_items?.length || 0} ITENS
-                  </Badge>
+                   <div className="flex flex-col gap-2 items-end">
+                     <Badge className="bg-primary/20 text-primary border-0 font-black uppercase text-[8px] py-1 px-3">
+                       {order.order_items?.length || 0} ITENS
+                     </Badge>
+                     <Button 
+                       size="sm" 
+                       variant="ghost" 
+                       className="h-8 text-[8px] font-black uppercase text-primary bg-primary/5 hover:bg-primary/10 rounded-xl"
+                       onClick={handleResendProof}
+                       disabled={resendingProof}
+                     >
+                       {resendingProof ? <Loader2 className="animate-spin mr-1" size={10} /> : <Phone className="mr-1" size={10} />}
+                       Receber Comprovante
+                     </Button>
+                   </div>
                 </div>
               </CardContent>
             </Card>
