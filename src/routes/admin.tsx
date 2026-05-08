@@ -1,3 +1,4 @@
+ import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
  import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
  import { FeedbackManager } from '@/components/admin/FeedbackManager'
  import { AlertManager } from '@/components/admin/AlertManager'
@@ -243,8 +244,12 @@ export const Route = createFileRoute('/admin')({
         {
           title: 'Controle de Acesso',
           items: [
-            { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
-            { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
+             { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
+             { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
+             { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
+                    <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
+                      <SecurityLogViewer />
+                    </TabsContent>
           ]
         }
     ];
