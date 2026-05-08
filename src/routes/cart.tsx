@@ -325,95 +325,25 @@ function CartPage() {
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
 
-         {/* Guest Info & Order Lookup */}
-         {!profile && (
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
-               <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
-                 <div className="w-2 h-6 bg-green-600 rounded-full" />
-                 Dados para Entrega Rápida
-               </h3>
-               <div className="space-y-3">
-                 <div className="space-y-1">
-                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu Nome</label>
-                   <input 
-                     type="text" 
-                     value={guestInfo.name}
-                     onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
-                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     placeholder="Como devemos te chamar?"
-                   />
-                 </div>
-                 <div className="space-y-1">
-                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu WhatsApp</label>
-                   <input 
-                     type="tel" 
-                     value={guestInfo.whatsapp}
-                     onChange={(e) => setGuestInfo({ ...guestInfo, whatsapp: e.target.value })}
-                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     placeholder="(00) 00000-0000"
-                   />
-                 </div>
-               </div>
-               <p className="text-[10px] text-zinc-400 font-medium italic">
-                 * Não precisa de cadastro! Preencha apenas o básico para pedir.
-               </p>
-             </div>
- 
-             <div className="bg-white rounded-3xl shadow-sm border overflow-hidden flex flex-col">
-               <div className="bg-zinc-900 text-white p-4">
-                 <h3 className="text-sm font-black uppercase italic tracking-tighter flex items-center gap-2">
-                   <ShoppingBag className="text-primary" size={18} /> Já comprou antes?
-                 </h3>
-                 <p className="text-[10px] font-bold uppercase opacity-60">Consulte seus pedidos pelo WhatsApp</p>
-               </div>
-               <div className="p-6 space-y-4">
-                 <form onSubmit={handleOrderLookup} className="space-y-3">
-                   <div className="relative">
-                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                     <input 
-                       type="tel" 
-                       placeholder="Seu WhatsApp" 
-                       value={lookupPhone}
-                       onChange={(e) => setLookupPhone(e.target.value)}
-                       className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl pl-12 pr-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     />
-                   </div>
-                   <Button 
-                    type="submit" 
-                    disabled={isSearching}
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 text-white"
-                   >
-                     {isSearching ? <Loader2 className="animate-spin mr-2" size={14} /> : <Search className="mr-2" size={14} />}
-                     VER MEUS PEDIDOS
-                   </Button>
-                 </form>
- 
-                 {guestOrders.length > 0 && (
-                   <div className="space-y-2 pt-4 border-t max-h-[200px] overflow-y-auto pr-2">
-                     {guestOrders.map(order => (
-                       <Link 
-                        key={order.id} 
-                        to="/track/$orderId" 
-                        params={{ orderId: order.id }}
-                        className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 hover:border-primary transition-colors group"
-                       >
-                         <div>
-                           <p className="font-black text-[9px] uppercase text-zinc-400">#{order.id.substring(0, 8)}</p>
-                           <p className="font-bold text-[10px] text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
-                         </div>
-                         <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
-                           <ArrowRight size={12} className="text-zinc-300 group-hover:text-primary" />
-                         </div>
-                       </Link>
-                     ))}
-                   </div>
-                 )}
-               </div>
-             </div>
-           </div>
-         )}
+          {/* Auth Section for non-logged in users */}
+          {!session && (
+            <div className="bg-white rounded-3xl shadow-xl border-4 border-primary/20 p-8 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="text-primary" size={32} />
+                </div>
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">Identifique-se para Comprar</h2>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Precisamos dos seus dados para garantir a melhor entrega!</p>
+              </div>
+              <AuthForm />
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+                <Info className="text-amber-500 flex-shrink-0" size={20} />
+                <p className="text-[10px] font-bold text-amber-700 uppercase leading-tight">
+                  Seu cadastro é rápido e seguro. Com ele você ganha pontos de fidelidade em cada compra!
+                </p>
+              </div>
+            </div>
+          )}
 
         {/* Address Selection or Quick Address */}
         <div className="space-y-3">
