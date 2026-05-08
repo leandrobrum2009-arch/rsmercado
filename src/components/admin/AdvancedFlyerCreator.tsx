@@ -1371,12 +1371,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
-                el.style.transition = 'none';
-                el.style.animation = 'none';
+                el.style.setProperty('transition', 'none', 'important');
+                el.style.setProperty('animation', 'none', 'important');
+                el.style.setProperty('animation-duration', '0s', 'important');
+                el.style.setProperty('transition-duration', '0s', 'important');
                 el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
                 if (el.className && typeof el.className === 'string') {
-                  el.className = el.className.replace(/\banimate-\S+/g, '');
+                  el.className = el.className
+                    .replace(/\banimate-\S+/g, '')
+                    .replace(/\bduration-\S+/g, '')
+                    .replace(/\bfade-in\S*/g, '')
+                    .replace(/\bzoom-in\S*/g, '')
+                    .replace(/\bslide-in\S*/g, '')
+                    .replace(/\bdelay-\S+/g, '');
                 }
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
