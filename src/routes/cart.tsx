@@ -5,7 +5,8 @@ import { useCart } from "../contexts/CartContext";
 import { useState, useEffect } from "react";
 import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
-import { toast } from "@/lib/toast";
+ import { toast } from "@/lib/toast";
+ import { logAttempt } from "@/lib/logs";
  import { RecipeSuggestions } from "@/components/RecipeSuggestions";
  import { AuthForm } from "@/components/auth/AuthForm";
 
@@ -256,7 +257,12 @@ function CartPage() {
         orderError = result.error;
       }
 
-      if (orderError) throw orderError;
+       if (orderError) {
+         logAttempt('payment_attempt', 'failure', { ...orderPayload, error: orderError.message });
+         throw orderError;
+       }
+ 
+       logAttempt('payment_attempt', 'success', { order_id: order.id, total_amount: orderPayload.total_amount });
 
       // 2. Create Order Items
       const orderItems = items.map(item => ({
