@@ -913,7 +913,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
-     const handlePrint = async (shouldSave = true) => {
+      const handlePrint = async (shouldSave = true, silentSave = false) => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
@@ -948,13 +948,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
         setFlyerHistory(updatedHistory);
         localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-         if (shouldSave) {
-           try {
-             await saveToDatabase();
-           } catch (saveErr) {
-             console.error("Save failed during print preparation:", saveErr);
-           }
-         }
+          if (shouldSave && !silentSave) {
+            await saveToDatabase();
+          } else if (shouldSave && silentSave) {
+            // Background save without toast
+            saveToDatabase();
+          }
  
 
         // Wait for all images to load
@@ -967,45 +966,36 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           });
         }));
 
-        // CRITICAL: Temporarily reset transform scale for perfect capture
-        const originalTransform = flyerElement.style.transform;
-        const originalMarginBottom = flyerElement.style.marginBottom;
-        const originalMarginLeft = flyerElement.style.marginLeft;
-        const originalMarginRight = flyerElement.style.marginRight;
-
-        flyerElement.style.transform = 'scale(1)';
-        flyerElement.style.marginBottom = '0px';
-        flyerElement.style.marginLeft = '0px';
-        flyerElement.style.marginRight = '0px';
-
-        // Use a slight delay to allow the browser to re-layout at scale 1
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        const canvas = await html2canvas(flyerElement, {
-          useCORS: true,
-          scale: 4, // Higher scale for extreme detail
-          backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: false,
-          imageTimeout: 60000,
-          allowTaint: true,
-          onclone: (clonedDoc) => {
-            // Additional cleanup in clone if needed
-            const clonedFlyer = clonedDoc.getElementById('flyer-content');
-            if (clonedFlyer) {
-              clonedFlyer.style.transform = 'none';
-              clonedFlyer.style.margin = '0';
-              clonedFlyer.style.boxShadow = 'none';
-            }
-          }
-        });
-
-        // Restore original styles
-        flyerElement.style.transform = originalTransform;
-        flyerElement.style.marginBottom = originalMarginBottom;
-        flyerElement.style.marginLeft = originalMarginLeft;
-        flyerElement.style.marginRight = originalMarginRight;
-
-        const dataUrl = canvas.toDataURL('image/png', 1.0);
+         // Capture using high reliability settings
+         const canvas = await html2canvas(flyerElement, {
+           useCORS: true,
+           scale: 3, // Scale 3 is safer for memory while still high res
+           backgroundColor: removeFlyerBg ? null : '#ffffff',
+           logging: true,
+           imageTimeout: 60000,
+           allowTaint: false, // Security: don't allow tainted images as they break toDataURL
+           onclone: (clonedDoc) => {
+             const clonedFlyer = clonedDoc.getElementById('flyer-content');
+             if (clonedFlyer) {
+               // Ensure it's rendered at full size without any transforms/scaling
+               clonedFlyer.style.transform = 'none';
+               clonedFlyer.style.transition = 'none';
+               clonedFlyer.style.margin = '0';
+               clonedFlyer.style.position = 'relative';
+               clonedFlyer.style.top = '0';
+               clonedFlyer.style.left = '0';
+               clonedFlyer.style.boxShadow = 'none';
+               
+               // Fix for prices shifting: ensure containers are not too tight
+               const priceContainers = clonedFlyer.querySelectorAll('.price-container');
+               priceContainers.forEach((container: any) => {
+                 container.style.overflow = 'visible';
+               });
+             }
+           }
+         });
+ 
+         const dataUrl = canvas.toDataURL('image/png');
         setPrintImage(dataUrl);
         toast.dismiss(loadingToast);
         toast.success('Pronto para imprimir!');
@@ -1033,19 +1023,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            });
          }));
  
-         const originalTransform = flyerElement.style.transform;
-         flyerElement.style.transform = 'scale(1)';
-         await new Promise(resolve => setTimeout(resolve, 300));
- 
-         const canvas = await html2canvas(flyerElement, {
-           useCORS: true,
-           scale: 2, 
-           backgroundColor: removeFlyerBg ? null : '#ffffff',
-           logging: false
-         });
- 
-         flyerElement.style.transform = originalTransform;
-         const dataUrl = canvas.toDataURL('image/png', 0.8);
+          const canvas = await html2canvas(flyerElement, {
+            useCORS: true,
+            scale: 2,
+            backgroundColor: removeFlyerBg ? null : '#ffffff',
+            logging: false,
+            allowTaint: false,
+            onclone: (clonedDoc) => {
+              const clonedFlyer = clonedDoc.getElementById('flyer-content');
+              if (clonedFlyer) {
+                clonedFlyer.style.transform = 'none';
+                clonedFlyer.style.transition = 'none';
+                clonedFlyer.style.margin = '0';
+                clonedFlyer.style.boxShadow = 'none';
+              }
+            }
+          });
+  
+          const dataUrl = canvas.toDataURL('image/png');
          setPreviewImageUrl(dataUrl);
        } catch (error) {
          console.error('Error generating preview:', error);
@@ -2321,20 +2316,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button 
-                size="sm" 
-                variant="secondary" 
-                className="rounded-full h-8 px-4 text-[10px] font-black uppercase" 
-                 onClick={() => handlePrint()}
-                 disabled={isPreparingPrint}
-              >
-                {isPreparingPrint ? (
-                  <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                ) : (
-                  <Printer className="w-3 h-3 mr-2" />
-                )}
-                Salvar e Imprimir
-              </Button>
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="rounded-full h-8 px-4 text-[10px] font-black uppercase shadow-lg hover:scale-105 transition-all" 
+               onClick={() => handlePrint(true)}
+               disabled={isPreparingPrint}
+            >
+              {isPreparingPrint ? (
+                <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+              ) : (
+                <Printer className="w-3 h-3 mr-2" />
+              )}
+              Salvar e Imprimir (A4)
+            </Button>
           </div>
 
             <div className="w-full flex justify-center print:block p-0 md:p-2">
