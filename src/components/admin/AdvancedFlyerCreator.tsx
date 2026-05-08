@@ -1282,27 +1282,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return
       }
 
+      logStep('Iniciando handleDownloadImage');
       setUploading(true)
       setGenerationProgress(10)
       setGenerationStep('Iniciando captura...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
         setGenerationProgress(30)
-        // Ensure all images are loaded before capturing
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
-          ...images.map(img => {
+          ...images.map((img, i) => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => { logStep(`Imagem download ${i+1} OK`); resolve(null); };
+              img.onerror = () => { logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
         ]);
 
+        logStep('Passo 2: Renderizando html2canvas para download');
         setGenerationStep('Renderizando imagem...')
         setGenerationProgress(60)
 
