@@ -998,7 +998,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            }
          });
  
-         const dataUrl = canvas.toDataURL('image/png');
+         // If we are removing the background (transparency), we MUST use PNG. 
+         // Otherwise, JPEG is much more efficient for storage.
+         const dataUrl = removeFlyerBg 
+           ? canvas.toDataURL('image/png') 
+           : canvas.toDataURL('image/jpeg', 0.92);
         setPrintImage(dataUrl);
         toast.dismiss(loadingToast);
         toast.success('Pronto para imprimir!');
