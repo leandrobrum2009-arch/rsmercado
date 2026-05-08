@@ -1074,39 +1074,60 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            
            console.log('[Preview] Iniciando html2canvas...');
  
-         const canvas = await html2canvas(flyerElement, {
-           useCORS: true,
-           scale: 3,
-           backgroundColor: removeFlyerBg ? null : '#ffffff',
-           logging: true,
-           allowTaint: false,
-           imageTimeout: 30000,
-           onclone: (clonedDoc) => {
-             console.log('[Preview] Documento clonado para renderização.');
-             const clonedFlyer = clonedDoc.getElementById('flyer-content');
-             if (clonedFlyer) {
-               clonedFlyer.style.transform = 'none';
-               clonedFlyer.style.transition = 'none';
-               clonedFlyer.style.margin = '0';
-               clonedFlyer.style.position = 'relative';
-               clonedFlyer.style.top = '0';
-               clonedFlyer.style.left = '0';
-               clonedFlyer.style.boxShadow = 'none';
-               clonedFlyer.style.display = 'flex';
+          // Create a promise for html2canvas with a timeout
+          const generateCanvas = async () => {
+            return await html2canvas(flyerElement, {
+              useCORS: true,
+              scale: 2, // Reduced from 3 to 2 for better performance and reliability
+              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              logging: true,
+              allowTaint: false,
+              imageTimeout: 15000,
+              onclone: (clonedDoc) => {
+                console.log('[Preview] Documento clonado para renderização.');
+                const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                if (clonedFlyer) {
+                  clonedFlyer.style.transform = 'none';
+                  clonedFlyer.style.transition = 'none';
+                  clonedFlyer.style.animation = 'none';
+                  clonedFlyer.style.margin = '0';
+                  clonedFlyer.style.position = 'relative';
+                  clonedFlyer.style.top = '0';
+                  clonedFlyer.style.left = '0';
+                  clonedFlyer.style.boxShadow = 'none';
+                  clonedFlyer.style.display = 'flex';
+                  clonedFlyer.style.visibility = 'visible';
 
-               const allElements = clonedFlyer.querySelectorAll('*');
-               allElements.forEach((el: any) => {
-                 el.style.fontVariantNumeric = 'tabular-nums';
-                 if (el.classList.contains('price-container')) {
-                   el.style.overflow = 'visible';
-                   el.style.display = 'block';
-                 }
-               });
-             } else {
-               console.error('[Preview] Elemento flyer-content não encontrado no clone!');
-             }
-           }
-         });
+                  const allElements = clonedFlyer.querySelectorAll('*');
+                  allElements.forEach((el: any) => {
+                    el.style.transition = 'none';
+                    el.style.animation = 'none';
+                    el.style.backdropFilter = 'none';
+                    el.style.fontVariantNumeric = 'tabular-nums';
+                    if (el.classList.contains('price-container')) {
+                      el.style.overflow = 'visible';
+                      el.style.display = 'block';
+                    }
+                  });
+                } else {
+                  console.error('[Preview] Elemento flyer-content não encontrado no clone!');
+                }
+              }
+            });
+          };
+
+          // Timeout promise
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Tempo limite excedido ao gerar prévia')), 25000);
+          });
+
+          console.log('[Preview] Iniciando html2canvas com timeout...');
+          const canvasResult = await Promise.race([
+            generateCanvas(),
+            timeoutPromise
+          ]);
+          
+          const canvas = canvasResult as HTMLCanvasElement;
 
          console.log('[Preview] Canvas gerado com sucesso.');
          const dataUrl = canvas.toDataURL('image/png');
