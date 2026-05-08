@@ -1070,25 +1070,32 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            const images = Array.from(flyerElement.querySelectorAll('img'));
            console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
            
-           await Promise.all([
-             ...images.map((img, idx) => {
-               if (img.complete) {
-                 console.log(`[Preview] Imagem ${idx + 1} já estava carregada: ${img.src.substring(0, 50)}...`);
-                 return Promise.resolve();
-               }
-               return new Promise((resolve) => {
-                 img.onload = () => {
-                   console.log(`[Preview] Imagem ${idx + 1} carregada com sucesso: ${img.src.substring(0, 50)}...`);
-                   resolve(null);
-                 };
-                 img.onerror = (e) => {
-                   console.error(`[Preview] Erro ao carregar imagem ${idx + 1}: ${img.src.substring(0, 50)}...`, e);
-                   resolve(null); // Prossegue mesmo com erro para tentar renderizar o que for possível
-                 };
-               });
-             }),
-             document.fonts?.ready.then(() => console.log('[Preview] Fontes prontas.')) || Promise.resolve()
-           ]);
+            // Add a timeout to the overall resource loading to prevent hanging
+            const loadResources = Promise.all([
+              ...images.map((img, idx) => {
+                if (img.complete && img.naturalWidth !== 0) {
+                  return Promise.resolve();
+                }
+                return new Promise((resolve) => {
+                  const timer = setTimeout(() => {
+                    console.warn(`[Preview] Timeout carregar imagem ${idx + 1}`);
+                    resolve(null);
+                  }, 5000);
+                  img.onload = () => {
+                    clearTimeout(timer);
+                    resolve(null);
+                  };
+                  img.onerror = () => {
+                    clearTimeout(timer);
+                    resolve(null);
+                  };
+                });
+              }),
+              document.fonts?.ready || Promise.resolve()
+            ]);
+
+            const resourceTimeout = new Promise(resolve => setTimeout(resolve, 10000));
+            await Promise.race([loadResources, resourceTimeout]);
            
            console.log('[Preview] Iniciando html2canvas...');
  
