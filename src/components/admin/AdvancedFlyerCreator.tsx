@@ -1194,24 +1194,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        }
      };
  
-    const handleDirectPrint = async () => {
+    const handleDirectPrint = () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
       }
       
-      // Save history and to database in background
-      try {
-        await saveToDatabase();
-      } catch (e) {
-        console.error('Save failed but proceeding to print:', e);
-      }
+      // Save history in background (don't await)
+      saveToDatabase().catch(e => console.error('Silent save failed:', e));
 
       setPrintImage(null); // Ensure high-fidelity overlay is NOT shown
-      toast.info('Abrindo diálogo de impressão direta...');
+      toast.info('Abrindo diálogo de impressão...');
+      // Give time for React to update the state and for the browser to prepare
       setTimeout(() => {
         window.print();
-      }, 500);
+      }, 1000);
     };
 
       const handleGeneratePreview = async () => {
