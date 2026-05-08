@@ -2704,8 +2704,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         Imprimir Encarte (A4)
                       </Button>
                     </div>
-                 </div>
-           </CardContent>
+             </CardContent>
           </Card>
 
           {/* Lista por Data (Histórico) */}
