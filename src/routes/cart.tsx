@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
-import { RecipeSuggestions } from "@/components/RecipeSuggestions";
+ import { RecipeSuggestions } from "@/components/RecipeSuggestions";
+ import { AuthForm } from "@/components/auth/AuthForm";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -44,8 +45,8 @@ function CartPage() {
        setIsSearching(false);
      }
    };
-   const [profile, setProfile] = useState<any>(null);
-    const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '', neighborhood: '' });
+    const [profile, setProfile] = useState<any>(null);
+    const [session, setSession] = useState<any>(null);
    const [neighborhoods, setNeighborhoods] = useState<any[]>([]);
    const [changeFor, setChangeFor] = useState("");
 
@@ -97,20 +98,8 @@ function CartPage() {
      fetchDeliveryFee();
    }, [selectedAddress, guestInfo.neighborhood, useSimplifiedAddress]);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(data);
-      }
-    };
-
-    const fetchSettings = async () => {
+    useEffect(() => {
+      const fetchSettings = async () => {
       const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
       if (data && data.value) {
         const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
@@ -118,32 +107,44 @@ function CartPage() {
       }
     };
 
-    const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(profileData);
-
-        // Addresses
-        const { data: addrData } = await supabase
-          .from('user_addresses')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false });
-        
-        setAddresses(addrData || []);
-        if (addrData && addrData.length > 0) {
-          setSelectedAddress(addrData.find(a => a.is_default) || addrData[0]);
-        }
-      }
-    };
-
-    fetchData();
+     const fetchData = async () => {
+       const { data: { session: currentSession } } = await supabase.auth.getSession();
+       setSession(currentSession);
+       if (currentSession) {
+         // Profile
+         const { data: profileData } = await supabase
+           .from('profiles')
+           .select('*')
+           .eq('id', currentSession.user.id)
+           .maybeSingle();
+         setProfile(profileData);
+ 
+         // Addresses
+         const { data: addrData } = await supabase
+           .from('user_addresses')
+           .select('*')
+           .eq('user_id', currentSession.user.id)
+           .order('created_at', { ascending: false });
+         
+         setAddresses(addrData || []);
+         if (addrData && addrData.length > 0) {
+           setSelectedAddress(addrData.find(a => a.is_default) || addrData[0]);
+         }
+       }
+     };
+ 
+     fetchData();
+ 
+     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       setSession(session);
+       if (session) fetchData();
+       else {
+         setProfile(null);
+         setAddresses([]);
+       }
+     });
+ 
+     return () => subscription.unsubscribe();
   }, []);
 
   if (items.length === 0) {
@@ -163,24 +164,25 @@ function CartPage() {
     );
   }
 
-    const handleCheckout = async () => {
-      console.log('handleCheckout started');
-      const customerName = profile?.full_name || guestInfo.name;
-      const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
-      const deliveryAddress = useSimplifiedAddress 
-        ? { street: guestInfo.address, neighborhood: guestInfo.neighborhood, label: 'Simplificado' } 
-        : selectedAddress;
+     const handleCheckout = async () => {
+       if (!session || !profile) {
+         toast.error("Por favor, faça login para finalizar sua compra.");
+         return;
+       }
  
-      if (!customerName || !customerPhone) {
-        console.log('Missing name or phone:', { customerName, customerPhone });
-        toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
+       const customerName = profile.full_name;
+       const customerPhone = profile.whatsapp;
+       const deliveryAddress = selectedAddress;
+  
+       if (!customerName || !customerPhone) {
+         toast.error("Por favor, complete seu cadastro com Nome e WhatsApp.");
+         return;
+       }
+  
+      if (!deliveryAddress) {
+        toast.error("Por favor, selecione um endereço de entrega.");
         return;
       }
- 
-     if (!deliveryAddress && !useSimplifiedAddress) {
-       toast.error("Por favor, adicione um endereço de entrega ou preencha o campo de endereço rápido.");
-       return;
-     }
  
       setIsProcessing(true);
        const orderPayload: any = {
