@@ -1029,7 +1029,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
-            console.log('[Print] Chamando html2canvas para impressão...');
+            logStep('Iniciando html2canvas interno (High Fidelity)');
             return await html2canvas(flyerElement, {
               useCORS: true,
               scale: 2, 
@@ -1038,6 +1038,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               imageTimeout: 30000,
               allowTaint: false,
               onclone: (clonedDoc) => {
+                logStep('onclone: Documento clonado, ajustando estilos');
                 const clonedFlyer = clonedDoc.getElementById('flyer-content');
                 if (clonedFlyer) {
                   clonedFlyer.style.transform = 'none';
@@ -1063,7 +1064,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.style.fontVariantNumeric = 'tabular-nums';
                     el.style.webkitFontSmoothing = 'antialiased';
                     
-                    // Remove Tailwind animate classes
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className.replace(/\banimate-\S+/g, '');
                     }
@@ -1075,6 +1075,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       el.style.position = 'relative';
                     }
                   });
+                } else {
+                  logStep('onclone: ERRO - flyer-content não encontrado no clone');
                 }
               }
             });
