@@ -528,7 +528,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               
               canvas.width = width
               canvas.height = height
-             ctx.drawImage(img, 0, 0)
+              ctx.drawImage(img, 0, 0, width, height)
              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
              const data = imageData.data
              
