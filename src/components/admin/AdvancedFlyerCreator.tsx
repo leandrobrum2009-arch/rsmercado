@@ -2865,15 +2865,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             background: white !important;
           }
           
-          /* Hide everything except the flyer */
-          body > * {
-            display: none !important;
+          /* Hide everything by default, then show only the flyer path */
+          body {
+            visibility: hidden !important;
           }
-          
-          /* Use a container that is definitely visible */
+
+          .flyer-print-wrapper,
+          .flyer-print-wrapper *,
+          #flyer-content,
+          #flyer-content * {
+            visibility: visible !important;
+          }
+
           .flyer-print-wrapper {
-            display: block !important;
-            position: absolute !important;
+            position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             width: 210mm !important;
@@ -2881,6 +2886,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
+            z-index: 99999 !important;
+            background: white !important;
           }
 
           #flyer-content {
