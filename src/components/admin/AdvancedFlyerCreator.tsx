@@ -1045,16 +1045,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const flyerElement = document.getElementById('flyer-content');
        if (!flyerElement) return;
        
-       setIsPreparingPrint(true);
-       try {
-         const images = Array.from(flyerElement.querySelectorAll('img'));
-         await Promise.all(images.map(img => {
-           if (img.complete) return Promise.resolve();
-           return new Promise((resolve) => {
-             img.onload = resolve;
-             img.onerror = resolve;
-           });
-         }));
+         setIsPreparingPrint(true);
+         try {
+           // Wait for all images and fonts
+           const images = Array.from(flyerElement.querySelectorAll('img'));
+           await Promise.all([
+             ...images.map(img => {
+               if (img.complete) return Promise.resolve();
+               return new Promise((resolve) => {
+                 img.onload = resolve;
+                 img.onerror = resolve;
+               });
+             }),
+             document.fonts?.ready || Promise.resolve()
+           ]);
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
@@ -1113,14 +1117,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       try {
         // Ensure all images are loaded before capturing
-        const images = Array.from(element.getElementsByTagName('img'))
-        await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
-          return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve // Continue anyway if one image fails
-          })
-        }))
+        const images = Array.from(element.getElementsByTagName('img'));
+        await Promise.all([
+          ...images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }),
+          document.fonts?.ready || Promise.resolve()
+        ]);
 
         // Temporary styles for capture to ensure best result
         const originalTransform = element.style.transform;
@@ -1190,14 +1197,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       try {
         // Ensure all images are loaded
-        const images = Array.from(element.getElementsByTagName('img'))
-        await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve()
-          return new Promise((resolve) => {
-            img.onload = resolve
-            img.onerror = resolve
-          })
-        }))
+        const images = Array.from(element.getElementsByTagName('img'));
+        await Promise.all([
+          ...images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }),
+          document.fonts?.ready || Promise.resolve()
+        ]);
 
         const originalTransform = element.style.transform
         const originalTransition = element.style.transition
@@ -1899,7 +1909,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <SelectItem value="font-sans font-black italic">Impact (Black)</SelectItem>
                         <SelectItem value="font-sans font-bold">Arial Bold</SelectItem>
                         <SelectItem value="font-serif italic font-bold">Traditional Serif</SelectItem>
-                        <SelectItem value="font-['Montserrat',sans-serif]">Montserrat</SelectItem>
+                         <SelectItem value="font-montserrat">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
@@ -2433,17 +2443,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     marginLeft: `${(794 * (flyerScale - 1)) / 2}px`
                   }}
                 >
-                {/* Dedicated Background Layer for better print reliability */}
-                <div 
-                  className="absolute inset-0 z-0 pointer-events-none"
-                  style={{
-                    backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                    backgroundSize: '100% 100%',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    opacity: removeFlyerBg ? 0 : 1
-                  }}
-                />
+                {/* Dedicated Background Layer for better print reliability and CORS support */}
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
+                  {backgroundType === 'image' && backgroundUrl ? (
+                    <img 
+                      src={backgroundUrl} 
+                      crossOrigin="anonymous" 
+                      className="absolute inset-0 w-full h-full object-fill" 
+                      alt=""
+                    />
+                  ) : (
+                    <div 
+                      className="absolute inset-0 w-full h-full"
+                      style={{ 
+                        background: backgroundType === 'gradient' ? backgroundGradient : backgroundColor 
+                      }}
+                    />
+                  )}
+                </div>
                 
                   <div className="relative z-10 w-full h-full flex flex-col">
                     <FlyerContentInner />
