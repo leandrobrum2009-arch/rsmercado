@@ -178,11 +178,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       )}
                     >
                       <div className="flex flex-col items-center gap-2">
-                        <img 
-                          src={storeSettings.logo_url} 
+                        <img
+                          src={storeSettings.logo_url}
+                          crossOrigin="anonymous"
                           style={{ width: `${logoSize}px` }}
-                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
-                          alt="Logo" 
+                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500"
+                          alt="Logo"
                         />
                         {showSubtitle && subtitleText && (
                           <p 
@@ -988,15 +989,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          // Capture using high reliability settings
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-           scale: 3, // Scale 3 is safer for memory while still high res
+           scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            imageTimeout: 60000,
-           allowTaint: false, // Security: don't allow tainted images as they break toDataURL
+           allowTaint: false,
            onclone: (clonedDoc) => {
              const clonedFlyer = clonedDoc.getElementById('flyer-content');
              if (clonedFlyer) {
-               // Ensure it's rendered at full size without any transforms/scaling
                clonedFlyer.style.transform = 'none';
                clonedFlyer.style.transition = 'none';
                clonedFlyer.style.margin = '0';
@@ -1004,11 +1004,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                clonedFlyer.style.top = '0';
                clonedFlyer.style.left = '0';
                clonedFlyer.style.boxShadow = 'none';
+               clonedFlyer.style.display = 'flex';
                
-               // Fix for prices shifting: ensure containers are not too tight
-               const priceContainers = clonedFlyer.querySelectorAll('.price-container');
-               priceContainers.forEach((container: any) => {
-                 container.style.overflow = 'visible';
+               const allElements = clonedFlyer.querySelectorAll('*');
+               allElements.forEach((el: any) => {
+                 el.style.fontVariantNumeric = 'tabular-nums';
+                 el.style.webkitFontSmoothing = 'antialiased';
+                 if (el.classList.contains('price-container')) {
+                   el.style.overflow = 'visible';
+                   el.style.display = 'block';
+                   el.style.minWidth = '100%';
+                 }
                });
              }
            }
@@ -1046,28 +1052,46 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            });
          }));
  
-          const canvas = await html2canvas(flyerElement, {
-            useCORS: true,
-            scale: 2,
-            backgroundColor: removeFlyerBg ? null : '#ffffff',
-            logging: false,
-            allowTaint: false,
-            onclone: (clonedDoc) => {
-              const clonedFlyer = clonedDoc.getElementById('flyer-content');
-              if (clonedFlyer) {
-                clonedFlyer.style.transform = 'none';
-                clonedFlyer.style.transition = 'none';
-                clonedFlyer.style.margin = '0';
-                clonedFlyer.style.boxShadow = 'none';
-              }
-            }
-          });
-  
-          const dataUrl = canvas.toDataURL('image/png');
+         const canvas = await html2canvas(flyerElement, {
+           useCORS: true,
+           scale: 2,
+           backgroundColor: removeFlyerBg ? null : '#ffffff',
+           logging: true,
+           allowTaint: false,
+           imageTimeout: 30000,
+           onclone: (clonedDoc) => {
+             const clonedFlyer = clonedDoc.getElementById('flyer-content');
+             if (clonedFlyer) {
+               clonedFlyer.style.transform = 'none';
+               clonedFlyer.style.transition = 'none';
+               clonedFlyer.style.margin = '0';
+               clonedFlyer.style.position = 'relative';
+               clonedFlyer.style.top = '0';
+               clonedFlyer.style.left = '0';
+               clonedFlyer.style.boxShadow = 'none';
+               clonedFlyer.style.display = 'flex';
+
+               const allElements = clonedFlyer.querySelectorAll('*');
+               allElements.forEach((el: any) => {
+                 el.style.fontVariantNumeric = 'tabular-nums';
+                 if (el.classList.contains('price-container')) {
+                   el.style.overflow = 'visible';
+                   el.style.display = 'block';
+                 }
+               });
+             }
+           }
+         });
+
+         const dataUrl = canvas.toDataURL('image/png');
+         if (!dataUrl || dataUrl === 'data:,') {
+           throw new Error('Canvas rendering produced an empty image');
+         }
          setPreviewImageUrl(dataUrl);
        } catch (error) {
          console.error('Error generating preview:', error);
-         toast.error('Erro ao gerar prévia');
+         toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
+         setShowPreviewModal(false);
        } finally {
          setIsPreparingPrint(false);
        }
@@ -1102,11 +1126,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true, // Permitir taint para evitar erro imediato, embora possa impedir toDataURL
-          scale: 3, 
+          allowTaint: false,
+          scale: 3,
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: true, // Habilitar logs para depuração
-          imageTimeout: 60000, // Aumentar timeout para 60s
+          logging: true,
+          imageTimeout: 60000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1115,6 +1139,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+
+              const allElements = clonedElement.querySelectorAll('*');
+              allElements.forEach((el: any) => {
+                el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.classList.contains('price-container')) {
+                  el.style.overflow = 'visible';
+                  el.style.display = 'block';
+                }
+              });
             }
           }
         })
@@ -1169,10 +1202,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true,
+          allowTaint: false,
           scale: 3,
           backgroundColor: removeFlyerBg ? null : '#ffffff',
           imageTimeout: 60000,
+          onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById('flyer-content');
+            if (clonedElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.transition = 'none';
+              clonedElement.style.margin = '0';
+              clonedElement.style.boxShadow = 'none';
+              clonedElement.style.display = 'flex';
+
+              const allElements = clonedElement.querySelectorAll('*');
+              allElements.forEach((el: any) => {
+                el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.classList.contains('price-container')) {
+                  el.style.overflow = 'visible';
+                  el.style.display = 'block';
+                }
+              });
+            }
+          }
         })
 
         element.style.transform = originalTransform
