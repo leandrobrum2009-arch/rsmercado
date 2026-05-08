@@ -10,6 +10,7 @@ import { jsPDF } from 'jspdf'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
+ import { Progress } from '@/components/ui/progress'
 import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
@@ -100,8 +101,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const [showPreviewModal, setShowPreviewModal] = useState(false)
        const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
       const [printImage, setPrintImage] = useState<string | null>(null)
-      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
-     const [flyerScale, setFlyerScale] = useState(0.8)
+       const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+       const [generationProgress, setGenerationProgress] = useState(0)
+       const [generationStep, setGenerationStep] = useState('')
+      const [flyerScale, setFlyerScale] = useState(0.8)
  
       useEffect(() => {
         const handleResize = () => {
