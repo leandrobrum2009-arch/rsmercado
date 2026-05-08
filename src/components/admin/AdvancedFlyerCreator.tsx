@@ -1051,7 +1051,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-           scale: 2,
+            scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            allowTaint: false,
@@ -1318,15 +1318,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-      {printImage && (
-        <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:block print:static flyer-print-overlay">
-          <img 
-            src={printImage} 
-            className="w-[210mm] h-[297mm] object-contain mx-auto" 
-            alt="Print Preview" 
-          />
-        </div>
-      )}
+  {printImage && (
+    <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+      <img 
+        src={printImage} 
+        className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
+        alt="Print Preview" 
+        onLoad={() => {
+          // Safety check: sometimes the print triggers before the image is visually ready
+          console.log('Print image loaded in overlay');
+        }}
+      />
+    </div>
+  )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
