@@ -3069,54 +3069,31 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
 
         @media print {
-          @page { 
-            size: A4 portrait; 
-            margin: 0 !important; 
-          }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            overflow: hidden !important;
+          @page { size: A4 portrait; margin: 0 !important; }
+          html, body { 
+            margin: 0 !important; padding: 0 !important; 
+            width: 210mm !important; height: 297mm !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body * { visibility: hidden !important; }
           
-          /* Priority visibility for the image overlay during print */
-          .flyer-print-overlay,
-          .flyer-print-overlay img {
+          /* Surgical visibility approach */
+          body { visibility: hidden !important; background: white !important; }
+          
+          .flyer-print-overlay, .flyer-print-overlay *,
+          #flyer-content, #flyer-content * {
             visibility: visible !important;
-            display: block !important;
+          }
+          
+          .flyer-print-overlay, #flyer-content {
             position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            left: 0 !important; top: 0 !important;
+            width: 210mm !important; height: 297mm !important;
+            margin: 0 !important; padding: 0 !important;
+            transform: none !important;
             z-index: 99999 !important;
             background: white !important;
-            object-fit: contain !important;
-          }
-
-          /* Fallback visibility for content if image is not yet generated */
-          #flyer-content:not(.print\:hidden) {
-            visibility: visible !important;
-            display: flex !important;
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            z-index: 99998 !important;
-            transform: none !important;
-            background: white !important;
-          }
-          
-          #flyer-content:not(.print\:hidden) * {
-            visibility: visible !important;
           }
           
           .print\:hidden { display: none !important; }
