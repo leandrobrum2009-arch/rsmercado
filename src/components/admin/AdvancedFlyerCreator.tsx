@@ -2631,9 +2631,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                            </div>
                            <Progress value={generationProgress} className="h-2 bg-zinc-700" />
                          </div>
-                         <p className="text-white/60 font-medium text-center text-xs px-4">
-                           Isso pode levar alguns segundos dependendo da quantidade de produtos e qualidade das imagens.
-                         </p>
+                  <div className="space-y-3 px-4">
+                    <p className="text-white/60 font-medium text-center text-xs">
+                      Isso pode levar alguns segundos dependendo da quantidade de produtos e qualidade das imagens.
+                    </p>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                      <p className="text-zinc-400 text-[10px] font-bold uppercase mb-2">Demorando muito?</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-[9px] font-black uppercase border-white/20 text-white hover:bg-white/10"
+                        onClick={() => {
+                          setShowPreviewModal(false);
+                          handleDirectPrint();
+                        }}
+                      >
+                        Usar Impressão Direta (Fallback)
+                      </Button>
+                    </div>
+                  </div>
                        </div>
                      ) : (
                        <img 
