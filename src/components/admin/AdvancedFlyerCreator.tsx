@@ -1161,7 +1161,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isTimeout = error.message === 'Tempo limite excedido ao preparar impressão';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isTimeout ? 'O processamento demorou muito.' : 'Erro na geração da imagem.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
@@ -1506,7 +1506,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isCORS = err.message === 'CANVAS_TAINTED';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar imagem.', {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
@@ -1679,7 +1679,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isPDFError = err.message === 'PDF_GENERATION_FAILED';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isPDFError ? 'Erro crítico ao montar o arquivo PDF.' : 'Erro ao gerar PDF.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
