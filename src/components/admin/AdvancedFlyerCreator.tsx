@@ -1076,12 +1076,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-            scale: 3,
+           scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            allowTaint: false,
            imageTimeout: 30000,
            onclone: (clonedDoc) => {
+             console.log('[Preview] Documento clonado para renderização.');
              const clonedFlyer = clonedDoc.getElementById('flyer-content');
              if (clonedFlyer) {
                clonedFlyer.style.transform = 'none';
@@ -1101,9 +1102,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    el.style.display = 'block';
                  }
                });
+             } else {
+               console.error('[Preview] Elemento flyer-content não encontrado no clone!');
              }
            }
          });
+
+         console.log('[Preview] Canvas gerado com sucesso.');
+         const dataUrl = canvas.toDataURL('image/png');
+         
+         if (!dataUrl || dataUrl === 'data:,') {
+           console.error('[Preview] Canvas gerou uma imagem vazia!');
+           throw new Error('Canvas rendering produced an empty image');
+         }
+         
+         console.log(`[Preview] DataURL gerado: ${dataUrl.substring(0, 50)}... (tamanho: ${dataUrl.length})`);
+         setPreviewImageUrl(dataUrl);
 
          const dataUrl = canvas.toDataURL('image/png');
          if (!dataUrl || dataUrl === 'data:,') {
