@@ -965,11 +965,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
         setFlyerHistory(updatedHistory);
         localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-          if (shouldSave && !silentSave) {
-            await saveToDatabase();
-          } else if (shouldSave && silentSave) {
-            // Background save without toast
-            saveToDatabase();
+          // Save attempt - we try to save but don't let a save error block the print if possible
+          if (shouldSave) {
+            try {
+              await saveToDatabase();
+            } catch (saveError) {
+              console.error('Save failed but proceeding to print:', saveError);
+              // We already show a toast in saveToDatabase, so just continue here
+            }
           }
  
 
@@ -1004,8 +1007,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                clonedFlyer.style.top = '0';
                clonedFlyer.style.left = '0';
                clonedFlyer.style.boxShadow = 'none';
-               clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.flexDirection = 'column';
+                clonedFlyer.style.overflow = 'hidden';
                
+               // Fix for positions and layout shifting
                const allElements = clonedFlyer.querySelectorAll('*');
                allElements.forEach((el: any) => {
                  el.style.fontVariantNumeric = 'tabular-nums';
@@ -1014,6 +1020,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    el.style.overflow = 'visible';
                    el.style.display = 'block';
                    el.style.minWidth = '100%';
+                   el.style.position = 'relative';
                  }
                });
              }
