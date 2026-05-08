@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map } from 'lucide-react'
+ import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check } from 'lucide-react'
  import { Button } from '@/components/ui/button'
  import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -86,7 +86,109 @@ import { Badge } from '@/components/ui/badge'
      )
    }
  
+   const [copied, setCopied] = useState(false)
+   const [paying, setPaying] = useState(false)
+ 
+   const handleCopyKey = () => {
+     navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1")
+     setCopied(true)
+     setTimeout(() => setCopied(false), 2000)
+     toast.success("Chave PIX copiada!")
+   }
+ 
+   const handleSimulatePayment = async () => {
+     setPaying(true)
+     try {
+       const { error } = await supabase
+         .from('orders')
+         .update({ status: 'approved' })
+         .eq('id', orderId)
+       
+       if (error) throw error
+       toast.success("Pagamento confirmado (Simulação)!")
+     } catch (err: any) {
+       toast.error("Erro ao processar: " + err.message)
+     } finally {
+       setPaying(false)
+     }
+   }
+ 
    const info = getStatusInfo(order.status)
+          {/* Payment Simulation Section */}
+          {order.status === 'pending' && (order.payment_method === 'pix' || order.payment_method === 'sipag') && (
+            <Card className="border-4 border-primary/20 shadow-2xl rounded-[40px] overflow-hidden bg-white animate-in zoom-in duration-500">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    {order.payment_method === 'pix' ? <QrCode size={24} /> : <CreditCard size={24} />}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Finalizar Pagamento</h3>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Seu pedido aguarda a confirmação</p>
+                  </div>
+                </div>
+
+                {order.payment_method === 'pix' ? (
+                  <div className="space-y-6">
+                    <div className="bg-zinc-50 p-6 rounded-3xl flex flex-col items-center gap-4 border border-zinc-100">
+                      <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100">
+                        <img 
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
+                          alt="PIX QR Code" 
+                          className="w-40 h-40"
+                        />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-200 font-bold flex items-center justify-between px-6 hover:bg-zinc-50"
+                      onClick={handleCopyKey}
+                    >
+                      <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
+                      {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-br from-zinc-800 to-zinc-950 p-6 rounded-3xl text-white relative overflow-hidden aspect-[1.6/1]">
+                      <div className="absolute top-0 right-0 opacity-10 -mr-8 -mt-8 rotate-12">
+                        <CreditCard size={150} strokeWidth={1} />
+                      </div>
+                      <div className="flex justify-between items-start">
+                        <div className="w-10 h-10 bg-zinc-700/50 rounded-lg blur-[1px]"></div>
+                        <p className="font-black italic text-lg text-primary">SIPAG</p>
+                      </div>
+                      <div className="mt-8">
+                        <p className="text-sm font-mono tracking-[4px] text-zinc-400">•••• •••• •••• ••••</p>
+                        <div className="flex justify-between mt-4">
+                          <p className="text-[8px] font-black uppercase opacity-40">RS SUPERMERCADO</p>
+                          <p className="text-[8px] font-black uppercase opacity-40">12/29</p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Pagamento via Cartão de Crédito/Débito Online</p>
+                  </div>
+                )}
+
+                <div className="mt-8 space-y-3">
+                  <Button 
+                    className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
+                    onClick={handleSimulatePayment}
+                    disabled={paying}
+                  >
+                    {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
+                    SIMULAR PAGAMENTO (TESTE)
+                  </Button>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase text-center">
+                    ⚠️ BOTÃO DE TESTE: Clique para confirmar o recebimento do valor
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
  
    return (
      <div className="bg-zinc-50 min-h-screen pb-20">
