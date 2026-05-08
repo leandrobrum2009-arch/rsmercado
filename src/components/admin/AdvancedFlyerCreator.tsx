@@ -1392,27 +1392,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return
       }
 
+      logStep('Iniciando handleDownloadPDF');
       setUploading(true)
       setGenerationProgress(10)
       setGenerationStep('Iniciando PDF...')
       const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
 
       try {
+        logStep('Passo 1: Carregando recursos para PDF');
         setGenerationStep('Carregando recursos...')
         setGenerationProgress(30)
-        // Ensure all images are loaded
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
-          ...images.map(img => {
+          ...images.map((img, i) => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => { logStep(`Imagem PDF ${i+1} OK`); resolve(null); };
+              img.onerror = () => { logStep(`Imagem PDF ${i+1} FALHOU`); resolve(null); };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes PDF OK')) || Promise.resolve()
         ]);
 
+        logStep('Passo 2: Renderizando html2canvas para PDF');
         setGenerationStep('Renderizando páginas...')
         setGenerationProgress(60)
 
