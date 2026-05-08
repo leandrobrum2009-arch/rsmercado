@@ -100,7 +100,8 @@
     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;
     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_address JSONB;
     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS points_earned INTEGER DEFAULT 0;
-    ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+     ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10,2) DEFAULT 0;
    
     CREATE TABLE IF NOT EXISTS public.order_items (
        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
