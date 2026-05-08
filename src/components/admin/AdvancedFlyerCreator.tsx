@@ -2765,6 +2765,47 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                           >
                             Fallback
                           </Button>
+                        <div className="flex gap-1">
+                          <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="ghost" className="text-white hover:bg-white/10 text-[9px] font-bold">
+                                <Settings2 className="w-3 h-3 mr-1" /> Diagnóstico
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md bg-zinc-900 text-white border-zinc-800">
+                              <DialogHeader>
+                                <DialogTitle className="text-white font-black uppercase italic italic tracking-tighter">Log de Diagnóstico</DialogTitle>
+                              </DialogHeader>
+                              <div className="bg-black/50 rounded-xl p-4 font-mono text-[10px] h-[300px] overflow-y-auto no-scrollbar space-y-1">
+                                {logHistory.length === 0 ? (
+                                  <p className="text-zinc-500 italic">Nenhum evento registrado ainda.</p>
+                                ) : (
+                                  logHistory.map((log, i) => (
+                                    <div key={i} className={cn(
+                                      "border-l-2 pl-2 py-0.5",
+                                      log.includes('ERRO') ? "border-red-500 text-red-400 bg-red-500/10" : 
+                                      log.includes('AVISO') ? "border-yellow-500 text-yellow-400 bg-yellow-500/10" : 
+                                      "border-blue-500/30 text-zinc-300"
+                                    )}>
+                                      {log}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                className="w-full border-white/10 text-white hover:bg-white/5"
+                                onClick={() => {
+                                  const text = logHistory.join('\n');
+                                  navigator.clipboard.writeText(text);
+                                  toast.success('Log copiado!');
+                                }}
+                              >
+                                Copiar Log Completo
+                              </Button>
+                            </DialogContent>
+                          </Dialog>
+
                           <Button 
                             size="sm" 
                             className="bg-primary text-white" 
@@ -2780,6 +2821,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
                             Imprimir Agora
                           </Button>
+                        </div>
                         </div>
                     </div>
                   </div>
