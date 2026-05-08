@@ -1056,8 +1056,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           // Always use PNG for print to ensure maximum fidelity of positions and colors
           const dataUrl = canvas.toDataURL('image/png');
           setPrintImage(dataUrl);
-        toast.dismiss(loadingToast);
-        toast.success('Pronto para imprimir!');
+          toast.dismiss(loadingToast);
+          
+          // Trigger print after image is likely rendered in the overlay
+          setTimeout(() => {
+            window.print();
+            // Clear print image after a delay or on return to window
+            const clearPrint = () => {
+              setPrintImage(null);
+              window.removeEventListener('focus', clearPrint);
+            };
+            window.addEventListener('focus', clearPrint, { once: true });
+          }, 1000);
+
+          toast.success('Pronto para imprimir!');
       } catch (error) {
         console.error('Error preparing print:', error);
         toast.error('Erro ao preparar impressão');
