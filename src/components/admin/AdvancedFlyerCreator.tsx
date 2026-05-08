@@ -1375,14 +1375,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       logStep('Iniciando handleDownloadImage');
       setUploading(true)
-      setGenerationProgress(10)
-      setGenerationStep('Iniciando captura...')
+      setGenerationProgress(5)
+      setGenerationStep('Iniciando...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        await new Promise(resolve => setTimeout(resolve, 300));
         logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
-        setGenerationProgress(30)
+        setGenerationProgress(20)
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
           ...images.map((img, i) => {
