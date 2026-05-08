@@ -1191,9 +1191,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setUploading(true)
+      setGenerationProgress(10)
+      setGenerationStep('Iniciando captura...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        setGenerationStep('Carregando imagens...')
+        setGenerationProgress(30)
         // Ensure all images are loaded before capturing
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
@@ -1206,6 +1210,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando imagem...')
+        setGenerationProgress(60)
 
         // Temporary styles for capture to ensure best result
         const originalTransform = element.style.transform;
@@ -1255,6 +1262,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform;
         element.style.transition = originalTransition;
 
+        setGenerationProgress(90)
+        setGenerationStep('Finalizando arquivo...')
         const image = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = image
