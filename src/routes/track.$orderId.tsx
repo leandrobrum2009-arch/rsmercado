@@ -2,6 +2,7 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check } from 'lucide-react'
+ import { toast } from '@/lib/toast'
  import { Button } from '@/components/ui/button'
  import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
