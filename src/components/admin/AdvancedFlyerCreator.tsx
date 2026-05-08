@@ -109,7 +109,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [logHistory, setLogHistory] = useState<string[]>([])
      const [showLogViewer, setShowLogHistory] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
-      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+         const [showPreviewModal, setShowPreviewModal] = useState(false)
+         const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+       const [printImage, setPrintImage] = useState<string | null>(null)
+        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+        const [generationProgress, setGenerationProgress] = useState(0)
+        const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
         const [useHtmlMode, setUseHtmlMode] = useState(true)
  
