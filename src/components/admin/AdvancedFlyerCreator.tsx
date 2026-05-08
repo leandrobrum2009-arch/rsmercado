@@ -1202,10 +1202,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true,
+          allowTaint: false,
           scale: 3,
           backgroundColor: removeFlyerBg ? null : '#ffffff',
           imageTimeout: 60000,
+          onclone: (clonedDoc) => {
+            const clonedElement = clonedDoc.getElementById('flyer-content');
+            if (clonedElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.transition = 'none';
+              clonedElement.style.margin = '0';
+              clonedElement.style.boxShadow = 'none';
+              clonedElement.style.display = 'flex';
+
+              const allElements = clonedElement.querySelectorAll('*');
+              allElements.forEach((el: any) => {
+                el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.classList.contains('price-container')) {
+                  el.style.overflow = 'visible';
+                  el.style.display = 'block';
+                }
+              });
+            }
+          }
         })
 
         element.style.transform = originalTransform
