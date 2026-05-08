@@ -3,6 +3,7 @@
  import { supabase } from '@/lib/supabase'
  import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check } from 'lucide-react'
  import { toast } from '@/lib/toast'
+ import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Input } from '@/components/ui/input'
@@ -118,7 +119,12 @@ import { Badge } from '@/components/ui/badge'
          .update({ status: 'approved' })
          .eq('id', orderId)
        
-       if (error) throw error
+        if (error) {
+          logAttempt('payment_attempt', 'failure', { order_id: orderId, type: order?.payment_method, error: error.message });
+          throw error
+        }
+        
+        logAttempt('payment_attempt', 'success', { order_id: orderId, type: order?.payment_method, simulation: true });
        toast.success("Pagamento confirmado (Simulação)!")
         setPaymentStep('done')
      } catch (err: any) {
