@@ -153,7 +153,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           
           const timer = setTimeout(() => {
             window.print()
-          }, 1000)
+          }, 600) // Fast trigger for the image-based print
           
           return () => {
             clearTimeout(timer)
