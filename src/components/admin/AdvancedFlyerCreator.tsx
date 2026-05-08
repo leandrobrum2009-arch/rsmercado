@@ -1070,6 +1070,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
           // Always use PNG for print to ensure maximum fidelity of positions and colors
           const dataUrl = canvas.toDataURL('image/png');
+          setGenerationProgress(100);
+          setGenerationStep('Concluído!');
           setPrintImage(dataUrl);
           toast.dismiss(loadingToast);
           
