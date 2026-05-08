@@ -1723,9 +1723,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
-               <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
-                 <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
-               </CardTitle>
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
+                    <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
+                  </CardTitle>
+                  <button 
+                    onClick={() => setShowLogHistory(true)}
+                    className="text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors text-left"
+                  >
+                    Ver Log de Sistema
+                  </button>
+                </div>
                <Dialog>
                  <DialogTrigger asChild>
                    <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
