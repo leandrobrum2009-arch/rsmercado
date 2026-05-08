@@ -1649,13 +1649,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       } catch (err: any) {
         console.error('Error generating PDF:', err)
         toast.dismiss(loadingToast)
-        if (err.message === 'CANVAS_TAINTED') {
-          toast.error('Erro de segurança (CORS): Algumas imagens não permitem exportação em alta qualidade. Tente o "Modo Fallback".', {
-            duration: 7000
-          });
-        } else {
-          toast.error('Erro ao gerar PDF. Verifique as imagens ou tente o "Modo Fallback".')
-        }
+        const isCORS = err.message === 'CANVAS_TAINTED';
+        
+        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar PDF.', {
+          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          duration: 10000,
+          action: {
+            label: 'Imprimir Direto',
+            onClick: () => handleDirectPrint()
+          }
+        });
       } finally {
         setUploading(false)
       }
