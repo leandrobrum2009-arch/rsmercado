@@ -1903,7 +1903,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         <SelectItem value="font-sans font-black italic">Impact (Black)</SelectItem>
                         <SelectItem value="font-sans font-bold">Arial Bold</SelectItem>
                         <SelectItem value="font-serif italic font-bold">Traditional Serif</SelectItem>
-                        <SelectItem value="font-['Montserrat',sans-serif]">Montserrat</SelectItem>
+                         <SelectItem value="font-montserrat">Montserrat</SelectItem>
                      </SelectContent>
                    </Select>
                  </div>
