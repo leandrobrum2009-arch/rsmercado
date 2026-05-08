@@ -1101,44 +1101,60 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
           // Create a promise for html2canvas with a timeout
           const generateCanvas = async () => {
-            return await html2canvas(flyerElement, {
-              useCORS: true,
-              scale: 2, // Reduced from 3 to 2 for better performance and reliability
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-              logging: true,
-              allowTaint: false,
-              imageTimeout: 15000,
-              onclone: (clonedDoc) => {
-                console.log('[Preview] Documento clonado para renderização.');
-                const clonedFlyer = clonedDoc.getElementById('flyer-content');
-                if (clonedFlyer) {
-                  clonedFlyer.style.transform = 'none';
-                  clonedFlyer.style.transition = 'none';
-                  clonedFlyer.style.animation = 'none';
-                  clonedFlyer.style.margin = '0';
-                  clonedFlyer.style.position = 'relative';
-                  clonedFlyer.style.top = '0';
-                  clonedFlyer.style.left = '0';
-                  clonedFlyer.style.boxShadow = 'none';
-                  clonedFlyer.style.display = 'flex';
-                  clonedFlyer.style.visibility = 'visible';
+            console.log('[Preview] Chamando html2canvas...');
+            try {
+              return await html2canvas(flyerElement, {
+                useCORS: true,
+                scale: 1.5, // Even lower scale for preview to ensure it works
+                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+                logging: true,
+                allowTaint: false,
+                imageTimeout: 20000,
+                onclone: (clonedDoc) => {
+                  console.log('[Preview] Documento clonado para renderização.');
+                  const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                  if (clonedFlyer) {
+                    // Force absolute layout properties to avoid shifting
+                    clonedFlyer.style.transform = 'none';
+                    clonedFlyer.style.transition = 'none';
+                    clonedFlyer.style.animation = 'none';
+                    clonedFlyer.style.margin = '0';
+                    clonedFlyer.style.position = 'relative';
+                    clonedFlyer.style.top = '0';
+                    clonedFlyer.style.left = '0';
+                    clonedFlyer.style.boxShadow = 'none';
+                    clonedFlyer.style.display = 'flex';
+                    clonedFlyer.style.flexDirection = 'column'; // ESSENTIAL
+                    clonedFlyer.style.visibility = 'visible';
+                    clonedFlyer.style.width = '794px';
+                    clonedFlyer.style.height = '1123px';
 
-                  const allElements = clonedFlyer.querySelectorAll('*');
-                  allElements.forEach((el: any) => {
-                    el.style.transition = 'none';
-                    el.style.animation = 'none';
-                    el.style.backdropFilter = 'none';
-                    el.style.fontVariantNumeric = 'tabular-nums';
-                    if (el.classList.contains('price-container')) {
-                      el.style.overflow = 'visible';
-                      el.style.display = 'block';
-                    }
-                  });
-                } else {
-                  console.error('[Preview] Elemento flyer-content não encontrado no clone!');
+                    const allElements = clonedFlyer.querySelectorAll('*');
+                    allElements.forEach((el: any) => {
+                      // Remove animations and transitions that cause hangs
+                      el.style.transition = 'none';
+                      el.style.animation = 'none';
+                      el.style.backdropFilter = 'none';
+                      el.style.fontVariantNumeric = 'tabular-nums';
+                      
+                      // Remove Tailwind animate classes
+                      el.className = el.className?.replace(/\banimate-\S+/g, '');
+                      
+                      if (el.classList.contains('price-container')) {
+                        el.style.overflow = 'visible';
+                        el.style.display = 'block';
+                        el.style.minWidth = '100%';
+                      }
+                    });
+                  } else {
+                    console.error('[Preview] Elemento flyer-content não encontrado no clone!');
+                  }
                 }
-              }
-            });
+              });
+            } catch (err) {
+              console.error('[Preview] Erro interno no html2canvas:', err);
+              throw err;
+            }
           };
 
           // Timeout promise
