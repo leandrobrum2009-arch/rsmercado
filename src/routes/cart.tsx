@@ -58,8 +58,7 @@ function CartPage() {
      fetchNeighborhoods();
    }, []);
 
-    const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -252,7 +251,7 @@ function CartPage() {
            const adminSummary = formatWhatsAppMessage('order_summary', {
              id: order.id,
              customer_name: customerName,
-              address: useSimplifiedAddress ? `${deliveryAddress.street} - ${deliveryAddress.neighborhood}` : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
+              address: `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
               payment_method: paymentMethod === 'money' ? `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ' (Sem troco)'}` : paymentMethod,
              items: items, // use cart items
              subtotal: total,
