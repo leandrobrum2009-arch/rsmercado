@@ -3063,6 +3063,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           
           .print\:hidden { display: none !important; }
         }
+
+        .no-animations *, 
+        .no-animations *::before, 
+        .no-animations *::after {
+          animation-duration: 0.001s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0.001s !important;
+          transition-delay: 0s !important;
+        }
       `}</style>
       </>
     )
