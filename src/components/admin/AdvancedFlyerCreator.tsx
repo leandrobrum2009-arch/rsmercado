@@ -1296,8 +1296,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setGenerationStep('Finalizando imagem...');
           
           logStep('Convertendo canvas da prévia para DataURL');
-          const dataUrl = canvas.toDataURL('image/png');
-          logStep(`DataURL da prévia gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          let dataUrl = '';
+          try {
+            dataUrl = canvas.toDataURL('image/png');
+            logStep(`DataURL da prévia gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          } catch (exportError: any) {
+            logStep('ERRO ao exportar canvas da prévia:', exportError);
+            throw new Error('CANVAS_TAINTED');
+          }
           
           if (!dataUrl || dataUrl === 'data:,') {
             logStep('ERRO: Canvas da prévia gerou uma imagem vazia');
@@ -1309,11 +1315,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setPreviewImageUrl(dataUrl);
         } catch (error: any) {
           logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
-          if (error.message === 'TIMEOUT_EXCEEDED') {
+          if (error.message === 'CANVAS_TAINTED') {
+            toast.error('Erro de segurança (CORS): Algumas imagens não permitem prévia em alta qualidade. Tente o "Modo Fallback".', {
+              duration: 7000
+            });
+          } else if (error.message === 'TIMEOUT_EXCEEDED') {
             toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
-            // Optionally retry with even lower settings or just show the DOM
           } else {
-            toast.error('Erro ao gerar prévia. Verifique sua conexão.');
+            toast.error('Erro ao gerar prévia. Verifique sua conexão ou tente o "Modo Fallback".');
           }
           setShowPreviewModal(false);
         } finally {
