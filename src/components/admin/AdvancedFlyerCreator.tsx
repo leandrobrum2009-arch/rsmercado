@@ -916,6 +916,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         checkImg.onload = () => logStep(`CORS OK para: ${product.name}`);
         checkImg.onerror = () => {
           logStep(`AVISO CORS: Falha ao carregar com crossOrigin=anonymous para: ${product.name}. Isso pode afetar a geração da imagem de alta fidelidade.`);
+          setCorsWarningCount(prev => prev + 1);
         };
       }
 
