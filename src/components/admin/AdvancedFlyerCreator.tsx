@@ -2428,19 +2428,29 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
                     <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" 
-                    onClick={() => handlePrint()}
-                    disabled={isPreparingPrint}
-                  >
-                    {isPreparingPrint ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Printer className="w-4 h-4 mr-2" />
-                    )}
-                    Imprimir Encarte (A4)
-                  </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 col-span-1 md:col-span-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
+                      onClick={() => handlePrint()}
+                      disabled={isPreparingPrint}
+                    >
+                      {isPreparingPrint ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Printer className="w-4 h-4 mr-2" />
+                      )}
+                      Imprimir Alta Qualidade
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[9px] border-2 border-dashed border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" 
+                      onClick={handleDirectPrint}
+                    >
+                      <Printer className="w-3 h-3 mr-2" />
+                      Modo Fallback (Direto)
+                    </Button>
+                  </div>
                 </div>
            </CardContent>
           </Card>
