@@ -1555,8 +1555,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         logStep('Passo 3: Gerando documento PDF');
         setGenerationProgress(80)
         setGenerationStep('Gerando documento PDF...')
-        const imgData = canvas.toDataURL('image/png')
-        logStep(`PDF DataURL gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
+        let imgData = ''
+        try {
+          imgData = canvas.toDataURL('image/png')
+          logStep(`PDF DataURL gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
+        } catch (exportError: any) {
+          logStep('ERRO ao exportar imagem para PDF:', exportError);
+          throw new Error('CANVAS_TAINTED');
+        }
         setGenerationProgress(100)
         setGenerationStep('Concluído!')
         const pdf = new jsPDF({
@@ -1573,10 +1579,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         toast.dismiss(loadingToast)
         toast.success('PDF baixado com sucesso!')
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error generating PDF:', err)
         toast.dismiss(loadingToast)
-        toast.error('Erro ao gerar PDF.')
+        if (err.message === 'CANVAS_TAINTED') {
+          toast.error('Erro de segurança (CORS): Algumas imagens não permitem exportação em alta qualidade. Tente o "Modo Fallback".', {
+            duration: 7000
+          });
+        } else {
+          toast.error('Erro ao gerar PDF. Verifique as imagens ou tente o "Modo Fallback".')
+        }
       } finally {
         setUploading(false)
       }
