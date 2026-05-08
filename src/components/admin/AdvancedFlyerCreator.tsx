@@ -97,9 +97,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       const [imageOffsetX, setImageOffsetX] = useState(0)
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
-    const [loadingSaved, setLoadingSaved] = useState(false)
-       const [showPreviewModal, setShowPreviewModal] = useState(false)
-       const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+     const [loadingSaved, setLoadingSaved] = useState(false)
+     const [logHistory, setLogHistory] = useState<string[]>([])
+     const [showLogViewer, setShowLogHistory] = useState(false)
+     const [corsWarningCount, setCorsWarningCount] = useState(0)
+        const [showPreviewModal, setShowPreviewModal] = useState(false)
+        const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
       const [printImage, setPrintImage] = useState<string | null>(null)
        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
        const [generationProgress, setGenerationProgress] = useState(0)
@@ -913,6 +916,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         checkImg.onload = () => logStep(`CORS OK para: ${product.name}`);
         checkImg.onerror = () => {
           logStep(`AVISO CORS: Falha ao carregar com crossOrigin=anonymous para: ${product.name}. Isso pode afetar a geração da imagem de alta fidelidade.`);
+          setCorsWarningCount(prev => prev + 1);
         };
       }
 
@@ -950,7 +954,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
       const logStep = (step: string, data?: any) => {
         const timestamp = new Date().toLocaleTimeString();
-        console.log(`[FlyerGen][${timestamp}] ${step}`, data || '');
+        const logLine = `[${timestamp}] ${step}${data ? ' ' + JSON.stringify(data) : ''}`;
+        console.log(`[FlyerGen]${logLine}`);
+        setLogHistory(prev => [...prev.slice(-49), logLine]);
       };
 
       const handlePrint = async (shouldSave = true, silentSave = false) => {
@@ -1717,9 +1723,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
-               <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
-                 <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
-               </CardTitle>
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="flex items-center gap-2 font-black uppercase italic tracking-tighter text-lg">
+                    <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
+                  </CardTitle>
+                  <button 
+                    onClick={() => setShowLogHistory(true)}
+                    className="text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors text-left"
+                  >
+                    Ver Log de Sistema
+                  </button>
+                </div>
                <Dialog>
                  <DialogTrigger asChild>
                    <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
@@ -2714,8 +2728,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Preview Real A4
-            </div>
+               Preview Real A4
+             </div>
+             {corsWarningCount > 0 && (
+               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-red-500">
+                 <X className="w-3 h-3" />
+                 {corsWarningCount} Erro(s) de CORS Detectados
+               </div>
+             )}
                <Dialog open={showPreviewModal} onOpenChange={(open) => {
                  setShowPreviewModal(open);
                  if (open) handleGeneratePreview();
@@ -2761,6 +2781,47 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                           >
                             Fallback
                           </Button>
+                        <div className="flex gap-1">
+                          <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="ghost" className="text-white hover:bg-white/10 text-[9px] font-bold">
+                                <Settings2 className="w-3 h-3 mr-1" /> Diagnóstico
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md bg-zinc-900 text-white border-zinc-800">
+                              <DialogHeader>
+                                <DialogTitle className="text-white font-black uppercase italic italic tracking-tighter">Log de Diagnóstico</DialogTitle>
+                              </DialogHeader>
+                              <div className="bg-black/50 rounded-xl p-4 font-mono text-[10px] h-[300px] overflow-y-auto no-scrollbar space-y-1">
+                                {logHistory.length === 0 ? (
+                                  <p className="text-zinc-500 italic">Nenhum evento registrado ainda.</p>
+                                ) : (
+                                  logHistory.map((log, i) => (
+                                    <div key={i} className={cn(
+                                      "border-l-2 pl-2 py-0.5",
+                                      log.includes('ERRO') ? "border-red-500 text-red-400 bg-red-500/10" : 
+                                      log.includes('AVISO') ? "border-yellow-500 text-yellow-400 bg-yellow-500/10" : 
+                                      "border-blue-500/30 text-zinc-300"
+                                    )}>
+                                      {log}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                className="w-full border-white/10 text-white hover:bg-white/5"
+                                onClick={() => {
+                                  const text = logHistory.join('\n');
+                                  navigator.clipboard.writeText(text);
+                                  toast.success('Log copiado!');
+                                }}
+                              >
+                                Copiar Log Completo
+                              </Button>
+                            </DialogContent>
+                          </Dialog>
+
                           <Button 
                             size="sm" 
                             className="bg-primary text-white" 
@@ -2776,6 +2837,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                             {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
                             Imprimir Agora
                           </Button>
+                        </div>
                         </div>
                     </div>
                   </div>
