@@ -1269,6 +1269,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationProgress(90)
         setGenerationStep('Finalizando arquivo...')
         const image = canvas.toDataURL('image/png')
+        setGenerationProgress(100)
+        setGenerationStep('Pronto!')
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
@@ -1367,6 +1369,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationProgress(80)
         setGenerationStep('Gerando documento PDF...')
         const imgData = canvas.toDataURL('image/png')
+        setGenerationProgress(100)
+        setGenerationStep('Concluído!')
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
