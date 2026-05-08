@@ -29,7 +29,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
  type BackgroundType = 'image' | 'gradient' | 'color'
  
- export function AdvancedFlyerCreator() {
+  const hexToRgba = (hex: string, opacity: number) => {
+    if (!hex || hex.length < 7) return `rgba(255, 255, 255, ${opacity / 100})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+  };
+
+  export function AdvancedFlyerCreator() {
    const { settings: storeSettings } = useStoreSettings()
    const [layout, setLayout] = useState<LayoutType>('grid')
    const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
@@ -107,7 +115,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
        const [generationProgress, setGenerationProgress] = useState(0)
        const [generationStep, setGenerationStep] = useState('')
-      const [flyerScale, setFlyerScale] = useState(0.8)
+        const [flyerScale, setFlyerScale] = useState(0.8)
+        const [useHtmlMode, setUseHtmlMode] = useState(false)
  
       useEffect(() => {
         const handleResize = () => {
@@ -149,24 +158,33 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         return () => window.removeEventListener('resize', handleResize)
       }, [])
 
+      // Effect to disable animations globally when preparing print
       useEffect(() => {
-        if (printImage) {
-          const handleAfterPrint = () => {
-            setPrintImage(null)
-            window.removeEventListener('afterprint', handleAfterPrint)
-          }
-          window.addEventListener('afterprint', handleAfterPrint)
-          
-          const timer = setTimeout(() => {
-            window.print()
-          }, 600) // Fast trigger for the image-based print
-          
-          return () => {
-            clearTimeout(timer)
-            window.removeEventListener('afterprint', handleAfterPrint)
-          }
+        if (isPreparingPrint || printImage) {
+          document.body.classList.add('no-animations');
+        } else {
+          document.body.classList.remove('no-animations');
         }
-      }, [printImage])
+        
+        if (printImage) {
+          const timer = setTimeout(() => {
+            window.print();
+          }, 1000);
+          return () => clearTimeout(timer);
+        }
+        
+        return () => document.body.classList.remove('no-animations');
+      }, [isPreparingPrint, printImage]);
+
+      // Effect to trigger preview generation after dialog animation
+      useEffect(() => {
+        if (showPreviewModal && !previewImageUrl && !isPreparingPrint) {
+          const timer = setTimeout(() => {
+            handleGeneratePreview();
+          }, 800); // Allow dialog animation to complete
+          return () => clearTimeout(timer);
+        }
+      }, [showPreviewModal, previewImageUrl, isPreparingPrint]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -975,48 +993,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setIsPreparingPrint(true);
-      setGenerationProgress(10);
-      setGenerationStep('Iniciando processamento...');
-      const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
+      setGenerationProgress(5);
+      setGenerationStep('Iniciando...');
+      const loadingToast = toast.loading('Gerando arquivo em alta fidelidade...');
 
       try {
-        logStep('Passo 1: Sincronizando banco de dados');
-        setGenerationStep('Sincronizando banco de dados...');
+        // Background save
+        if (shouldSave) {
+          saveToDatabase().catch(e => console.error('Silent save failed:', e));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        logStep('Passo 1: Preparando recursos');
+        setGenerationStep('Carregando imagens...');
         setGenerationProgress(20);
-
-        // Save history and to database in background
-        const historyItem = {
-          id: Math.random().toString(36).substring(7),
-          timestamp: new Date().toISOString(),
-          config: {
-            layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-            columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-            fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-            productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-            priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
-            bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-            showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
-            imageOffsetX, imageOffsetY, blurAmount
-          },
-          products: selectedProducts
-        };
-        const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
-        setFlyerHistory(updatedHistory);
-        localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-          // Save attempt - we try to save but don't let a save error block the print if possible
-          if (shouldSave) {
-            try {
-              await saveToDatabase();
-            } catch (saveError) {
-              console.error('Save failed but proceeding to print:', saveError);
-              // We already show a toast in saveToDatabase, so just continue here
-            }
-          }
- 
-
-        logStep('Passo 2: Carregando recursos (imagens/fontes)');
-        setGenerationStep('Carregando recursos...');
-        setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
         logStep(`Encontradas ${images.length} imagens no encarte`);
         
@@ -1186,24 +1177,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        }
      };
  
-    const handleDirectPrint = async () => {
+    const handleDirectPrint = () => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
       }
       
-      // Save history and to database in background
-      try {
-        await saveToDatabase();
-      } catch (e) {
-        console.error('Save failed but proceeding to print:', e);
-      }
+      // Save history in background (don't await)
+      saveToDatabase().catch(e => console.error('Silent save failed:', e));
 
       setPrintImage(null); // Ensure high-fidelity overlay is NOT shown
-      toast.info('Abrindo diálogo de impressão direta...');
+      toast.info('Abrindo diálogo de impressão...');
+      // Give time for React to update the state and for the browser to prepare
       setTimeout(() => {
         window.print();
-      }, 500);
+      }, 1000);
     };
 
       const handleGeneratePreview = async () => {
@@ -1215,18 +1203,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
         
         setIsPreparingPrint(true);
-        setGenerationProgress(10);
-        setGenerationStep('Preparando ambiente...');
+        setGenerationProgress(5);
+        setGenerationStep('Iniciando...');
         
-        logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
-        logStep(`Layout: ${layout}, Colunas: ${columns}`);
-        logStep(`Fundo: ${backgroundType}, Imagem: ${backgroundUrl ? 'Sim' : 'Não'}`);
-        logStep(`Total de Produtos: ${selectedProducts.length}`);
-        logStep('--- INICIANDO ---');
+        // Delay to allow UI to show the 5% progress
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        setGenerationProgress(15);
+        setGenerationStep('Preparando ambiente...');
 
         try {
+          logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
+          logStep(`Layout: ${layout}, Colunas: ${columns}`);
+          logStep(`Total de Produtos: ${selectedProducts.length}`);
+
           logStep('Passo 1: Delay de estabilização');
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 300));
 
           logStep('Passo 2: Carregando recursos');
           setGenerationProgress(20);
@@ -1383,14 +1375,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       logStep('Iniciando handleDownloadImage');
       setUploading(true)
-      setGenerationProgress(10)
-      setGenerationStep('Iniciando captura...')
+      setGenerationProgress(5)
+      setGenerationStep('Iniciando...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        await new Promise(resolve => setTimeout(resolve, 300));
         logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
-        setGenerationProgress(30)
+        setGenerationProgress(20)
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
           ...images.map((img, i) => {
@@ -1542,14 +1535,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       logStep('Iniciando handleDownloadPDF');
       setUploading(true)
-      setGenerationProgress(10)
-      setGenerationStep('Iniciando PDF...')
+      setGenerationProgress(5)
+      setGenerationStep('Iniciando...')
       const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
 
       try {
+        await new Promise(resolve => setTimeout(resolve, 300));
         logStep('Passo 1: Carregando recursos para PDF');
         setGenerationStep('Carregando recursos...')
-        setGenerationProgress(30)
+        setGenerationProgress(20)
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
           ...images.map((img, i) => {
@@ -2690,47 +2684,67 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Button 
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
-                    onClick={saveToDatabase}
-                    disabled={uploading}
-                  >
-                    <Save className="w-4 h-4 mr-2" /> Salvar no Banco
-                  </Button>
-                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
-                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
-                  </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
-                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
-                  </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
-                    <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
-                  </Button>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 col-span-1 md:col-span-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
-                      onClick={() => handlePrint()}
-                      disabled={isPreparingPrint}
-                    >
-                      {isPreparingPrint ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Printer className="w-4 h-4 mr-2" />
-                      )}
-                      Imprimir Alta Qualidade
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[9px] border-2 border-dashed border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" 
-                      onClick={handleDirectPrint}
-                    >
-                      <Printer className="w-3 h-3 mr-2" />
-                      Modo Fallback (Direto)
-                    </Button>
-                  </div>
-                </div>
+                 <div className="space-y-4">
+                    <div className="p-4 bg-zinc-900 text-white rounded-[24px]">
+                      <div className="flex justify-between items-center mb-3">
+                        <Label className="text-[10px] font-black uppercase italic tracking-widest text-primary">Preferência de Impressão</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant={!useHtmlMode ? 'default' : 'outline'} 
+                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", !useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
+                          onClick={() => setUseHtmlMode(false)}
+                        >
+                          Alta Fidelidade
+                        </Button>
+                        <Button 
+                          variant={useHtmlMode ? 'default' : 'outline'} 
+                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
+                          onClick={() => setUseHtmlMode(true)}
+                        >
+                          Modo HTML (Rápido)
+                        </Button>
+                      </div>
+                      <p className="text-[8px] text-zinc-500 font-bold uppercase mt-2 px-1">
+                        {useHtmlMode 
+                          ? "O Modo HTML imprime o que você vê na tela instantaneamente." 
+                          : "O Modo Alta Fidelidade gera uma imagem em 300dpi antes de imprimir."}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Button 
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
+                        onClick={saveToDatabase}
+                        disabled={uploading}
+                      >
+                        <Save className="w-4 h-4 mr-2" /> Salvar no Banco
+                      </Button>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
+                        <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                      </Button>
+                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
+                        <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                      </Button>
+                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
+                        <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
+                      </Button>
+                      <div className="grid grid-cols-1 gap-2 col-span-1 md:col-span-2">
+                        <Button 
+                          className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white" 
+                          onClick={() => useHtmlMode ? handleDirectPrint() : handlePrint()}
+                          disabled={isPreparingPrint}
+                        >
+                          {isPreparingPrint ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Printer className="w-5 h-5 mr-2" />
+                          )}
+                          {useHtmlMode ? 'Imprimir Agora (HTML)' : 'Imprimir Alta Fidelidade'}
+                        </Button>
+                      </div>
+                    </div>
+                 </div>
            </CardContent>
           </Card>
 
@@ -2837,11 +2851,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  {corsWarningCount} Erro(s) de CORS Detectados
                </div>
              )}
-               <Dialog open={showPreviewModal} onOpenChange={(open) => {
-                 setShowPreviewModal(open);
-                 if (open) handleGeneratePreview();
-                 else setPreviewImageUrl(null);
-               }}>
+                <Dialog open={showPreviewModal} onOpenChange={(open) => {
+                  setShowPreviewModal(open);
+                  if (!open) {
+                    setPreviewImageUrl(null);
+                    setGenerationProgress(0);
+                  }
+                }}>
                  <Button 
                    size="sm" 
                    variant="outline" 
@@ -2880,7 +2896,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               handleDirectPrint();
                             }}
                           >
-                            Fallback
+                             Imprimir HTML
                           </Button>
                         <div className="flex gap-1">
                           <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
@@ -3061,57 +3077,43 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
 
         @media print {
-          @page { 
-            size: A4 portrait; 
-            margin: 0 !important; 
-          }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            overflow: hidden !important;
+          @page { size: A4 portrait; margin: 0 !important; }
+          html, body { 
+            margin: 0 !important; padding: 0 !important; 
+            width: 210mm !important; height: 297mm !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          body * { visibility: hidden !important; }
           
-          /* Priority visibility for the image overlay during print */
-          .flyer-print-overlay,
-          .flyer-print-overlay img {
+          /* Surgical visibility approach */
+          body { visibility: hidden !important; background: white !important; }
+          
+          .flyer-print-overlay, .flyer-print-overlay *,
+          #flyer-content, #flyer-content * {
             visibility: visible !important;
-            display: block !important;
+          }
+          
+          .flyer-print-overlay, #flyer-content {
             position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            left: 0 !important; top: 0 !important;
+            width: 210mm !important; height: 297mm !important;
+            margin: 0 !important; padding: 0 !important;
+            transform: none !important;
             z-index: 99999 !important;
             background: white !important;
-            object-fit: contain !important;
-          }
-
-          /* Fallback visibility for content if image is not yet generated */
-          #flyer-content:not(.print\:hidden) {
-            visibility: visible !important;
-            display: flex !important;
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
-            height: 297mm !important;
-            z-index: 99998 !important;
-            transform: none !important;
-            background: white !important;
-          }
-          
-          #flyer-content:not(.print\:hidden) * {
-            visibility: visible !important;
           }
           
           .print\:hidden { display: none !important; }
+        }
+
+        .no-animations *, 
+        .no-animations *::before, 
+        .no-animations *::after {
+          animation-duration: 0.001s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0.001s !important;
+          transition-delay: 0s !important;
         }
       `}</style>
       </>
