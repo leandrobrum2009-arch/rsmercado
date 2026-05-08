@@ -1413,53 +1413,65 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = 'none';
         element.style.transition = 'none';
 
-        const canvas = await html2canvas(element, {
-          useCORS: true,
-          allowTaint: false,
-          scale: 2,
-          backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-          logging: true,
-          imageTimeout: 30000,
-          onclone: (clonedDoc) => {
-            logStep('onclone: Clonando para Imagem');
-            const clonedElement = clonedDoc.getElementById('flyer-content');
-            if (clonedElement) {
-              clonedElement.style.transform = 'none';
-              clonedElement.style.transition = 'none';
-              clonedElement.style.animation = 'none';
-              clonedElement.style.margin = '0';
-              clonedElement.style.boxShadow = 'none';
-              clonedElement.style.display = 'flex';
-              clonedElement.style.flexDirection = 'column';
-              clonedElement.style.visibility = 'visible';
-              clonedElement.style.width = '794px';
-              clonedElement.style.height = '1123px';
+        const generateImageCanvas = async (customScale = 2) => {
+          logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
+          return await html2canvas(element, {
+            useCORS: true,
+            allowTaint: false,
+            scale: customScale,
+            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            logging: true,
+            imageTimeout: 30000,
+            onclone: (clonedDoc) => {
+              logStep('onclone: Clonando para Imagem');
+              const clonedElement = clonedDoc.getElementById('flyer-content');
+              if (clonedElement) {
+                clonedElement.style.transform = 'none';
+                clonedElement.style.transition = 'none';
+                clonedElement.style.animation = 'none';
+                clonedElement.style.margin = '0';
+                clonedElement.style.boxShadow = 'none';
+                clonedElement.style.display = 'flex';
+                clonedElement.style.flexDirection = 'column';
+                clonedElement.style.visibility = 'visible';
+                clonedElement.style.width = '794px';
+                clonedElement.style.height = '1123px';
 
-              const allElements = clonedElement.querySelectorAll('*');
-              allElements.forEach((el: any) => {
-                el.style.setProperty('transition', 'none', 'important');
-                el.style.setProperty('animation', 'none', 'important');
-                el.style.setProperty('animation-duration', '0s', 'important');
-                el.style.setProperty('transition-duration', '0s', 'important');
-                el.style.backdropFilter = 'none';
-                el.style.fontVariantNumeric = 'tabular-nums';
-                if (el.className && typeof el.className === 'string') {
-                  el.className = el.className
-                    .replace(/\banimate-\S+/g, '')
-                    .replace(/\bduration-\S+/g, '')
-                    .replace(/\bfade-in\S*/g, '')
-                    .replace(/\bzoom-in\S*/g, '')
-                    .replace(/\bslide-in\S*/g, '')
-                    .replace(/\bdelay-\S+/g, '');
-                }
-                if (el.classList.contains('price-container')) {
-                  el.style.overflow = 'visible';
-                  el.style.display = 'block';
-                }
-              });
+                const allElements = clonedElement.querySelectorAll('*');
+                allElements.forEach((el: any) => {
+                  el.style.setProperty('transition', 'none', 'important');
+                  el.style.setProperty('animation', 'none', 'important');
+                  el.style.setProperty('animation-duration', '0s', 'important');
+                  el.style.setProperty('transition-duration', '0s', 'important');
+                  el.style.backdropFilter = 'none';
+                  el.style.fontVariantNumeric = 'tabular-nums';
+                  if (el.className && typeof el.className === 'string') {
+                    el.className = el.className
+                      .replace(/\banimate-\S+/g, '')
+                      .replace(/\bduration-\S+/g, '')
+                      .replace(/\bfade-in\S*/g, '')
+                      .replace(/\bzoom-in\S*/g, '')
+                      .replace(/\bslide-in\S*/g, '')
+                      .replace(/\bdelay-\S+/g, '');
+                  }
+                  if (el.classList.contains('price-container')) {
+                    el.style.overflow = 'visible';
+                    el.style.display = 'block';
+                  }
+                });
+              }
             }
-          }
-        })
+          });
+        };
+
+        let canvas: HTMLCanvasElement;
+        try {
+          canvas = await generateImageCanvas(2);
+        } catch (firstErr) {
+          logStep('Erro download imagem (escala 2). Tentando escala 1.5...', firstErr);
+          setGenerationStep('Otimizando download...');
+          canvas = await generateImageCanvas(1.5);
+        }
 
         element.style.transform = originalTransform;
         element.style.transition = originalTransition;
