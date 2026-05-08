@@ -1176,6 +1176,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationProgress(10);
         setGenerationStep('Preparando ambiente...');
         
+        logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
+        logStep(`Layout: ${layout}, Colunas: ${columns}`);
+        logStep(`Fundo: ${backgroundType}, Imagem: ${backgroundUrl ? 'Sim' : 'Não'}`);
+        logStep(`Total de Produtos: ${selectedProducts.length}`);
+        logStep('--- INICIANDO ---');
+
         try {
           logStep('Passo 1: Delay de estabilização');
           await new Promise(resolve => setTimeout(resolve, 500));
