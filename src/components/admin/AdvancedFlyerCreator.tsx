@@ -1169,6 +1169,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           
           if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
           
+          setGenerationProgress(100);
+          setGenerationStep('Concluído!');
           setPreviewImageUrl(dataUrl);
           console.log('[Preview] Prévia gerada com sucesso.');
         } catch (error: any) {
