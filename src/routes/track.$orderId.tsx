@@ -95,6 +95,30 @@ import { Badge } from '@/components/ui/badge'
    const [resendingProof, setResendingProof] = useState(false)
    const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
    const [pixExpired, setPixExpired] = useState(false)
+   const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
+   const [loadingQr, setLoadingQr] = useState(false)
+ 
+   useEffect(() => {
+     const fetchBackendQr = async () => {
+       if (order?.status === 'pending' && order?.payment_method === 'pix') {
+         setLoadingQr(true)
+         try {
+           const payload = "00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1"
+           const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
+             body: { payload }
+           })
+           if (!error && data?.qr_code) {
+             setBackendQrCode(data.qr_code)
+           }
+         } catch (err) {
+           console.error('Error fetching backend QR:', err)
+         } finally {
+           setLoadingQr(false)
+         }
+       }
+     }
+     fetchBackendQr()
+   }, [order?.status, order?.payment_method])
  
    useEffect(() => {
      if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
@@ -242,13 +266,23 @@ import { Badge } from '@/components/ui/badge'
                             <Clock size={14} className="text-amber-500 animate-pulse" />
                             <span className="text-xs font-black uppercase text-zinc-500">Expira em: <span className="text-amber-600">{formatTime(pixTimeLeft)}</span></span>
                           </div>
-                          <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 relative">
-                            <img 
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
-                              alt="PIX QR Code" 
-                              className="w-40 h-40"
-                            />
-                          </div>
+                           <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 relative min-h-[160px] flex items-center justify-center">
+                             {loadingQr ? (
+                               <Loader2 className="animate-spin text-zinc-300" size={32} />
+                             ) : backendQrCode ? (
+                               <img 
+                                 src={backendQrCode} 
+                                 alt="PIX QR Code" 
+                                 className="w-40 h-40 animate-in fade-in duration-500"
+                               />
+                             ) : (
+                               <img 
+                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
+                                 alt="PIX QR Code" 
+                                 className="w-40 h-40 opacity-50 grayscale"
+                               />
+                             )}
+                           </div>
                           <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
                         </div>
                         

@@ -31,21 +31,30 @@ export function RecipeSuggestions({ cartItems }: { cartItems: any[] }) {
       // (Using case-insensitive substring match for names)
       const cartNames = cartItems.map(item => item.name.toLowerCase())
       
-      const ranked = (allRecipes || [])
-        .map(recipe => {
-          const recipeIngredients = (recipe.ingredients || []) as any[]
-          const matches = recipeIngredients.filter(ing => 
-            cartNames.some(cartName => cartName.includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(cartName))
-          )
-          const missing = recipeIngredients.filter(ing => 
-            !cartNames.some(cartName => cartName.includes(ing.name.toLowerCase()) || ing.name.toLowerCase().includes(cartName))
-          )
-          return { ...recipe, matchCount: matches.length, missing }
-        })
-        .sort((a, b) => b.matchCount - a.matchCount)
-        .slice(0, 3)
-
-      setSuggestions(ranked)
+       const all = (allRecipes || []).map(recipe => {
+         const recipeIngredients = (recipe.ingredients || []) as any[]
+         const matches = recipeIngredients.filter(ing => 
+           cartNames.some(cartName => 
+             cartName.includes(ing.name.toLowerCase()) || 
+             ing.name.toLowerCase().includes(cartName)
+           )
+         )
+         const missing = recipeIngredients.filter(ing => 
+           !cartNames.some(cartName => 
+             cartName.includes(ing.name.toLowerCase()) || 
+             ing.name.toLowerCase().includes(cartName)
+           )
+         )
+         return { ...recipe, matchCount: matches.length, missing }
+       })
+ 
+       // ONLY show recipes that have AT LEAST ONE match in the cart
+       const filtered = all
+         .filter(recipe => recipe.matchCount > 0)
+         .sort((a, b) => b.matchCount - a.matchCount)
+         .slice(0, 5) // Show up to 5 relevant recipes
+ 
+       setSuggestions(filtered)
     } catch (error) {
       console.error('Error finding recipes:', error)
     } finally {
