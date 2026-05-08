@@ -956,15 +956,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
  
 
-        // Wait for all images to load
+        // Wait for all images and fonts to load
         const images = Array.from(flyerElement.querySelectorAll('img'));
-        await Promise.all(images.map(img => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }));
+        await Promise.all([
+          ...images.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }),
+          document.fonts?.ready || Promise.resolve()
+        ]);
 
          // Capture using high reliability settings
          const canvas = await html2canvas(flyerElement, {
