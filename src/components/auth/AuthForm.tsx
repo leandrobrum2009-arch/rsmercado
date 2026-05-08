@@ -3,14 +3,21 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/lib/toast'
-import { Loader2, LogIn, UserPlus, AlertCircle } from 'lucide-react'
+ import { Loader2, LogIn, UserPlus, AlertCircle, Phone, MapPin, Users, User } from 'lucide-react'
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+   const [password, setPassword] = useState('')
+   const [fullName, setFullName] = useState('')
+   const [whatsapp, setWhatsapp] = useState('')
+   const [householdStatus, setHouseholdStatus] = useState('')
+   const [address, setAddress] = useState('')
+   const [neighborhood, setNeighborhood] = useState('')
+   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [isSignUp, setIsSignUp] = useState(false)
    const [errorMsg, setErrorMsg] = useState('')
    const [resending, setResending] = useState(false)
@@ -18,27 +25,73 @@ export function AuthForm() {
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
+     const fetchNeighborhoods = async () => {
+       const { data } = await supabase.from('delivery_neighborhoods').select('*').eq('active', true).order('name')
+       setNeighborhoods(data || [])
+     }
+     fetchNeighborhoods()
+   }, [])
+ 
+   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     }
   }, [countdown])
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrorMsg('')
-    
-    try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            data: { full_name: email.split('@')[0] }
-          }
-        })
-        if (error) throw error
+   const handleAuth = async (e: React.FormEvent) => {
+     e.preventDefault()
+     
+     if (isSignUp) {
+       if (!fullName || !whatsapp || !householdStatus || !address || !neighborhood) {
+         setErrorMsg('Por favor, preencha todos os campos do cadastro.')
+         return
+       }
+     }
+ 
+     setLoading(true)
+     setErrorMsg('')
+     
+     try {
+       if (isSignUp) {
+         const { data: authData, error } = await supabase.auth.signUp({ 
+           email, 
+           password,
+           options: {
+             data: { 
+               full_name: fullName,
+               whatsapp: whatsapp,
+               household_status: householdStatus
+             }
+           }
+         })
+         if (error) throw error
+ 
+         if (authData?.user) {
+           const userId = authData.user.id
+           
+           await supabase
+             .from('profiles')
+             .upsert({
+               id: userId,
+               full_name: fullName,
+               whatsapp: whatsapp,
+               household_status: householdStatus
+             })
+ 
+           await supabase
+             .from('user_addresses')
+             .insert({
+               user_id: userId,
+               street: address,
+               neighborhood: neighborhood,
+               number: 'S/N', 
+               city: 'Ibiúna',
+               state: 'SP',
+               is_default: true,
+               label: 'Principal'
+             })
+         }
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Por favor, verifique sua caixa de entrada (e pasta de spam) para ativar sua conta antes de tentar entrar.')
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Se não chegar em 2 minutos, use a opção "Esqueci minha senha" para ativar seu acesso.')
         setIsSignUp(false)
