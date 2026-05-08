@@ -1093,6 +1093,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.dismiss(loadingToast);
        } finally {
          setIsPreparingPrint(false);
+         setTimeout(() => {
+           setGenerationProgress(0);
+           setGenerationStep('');
+         }, 500);
        }
      };
  
