@@ -2896,7 +2896,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                               handleDirectPrint();
                             }}
                           >
-                            Fallback
+                             Imprimir HTML
                           </Button>
                         <div className="flex gap-1">
                           <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
