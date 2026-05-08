@@ -946,9 +946,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setIsPreparingPrint(true);
+      setGenerationProgress(10);
+      setGenerationStep('Iniciando processamento...');
       const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
+        setGenerationStep('Sincronizando banco de dados...');
+        setGenerationProgress(20);
+
         // Save history and to database in background
         const historyItem = {
           id: Math.random().toString(36).substring(7),
@@ -980,6 +985,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
 
         // Wait for all images and fonts to load
+        setGenerationStep('Carregando recursos...');
+        setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
         await Promise.all([
           ...images.map(img => {
@@ -991,6 +998,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando em alta fidelidade...');
+        setGenerationProgress(60);
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
@@ -1054,6 +1064,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             printTimeoutPromise
           ]);
           
+          setGenerationProgress(90);
+          setGenerationStep('Preparando impressão...');
           const canvas = printCanvasResult as HTMLCanvasElement;
  
           // Always use PNG for print to ensure maximum fidelity of positions and colors
