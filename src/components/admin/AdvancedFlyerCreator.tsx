@@ -1113,16 +1113,27 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             setTimeout(() => reject(new Error('Tempo limite excedido ao preparar impressão')), 30000);
           });
 
-          logStep('Aguardando resultado do canvas ou timeout...');
-          const printCanvasResult = await Promise.race([
-            generatePrintCanvas(),
-            printTimeoutPromise
-          ]);
+          logStep('Iniciando tentativa 1 (Escala 2)');
+          let canvas: HTMLCanvasElement;
+          try {
+            const printCanvasResult = await Promise.race([
+              generatePrintCanvas(2),
+              printTimeoutPromise
+            ]);
+            canvas = printCanvasResult as HTMLCanvasElement;
+          } catch (firstTryError) {
+            logStep('Tentativa 1 falhou. Reduzindo escala para 1.5...', firstTryError);
+            setGenerationStep('Otimizando recursos...');
+            const printCanvasResult = await Promise.race([
+              generatePrintCanvas(1.5),
+              printTimeoutPromise
+            ]);
+            canvas = printCanvasResult as HTMLCanvasElement;
+          }
           
           setGenerationProgress(90);
           setGenerationStep('Preparando impressão...');
-          const canvas = printCanvasResult as HTMLCanvasElement;
-          logStep(`Canvas gerado: ${canvas.width}x${canvas.height}`);
+          logStep(`Canvas final gerado: ${canvas.width}x${canvas.height}`);
  
           logStep('Convertendo canvas para DataURL (PNG)');
           let dataUrl = '';
