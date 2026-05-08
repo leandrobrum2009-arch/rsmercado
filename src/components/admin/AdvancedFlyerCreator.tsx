@@ -29,7 +29,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
  type BackgroundType = 'image' | 'gradient' | 'color'
  
- export function AdvancedFlyerCreator() {
+  const hexToRgba = (hex: string, opacity: number) => {
+    if (!hex || hex.length < 7) return `rgba(255, 255, 255, ${opacity / 100})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+  };
+
+  export function AdvancedFlyerCreator() {
    const { settings: storeSettings } = useStoreSettings()
    const [layout, setLayout] = useState<LayoutType>('grid')
    const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
