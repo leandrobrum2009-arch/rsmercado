@@ -1748,29 +1748,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     return (
       <>
-  {printImage && (
-    <div className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="fixed top-4 right-4 z-[100000] print:hidden" 
-        onClick={() => setPrintImage(null)}
-      >
-        <X className="w-4 h-4 mr-2" /> Fechar
-      </Button>
-      <img 
-        src={printImage} 
-        className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
-        alt="Print Preview" 
-        onLoad={() => {
-          console.log('Print image loaded in overlay');
-        }}
-      />
-    </div>
-  )}
-
-  {/* Global Progress Overlay for Print/Download */}
-  {(isPreparingPrint || uploading) && !showPreviewModal && !printImage && (
+   {/* Global Progress Overlay for Print/Download */}
+   {(isPreparingPrint || uploading) && (
     <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
       <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
         <CardContent className="p-8 flex flex-col items-center gap-6">
@@ -1798,7 +1777,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       </Card>
     </div>
   )}
-      <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
