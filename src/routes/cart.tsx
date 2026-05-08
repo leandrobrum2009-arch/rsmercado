@@ -244,10 +244,10 @@ function CartPage() {
          .single();
        console.log('Primary insert result:', { order, orderError });
  
-       if (orderError && (orderError.message.includes('column') || orderError.code === '42703')) {
-        console.warn('Falling back to minimal order insert due to missing columns');
-        const { customer_name, customer_phone, change_for, points_earned, coupon_code, delivery_address, ...minimalPayload } = orderPayload;
-        const result = await supabase
+        if (orderError && (orderError.message.includes('column') || orderError.code === '42703')) {
+         console.warn('Falling back to minimal order insert due to missing columns');
+         const { customer_name, customer_phone, change_for, points_earned, coupon_code, delivery_address, discount_amount, ...minimalPayload } = orderPayload;
+         const result = await supabase
           .from('orders')
           .insert(minimalPayload)
           .select()
