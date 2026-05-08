@@ -1086,6 +1086,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             setTimeout(() => reject(new Error('Tempo limite excedido ao preparar impressão')), 30000);
           });
 
+          logStep('Aguardando resultado do canvas ou timeout...');
           const printCanvasResult = await Promise.race([
             generatePrintCanvas(),
             printTimeoutPromise
@@ -1094,9 +1095,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setGenerationProgress(90);
           setGenerationStep('Preparando impressão...');
           const canvas = printCanvasResult as HTMLCanvasElement;
+          logStep(`Canvas gerado: ${canvas.width}x${canvas.height}`);
  
-          // Always use PNG for print to ensure maximum fidelity of positions and colors
+          logStep('Convertendo canvas para DataURL (PNG)');
           const dataUrl = canvas.toDataURL('image/png');
+          logStep(`DataURL gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          
           setGenerationProgress(100);
           setGenerationStep('Concluído!');
           setPrintImage(dataUrl);
