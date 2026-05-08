@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/lib/toast'
+ import { toast } from '@/lib/toast'
+ import { logAttempt } from '@/lib/logs'
  import { Loader2, LogIn, UserPlus, AlertCircle, Phone, MapPin, Users, User } from 'lucide-react'
 
 export function AuthForm() {
@@ -75,7 +76,12 @@ export function AuthForm() {
              }
            }
          })
-         if (error) throw error
+         if (error) {
+           logAttempt('registration_attempt', 'failure', { email, error: error.message });
+           throw error
+         }
+         
+         logAttempt('registration_attempt', 'success', { email });
  
          if (authData?.user) {
            const userId = authData.user.id
@@ -106,8 +112,13 @@ export function AuthForm() {
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Se não chegar em 2 minutos, use a opção "Esqueci minha senha" para ativar seu acesso.')
         setIsSignUp(false)
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
+         const { error } = await supabase.auth.signInWithPassword({ email, password })
+         if (error) {
+           logAttempt('login_attempt', 'failure', { email, error: error.message });
+           throw error
+         }
+         
+         logAttempt('login_attempt', 'success', { email });
         window.location.reload()
       }
     } catch (error: any) {
@@ -140,7 +151,12 @@ export function AuthForm() {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/profile`,
       })
-      if (error) throw error
+       if (error) {
+         logAttempt('password_reset_request', 'failure', { email, error: error.message });
+         throw error
+       }
+       
+       logAttempt('password_reset_request', 'success', { email });
       alert('LINK ENVIADO!\n\nVerifique seu e-mail (incluindo spam) para redefinir sua senha.')
       setCountdown(60)
     } catch (error: any) {
