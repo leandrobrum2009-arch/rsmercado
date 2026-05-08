@@ -1126,11 +1126,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
         const canvas = await html2canvas(element, {
           useCORS: true,
-          allowTaint: true, // Permitir taint para evitar erro imediato, embora possa impedir toDataURL
-          scale: 3, 
+          allowTaint: false,
+          scale: 3,
           backgroundColor: removeFlyerBg ? null : '#ffffff',
-          logging: true, // Habilitar logs para depuração
-          imageTimeout: 60000, // Aumentar timeout para 60s
+          logging: true,
+          imageTimeout: 60000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
@@ -1139,6 +1139,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+
+              const allElements = clonedElement.querySelectorAll('*');
+              allElements.forEach((el: any) => {
+                el.style.fontVariantNumeric = 'tabular-nums';
+                if (el.classList.contains('price-container')) {
+                  el.style.overflow = 'visible';
+                  el.style.display = 'block';
+                }
+              });
             }
           }
         })
