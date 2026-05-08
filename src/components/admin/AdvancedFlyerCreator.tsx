@@ -1044,67 +1044,69 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationStep('Renderizando em alta fidelidade...');
         setGenerationProgress(60);
 
-          // Capture using high reliability settings with timeout
-          const generatePrintCanvas = async () => {
-            logStep('Iniciando html2canvas interno (High Fidelity)');
-            return await html2canvas(flyerElement, {
-              useCORS: true,
-              scale: 2, 
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-              logging: true,
-              imageTimeout: 30000,
-              allowTaint: false,
-              onclone: (clonedDoc) => {
-                logStep('onclone: Documento clonado, ajustando estilos');
-                const clonedFlyer = clonedDoc.getElementById('flyer-content');
-                if (clonedFlyer) {
-                  clonedFlyer.style.transform = 'none';
-                  clonedFlyer.style.transition = 'none';
-                  clonedFlyer.style.animation = 'none';
-                  clonedFlyer.style.margin = '0';
-                  clonedFlyer.style.position = 'relative';
-                  clonedFlyer.style.top = '0';
-                  clonedFlyer.style.left = '0';
-                  clonedFlyer.style.boxShadow = 'none';
-                  clonedFlyer.style.display = 'flex';
-                  clonedFlyer.style.flexDirection = 'column';
-                  clonedFlyer.style.overflow = 'hidden';
-                  clonedFlyer.style.visibility = 'visible';
-                  clonedFlyer.style.width = '794px';
-                  clonedFlyer.style.height = '1123px';
-                  
-                  const allElements = clonedFlyer.querySelectorAll('*');
-                  allElements.forEach((el: any) => {
-                    el.style.setProperty('transition', 'none', 'important');
-                    el.style.setProperty('animation', 'none', 'important');
-                    el.style.setProperty('animation-duration', '0s', 'important');
-                    el.style.setProperty('transition-duration', '0s', 'important');
-                    el.style.backdropFilter = 'none';
-                    el.style.fontVariantNumeric = 'tabular-nums';
-                    el.style.webkitFontSmoothing = 'antialiased';
+          const generatePrintCanvas = async (customScale = 2) => {
+            logStep(`Iniciando html2canvas interno (Escala: ${customScale})`);
+            try {
+              return await html2canvas(flyerElement, {
+                useCORS: true,
+                scale: customScale, 
+                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+                logging: true,
+                imageTimeout: 30000,
+                allowTaint: false,
+                onclone: (clonedDoc) => {
+                  logStep('onclone: Ajustando estilos no clone');
+                  const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                  if (clonedFlyer) {
+                    clonedFlyer.style.transform = 'none';
+                    clonedFlyer.style.transition = 'none';
+                    clonedFlyer.style.animation = 'none';
+                    clonedFlyer.style.margin = '0';
+                    clonedFlyer.style.position = 'relative';
+                    clonedFlyer.style.top = '0';
+                    clonedFlyer.style.left = '0';
+                    clonedFlyer.style.boxShadow = 'none';
+                    clonedFlyer.style.display = 'flex';
+                    clonedFlyer.style.flexDirection = 'column';
+                    clonedFlyer.style.overflow = 'hidden';
+                    clonedFlyer.style.visibility = 'visible';
+                    clonedFlyer.style.width = '794px';
+                    clonedFlyer.style.height = '1123px';
                     
-                    if (el.className && typeof el.className === 'string') {
-                      el.className = el.className
-                        .replace(/\banimate-\S+/g, '')
-                        .replace(/\bduration-\S+/g, '')
-                        .replace(/\bfade-in\S*/g, '')
-                        .replace(/\bzoom-in\S*/g, '')
-                        .replace(/\bslide-in\S*/g, '')
-                        .replace(/\bdelay-\S+/g, '');
-                    }
+                    const allElements = clonedFlyer.querySelectorAll('*');
+                    allElements.forEach((el: any) => {
+                      el.style.setProperty('transition', 'none', 'important');
+                      el.style.setProperty('animation', 'none', 'important');
+                      el.style.setProperty('animation-duration', '0s', 'important');
+                      el.style.setProperty('transition-duration', '0s', 'important');
+                      el.style.backdropFilter = 'none';
+                      el.style.fontVariantNumeric = 'tabular-nums';
+                      el.style.webkitFontSmoothing = 'antialiased';
+                      
+                      if (el.className && typeof el.className === 'string') {
+                        el.className = el.className
+                          .replace(/\banimate-\S+/g, '')
+                          .replace(/\bduration-\S+/g, '')
+                          .replace(/\bfade-in\S*/g, '')
+                          .replace(/\bzoom-in\S*/g, '')
+                          .replace(/\bslide-in\S*/g, '')
+                          .replace(/\bdelay-\S+/g, '');
+                      }
 
-                    if (el.classList.contains('price-container')) {
-                      el.style.overflow = 'visible';
-                      el.style.display = 'block';
-                      el.style.minWidth = '100%';
-                      el.style.position = 'relative';
-                    }
-                  });
-                } else {
-                  logStep('onclone: ERRO - flyer-content não encontrado no clone');
+                      if (el.classList.contains('price-container')) {
+                        el.style.overflow = 'visible';
+                        el.style.display = 'block';
+                        el.style.minWidth = '100%';
+                        el.style.position = 'relative';
+                      }
+                    });
+                  }
                 }
-              }
-            });
+              });
+            } catch (err) {
+              logStep(`Erro no html2canvas (Escala: ${customScale}):`, err);
+              throw err;
+            }
           };
 
           const printTimeoutPromise = new Promise((_, reject) => {
