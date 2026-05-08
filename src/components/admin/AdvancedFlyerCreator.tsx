@@ -2680,34 +2680,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-                 <div className="space-y-4">
-                    <div className="p-4 bg-zinc-900 text-white rounded-[24px]">
-                      <div className="flex justify-between items-center mb-3">
-                        <Label className="text-[10px] font-black uppercase italic tracking-widest text-primary">Preferência de Impressão</Label>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          variant={!useHtmlMode ? 'default' : 'outline'} 
-                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", !useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
-                          onClick={() => setUseHtmlMode(false)}
-                        >
-                          Alta Fidelidade
-                        </Button>
-                        <Button 
-                          variant={useHtmlMode ? 'default' : 'outline'} 
-                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
-                          onClick={() => setUseHtmlMode(true)}
-                        >
-                          Modo HTML (Rápido)
-                        </Button>
-                      </div>
-                      <p className="text-[8px] text-zinc-500 font-bold uppercase mt-2 px-1">
-                        {useHtmlMode 
-                          ? "O Modo HTML imprime o que você vê na tela instantaneamente." 
-                          : "O Modo Alta Fidelidade gera uma imagem em 300dpi antes de imprimir."}
-                      </p>
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       <Button 
                         className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
