@@ -2719,26 +2719,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
-                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
-                        <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                      <Button 
+                        className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
+                        onClick={handleDirectPrint}
+                        disabled={isPreparingPrint}
+                      >
+                        {isPreparingPrint ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Printer className="w-5 h-5 mr-2" />
+                        )}
+                        Imprimir Encarte (A4)
                       </Button>
-                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
-                        <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
-                      </Button>
-                      <div className="grid grid-cols-1 gap-2 col-span-1 md:col-span-2">
-                        <Button 
-                          className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white" 
-                          onClick={() => useHtmlMode ? handleDirectPrint() : handlePrint()}
-                          disabled={isPreparingPrint}
-                        >
-                          {isPreparingPrint ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Printer className="w-5 h-5 mr-2" />
-                          )}
-                          {useHtmlMode ? 'Imprimir Agora (HTML)' : 'Imprimir Alta Fidelidade'}
-                        </Button>
-                      </div>
                     </div>
                  </div>
            </CardContent>
