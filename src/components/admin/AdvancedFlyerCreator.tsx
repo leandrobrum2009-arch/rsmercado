@@ -2681,47 +2681,67 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                </div>
              </div>
  
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Button 
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
-                    onClick={saveToDatabase}
-                    disabled={uploading}
-                  >
-                    <Save className="w-4 h-4 mr-2" /> Salvar no Banco
-                  </Button>
-                  <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
-                    <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
-                  </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
-                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
-                  </Button>
-                  <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
-                    <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
-                  </Button>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 col-span-1 md:col-span-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" 
-                      onClick={() => handlePrint()}
-                      disabled={isPreparingPrint}
-                    >
-                      {isPreparingPrint ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Printer className="w-4 h-4 mr-2" />
-                      )}
-                      Imprimir Alta Qualidade
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[9px] border-2 border-dashed border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" 
-                      onClick={handleDirectPrint}
-                    >
-                      <Printer className="w-3 h-3 mr-2" />
-                      Modo Fallback (Direto)
-                    </Button>
-                  </div>
-                </div>
+                 <div className="space-y-4">
+                    <div className="p-4 bg-zinc-900 text-white rounded-[24px]">
+                      <div className="flex justify-between items-center mb-3">
+                        <Label className="text-[10px] font-black uppercase italic tracking-widest text-primary">Preferência de Impressão</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant={!useHtmlMode ? 'default' : 'outline'} 
+                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", !useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
+                          onClick={() => setUseHtmlMode(false)}
+                        >
+                          Alta Fidelidade
+                        </Button>
+                        <Button 
+                          variant={useHtmlMode ? 'default' : 'outline'} 
+                          className={cn("h-10 text-[9px] font-black uppercase rounded-xl", useHtmlMode ? "bg-primary text-white" : "text-zinc-400 border-zinc-800")}
+                          onClick={() => setUseHtmlMode(true)}
+                        >
+                          Modo HTML (Rápido)
+                        </Button>
+                      </div>
+                      <p className="text-[8px] text-zinc-500 font-bold uppercase mt-2 px-1">
+                        {useHtmlMode 
+                          ? "O Modo HTML imprime o que você vê na tela instantaneamente." 
+                          : "O Modo Alta Fidelidade gera uma imagem em 300dpi antes de imprimir."}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Button 
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-primary hover:bg-primary/90 text-white" 
+                        onClick={saveToDatabase}
+                        disabled={uploading}
+                      >
+                        <Save className="w-4 h-4 mr-2" /> Salvar no Banco
+                      </Button>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
+                        <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                      </Button>
+                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadPDF} disabled={uploading}>
+                        <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                      </Button>
+                      <Button variant="outline" className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2" onClick={handleDownloadImage} disabled={uploading}>
+                        <ImageIcon className="w-4 h-4 mr-2" /> Baixar Imagem
+                      </Button>
+                      <div className="grid grid-cols-1 gap-2 col-span-1 md:col-span-2">
+                        <Button 
+                          className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white" 
+                          onClick={() => useHtmlMode ? handleDirectPrint() : handlePrint()}
+                          disabled={isPreparingPrint}
+                        >
+                          {isPreparingPrint ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Printer className="w-5 h-5 mr-2" />
+                          )}
+                          {useHtmlMode ? 'Imprimir Agora (HTML)' : 'Imprimir Alta Fidelidade'}
+                        </Button>
+                      </div>
+                    </div>
+                 </div>
            </CardContent>
           </Card>
 
