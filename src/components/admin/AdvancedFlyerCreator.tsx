@@ -511,8 +511,23 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
              const canvas = document.createElement('canvas')
              const ctx = canvas.getContext('2d', { willReadFrequently: true })
              if (!ctx) { resolve(url); return; }
-             canvas.width = img.width
-             canvas.height = img.height
+              // Downscale large images to max 1200px to keep database payload reasonable
+              const maxDim = 1200
+              let width = img.width
+              let height = img.height
+              
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = (height / width) * maxDim
+                  width = maxDim
+                } else {
+                  width = (width / height) * maxDim
+                  height = maxDim
+                }
+              }
+              
+              canvas.width = width
+              canvas.height = height
              ctx.drawImage(img, 0, 0)
              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
              const data = imageData.data
