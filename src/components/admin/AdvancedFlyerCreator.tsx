@@ -2790,8 +2790,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          {/* Preview Area */}
           <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-screen print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 no-scrollbar">
 
-            <div className="w-full flex justify-center print:block p-0 md:p-2">
-              <div className="relative w-full flex justify-center no-scrollbar">
+            <div className="w-full flex justify-center print:block p-0 md:p-2 flyer-print-wrapper">
+              <div className="relative w-full flex justify-center no-scrollbar print:m-0 print:p-0">
                 <div
                   id="flyer-content"
                   className={cn(
@@ -2811,11 +2811,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 {/* Dedicated Background Layer for better print reliability and CORS support */}
                 <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
                   {backgroundType === 'image' && backgroundUrl ? (
-                    <img 
-                      src={backgroundUrl} 
-                      crossOrigin="anonymous" 
-                      className="absolute inset-0 w-full h-full object-fill" 
-                      alt=""
+                    <img
+                      src={backgroundUrl}
+                      crossOrigin="anonymous"
+                      className="absolute inset-0 w-full h-full object-cover bg-layer-print"
+                      alt="Background"
                     />
                   ) : (
                     <div 
