@@ -316,7 +316,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              )}
                             </div>
  
-                           <div className={cn("space-y-0.5 mt-1 w-full z-[35]", columns === 4 ? "scale-90" : "")}>
+                           <div 
+                             className={cn("space-y-0.5 mt-1 w-full z-[35] price-container")}
+                             style={{ transform: columns === 4 ? 'scale(0.92)' : 'none' }}
+                           >
                            {!nameOnTop && (
                            <h3 
                              className={cn("font-black uppercase italic leading-tight line-clamp-2 drop-shadow-sm", fontFamily)}
