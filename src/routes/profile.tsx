@@ -86,15 +86,21 @@ export const Route = createFileRoute('/profile')({
            .eq('id', userId)
            .maybeSingle();
          
-         if (!profileData && !error) {
-            console.log('Profile not found, creating...');
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({ id: userId, full_name: data.session.user.email?.split('@')[0] })
-              .select()
-              .maybeSingle();
-            if (!createError) profileData = newProfile;
-         }
+          if (!profileData && !error) {
+             console.log('Profile not found, creating from metadata...');
+             const metadata = data.session.user.user_metadata;
+             const { data: newProfile, error: createError } = await supabase
+               .from('profiles')
+               .insert({ 
+                 id: userId, 
+                 full_name: metadata?.full_name || data.session.user.email?.split('@')[0],
+                 whatsapp: metadata?.whatsapp || '',
+                 household_status: metadata?.household_status || ''
+               })
+               .select()
+               .maybeSingle();
+             if (!createError) profileData = newProfile;
+          }
          setProfile(profileData);
  
          try {
