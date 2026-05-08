@@ -2857,31 +2857,50 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
 
         @media print {
-          @page { size: A4 portrait; margin: 0 !important; }
+          @page { 
+            size: A4 portrait; 
+            margin: 0mm !important; 
+          }
           html, body { 
-            margin: 0 !important; padding: 0 !important; 
-            width: 210mm !important; height: 297mm !important;
-            overflow: visible !important;
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 210mm !important; 
+            height: 297mm !important;
+            overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          
-          /* Surgical visibility approach */
-          body { visibility: hidden !important; background: white !important; }
-          
-          .flyer-print-overlay, .flyer-print-overlay *,
-          #flyer-content, #flyer-content * {
-            visibility: visible !important;
-          }
-          
-          .flyer-print-overlay, #flyer-content {
-            position: fixed !important;
-            left: 0 !important; top: 0 !important;
-            width: 210mm !important; height: 297mm !important;
-            margin: 0 !important; padding: 0 !important;
-            transform: none !important;
-            z-index: 99999 !important;
             background: white !important;
+          }
+          
+          /* Completely hide everything else to avoid extra pages */
+          body > *:not(.flyer-print-container):not(#flyer-content-parent) {
+            display: none !important;
+          }
+
+          #flyer-content {
+            position: absolute !important;
+            left: 0 !important; 
+            top: 0 !important;
+            width: 210mm !important; 
+            height: 297mm !important;
+            margin: 0 !important; 
+            padding: 0 !important;
+            transform: none !important;
+            visibility: visible !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-shadow: none !important;
+            border: none !important;
+            z-index: 99999 !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
+          }
+
+          /* Ensure background covers full page */
+          #flyer-content img[alt=""] {
+            width: 210mm !important;
+            height: 297mm !important;
+            object-fit: fill !important;
           }
           
           .print\:hidden { display: none !important; }
