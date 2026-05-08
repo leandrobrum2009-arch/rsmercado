@@ -118,23 +118,16 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
     toast.success(`Status atualizado${pointsMessage}`);
     fetchOrders()
 
-    // Notify via WhatsApp if enabled
-    const config = await getWhatsAppConfig();
-    if (customerPhone && config?.notify_order_status !== false) {
-      const statusLabels: Record<string, string> = {
-        pending: 'Pendente',
-        approved: 'Pedido Aprovado ✅',
-        collecting: 'Em Coleta 🛒',
-        collected: 'Pedido Coletado 📦',
-        waiting_courier: 'Aguardando Entregador 🛵',
-        out_for_delivery: 'Saiu para Entrega 🚚',
-        delivered: 'Entregue 🏁',
-        cancelled: 'Cancelado ❌'
-      }
-     
-     const message = `Olá *${customerName}*!\n\nO status do seu pedido #${orderId.substring(0, 8)} mudou para: *${statusLabels[status] || status}*.\n\n📍 *Acompanhe aqui em tempo real:* ${window.location.origin}/track/${orderId}\n\nAgradecemos a preferência! 🛒`
-     await sendWhatsAppMessage(customerPhone, message)
-    }
+     // Notify via WhatsApp if enabled
+     const config = await getWhatsAppConfig();
+     if (customerPhone && config?.notify_order_status !== false) {
+       const message = formatWhatsAppMessage('status_update', {
+         id: orderId,
+         status: status,
+         customer_name: customerName || 'Cliente'
+       });
+       await sendWhatsAppMessage(customerPhone, message);
+     }
   }
 
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
@@ -191,7 +184,7 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
                    <TableCell className="flex items-center gap-2">
                      <Select 
                        value={order.status} 
-                       onValueChange={(val) => updateOrderStatus(order.id, val, order.profiles?.whatsapp, order.profiles?.full_name)}
+                        onValueChange={(val) => updateOrderStatus(order.id, val, order.profiles?.whatsapp || order.customer_phone, order.profiles?.full_name || order.customer_name)}
                      >
                        <SelectTrigger className="w-[140px] h-8 text-xs">
                          <SelectValue />
