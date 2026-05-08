@@ -91,7 +91,47 @@ import { Badge } from '@/components/ui/badge'
    }
  
     const [copied, setCopied] = useState(false)
-    const [paying, setPaying] = useState(false)
+   const [paying, setPaying] = useState(false)
+   const [resendingProof, setResendingProof] = useState(false)
+   const handleResendProof = async () => {
+     setResendingProof(true)
+     try {
+       const { data: items, error: itemsError } = await supabase
+         .from('order_items')
+         .select('*, products(name)')
+         .eq('order_id', orderId)
+ 
+       if (itemsError) throw itemsError
+ 
+       const addressStr = order.delivery_address 
+         ? `${order.delivery_address.street}, ${order.delivery_address.number} - ${order.delivery_address.neighborhood}`
+         : 'Não informado'
+ 
+       const summary = formatWhatsAppMessage('order_summary', {
+         id: orderId,
+         customer_name: order.customer_name || order.profiles?.full_name || 'Cliente',
+         address: addressStr,
+         payment_method: order.payment_method,
+         items: items,
+         subtotal: Number(order.total_amount) - (Number(order.delivery_fee) || 0),
+         delivery_fee: Number(order.delivery_fee) || 0,
+         total_amount: Number(order.total_amount)
+       })
+ 
+       const phone = order.customer_phone || order.profiles?.whatsapp
+       if (phone) {
+         await sendWhatsAppMessage(phone, summary)
+         toast.success("Comprovante enviado para seu WhatsApp!")
+       } else {
+         toast.error("Número de telefone não encontrado.")
+       }
+     } catch (err: any) {
+       toast.error("Erro ao reenviar: " + err.message)
+     } finally {
+       setResendingProof(false)
+     }
+   }
+ 
     const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
     const [cardData, setCardData] = useState({
       number: '',
