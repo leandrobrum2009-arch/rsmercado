@@ -2720,8 +2720,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           <div className="mb-4 flex gap-4 print:hidden">
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Preview Real A4
-            </div>
+               Preview Real A4
+             </div>
+             {corsWarningCount > 0 && (
+               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-full shadow-sm text-[10px] font-bold uppercase tracking-widest text-red-500">
+                 <X className="w-3 h-3" />
+                 {corsWarningCount} Erro(s) de CORS Detectados
+               </div>
+             )}
                <Dialog open={showPreviewModal} onOpenChange={(open) => {
                  setShowPreviewModal(open);
                  if (open) handleGeneratePreview();
