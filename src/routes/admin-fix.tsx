@@ -358,7 +358,25 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.flyers ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.banners ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
+
+    -- 12. TABELA DE LOGS DE SEGURANÇA E TENTATIVAS
+    CREATE TABLE IF NOT EXISTS public.security_logs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+        event_type TEXT NOT NULL, -- 'login_attempt', 'registration_attempt', 'payment_attempt', 'profile_update'
+        status TEXT NOT NULL, -- 'success', 'failure'
+        details JSONB DEFAULT '{}',
+        ip_address TEXT,
+        user_agent TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    
+    ALTER TABLE public.security_logs ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS "Anyone can insert logs" ON public.security_logs;
+    CREATE POLICY "Anyone can insert logs" ON public.security_logs FOR INSERT WITH CHECK (true);
+    DROP POLICY IF EXISTS "Admins view all logs" ON public.security_logs;
+    CREATE POLICY "Admins view all logs" ON public.security_logs FOR SELECT USING (public.is_admin());
    ALTER TABLE IF EXISTS public.site_visits ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.notifications ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.store_alerts ENABLE ROW LEVEL SECURITY;
