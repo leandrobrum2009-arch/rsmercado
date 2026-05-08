@@ -989,43 +989,61 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           document.fonts?.ready || Promise.resolve()
         ]);
 
-         // Capture using high reliability settings
-         const canvas = await html2canvas(flyerElement, {
-           useCORS: true,
-           scale: 3,
-           backgroundColor: removeFlyerBg ? null : '#ffffff',
-           logging: true,
-           imageTimeout: 60000,
-           allowTaint: false,
-           onclone: (clonedDoc) => {
-             const clonedFlyer = clonedDoc.getElementById('flyer-content');
-             if (clonedFlyer) {
-               clonedFlyer.style.transform = 'none';
-               clonedFlyer.style.transition = 'none';
-               clonedFlyer.style.margin = '0';
-               clonedFlyer.style.position = 'relative';
-               clonedFlyer.style.top = '0';
-               clonedFlyer.style.left = '0';
-               clonedFlyer.style.boxShadow = 'none';
-                clonedFlyer.style.display = 'flex';
-                clonedFlyer.style.flexDirection = 'column';
-                clonedFlyer.style.overflow = 'hidden';
-               
-               // Fix for positions and layout shifting
-               const allElements = clonedFlyer.querySelectorAll('*');
-               allElements.forEach((el: any) => {
-                 el.style.fontVariantNumeric = 'tabular-nums';
-                 el.style.webkitFontSmoothing = 'antialiased';
-                 if (el.classList.contains('price-container')) {
-                   el.style.overflow = 'visible';
-                   el.style.display = 'block';
-                   el.style.minWidth = '100%';
-                   el.style.position = 'relative';
-                 }
-               });
-             }
-           }
-         });
+          // Capture using high reliability settings with timeout
+          const generatePrintCanvas = async () => {
+            return await html2canvas(flyerElement, {
+              useCORS: true,
+              scale: 2, // Scale 2 is usually enough for A4 and more stable than 3
+              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              logging: true,
+              imageTimeout: 20000,
+              allowTaint: false,
+              onclone: (clonedDoc) => {
+                const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                if (clonedFlyer) {
+                  clonedFlyer.style.transform = 'none';
+                  clonedFlyer.style.transition = 'none';
+                  clonedFlyer.style.animation = 'none';
+                  clonedFlyer.style.margin = '0';
+                  clonedFlyer.style.position = 'relative';
+                  clonedFlyer.style.top = '0';
+                  clonedFlyer.style.left = '0';
+                  clonedFlyer.style.boxShadow = 'none';
+                  clonedFlyer.style.display = 'flex';
+                  clonedFlyer.style.flexDirection = 'column';
+                  clonedFlyer.style.overflow = 'hidden';
+                  clonedFlyer.style.visibility = 'visible';
+                  
+                  // Fix for positions and layout shifting
+                  const allElements = clonedFlyer.querySelectorAll('*');
+                  allElements.forEach((el: any) => {
+                    el.style.transition = 'none';
+                    el.style.animation = 'none';
+                    el.style.backdropFilter = 'none';
+                    el.style.fontVariantNumeric = 'tabular-nums';
+                    el.style.webkitFontSmoothing = 'antialiased';
+                    if (el.classList.contains('price-container')) {
+                      el.style.overflow = 'visible';
+                      el.style.display = 'block';
+                      el.style.minWidth = '100%';
+                      el.style.position = 'relative';
+                    }
+                  });
+                }
+              }
+            });
+          };
+
+          const printTimeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Tempo limite excedido ao preparar impressão')), 30000);
+          });
+
+          const printCanvasResult = await Promise.race([
+            generatePrintCanvas(),
+            printTimeoutPromise
+          ]);
+          
+          const canvas = printCanvasResult as HTMLCanvasElement;
  
           // Always use PNG for print to ensure maximum fidelity of positions and colors
           const dataUrl = canvas.toDataURL('image/png');
