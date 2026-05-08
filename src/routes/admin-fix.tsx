@@ -360,6 +360,28 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
     ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
 
+    -- 13. REPARAR TABELA DE RECEITAS
+    CREATE TABLE IF NOT EXISTS public.recipes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title TEXT NOT NULL,
+        description TEXT,
+        instructions TEXT,
+        category TEXT,
+        difficulty TEXT DEFAULT 'Média',
+        image_url TEXT,
+        ingredients JSONB DEFAULT '[]',
+        author_id UUID REFERENCES auth.users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    
+    ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS "Anyone can view recipes" ON public.recipes;
+    CREATE POLICY "Anyone can view recipes" ON public.recipes FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Anyone can insert recipes" ON public.recipes;
+    CREATE POLICY "Anyone can insert recipes" ON public.recipes FOR INSERT WITH CHECK (true);
+    DROP POLICY IF EXISTS "Admin manage recipes" ON public.recipes;
+    CREATE POLICY "Admin manage recipes" ON public.recipes FOR ALL USING (public.is_admin());
+
     -- 12. TABELA DE LOGS DE SEGURANÇA E TENTATIVAS
     CREATE TABLE IF NOT EXISTS public.security_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
