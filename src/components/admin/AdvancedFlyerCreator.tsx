@@ -2519,11 +2519,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                        </Button>
                     </div>
                   </div>
-                   <div className="p-8 flex flex-col items-center justify-center w-full gap-4">
+                   <div className="p-8 flex flex-col items-center justify-center w-full gap-6">
                      {!previewImageUrl ? (
-                       <div className="flex flex-col items-center gap-4">
-                         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                         <p className="text-white font-bold uppercase text-xs">Gerando Prévia de Alta Fidelidade...</p>
+                       <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-8 rounded-3xl border border-white/10">
+                         <div className="relative">
+                           <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                           <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
+                             {generationProgress}%
+                           </div>
+                         </div>
+                         <div className="w-full space-y-3">
+                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                             <span>{generationStep}</span>
+                             <span>{generationProgress}%</span>
+                           </div>
+                           <Progress value={generationProgress} className="h-2 bg-zinc-700" />
+                         </div>
+                         <p className="text-white/60 font-medium text-center text-xs px-4">
+                           Isso pode levar alguns segundos dependendo da quantidade de produtos e qualidade das imagens.
+                         </p>
                        </div>
                      ) : (
                        <img 
