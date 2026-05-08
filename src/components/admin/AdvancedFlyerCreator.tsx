@@ -1087,24 +1087,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         if (!flyerElement) return;
         
         setIsPreparingPrint(true);
+        setGenerationProgress(10);
+        setGenerationStep('Preparando ambiente...');
         console.log('[Preview] Iniciando geração de prévia...');
         
         try {
-          // 1. Small delay to ensure Modal is rendered and DOM is stable
           await new Promise(resolve => setTimeout(resolve, 500));
+          setGenerationProgress(20);
+          setGenerationStep('Carregando imagens e fontes...');
 
-          // 2. Resource Loading with hard timeout
           const images = Array.from(flyerElement.querySelectorAll('img'));
-          console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
-          
           const loadResources = Promise.all([
             ...images.map((img, idx) => {
               if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
               return new Promise((resolve) => {
-                const timer = setTimeout(() => {
-                  console.warn(`[Preview] Timeout imagem ${idx + 1}`);
-                  resolve(null);
-                }, 3000);
+                const timer = setTimeout(() => resolve(null), 3000);
                 img.onload = () => { clearTimeout(timer); resolve(null); };
                 img.onerror = () => { clearTimeout(timer); resolve(null); };
               });
@@ -1114,7 +1111,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
           await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
           
-          // 3. Generation with hard timeout
+          setGenerationProgress(40);
+          setGenerationStep('Renderizando conteúdo...');
+          
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
           );
@@ -1150,6 +1149,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           });
 
           const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          setGenerationProgress(80);
+          setGenerationStep('Finalizando imagem...');
           const dataUrl = canvas.toDataURL('image/png');
           
           if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
