@@ -997,21 +997,33 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
  
 
-        // Wait for all images and fonts to load
+        logStep('Passo 2: Carregando recursos (imagens/fontes)');
         setGenerationStep('Carregando recursos...');
         setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
+        logStep(`Encontradas ${images.length} imagens no encarte`);
+        
         await Promise.all([
-          ...images.map(img => {
-            if (img.complete) return Promise.resolve();
+          ...images.map((img, i) => {
+            if (img.complete) {
+              logStep(`Imagem ${i+1} já carregada: ${img.src.substring(0, 50)}...`);
+              return Promise.resolve();
+            }
             return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
+              img.onload = () => {
+                logStep(`Imagem ${i+1} carregada com sucesso`);
+                resolve(null);
+              };
+              img.onerror = () => {
+                logStep(`ERRO: Falha ao carregar imagem ${i+1}: ${img.src.substring(0, 50)}...`);
+                resolve(null);
+              };
             });
           }),
-          document.fonts?.ready || Promise.resolve()
+          document.fonts?.ready.then(() => logStep('Fontes carregadas e prontas')) || Promise.resolve()
         ]);
 
+        logStep('Passo 3: Renderizando html2canvas');
         setGenerationStep('Renderizando em alta fidelidade...');
         setGenerationProgress(60);
 
