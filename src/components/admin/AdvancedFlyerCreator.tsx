@@ -1093,8 +1093,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           toast.success('Pronto para imprimir!');
       } catch (error) {
         console.error('Error preparing print:', error);
-        toast.error('Erro ao preparar impressão');
         toast.dismiss(loadingToast);
+        toast.error('Erro ao processar imagem de alta qualidade. Tente o "Modo Fallback".', {
+          duration: 5000
+        });
        } finally {
          setIsPreparingPrint(false);
          setTimeout(() => {
