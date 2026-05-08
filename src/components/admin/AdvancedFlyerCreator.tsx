@@ -178,13 +178,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       // Effect to trigger preview generation after dialog animation
       useEffect(() => {
-        if (showPreviewModal && !previewImageUrl && !isPreparingPrint) {
+        if (showPreviewModal && !previewImageUrl && !isPreparingPrint && !useHtmlMode) {
           const timer = setTimeout(() => {
             handleGeneratePreview();
           }, 800); // Allow dialog animation to complete
           return () => clearTimeout(timer);
         }
-      }, [showPreviewModal, previewImageUrl, isPreparingPrint]);
+      }, [showPreviewModal, previewImageUrl, isPreparingPrint, useHtmlMode]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
@@ -2868,7 +2868,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  </Button>
                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar no-scrollbar">
                   <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
-                    <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                      {useHtmlMode && (
+                        <span className="bg-primary/20 text-primary text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-primary/30">
+                          Modo HTML Ativo
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => { setShowPreviewModal(false); setPreviewImageUrl(null); }}>Fechar</Button>
                        <Button 
@@ -2941,26 +2948,52 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
                           <Button 
                             size="sm" 
-                            className="bg-primary text-white" 
+                            className="bg-primary text-white font-black uppercase text-[10px]" 
                             onClick={async () => { 
-                              setIsPreparingPrint(true);
-                              await handlePrint(false); 
-                              setIsPreparingPrint(false);
-                              setShowPreviewModal(false); 
-                              setPreviewImageUrl(null);
+                              if (useHtmlMode) {
+                                setShowPreviewModal(false);
+                                handleDirectPrint();
+                              } else {
+                                setIsPreparingPrint(true);
+                                await handlePrint(false); 
+                                setIsPreparingPrint(false);
+                                setShowPreviewModal(false); 
+                                setPreviewImageUrl(null);
+                              }
                             }}
                             disabled={isPreparingPrint}
                           >
                             {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
-                            Imprimir Agora
+                            {useHtmlMode ? 'Imprimir HTML' : 'Imprimir Agora'}
                           </Button>
                         </div>
                         </div>
                     </div>
                   </div>
-                   <div className="p-8 flex flex-col items-center justify-center w-full gap-6">
-                     {!previewImageUrl ? (
-                       <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-8 rounded-3xl border border-white/10">
+                    <div className="p-4 md:p-8 flex flex-col items-center justify-center w-full gap-6">
+                      {useHtmlMode ? (
+                        <div 
+                          className="bg-white shadow-2xl overflow-hidden origin-top scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8]"
+                          style={{
+                            width: '794px',
+                            height: '1123px',
+                            backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                            position: 'relative'
+                          }}
+                        >
+                          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
+                            {backgroundType === 'image' && backgroundUrl ? (
+                              <img src={backgroundUrl} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-fill" alt="" />
+                            ) : (
+                              <div className="absolute inset-0 w-full h-full" style={{ background: backgroundType === 'gradient' ? backgroundGradient : backgroundColor }} />
+                            )}
+                          </div>
+                          <div className="relative z-10 w-full h-full flex flex-col">
+                            <FlyerContentInner />
+                          </div>
+                        </div>
+                      ) : !previewImageUrl ? (
+                        <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-6 md:p-8 rounded-3xl border border-white/10">
                          <div className="relative">
                            <Loader2 className="w-12 h-12 animate-spin text-primary" />
                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
@@ -2984,12 +3017,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         variant="outline" 
                         size="sm" 
                         className="h-7 text-[9px] font-black uppercase border-white/20 text-white hover:bg-white/10"
-                        onClick={() => {
-                          setShowPreviewModal(false);
-                          handleDirectPrint();
-                        }}
+                        onClick={() => setUseHtmlMode(true)}
                       >
-                        Usar Impressão Direta (Fallback)
+                        Ativar Modo HTML (Instantâneo)
                       </Button>
                     </div>
                   </div>
