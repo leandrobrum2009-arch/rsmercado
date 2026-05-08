@@ -1427,8 +1427,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         logStep('Passo 3: Finalizando arquivo de imagem');
         setGenerationProgress(90)
         setGenerationStep('Finalizando arquivo...')
-        const image = canvas.toDataURL('image/png')
-        logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+        let image = ''
+        try {
+          image = canvas.toDataURL('image/png')
+          logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+        } catch (exportError: any) {
+          logStep('ERRO ao exportar imagem para download:', exportError);
+          throw new Error('CANVAS_TAINTED');
+        }
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         const link = document.createElement('a')
@@ -1440,10 +1446,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         
         toast.dismiss(loadingToast)
         toast.success('Imagem baixada com sucesso!')
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error generating image:', err)
         toast.dismiss(loadingToast)
-        toast.error('Erro ao gerar imagem. Verifique se as imagens dos produtos estão carregando corretamente ou use a opção PDF.')
+        if (err.message === 'CANVAS_TAINTED') {
+          toast.error('Erro de segurança (CORS): Algumas imagens não permitem exportação em alta qualidade. Tente o "Modo Fallback".', {
+            duration: 7000
+          });
+        } else {
+          toast.error('Erro ao gerar imagem. Verifique as imagens dos produtos ou tente o "Modo Fallback".')
+        }
       } finally {
         setUploading(false)
         setTimeout(() => {
