@@ -1067,135 +1067,93 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        }
      };
  
-     const handleGeneratePreview = async () => {
-       const flyerElement = document.getElementById('flyer-content');
-       if (!flyerElement) return;
-       
-         setIsPreparingPrint(true);
-         console.log('[Preview] Iniciando geração de prévia...');
-         try {
-           // Wait for all images and fonts
-           const images = Array.from(flyerElement.querySelectorAll('img'));
-           console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
-           
-            // Add a timeout to the overall resource loading to prevent hanging
-            const loadResources = Promise.all([
-              ...images.map((img, idx) => {
-                if (img.complete && img.naturalWidth !== 0) {
-                  return Promise.resolve();
-                }
-                return new Promise((resolve) => {
-                  const timer = setTimeout(() => {
-                    console.warn(`[Preview] Timeout carregar imagem ${idx + 1}`);
-                    resolve(null);
-                  }, 5000);
-                  img.onload = () => {
-                    clearTimeout(timer);
-                    resolve(null);
-                  };
-                  img.onerror = () => {
-                    clearTimeout(timer);
-                    resolve(null);
-                  };
-                });
-              }),
-              document.fonts?.ready || Promise.resolve()
-            ]);
+      const handleGeneratePreview = async () => {
+        const flyerElement = document.getElementById('flyer-content');
+        if (!flyerElement) return;
+        
+        setIsPreparingPrint(true);
+        console.log('[Preview] Iniciando geração de prévia...');
+        
+        try {
+          // 1. Small delay to ensure Modal is rendered and DOM is stable
+          await new Promise(resolve => setTimeout(resolve, 500));
 
-            const resourceTimeout = new Promise(resolve => setTimeout(resolve, 10000));
-            await Promise.race([loadResources, resourceTimeout]);
-           
-           console.log('[Preview] Iniciando html2canvas...');
- 
-          // Create a promise for html2canvas with a timeout
-          const generateCanvas = async () => {
-            console.log('[Preview] Chamando html2canvas...');
-            try {
-              return await html2canvas(flyerElement, {
-                useCORS: true,
-                scale: 1.5, // Even lower scale for preview to ensure it works
-                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-                logging: true,
-                allowTaint: false,
-                imageTimeout: 20000,
-                onclone: (clonedDoc) => {
-                  console.log('[Preview] Documento clonado para renderização.');
-                  const clonedFlyer = clonedDoc.getElementById('flyer-content');
-                  if (clonedFlyer) {
-                    // Force absolute layout properties to avoid shifting
-                    clonedFlyer.style.transform = 'none';
-                    clonedFlyer.style.transition = 'none';
-                    clonedFlyer.style.animation = 'none';
-                    clonedFlyer.style.margin = '0';
-                    clonedFlyer.style.position = 'relative';
-                    clonedFlyer.style.top = '0';
-                    clonedFlyer.style.left = '0';
-                    clonedFlyer.style.boxShadow = 'none';
-                    clonedFlyer.style.display = 'flex';
-                    clonedFlyer.style.flexDirection = 'column'; // ESSENTIAL
-                    clonedFlyer.style.visibility = 'visible';
-                    clonedFlyer.style.width = '794px';
-                    clonedFlyer.style.height = '1123px';
-
-                    const allElements = clonedFlyer.querySelectorAll('*');
-                    allElements.forEach((el: any) => {
-                      // Remove animations and transitions that cause hangs
-                      el.style.transition = 'none';
-                      el.style.animation = 'none';
-                      el.style.backdropFilter = 'none';
-                      el.style.fontVariantNumeric = 'tabular-nums';
-                      
-                      // Remove Tailwind animate classes
-                      el.className = el.className?.replace(/\banimate-\S+/g, '');
-                      
-                      if (el.classList.contains('price-container')) {
-                        el.style.overflow = 'visible';
-                        el.style.display = 'block';
-                        el.style.minWidth = '100%';
-                      }
-                    });
-                  } else {
-                    console.error('[Preview] Elemento flyer-content não encontrado no clone!');
-                  }
-                }
+          // 2. Resource Loading with hard timeout
+          const images = Array.from(flyerElement.querySelectorAll('img'));
+          console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
+          
+          const loadResources = Promise.all([
+            ...images.map((img, idx) => {
+              if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+              return new Promise((resolve) => {
+                const timer = setTimeout(() => {
+                  console.warn(`[Preview] Timeout imagem ${idx + 1}`);
+                  resolve(null);
+                }, 3000);
+                img.onload = () => { clearTimeout(timer); resolve(null); };
+                img.onerror = () => { clearTimeout(timer); resolve(null); };
               });
-            } catch (err) {
-              console.error('[Preview] Erro interno no html2canvas:', err);
-              throw err;
-            }
-          };
+            }),
+            document.fonts?.ready || Promise.resolve()
+          ]);
 
-          // Timeout promise
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Tempo limite excedido ao gerar prévia')), 25000);
+          await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
+          
+          // 3. Generation with hard timeout
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
+          );
+
+          const canvasPromise = html2canvas(flyerElement, {
+            useCORS: true,
+            scale: 1.2, // Very safe scale for preview
+            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            logging: true,
+            allowTaint: false,
+            imageTimeout: 10000,
+            onclone: (clonedDoc) => {
+              const clonedFlyer = clonedDoc.getElementById('flyer-content');
+              if (clonedFlyer) {
+                clonedFlyer.style.transform = 'none';
+                clonedFlyer.style.transition = 'none';
+                clonedFlyer.style.animation = 'none';
+                clonedFlyer.style.margin = '0';
+                clonedFlyer.style.display = 'flex';
+                clonedFlyer.style.flexDirection = 'column';
+                clonedFlyer.style.width = '794px';
+                clonedFlyer.style.height = '1123px';
+
+                clonedFlyer.querySelectorAll('*').forEach((el: any) => {
+                  el.style.transition = 'none';
+                  el.style.animation = 'none';
+                  if (el.className && typeof el.className === 'string') {
+                    el.className = el.className.replace(/\banimate-\S+/g, '');
+                  }
+                });
+              }
+            }
           });
 
-          console.log('[Preview] Iniciando html2canvas com timeout...');
-          const canvasResult = await Promise.race([
-            generateCanvas(),
-            timeoutPromise
-          ]);
+          const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          const dataUrl = canvas.toDataURL('image/png');
           
-          const canvas = canvasResult as HTMLCanvasElement;
-
-         console.log('[Preview] Canvas gerado com sucesso.');
-         const dataUrl = canvas.toDataURL('image/png');
-         
-         if (!dataUrl || dataUrl === 'data:,') {
-           console.error('[Preview] Canvas gerou uma imagem vazia!');
-           throw new Error('Canvas rendering produced an empty image');
-         }
-         
-         console.log(`[Preview] DataURL gerado: ${dataUrl.substring(0, 50)}... (tamanho: ${dataUrl.length})`);
+          if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
+          
           setPreviewImageUrl(dataUrl);
-       } catch (error) {
-         console.error('Error generating preview:', error);
-         toast.error('Erro ao gerar prévia de alta fidelidade. Tente novamente.');
-         setShowPreviewModal(false);
-       } finally {
-         setIsPreparingPrint(false);
-       }
-     };
+          console.log('[Preview] Prévia gerada com sucesso.');
+        } catch (error: any) {
+          console.error('[Preview] Erro ao gerar prévia:', error);
+          if (error.message === 'TIMEOUT_EXCEEDED') {
+            toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
+            // Optionally retry with even lower settings or just show the DOM
+          } else {
+            toast.error('Erro ao gerar prévia. Verifique sua conexão.');
+          }
+          setShowPreviewModal(false);
+        } finally {
+          setIsPreparingPrint(false);
+        }
+      };
  
      const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
