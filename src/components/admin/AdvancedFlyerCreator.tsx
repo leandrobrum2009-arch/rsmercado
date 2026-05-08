@@ -1045,16 +1045,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const flyerElement = document.getElementById('flyer-content');
        if (!flyerElement) return;
        
-       setIsPreparingPrint(true);
-       try {
-         const images = Array.from(flyerElement.querySelectorAll('img'));
-         await Promise.all(images.map(img => {
-           if (img.complete) return Promise.resolve();
-           return new Promise((resolve) => {
-             img.onload = resolve;
-             img.onerror = resolve;
-           });
-         }));
+         setIsPreparingPrint(true);
+         try {
+           // Wait for all images and fonts
+           const images = Array.from(flyerElement.querySelectorAll('img'));
+           await Promise.all([
+             ...images.map(img => {
+               if (img.complete) return Promise.resolve();
+               return new Promise((resolve) => {
+                 img.onload = resolve;
+                 img.onerror = resolve;
+               });
+             }),
+             document.fonts?.ready || Promise.resolve()
+           ]);
  
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
