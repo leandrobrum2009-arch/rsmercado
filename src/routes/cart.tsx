@@ -58,7 +58,7 @@ function CartPage() {
      fetchNeighborhoods();
    }, []);
 
-   const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
+    const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
@@ -66,37 +66,32 @@ function CartPage() {
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
-   useEffect(() => {
-     const fetchDeliveryFee = async () => {
-       const neighborhoodName = useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood;
-       
-       if (neighborhoodName) {
-         const { data } = await supabase
-           .from('delivery_neighborhoods')
-           .select('fee')
-           .eq('name', neighborhoodName)
-           .eq('active', true)
-           .maybeSingle();
-         
-         if (data) {
-           setDeliveryFee(data.fee);
-           setIsValidDeliveryArea(true);
-           if (data.fee > 0) {
-             toast.success(`Taxa de entrega para ${neighborhoodName}: ${formatCurrency(data.fee)}`);
-           } else {
-             toast.success(`Entrega grátis para ${neighborhoodName}!`);
-           }
-         } else {
-           setDeliveryFee(0);
-           setIsValidDeliveryArea(false);
-         }
-       } else {
-         setDeliveryFee(0);
-         setIsValidDeliveryArea(null);
-       }
-     };
-     fetchDeliveryFee();
-   }, [selectedAddress, guestInfo.neighborhood, useSimplifiedAddress]);
+    useEffect(() => {
+      const fetchDeliveryFee = async () => {
+        const neighborhoodName = selectedAddress?.neighborhood;
+        
+        if (neighborhoodName) {
+          const { data } = await supabase
+            .from('delivery_neighborhoods')
+            .select('fee')
+            .eq('name', neighborhoodName)
+            .eq('active', true)
+            .maybeSingle();
+          
+          if (data) {
+            setDeliveryFee(data.fee);
+            setIsValidDeliveryArea(true);
+          } else {
+            setDeliveryFee(0);
+            setIsValidDeliveryArea(false);
+          }
+        } else {
+          setDeliveryFee(0);
+          setIsValidDeliveryArea(null);
+        }
+      };
+      fetchDeliveryFee();
+    }, [selectedAddress]);
 
     useEffect(() => {
       const fetchSettings = async () => {
@@ -347,66 +342,15 @@ function CartPage() {
 
         {/* Address Selection or Quick Address */}
         <div className="space-y-3">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Endereço</h3>
-            <button 
-              onClick={() => setUseSimplifiedAddress(!useSimplifiedAddress)}
-              className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border transition-all ${
-                useSimplifiedAddress 
-                ? "text-zinc-500 bg-zinc-50 border-zinc-100" 
-                : "text-green-600 bg-green-50 border-green-100 animate-pulse shadow-lg shadow-green-100 ring-2 ring-green-500/20"
-              }`}
-            >
-              {useSimplifiedAddress ? "Usar Meus Endereços" : "🚚 Entrega Rápida (Clique Aqui)"}
-            </button>
-          </div>
+         <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2">Endereço de Entrega</h3>
 
-          {useSimplifiedAddress ? (
-            <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16 blur-2xl animate-pulse" />
-              
-              <div className="space-y-1 animate-in fade-in slide-in-from-top-4 duration-500">
-                <label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-1">
-                  Selecione seu Bairro <span className="text-red-500 animate-ping">*</span>
-                </label>
-                <select 
-                  value={guestInfo.neighborhood}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, neighborhood: e.target.value })}
-                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all appearance-none"
-                >
-                  <option value="">-- Escolha seu bairro --</option>
-                  {neighborhoods.map(n => (
-                    <option key={n.id} value={n.name}>{n.name} (Taxa: {n.fee > 0 ? formatCurrency(n.fee) : 'Grátis'})</option>
-                  ))}
-                </select>
-                {guestInfo.neighborhood && isValidDeliveryArea === false && (
-                  <p className="text-[9px] font-bold text-red-500 uppercase mt-1">⚠️ Não atendemos este bairro no momento</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-zinc-400">Endereço Completo</label>
-                <textarea 
-                  value={guestInfo.address}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, address: e.target.value })}
-                  className="w-full h-24 bg-zinc-50 border-zinc-100 rounded-xl p-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all resize-none"
-                  placeholder="Rua, Número, Bairro, Cidade..."
-                />
-              </div>
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                <Info size={20} className="text-blue-500 flex-shrink-0" />
-                <p className="text-[10px] text-blue-700 font-bold leading-tight">
-                  DICA: Se não souber o endereço, preencha apenas Nome e WhatsApp que entraremos em contato para combinar a entrega!
-                </p>
-              </div>
-            </div>
-          ) : addresses.length === 0 ? (
-            <button onClick={() => setUseSimplifiedAddress(true)} className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
-              <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
-              <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
-              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Digitação Rápida</span>
-            </button>
-          ) : (
+         {addresses.length === 0 ? (
+           <Link to="/profile" className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
+             <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
+             <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
+             <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Cadastrar Endereço</span>
+           </Link>
+         ) : (
             <div className="bg-white rounded-3xl shadow-sm border p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-green-50 text-green-600 rounded-xl">
