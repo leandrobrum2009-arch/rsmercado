@@ -109,12 +109,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [logHistory, setLogHistory] = useState<string[]>([])
      const [showLogViewer, setShowLogHistory] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
-        const [showPreviewModal, setShowPreviewModal] = useState(false)
-        const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
-      const [printImage, setPrintImage] = useState<string | null>(null)
-       const [isPreparingPrint, setIsPreparingPrint] = useState(false)
-       const [generationProgress, setGenerationProgress] = useState(0)
-       const [generationStep, setGenerationStep] = useState('')
+      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
         const [flyerScale, setFlyerScale] = useState(0.8)
         const [useHtmlMode, setUseHtmlMode] = useState(true)
  
@@ -175,16 +170,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         
         return () => document.body.classList.remove('no-animations');
       }, [isPreparingPrint, printImage]);
-
-      // Effect to trigger preview generation after dialog animation
-      useEffect(() => {
-        if (showPreviewModal && !previewImageUrl && !isPreparingPrint && !useHtmlMode) {
-          const timer = setTimeout(() => {
-            handleGeneratePreview();
-          }, 800); // Allow dialog animation to complete
-          return () => clearTimeout(timer);
-        }
-      }, [showPreviewModal, previewImageUrl, isPreparingPrint, useHtmlMode]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
