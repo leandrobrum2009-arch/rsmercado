@@ -1044,83 +1044,96 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationStep('Renderizando em alta fidelidade...');
         setGenerationProgress(60);
 
-          // Capture using high reliability settings with timeout
-          const generatePrintCanvas = async () => {
-            logStep('Iniciando html2canvas interno (High Fidelity)');
-            return await html2canvas(flyerElement, {
-              useCORS: true,
-              scale: 2, 
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-              logging: true,
-              imageTimeout: 30000,
-              allowTaint: false,
-              onclone: (clonedDoc) => {
-                logStep('onclone: Documento clonado, ajustando estilos');
-                const clonedFlyer = clonedDoc.getElementById('flyer-content');
-                if (clonedFlyer) {
-                  clonedFlyer.style.transform = 'none';
-                  clonedFlyer.style.transition = 'none';
-                  clonedFlyer.style.animation = 'none';
-                  clonedFlyer.style.margin = '0';
-                  clonedFlyer.style.position = 'relative';
-                  clonedFlyer.style.top = '0';
-                  clonedFlyer.style.left = '0';
-                  clonedFlyer.style.boxShadow = 'none';
-                  clonedFlyer.style.display = 'flex';
-                  clonedFlyer.style.flexDirection = 'column';
-                  clonedFlyer.style.overflow = 'hidden';
-                  clonedFlyer.style.visibility = 'visible';
-                  clonedFlyer.style.width = '794px';
-                  clonedFlyer.style.height = '1123px';
-                  
-                  const allElements = clonedFlyer.querySelectorAll('*');
-                  allElements.forEach((el: any) => {
-                    el.style.setProperty('transition', 'none', 'important');
-                    el.style.setProperty('animation', 'none', 'important');
-                    el.style.setProperty('animation-duration', '0s', 'important');
-                    el.style.setProperty('transition-duration', '0s', 'important');
-                    el.style.backdropFilter = 'none';
-                    el.style.fontVariantNumeric = 'tabular-nums';
-                    el.style.webkitFontSmoothing = 'antialiased';
+          const generatePrintCanvas = async (customScale = 2) => {
+            logStep(`Iniciando html2canvas interno (Escala: ${customScale})`);
+            try {
+              return await html2canvas(flyerElement, {
+                useCORS: true,
+                scale: customScale, 
+                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+                logging: true,
+                imageTimeout: 30000,
+                allowTaint: false,
+                onclone: (clonedDoc) => {
+                  logStep('onclone: Ajustando estilos no clone');
+                  const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                  if (clonedFlyer) {
+                    clonedFlyer.style.transform = 'none';
+                    clonedFlyer.style.transition = 'none';
+                    clonedFlyer.style.animation = 'none';
+                    clonedFlyer.style.margin = '0';
+                    clonedFlyer.style.position = 'relative';
+                    clonedFlyer.style.top = '0';
+                    clonedFlyer.style.left = '0';
+                    clonedFlyer.style.boxShadow = 'none';
+                    clonedFlyer.style.display = 'flex';
+                    clonedFlyer.style.flexDirection = 'column';
+                    clonedFlyer.style.overflow = 'hidden';
+                    clonedFlyer.style.visibility = 'visible';
+                    clonedFlyer.style.width = '794px';
+                    clonedFlyer.style.height = '1123px';
                     
-                    if (el.className && typeof el.className === 'string') {
-                      el.className = el.className
-                        .replace(/\banimate-\S+/g, '')
-                        .replace(/\bduration-\S+/g, '')
-                        .replace(/\bfade-in\S*/g, '')
-                        .replace(/\bzoom-in\S*/g, '')
-                        .replace(/\bslide-in\S*/g, '')
-                        .replace(/\bdelay-\S+/g, '');
-                    }
+                    const allElements = clonedFlyer.querySelectorAll('*');
+                    allElements.forEach((el: any) => {
+                      el.style.setProperty('transition', 'none', 'important');
+                      el.style.setProperty('animation', 'none', 'important');
+                      el.style.setProperty('animation-duration', '0s', 'important');
+                      el.style.setProperty('transition-duration', '0s', 'important');
+                      el.style.backdropFilter = 'none';
+                      el.style.fontVariantNumeric = 'tabular-nums';
+                      el.style.webkitFontSmoothing = 'antialiased';
+                      
+                      if (el.className && typeof el.className === 'string') {
+                        el.className = el.className
+                          .replace(/\banimate-\S+/g, '')
+                          .replace(/\bduration-\S+/g, '')
+                          .replace(/\bfade-in\S*/g, '')
+                          .replace(/\bzoom-in\S*/g, '')
+                          .replace(/\bslide-in\S*/g, '')
+                          .replace(/\bdelay-\S+/g, '');
+                      }
 
-                    if (el.classList.contains('price-container')) {
-                      el.style.overflow = 'visible';
-                      el.style.display = 'block';
-                      el.style.minWidth = '100%';
-                      el.style.position = 'relative';
-                    }
-                  });
-                } else {
-                  logStep('onclone: ERRO - flyer-content não encontrado no clone');
+                      if (el.classList.contains('price-container')) {
+                        el.style.overflow = 'visible';
+                        el.style.display = 'block';
+                        el.style.minWidth = '100%';
+                        el.style.position = 'relative';
+                      }
+                    });
+                  }
                 }
-              }
-            });
+              });
+            } catch (err) {
+              logStep(`Erro no html2canvas (Escala: ${customScale}):`, err);
+              throw err;
+            }
           };
 
           const printTimeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Tempo limite excedido ao preparar impressão')), 30000);
           });
 
-          logStep('Aguardando resultado do canvas ou timeout...');
-          const printCanvasResult = await Promise.race([
-            generatePrintCanvas(),
-            printTimeoutPromise
-          ]);
+          logStep('Iniciando tentativa 1 (Escala 2)');
+          let canvas: HTMLCanvasElement;
+          try {
+            const printCanvasResult = await Promise.race([
+              generatePrintCanvas(2),
+              printTimeoutPromise
+            ]);
+            canvas = printCanvasResult as HTMLCanvasElement;
+          } catch (firstTryError) {
+            logStep('Tentativa 1 falhou. Reduzindo escala para 1.5...', firstTryError);
+            setGenerationStep('Otimizando recursos...');
+            const printCanvasResult = await Promise.race([
+              generatePrintCanvas(1.5),
+              printTimeoutPromise
+            ]);
+            canvas = printCanvasResult as HTMLCanvasElement;
+          }
           
           setGenerationProgress(90);
           setGenerationStep('Preparando impressão...');
-          const canvas = printCanvasResult as HTMLCanvasElement;
-          logStep(`Canvas gerado: ${canvas.width}x${canvas.height}`);
+          logStep(`Canvas final gerado: ${canvas.width}x${canvas.height}`);
  
           logStep('Convertendo canvas para DataURL (PNG)');
           let dataUrl = '';
@@ -1153,19 +1166,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         console.error('Error preparing print:', error);
         toast.dismiss(loadingToast);
         
-        if (error.message === 'CANVAS_TAINTED') {
-          toast.error('Erro de segurança (CORS): Algumas imagens não permitem exportação em alta qualidade. Tente o "Modo Fallback".', {
-            duration: 7000
-          });
-        } else if (error.message === 'Tempo limite excedido ao preparar impressão') {
-          toast.error('O processamento demorou muito. Tente com menos produtos ou use o "Modo Fallback".', {
-            duration: 7000
-          });
-        } else {
-          toast.error('Erro ao processar imagem de alta qualidade. Tente o "Modo Fallback".', {
-            duration: 5000
-          });
-        }
+        const isCORS = error.message === 'CANVAS_TAINTED';
+        const isTimeout = error.message === 'Tempo limite excedido ao preparar impressão';
+        
+        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isTimeout ? 'O processamento demorou muito.' : 'Erro na geração da imagem.'), {
+          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          duration: 10000,
+          action: {
+            label: 'Imprimir Direto',
+            onClick: () => handleDirectPrint()
+          }
+        });
        } finally {
          setIsPreparingPrint(false);
          setTimeout(() => {
@@ -1295,7 +1306,30 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           });
 
           logStep('Aguardando canvas da prévia...');
-          const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          let canvas: HTMLCanvasElement;
+          try {
+            canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          } catch (previewErr) {
+            logStep('Erro na prévia (escala 1.2). Tentando escala 1...', previewErr);
+            const canvasPromiseScale1 = html2canvas(flyerElement, {
+              useCORS: true,
+              scale: 1, 
+              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              imageTimeout: 10000,
+              onclone: (clonedDoc) => {
+                const clonedFlyer = clonedDoc.getElementById('flyer-content');
+                if (clonedFlyer) {
+                  clonedFlyer.style.width = '794px';
+                  clonedFlyer.style.height = '1123px';
+                  clonedFlyer.querySelectorAll('*').forEach((el: any) => {
+                    el.style.setProperty('animation', 'none', 'important');
+                    el.style.setProperty('transition', 'none', 'important');
+                  });
+                }
+              }
+            });
+            canvas = await Promise.race([canvasPromiseScale1, timeoutPromise]) as HTMLCanvasElement;
+          }
           logStep(`Canvas da prévia gerado: ${canvas.width}x${canvas.height}`);
           
           setGenerationProgress(80);
