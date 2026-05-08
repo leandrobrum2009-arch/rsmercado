@@ -1298,6 +1298,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.error('Erro ao gerar imagem. Verifique se as imagens dos produtos estão carregando corretamente ou use a opção PDF.')
       } finally {
         setUploading(false)
+        setTimeout(() => {
+          setGenerationProgress(0)
+          setGenerationStep('')
+        }, 500)
       }
     }
 
