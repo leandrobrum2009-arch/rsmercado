@@ -164,6 +164,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         } else {
           document.body.classList.remove('no-animations');
         }
+        
+        if (printImage) {
+          const timer = setTimeout(() => {
+            window.print();
+          }, 1000);
+          return () => clearTimeout(timer);
+        }
+        
         return () => document.body.classList.remove('no-animations');
       }, [isPreparingPrint, printImage]);
 
