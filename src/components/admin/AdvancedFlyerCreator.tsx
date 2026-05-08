@@ -1238,19 +1238,27 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             }
           });
 
+          logStep('Aguardando canvas da prévia...');
           const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          logStep(`Canvas da prévia gerado: ${canvas.width}x${canvas.height}`);
+          
           setGenerationProgress(80);
           setGenerationStep('Finalizando imagem...');
-          const dataUrl = canvas.toDataURL('image/png');
           
-          if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
+          logStep('Convertendo canvas da prévia para DataURL');
+          const dataUrl = canvas.toDataURL('image/png');
+          logStep(`DataURL da prévia gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          
+          if (!dataUrl || dataUrl === 'data:,') {
+            logStep('ERRO: Canvas da prévia gerou uma imagem vazia');
+            throw new Error('EMPTY_IMAGE');
+          }
           
           setGenerationProgress(100);
           setGenerationStep('Concluído!');
           setPreviewImageUrl(dataUrl);
-          console.log('[Preview] Prévia gerada com sucesso.');
         } catch (error: any) {
-          console.error('[Preview] Erro ao gerar prévia:', error);
+          logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
           if (error.message === 'TIMEOUT_EXCEEDED') {
             toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
             // Optionally retry with even lower settings or just show the DOM
