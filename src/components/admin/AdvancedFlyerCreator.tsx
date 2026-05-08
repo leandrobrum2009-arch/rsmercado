@@ -2288,45 +2288,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 size="sm" 
                 variant="secondary" 
                 className="rounded-full h-8 px-4 text-[10px] font-black uppercase" 
-                onClick={() => handlePrint()}
-     const handleGeneratePreview = async () => {
-       const flyerElement = document.getElementById('flyer-content');
-       if (!flyerElement) return;
-       
-       setIsPreparingPrint(true);
-       try {
-         const images = Array.from(flyerElement.querySelectorAll('img'));
-         await Promise.all(images.map(img => {
-           if (img.complete) return Promise.resolve();
-           return new Promise((resolve) => {
-             img.onload = resolve;
-             img.onerror = resolve;
-           });
-         }));
- 
-         const originalTransform = flyerElement.style.transform;
-         flyerElement.style.transform = 'scale(1)';
-         await new Promise(resolve => setTimeout(resolve, 300));
- 
-         const canvas = await html2canvas(flyerElement, {
-           useCORS: true,
-           scale: 2, 
-           backgroundColor: removeFlyerBg ? null : '#ffffff',
-           logging: false
-         });
- 
-         flyerElement.style.transform = originalTransform;
-         const dataUrl = canvas.toDataURL('image/png', 0.8);
-         setPreviewImageUrl(dataUrl);
-       } catch (error) {
-         console.error('Error generating preview:', error);
-         toast.error('Erro ao gerar prévia');
-       } finally {
-         setIsPreparingPrint(false);
-       }
-     };
- 
-                disabled={isPreparingPrint}
+                 onClick={() => handlePrint()}
+                 disabled={isPreparingPrint}
               >
                 {isPreparingPrint ? (
                   <Loader2 className="w-3 h-3 mr-2 animate-spin" />
