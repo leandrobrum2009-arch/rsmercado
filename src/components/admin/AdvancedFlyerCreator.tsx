@@ -2818,11 +2818,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  {corsWarningCount} Erro(s) de CORS Detectados
                </div>
              )}
-               <Dialog open={showPreviewModal} onOpenChange={(open) => {
-                 setShowPreviewModal(open);
-                 if (open) handleGeneratePreview();
-                 else setPreviewImageUrl(null);
-               }}>
+                <Dialog open={showPreviewModal} onOpenChange={(open) => {
+                  setShowPreviewModal(open);
+                  if (!open) {
+                    setPreviewImageUrl(null);
+                    setGenerationProgress(0);
+                  }
+                }}>
                  <Button 
                    size="sm" 
                    variant="outline" 
