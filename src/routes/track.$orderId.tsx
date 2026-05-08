@@ -4,7 +4,9 @@
  import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Button } from '@/components/ui/button'
- import { Card, CardContent } from '@/components/ui/card'
+ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+ import { Input } from '@/components/ui/input'
+ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
  import { formatCurrency } from '@/lib/whatsapp'
  
@@ -87,8 +89,15 @@ import { Badge } from '@/components/ui/badge'
      )
    }
  
-   const [copied, setCopied] = useState(false)
-   const [paying, setPaying] = useState(false)
+    const [copied, setCopied] = useState(false)
+    const [paying, setPaying] = useState(false)
+    const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
+    const [cardData, setCardData] = useState({
+      number: '',
+      name: '',
+      expiry: '',
+      cvv: ''
+    })
  
    const handleCopyKey = () => {
      navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1")
@@ -99,7 +108,11 @@ import { Badge } from '@/components/ui/badge'
  
    const handleSimulatePayment = async () => {
      setPaying(true)
+      setPaymentStep('processing')
      try {
+        // Realistic delay
+        await new Promise(resolve => setTimeout(resolve, 3000))
+        
        const { error } = await supabase
          .from('orders')
          .update({ status: 'approved' })
@@ -107,8 +120,10 @@ import { Badge } from '@/components/ui/badge'
        
        if (error) throw error
        toast.success("Pagamento confirmado (Simulação)!")
+        setPaymentStep('done')
      } catch (err: any) {
        toast.error("Erro ao processar: " + err.message)
+        setPaymentStep('form')
      } finally {
        setPaying(false)
      }
@@ -149,43 +164,114 @@ import { Badge } from '@/components/ui/badge'
                     >
                       <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
                       {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-br from-zinc-800 to-zinc-950 p-6 rounded-3xl text-white relative overflow-hidden aspect-[1.6/1]">
-                      <div className="absolute top-0 right-0 opacity-10 -mr-8 -mt-8 rotate-12">
-                        <CreditCard size={150} strokeWidth={1} />
-                      </div>
-                      <div className="flex justify-between items-start">
-                        <div className="w-10 h-10 bg-zinc-700/50 rounded-lg blur-[1px]"></div>
-                        <p className="font-black italic text-lg text-primary">SIPAG</p>
-                      </div>
-                      <div className="mt-8">
-                        <p className="text-sm font-mono tracking-[4px] text-zinc-400">•••• •••• •••• ••••</p>
-                        <div className="flex justify-between mt-4">
-                          <p className="text-[8px] font-black uppercase opacity-40">RS SUPERMERCADO</p>
-                          <p className="text-[8px] font-black uppercase opacity-40">12/29</p>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Pagamento via Cartão de Crédito/Débito Online</p>
-                  </div>
-                )}
+                     </Button>
+                     <div className="mt-8 space-y-3">
+                       <Button 
+                         className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
+                         onClick={handleSimulatePayment}
+                         disabled={paying}
+                       >
+                         {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
+                         SIMULAR RECEBIMENTO PIX
+                       </Button>
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="space-y-6">
+                     {paymentStep === 'info' && (
+                       <div className="space-y-6">
+                         <div className="bg-gradient-to-br from-zinc-800 to-zinc-950 p-6 rounded-3xl text-white relative overflow-hidden aspect-[1.6/1] shadow-2xl">
+                           <div className="absolute top-0 right-0 opacity-10 -mr-8 -mt-8 rotate-12">
+                             <CreditCard size={150} strokeWidth={1} />
+                           </div>
+                           <div className="flex justify-between items-start">
+                             <div className="w-10 h-10 bg-amber-400/80 rounded-lg blur-[0.5px] shadow-inner"></div>
+                             <p className="font-black italic text-lg text-primary tracking-tighter">SIPAG</p>
+                           </div>
+                           <div className="mt-8">
+                             <p className="text-xl font-mono tracking-[4px] text-white">•••• •••• •••• ••••</p>
+                             <div className="flex justify-between mt-6">
+                               <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">{order.customer_name || 'TITULAR DO CARTÃO'}</p>
+                               <p className="text-[10px] font-black uppercase opacity-60">MM/AA</p>
+                             </div>
+                           </div>
+                         </div>
+                         <Button 
+                           className="w-full h-14 rounded-2xl font-black uppercase tracking-widest bg-zinc-900 text-white"
+                           onClick={() => setPaymentStep('form')}
+                         >
+                           INSERIR DADOS DO CARTÃO
+                         </Button>
+                       </div>
+                     )}
 
-                <div className="mt-8 space-y-3">
-                  <Button 
-                    className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
-                    onClick={handleSimulatePayment}
-                    disabled={paying}
-                  >
-                    {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
-                    SIMULAR PAGAMENTO (TESTE)
-                  </Button>
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase text-center">
-                    ⚠️ BOTÃO DE TESTE: Clique para confirmar o recebimento do valor
-                  </p>
-                </div>
+                     {paymentStep === 'form' && (
+                       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                         <div className="space-y-2">
+                           <Label className="text-[10px] font-black uppercase text-zinc-400">Número do Cartão</Label>
+                           <Input 
+                             placeholder="0000 0000 0000 0000"
+                             value={cardData.number}
+                             onChange={e => setCardData({...cardData, number: e.target.value.replace(/\D/g, '').substring(0, 16).replace(/(\d{4})/g, '$1 ').trim()})}
+                             className="h-12 rounded-xl font-bold"
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <Label className="text-[10px] font-black uppercase text-zinc-400">Nome no Cartão</Label>
+                           <Input 
+                             placeholder="Como está no cartão"
+                             value={cardData.name}
+                             onChange={e => setCardData({...cardData, name: e.target.value.toUpperCase()})}
+                             className="h-12 rounded-xl font-bold"
+                           />
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                             <Label className="text-[10px] font-black uppercase text-zinc-400">Validade</Label>
+                             <Input 
+                               placeholder="MM/AA"
+                               value={cardData.expiry}
+                               onChange={e => setCardData({...cardData, expiry: e.target.value.replace(/\D/g, '').substring(0, 4).replace(/(\d{2})/, '$1/').trim()})}
+                               className="h-12 rounded-xl font-bold"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-[10px] font-black uppercase text-zinc-400">CVV</Label>
+                             <Input 
+                               placeholder="123"
+                               type="password"
+                               value={cardData.cvv}
+                               onChange={e => setCardData({...cardData, cvv: e.target.value.replace(/\D/g, '').substring(0, 3)})}
+                               className="h-12 rounded-xl font-bold"
+                             />
+                           </div>
+                         </div>
+                         <div className="flex gap-2">
+                            <Button variant="outline" className="h-14 rounded-2xl font-bold" onClick={() => setPaymentStep('info')}>Voltar</Button>
+                            <Button 
+                              className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest bg-primary"
+                              onClick={handleSimulatePayment}
+                            >
+                              PAGAR AGORA
+                            </Button>
+                         </div>
+                       </div>
+                     )}
+
+                     {paymentStep === 'processing' && (
+                       <div className="py-12 flex flex-col items-center justify-center gap-6 animate-pulse">
+                         <div className="relative">
+                            <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                            <CreditCard size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
+                         </div>
+                         <div className="text-center space-y-2">
+                           <h4 className="text-lg font-black uppercase italic tracking-tighter">Processando Transação</h4>
+                           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Comunicando com a operadora SIPAG...</p>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                 )}
               </CardContent>
             </Card>
           )}
