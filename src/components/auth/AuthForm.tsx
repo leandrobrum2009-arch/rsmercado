@@ -3,14 +3,21 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/lib/toast'
-import { Loader2, LogIn, UserPlus, AlertCircle } from 'lucide-react'
+ import { Loader2, LogIn, UserPlus, AlertCircle, Phone, MapPin, Users, User } from 'lucide-react'
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+   const [password, setPassword] = useState('')
+   const [fullName, setFullName] = useState('')
+   const [whatsapp, setWhatsapp] = useState('')
+   const [householdStatus, setHouseholdStatus] = useState('')
+   const [address, setAddress] = useState('')
+   const [neighborhood, setNeighborhood] = useState('')
+   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [isSignUp, setIsSignUp] = useState(false)
    const [errorMsg, setErrorMsg] = useState('')
    const [resending, setResending] = useState(false)
@@ -18,27 +25,73 @@ export function AuthForm() {
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
+     const fetchNeighborhoods = async () => {
+       const { data } = await supabase.from('delivery_neighborhoods').select('*').eq('active', true).order('name')
+       setNeighborhoods(data || [])
+     }
+     fetchNeighborhoods()
+   }, [])
+ 
+   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     }
   }, [countdown])
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrorMsg('')
-    
-    try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            data: { full_name: email.split('@')[0] }
-          }
-        })
-        if (error) throw error
+   const handleAuth = async (e: React.FormEvent) => {
+     e.preventDefault()
+     
+     if (isSignUp) {
+       if (!fullName || !whatsapp || !householdStatus || !address || !neighborhood) {
+         setErrorMsg('Por favor, preencha todos os campos do cadastro.')
+         return
+       }
+     }
+ 
+     setLoading(true)
+     setErrorMsg('')
+     
+     try {
+       if (isSignUp) {
+         const { data: authData, error } = await supabase.auth.signUp({ 
+           email, 
+           password,
+           options: {
+             data: { 
+               full_name: fullName,
+               whatsapp: whatsapp,
+               household_status: householdStatus
+             }
+           }
+         })
+         if (error) throw error
+ 
+         if (authData?.user) {
+           const userId = authData.user.id
+           
+           await supabase
+             .from('profiles')
+             .upsert({
+               id: userId,
+               full_name: fullName,
+               whatsapp: whatsapp,
+               household_status: householdStatus
+             })
+ 
+           await supabase
+             .from('user_addresses')
+             .insert({
+               user_id: userId,
+               street: address,
+               neighborhood: neighborhood,
+               number: 'S/N', 
+               city: 'Ibiúna',
+               state: 'SP',
+               is_default: true,
+               label: 'Principal'
+             })
+         }
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Por favor, verifique sua caixa de entrada (e pasta de spam) para ativar sua conta antes de tentar entrar.')
         alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Se não chegar em 2 minutos, use a opção "Esqueci minha senha" para ativar seu acesso.')
         setIsSignUp(false)
@@ -173,12 +226,81 @@ export function AuthForm() {
             </Button>
           )}
           
-          <div className="bg-green-50 p-4 rounded-xl border border-green-100 space-y-2">
-            <p className="text-[10px] font-black text-green-700 uppercase">🚀 Precisa de pressa?</p>
-            <p className="text-[9px] text-green-600 font-bold leading-tight">
-              Você não precisa de cadastro para comprar! Vá ao carrinho e use a "Entrega Rápida" preenchendo apenas nome e WhatsApp.
-            </p>
-          </div>
+           {isSignUp && (
+             <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                   <Label className="font-bold text-xs uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                     <User size={12} className="text-primary" /> Nome Completo
+                   </Label>
+                   <Input 
+                     placeholder="Seu nome completo" 
+                     value={fullName}
+                     onChange={(e) => setFullName(e.target.value)}
+                     className="h-12 rounded-xl bg-gray-50 border-gray-200"
+                     required={isSignUp}
+                   />
+                 </div>
+                 <div className="space-y-2">
+                   <Label className="font-bold text-xs uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                     <Phone size={12} className="text-primary" /> WhatsApp
+                   </Label>
+                   <Input 
+                     placeholder="(00) 00000-0000" 
+                     value={whatsapp}
+                     onChange={(e) => setWhatsapp(e.target.value)}
+                     className="h-12 rounded-xl bg-gray-50 border-gray-200"
+                     required={isSignUp}
+                   />
+                 </div>
+               </div>
+ 
+               <div className="space-y-2">
+                 <Label className="font-bold text-xs uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                   <Users size={12} className="text-primary" /> Com quem você mora?
+                 </Label>
+                 <Select value={householdStatus} onValueChange={setHouseholdStatus} required={isSignUp}>
+                   <SelectTrigger className="h-12 rounded-xl bg-gray-50 border-gray-200">
+                     <SelectValue placeholder="Selecione uma opção" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="alone">Moro sozinho(a)</SelectItem>
+                     <SelectItem value="couple">Casal</SelectItem>
+                     <SelectItem value="family">Família em casa</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+ 
+               <div className="space-y-2">
+                 <Label className="font-bold text-xs uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                   <MapPin size={12} className="text-primary" /> Endereço de Entrega
+                 </Label>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <Input 
+                     placeholder="Rua e número" 
+                     value={address}
+                     onChange={(e) => setAddress(e.target.value)}
+                     className="h-12 rounded-xl bg-gray-50 border-gray-200"
+                     required={isSignUp}
+                   />
+                   <Select value={neighborhood} onValueChange={setNeighborhood} required={isSignUp}>
+                     <SelectTrigger className="h-12 rounded-xl bg-gray-50 border-gray-200">
+                       <SelectValue placeholder="Bairro" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {neighborhoods.map(n => (
+                         <SelectItem key={n.id} value={n.name}>{n.name}</SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+               </div>
+               <div className="relative py-2">
+                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                 <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-white px-4 text-gray-400">Dados de Acesso</span></div>
+               </div>
+             </div>
+           )}
 
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>

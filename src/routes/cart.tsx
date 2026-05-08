@@ -1,12 +1,13 @@
  import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
-  import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle, Phone, Search, ShoppingBag } from "lucide-react";
+   import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle, Phone, Search, ShoppingBag, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
-import { RecipeSuggestions } from "@/components/RecipeSuggestions";
+ import { RecipeSuggestions } from "@/components/RecipeSuggestions";
+ import { AuthForm } from "@/components/auth/AuthForm";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -44,8 +45,8 @@ function CartPage() {
        setIsSearching(false);
      }
    };
-   const [profile, setProfile] = useState<any>(null);
-    const [guestInfo, setGuestInfo] = useState({ name: '', whatsapp: '', address: '', neighborhood: '' });
+    const [profile, setProfile] = useState<any>(null);
+    const [session, setSession] = useState<any>(null);
    const [neighborhoods, setNeighborhoods] = useState<any[]>([]);
    const [changeFor, setChangeFor] = useState("");
 
@@ -57,60 +58,42 @@ function CartPage() {
      fetchNeighborhoods();
    }, []);
 
-   const [useSimplifiedAddress, setUseSimplifiedAddress] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>([]);
+    const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [pointsMultiplier, setPointsMultiplier] = useState(1);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
-   useEffect(() => {
-     const fetchDeliveryFee = async () => {
-       const neighborhoodName = useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood;
-       
-       if (neighborhoodName) {
-         const { data } = await supabase
-           .from('delivery_neighborhoods')
-           .select('fee')
-           .eq('name', neighborhoodName)
-           .eq('active', true)
-           .maybeSingle();
-         
-         if (data) {
-           setDeliveryFee(data.fee);
-           setIsValidDeliveryArea(true);
-           if (data.fee > 0) {
-             toast.success(`Taxa de entrega para ${neighborhoodName}: ${formatCurrency(data.fee)}`);
-           } else {
-             toast.success(`Entrega grátis para ${neighborhoodName}!`);
-           }
-         } else {
-           setDeliveryFee(0);
-           setIsValidDeliveryArea(false);
-         }
-       } else {
-         setDeliveryFee(0);
-         setIsValidDeliveryArea(null);
-       }
-     };
-     fetchDeliveryFee();
-   }, [selectedAddress, guestInfo.neighborhood, useSimplifiedAddress]);
+    useEffect(() => {
+      const fetchDeliveryFee = async () => {
+        const neighborhoodName = selectedAddress?.neighborhood;
+        
+        if (neighborhoodName) {
+          const { data } = await supabase
+            .from('delivery_neighborhoods')
+            .select('fee')
+            .eq('name', neighborhoodName)
+            .eq('active', true)
+            .maybeSingle();
+          
+          if (data) {
+            setDeliveryFee(data.fee);
+            setIsValidDeliveryArea(true);
+          } else {
+            setDeliveryFee(0);
+            setIsValidDeliveryArea(false);
+          }
+        } else {
+          setDeliveryFee(0);
+          setIsValidDeliveryArea(null);
+        }
+      };
+      fetchDeliveryFee();
+    }, [selectedAddress]);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(data);
-      }
-    };
-
-    const fetchSettings = async () => {
+    useEffect(() => {
+      const fetchSettings = async () => {
       const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
       if (data && data.value) {
         const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
@@ -118,32 +101,44 @@ function CartPage() {
       }
     };
 
-    const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(profileData);
-
-        // Addresses
-        const { data: addrData } = await supabase
-          .from('user_addresses')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false });
-        
-        setAddresses(addrData || []);
-        if (addrData && addrData.length > 0) {
-          setSelectedAddress(addrData.find(a => a.is_default) || addrData[0]);
-        }
-      }
-    };
-
-    fetchData();
+     const fetchData = async () => {
+       const { data: { session: currentSession } } = await supabase.auth.getSession();
+       setSession(currentSession);
+       if (currentSession) {
+         // Profile
+         const { data: profileData } = await supabase
+           .from('profiles')
+           .select('*')
+           .eq('id', currentSession.user.id)
+           .maybeSingle();
+         setProfile(profileData);
+ 
+         // Addresses
+         const { data: addrData } = await supabase
+           .from('user_addresses')
+           .select('*')
+           .eq('user_id', currentSession.user.id)
+           .order('created_at', { ascending: false });
+         
+         setAddresses(addrData || []);
+         if (addrData && addrData.length > 0) {
+           setSelectedAddress(addrData.find(a => a.is_default) || addrData[0]);
+         }
+       }
+     };
+ 
+     fetchData();
+ 
+     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       setSession(session);
+       if (session) fetchData();
+       else {
+         setProfile(null);
+         setAddresses([]);
+       }
+     });
+ 
+     return () => subscription.unsubscribe();
   }, []);
 
   if (items.length === 0) {
@@ -163,24 +158,25 @@ function CartPage() {
     );
   }
 
-    const handleCheckout = async () => {
-      console.log('handleCheckout started');
-      const customerName = profile?.full_name || guestInfo.name;
-      const customerPhone = profile?.whatsapp || guestInfo.whatsapp;
-      const deliveryAddress = useSimplifiedAddress 
-        ? { street: guestInfo.address, neighborhood: guestInfo.neighborhood, label: 'Simplificado' } 
-        : selectedAddress;
+     const handleCheckout = async () => {
+       if (!session || !profile) {
+         toast.error("Por favor, faça login para finalizar sua compra.");
+         return;
+       }
  
-      if (!customerName || !customerPhone) {
-        console.log('Missing name or phone:', { customerName, customerPhone });
-        toast.error("Por favor, preencha seu nome e WhatsApp para continuar.");
+       const customerName = profile.full_name;
+       const customerPhone = profile.whatsapp;
+       const deliveryAddress = selectedAddress;
+  
+       if (!customerName || !customerPhone) {
+         toast.error("Por favor, complete seu cadastro com Nome e WhatsApp.");
+         return;
+       }
+  
+      if (!deliveryAddress) {
+        toast.error("Por favor, selecione um endereço de entrega.");
         return;
       }
- 
-     if (!deliveryAddress && !useSimplifiedAddress) {
-       toast.error("Por favor, adicione um endereço de entrega ou preencha o campo de endereço rápido.");
-       return;
-     }
  
       setIsProcessing(true);
        const orderPayload: any = {
@@ -255,7 +251,7 @@ function CartPage() {
            const adminSummary = formatWhatsAppMessage('order_summary', {
              id: order.id,
              customer_name: customerName,
-              address: useSimplifiedAddress ? `${deliveryAddress.street} - ${deliveryAddress.neighborhood}` : `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
+              address: `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
               payment_method: paymentMethod === 'money' ? `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ' (Sem troco)'}` : paymentMethod,
              items: items, // use cart items
              subtotal: total,
@@ -323,158 +319,37 @@ function CartPage() {
         {/* Recipe Suggestions */}
         <RecipeSuggestions cartItems={items} />
 
-         {/* Guest Info & Order Lookup */}
-         {!profile && (
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
-               <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
-                 <div className="w-2 h-6 bg-green-600 rounded-full" />
-                 Dados para Entrega Rápida
-               </h3>
-               <div className="space-y-3">
-                 <div className="space-y-1">
-                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu Nome</label>
-                   <input 
-                     type="text" 
-                     value={guestInfo.name}
-                     onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
-                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     placeholder="Como devemos te chamar?"
-                   />
-                 </div>
-                 <div className="space-y-1">
-                   <label className="text-[10px] font-black uppercase text-zinc-400">Seu WhatsApp</label>
-                   <input 
-                     type="tel" 
-                     value={guestInfo.whatsapp}
-                     onChange={(e) => setGuestInfo({ ...guestInfo, whatsapp: e.target.value })}
-                     className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     placeholder="(00) 00000-0000"
-                   />
-                 </div>
-               </div>
-               <p className="text-[10px] text-zinc-400 font-medium italic">
-                 * Não precisa de cadastro! Preencha apenas o básico para pedir.
-               </p>
-             </div>
- 
-             <div className="bg-white rounded-3xl shadow-sm border overflow-hidden flex flex-col">
-               <div className="bg-zinc-900 text-white p-4">
-                 <h3 className="text-sm font-black uppercase italic tracking-tighter flex items-center gap-2">
-                   <ShoppingBag className="text-primary" size={18} /> Já comprou antes?
-                 </h3>
-                 <p className="text-[10px] font-bold uppercase opacity-60">Consulte seus pedidos pelo WhatsApp</p>
-               </div>
-               <div className="p-6 space-y-4">
-                 <form onSubmit={handleOrderLookup} className="space-y-3">
-                   <div className="relative">
-                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                     <input 
-                       type="tel" 
-                       placeholder="Seu WhatsApp" 
-                       value={lookupPhone}
-                       onChange={(e) => setLookupPhone(e.target.value)}
-                       className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl pl-12 pr-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all"
-                     />
-                   </div>
-                   <Button 
-                    type="submit" 
-                    disabled={isSearching}
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-zinc-900 text-white"
-                   >
-                     {isSearching ? <Loader2 className="animate-spin mr-2" size={14} /> : <Search className="mr-2" size={14} />}
-                     VER MEUS PEDIDOS
-                   </Button>
-                 </form>
- 
-                 {guestOrders.length > 0 && (
-                   <div className="space-y-2 pt-4 border-t max-h-[200px] overflow-y-auto pr-2">
-                     {guestOrders.map(order => (
-                       <Link 
-                        key={order.id} 
-                        to="/track/$orderId" 
-                        params={{ orderId: order.id }}
-                        className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100 hover:border-primary transition-colors group"
-                       >
-                         <div>
-                           <p className="font-black text-[9px] uppercase text-zinc-400">#{order.id.substring(0, 8)}</p>
-                           <p className="font-bold text-[10px] text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
-                         </div>
-                         <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
-                           <ArrowRight size={12} className="text-zinc-300 group-hover:text-primary" />
-                         </div>
-                       </Link>
-                     ))}
-                   </div>
-                 )}
-               </div>
-             </div>
-           </div>
-         )}
-
-        {/* Address Selection or Quick Address */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Endereço</h3>
-            <button 
-              onClick={() => setUseSimplifiedAddress(!useSimplifiedAddress)}
-              className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border transition-all ${
-                useSimplifiedAddress 
-                ? "text-zinc-500 bg-zinc-50 border-zinc-100" 
-                : "text-green-600 bg-green-50 border-green-100 animate-pulse shadow-lg shadow-green-100 ring-2 ring-green-500/20"
-              }`}
-            >
-              {useSimplifiedAddress ? "Usar Meus Endereços" : "🚚 Entrega Rápida (Clique Aqui)"}
-            </button>
-          </div>
-
-          {useSimplifiedAddress ? (
-            <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16 blur-2xl animate-pulse" />
-              
-              <div className="space-y-1 animate-in fade-in slide-in-from-top-4 duration-500">
-                <label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-1">
-                  Selecione seu Bairro <span className="text-red-500 animate-ping">*</span>
-                </label>
-                <select 
-                  value={guestInfo.neighborhood}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, neighborhood: e.target.value })}
-                  className="w-full h-12 bg-zinc-50 border-zinc-100 rounded-xl px-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all appearance-none"
-                >
-                  <option value="">-- Escolha seu bairro --</option>
-                  {neighborhoods.map(n => (
-                    <option key={n.id} value={n.name}>{n.name} (Taxa: {n.fee > 0 ? formatCurrency(n.fee) : 'Grátis'})</option>
-                  ))}
-                </select>
-                {guestInfo.neighborhood && isValidDeliveryArea === false && (
-                  <p className="text-[9px] font-bold text-red-500 uppercase mt-1">⚠️ Não atendemos este bairro no momento</p>
-                )}
+          {/* Auth Section for non-logged in users */}
+          {!session && (
+            <div className="bg-white rounded-3xl shadow-xl border-4 border-primary/20 p-8 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="text-primary" size={32} />
+                </div>
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">Identifique-se para Comprar</h2>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Precisamos dos seus dados para garantir a melhor entrega!</p>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-zinc-400">Endereço Completo</label>
-                <textarea 
-                  value={guestInfo.address}
-                  onChange={(e) => setGuestInfo({ ...guestInfo, address: e.target.value })}
-                  className="w-full h-24 bg-zinc-50 border-zinc-100 rounded-xl p-4 font-bold text-sm focus:bg-white focus:ring-2 focus:ring-green-500 transition-all resize-none"
-                  placeholder="Rua, Número, Bairro, Cidade..."
-                />
-              </div>
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                <Info size={20} className="text-blue-500 flex-shrink-0" />
-                <p className="text-[10px] text-blue-700 font-bold leading-tight">
-                  DICA: Se não souber o endereço, preencha apenas Nome e WhatsApp que entraremos em contato para combinar a entrega!
+              <AuthForm />
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+                <Info className="text-amber-500 flex-shrink-0" size={20} />
+                <p className="text-[10px] font-bold text-amber-700 uppercase leading-tight">
+                  Seu cadastro é rápido e seguro. Com ele você ganha pontos de fidelidade em cada compra!
                 </p>
               </div>
             </div>
-          ) : addresses.length === 0 ? (
-            <button onClick={() => setUseSimplifiedAddress(true)} className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
-              <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
-              <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
-              <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Digitação Rápida</span>
-            </button>
-          ) : (
+          )}
+
+        {/* Address Selection or Quick Address */}
+        <div className="space-y-3">
+         <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2">Endereço de Entrega</h3>
+
+         {addresses.length === 0 ? (
+           <Link to="/profile" className="w-full flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-dashed border-zinc-200 text-center gap-2 group hover:border-green-500 transition-colors">
+             <MapPin className="text-zinc-300 group-hover:text-green-500 transition-colors" size={32} />
+             <p className="text-xs font-bold text-zinc-500">Nenhum endereço cadastrado</p>
+             <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-3 py-1 rounded-full">Clique para Cadastrar Endereço</span>
+           </Link>
+         ) : (
             <div className="bg-white rounded-3xl shadow-sm border p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-green-50 text-green-600 rounded-xl">
@@ -578,9 +453,9 @@ function CartPage() {
           </div>
           <div className="flex justify-between items-center text-gray-500">
             <span className="flex items-center gap-1">
-              Entrega 
-              <span className="text-[10px] font-bold text-zinc-400">({(useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood) || 'Escolha o bairro'})</span>
-            </span>
+               Entrega 
+               <span className="text-[10px] font-bold text-zinc-400">({selectedAddress?.neighborhood || 'Escolha o bairro'})</span>
+             </span>
             {isValidDeliveryArea === false ? (
               <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>
             ) : deliveryFee > 0 ? (
@@ -603,27 +478,27 @@ function CartPage() {
             </p>
           )}
           
-          <button 
-            onClick={handleCheckout}
-            disabled={isProcessing || isValidDeliveryArea !== true || (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood)}
-            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ${
-              !isProcessing && isValidDeliveryArea === true && (selectedAddress || (useSimplifiedAddress && guestInfo.neighborhood))
-              ? "bg-green-600 text-white shadow-green-100 animate-bounce-subtle"
-              : "bg-zinc-200 text-zinc-500 shadow-none"
-            }`}
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="animate-spin" size={20} />
-                Processando...
-              </>
-            ) : (
-              <>
-                {isValidDeliveryArea === false ? 'Área não atendida' : (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood) ? 'Selecione o endereço/bairro' : 'Finalizar Pedido'}
-                <ArrowRight size={20} />
-              </>
-            )}
-          </button>
+           <button 
+             onClick={handleCheckout}
+             disabled={isProcessing || isValidDeliveryArea !== true || !selectedAddress}
+             className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ${
+               !isProcessing && isValidDeliveryArea === true && selectedAddress
+               ? "bg-green-600 text-white shadow-green-100"
+               : "bg-zinc-200 text-zinc-500 shadow-none"
+             }`}
+           >
+             {isProcessing ? (
+               <>
+                 <Loader2 className="animate-spin" size={20} />
+                 Processando...
+               </>
+             ) : (
+               <>
+                 {isValidDeliveryArea === false ? 'Área não atendida' : !selectedAddress ? 'Selecione o endereço' : 'Finalizar Pedido'}
+                 <ArrowRight size={20} />
+               </>
+             )}
+           </button>
         </div>
       </div>
     </div>
