@@ -1468,10 +1468,39 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
         alt="Print Preview" 
         onLoad={() => {
-          // Safety check: sometimes the print triggers before the image is visually ready
           console.log('Print image loaded in overlay');
         }}
       />
+    </div>
+  )}
+
+  {/* Global Progress Overlay for Print/Download */}
+  {(isPreparingPrint || uploading) && !showPreviewModal && !printImage && (
+    <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
+      <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
+        <CardContent className="p-8 flex flex-col items-center gap-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+          <div className="w-full space-y-4">
+            <div className="text-center">
+              <h3 className="font-black uppercase italic tracking-tighter text-lg">Processando Encarte</h3>
+              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{generationStep}</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <span>Progresso</span>
+                <span>{generationProgress}%</span>
+              </div>
+              <Progress value={generationProgress} className="h-3" />
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-400 font-bold uppercase text-center leading-relaxed">
+            Aguarde enquanto preparamos seu arquivo em alta resolução. 
+            <br />Não feche esta aba.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
