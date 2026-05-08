@@ -1420,7 +1420,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     return (
       <>
   {printImage && (
-    <div className="fixed inset-0 z-[99999] bg-white flex items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+    <div className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-center print:fixed print:inset-0 flyer-print-overlay">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="fixed top-4 right-4 z-[100000] print:hidden" 
+        onClick={() => setPrintImage(null)}
+      >
+        <X className="w-4 h-4 mr-2" /> Fechar
+      </Button>
       <img 
         src={printImage} 
         className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
