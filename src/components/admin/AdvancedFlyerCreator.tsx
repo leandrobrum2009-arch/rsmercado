@@ -2433,17 +2433,24 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     marginLeft: `${(794 * (flyerScale - 1)) / 2}px`
                   }}
                 >
-                {/* Dedicated Background Layer for better print reliability */}
-                <div 
-                  className="absolute inset-0 z-0 pointer-events-none"
-                  style={{
-                    backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                    backgroundSize: '100% 100%',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    opacity: removeFlyerBg ? 0 : 1
-                  }}
-                />
+                {/* Dedicated Background Layer for better print reliability and CORS support */}
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
+                  {backgroundType === 'image' && backgroundUrl ? (
+                    <img 
+                      src={backgroundUrl} 
+                      crossOrigin="anonymous" 
+                      className="absolute inset-0 w-full h-full object-fill" 
+                      alt=""
+                    />
+                  ) : (
+                    <div 
+                      className="absolute inset-0 w-full h-full"
+                      style={{ 
+                        background: backgroundType === 'gradient' ? backgroundGradient : backgroundColor 
+                      }}
+                    />
+                  )}
+                </div>
                 
                   <div className="relative z-10 w-full h-full flex flex-col">
                     <FlyerContentInner />
