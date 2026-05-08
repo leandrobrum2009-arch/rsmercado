@@ -13,12 +13,22 @@ export function AuthForm() {
   const [email, setEmail] = useState('')
    const [password, setPassword] = useState('')
    const [fullName, setFullName] = useState('')
+ 
    const [whatsapp, setWhatsapp] = useState('')
    const [householdStatus, setHouseholdStatus] = useState('')
    const [address, setAddress] = useState('')
    const [neighborhood, setNeighborhood] = useState('')
    const [neighborhoods, setNeighborhoods] = useState<any[]>([])
-   const [isSignUp, setIsSignUp] = useState(false)
+    const [isSignUp, setIsSignUp] = useState(false)
+
+    // Pre-fill name from email prefix if empty
+    useEffect(() => {
+      if (isSignUp && !fullName && email.includes('@')) {
+        const prefix = email.split('@')[0];
+        const suggestedName = prefix.charAt(0).toUpperCase() + prefix.slice(1).replace(/[0-9._]/g, ' ').trim();
+        setFullName(suggestedName);
+      }
+    }, [email, isSignUp, fullName]);
    const [errorMsg, setErrorMsg] = useState('')
    const [resending, setResending] = useState(false)
   const [resetting, setResetting] = useState(false)
