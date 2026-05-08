@@ -1220,18 +1220,22 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         }
         
         setIsPreparingPrint(true);
-        setGenerationProgress(10);
-        setGenerationStep('Preparando ambiente...');
+        setGenerationProgress(5);
+        setGenerationStep('Iniciando...');
         
-        logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
-        logStep(`Layout: ${layout}, Colunas: ${columns}`);
-        logStep(`Fundo: ${backgroundType}, Imagem: ${backgroundUrl ? 'Sim' : 'Não'}`);
-        logStep(`Total de Produtos: ${selectedProducts.length}`);
-        logStep('--- INICIANDO ---');
+        // Delay to allow UI to show the 5% progress
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        setGenerationProgress(15);
+        setGenerationStep('Preparando ambiente...');
 
         try {
+          logStep('--- DIAGNÓSTICO DE GERAÇÃO ---');
+          logStep(`Layout: ${layout}, Colunas: ${columns}`);
+          logStep(`Total de Produtos: ${selectedProducts.length}`);
+
           logStep('Passo 1: Delay de estabilização');
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 300));
 
           logStep('Passo 2: Carregando recursos');
           setGenerationProgress(20);
