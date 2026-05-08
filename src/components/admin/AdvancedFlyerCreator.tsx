@@ -983,48 +983,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setIsPreparingPrint(true);
-      setGenerationProgress(10);
-      setGenerationStep('Iniciando processamento...');
-      const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
+      setGenerationProgress(5);
+      setGenerationStep('Iniciando...');
+      const loadingToast = toast.loading('Gerando arquivo em alta fidelidade...');
 
       try {
-        logStep('Passo 1: Sincronizando banco de dados');
-        setGenerationStep('Sincronizando banco de dados...');
+        // Background save
+        if (shouldSave) {
+          saveToDatabase().catch(e => console.error('Silent save failed:', e));
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        logStep('Passo 1: Preparando recursos');
+        setGenerationStep('Carregando imagens...');
         setGenerationProgress(20);
-
-        // Save history and to database in background
-        const historyItem = {
-          id: Math.random().toString(36).substring(7),
-          timestamp: new Date().toISOString(),
-          config: {
-            layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-            columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-            fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-            productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-            priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold,
-            bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-            showSubtitle, nameOffsetX, nameOffsetY, priceOffsetX, priceOffsetY, 
-            imageOffsetX, imageOffsetY, blurAmount
-          },
-          products: selectedProducts
-        };
-        const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
-        setFlyerHistory(updatedHistory);
-        localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-          // Save attempt - we try to save but don't let a save error block the print if possible
-          if (shouldSave) {
-            try {
-              await saveToDatabase();
-            } catch (saveError) {
-              console.error('Save failed but proceeding to print:', saveError);
-              // We already show a toast in saveToDatabase, so just continue here
-            }
-          }
- 
-
-        logStep('Passo 2: Carregando recursos (imagens/fontes)');
-        setGenerationStep('Carregando recursos...');
-        setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
         logStep(`Encontradas ${images.length} imagens no encarte`);
         
