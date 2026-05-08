@@ -1468,9 +1468,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         try {
           canvas = await generateImageCanvas(2);
         } catch (firstErr) {
-          logStep('Erro download imagem (escala 2). Tentando escala 1.5...', firstErr);
-          setGenerationStep('Otimizando download...');
-          canvas = await generateImageCanvas(1.5);
+          logStep('Erro download imagem (escala 2). Tentando escala 1.2...', firstErr);
+          setGenerationStep('Otimizando imagem...');
+          try {
+            canvas = await generateImageCanvas(1.2);
+          } catch (secondErr) {
+            logStep('Erro download imagem (escala 1.2). Tentando escala básica (1.0)...', secondErr);
+            setGenerationStep('Otimizando imagem (Final)...');
+            canvas = await generateImageCanvas(1.0);
+          }
         }
 
         element.style.transform = originalTransform;
@@ -1481,11 +1487,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationStep('Finalizando arquivo...')
         let image = ''
         try {
+          // Default to PNG for individual images as users expect transparency if background removed
           image = canvas.toDataURL('image/png')
-          logStep(`Download imagem DataURL gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+          logStep(`Download imagem DataURL (PNG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
         } catch (exportError: any) {
-          logStep('ERRO ao exportar imagem para download:', exportError);
-          throw new Error('CANVAS_TAINTED');
+          logStep('ERRO ao exportar PNG, tentando JPEG:', exportError);
+          try {
+            image = canvas.toDataURL('image/jpeg', 0.9);
+            logStep(`Download imagem DataURL (JPEG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
+          } catch (jpegErr: any) {
+            logStep('ERRO crítico ao exportar imagem:', jpegErr);
+            throw new Error('CANVAS_TAINTED');
+          }
         }
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
@@ -1611,9 +1624,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         try {
           canvas = await generatePDFCanvas(2);
         } catch (firstErr) {
-          logStep('Erro PDF (escala 2). Tentando escala 1.5...', firstErr);
-          setGenerationStep('Otimizando PDF...');
-          canvas = await generatePDFCanvas(1.5);
+          logStep('Erro PDF (escala 2). Tentando escala 1.2...', firstErr);
+          setGenerationStep('Otimizando PDF (1/2)...');
+          try {
+            canvas = await generatePDFCanvas(1.2);
+          } catch (secondErr) {
+            logStep('Erro PDF (escala 1.2). Tentando escala básica (1.0)...', secondErr);
+            setGenerationStep('Otimizando PDF (Final)...');
+            canvas = await generatePDFCanvas(1.0);
+          }
         }
 
         element.style.transform = originalTransform
@@ -1624,25 +1643,41 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         setGenerationStep('Gerando documento PDF...')
         let imgData = ''
         try {
-          imgData = canvas.toDataURL('image/png')
-          logStep(`PDF DataURL gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
+          // Try JPEG first for PDF as it's much smaller and less likely to crash memory
+          imgData = canvas.toDataURL('image/jpeg', 0.9);
+          logStep(`PDF DataURL (JPEG) gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
         } catch (exportError: any) {
-          logStep('ERRO ao exportar imagem para PDF:', exportError);
-          throw new Error('CANVAS_TAINTED');
+          logStep('ERRO ao exportar JPEG para PDF, tentando PNG:', exportError);
+          try {
+            imgData = canvas.toDataURL('image/png');
+            logStep(`PDF DataURL (PNG) gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
+          } catch (pngError: any) {
+            logStep('ERRO crítico ao exportar imagem:', pngError);
+            throw new Error('CANVAS_TAINTED');
+          }
         }
-        setGenerationProgress(100)
-        setGenerationStep('Concluído!')
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        })
+        
+        setGenerationProgress(90)
+        setGenerationStep('Montando documento...')
+        
+        try {
+          const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+          })
 
-        const pdfWidth = 210
-        const pdfHeight = 297
+          const pdfWidth = 210
+          const pdfHeight = 297
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
-        pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
+          pdf.addImage(imgData, imgData.startsWith('data:image/png') ? 'PNG' : 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
+          setGenerationProgress(100)
+          setGenerationStep('Finalizando download...')
+          pdf.save(`encarte-${new Date().toISOString().split('T')[0]}.pdf`)
+        } catch (pdfErr: any) {
+          logStep('ERRO ao gerar arquivo PDF final:', pdfErr);
+          throw new Error('PDF_GENERATION_FAILED');
+        }
 
         toast.dismiss(loadingToast)
         toast.success('PDF baixado com sucesso!')
@@ -1651,7 +1686,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.dismiss(loadingToast)
         const isCORS = err.message === 'CANVAS_TAINTED';
         
-        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar PDF.', {
+        const isPDFError = err.message === 'PDF_GENERATION_FAILED';
+        
+        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isPDFError ? 'Erro crítico ao montar o arquivo PDF.' : 'Erro ao gerar PDF.'), {
           description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
           duration: 10000,
           action: {
