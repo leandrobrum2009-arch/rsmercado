@@ -454,9 +454,9 @@ function CartPage() {
           </div>
           <div className="flex justify-between items-center text-gray-500">
             <span className="flex items-center gap-1">
-              Entrega 
-              <span className="text-[10px] font-bold text-zinc-400">({(useSimplifiedAddress ? guestInfo.neighborhood : selectedAddress?.neighborhood) || 'Escolha o bairro'})</span>
-            </span>
+               Entrega 
+               <span className="text-[10px] font-bold text-zinc-400">({selectedAddress?.neighborhood || 'Escolha o bairro'})</span>
+             </span>
             {isValidDeliveryArea === false ? (
               <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>
             ) : deliveryFee > 0 ? (
@@ -479,27 +479,27 @@ function CartPage() {
             </p>
           )}
           
-          <button 
-            onClick={handleCheckout}
-            disabled={isProcessing || isValidDeliveryArea !== true || (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood)}
-            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ${
-              !isProcessing && isValidDeliveryArea === true && (selectedAddress || (useSimplifiedAddress && guestInfo.neighborhood))
-              ? "bg-green-600 text-white shadow-green-100 animate-bounce-subtle"
-              : "bg-zinc-200 text-zinc-500 shadow-none"
-            }`}
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="animate-spin" size={20} />
-                Processando...
-              </>
-            ) : (
-              <>
-                {isValidDeliveryArea === false ? 'Área não atendida' : (!selectedAddress && !useSimplifiedAddress) || (useSimplifiedAddress && !guestInfo.neighborhood) ? 'Selecione o endereço/bairro' : 'Finalizar Pedido'}
-                <ArrowRight size={20} />
-              </>
-            )}
-          </button>
+           <button 
+             onClick={handleCheckout}
+             disabled={isProcessing || isValidDeliveryArea !== true || !selectedAddress}
+             className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed ${
+               !isProcessing && isValidDeliveryArea === true && selectedAddress
+               ? "bg-green-600 text-white shadow-green-100"
+               : "bg-zinc-200 text-zinc-500 shadow-none"
+             }`}
+           >
+             {isProcessing ? (
+               <>
+                 <Loader2 className="animate-spin" size={20} />
+                 Processando...
+               </>
+             ) : (
+               <>
+                 {isValidDeliveryArea === false ? 'Área não atendida' : !selectedAddress ? 'Selecione o endereço' : 'Finalizar Pedido'}
+                 <ArrowRight size={20} />
+               </>
+             )}
+           </button>
         </div>
       </div>
     </div>
