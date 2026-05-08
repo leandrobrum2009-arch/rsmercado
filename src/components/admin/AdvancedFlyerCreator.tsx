@@ -2868,7 +2868,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                  </Button>
                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar no-scrollbar">
                   <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
-                    <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
+                      {useHtmlMode && (
+                        <span className="bg-primary/20 text-primary text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-primary/30">
+                          Modo HTML Ativo
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => { setShowPreviewModal(false); setPreviewImageUrl(null); }}>Fechar</Button>
                        <Button 
