@@ -1347,16 +1347,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setPreviewImageUrl(dataUrl);
         } catch (error: any) {
           logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
-          if (error.message === 'CANVAS_TAINTED') {
-            toast.error('Erro de segurança (CORS): Algumas imagens não permitem prévia em alta qualidade. Tente o "Modo Fallback".', {
-              duration: 7000
-            });
-          } else if (error.message === 'TIMEOUT_EXCEEDED') {
-            toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
-          } else {
-            toast.error('Erro ao gerar prévia. Verifique sua conexão ou tente o "Modo Fallback".');
-          }
-          setShowPreviewModal(false);
+          logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
+          setUseHtmlMode(true);
+          toast.error('Erro ao gerar prévia em alta resolução. Ativando Modo HTML automático.', {
+            description: 'Você ainda pode visualizar e imprimir o encarte agora.',
+            duration: 5000
+          });
         } finally {
           setIsPreparingPrint(false);
           setTimeout(() => {
