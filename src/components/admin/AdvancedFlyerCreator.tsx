@@ -160,21 +160,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
       // Effect to disable animations globally when preparing print
       useEffect(() => {
-        if (isPreparingPrint || printImage) {
-          document.body.classList.add('no-animations');
-        } else {
-          document.body.classList.remove('no-animations');
-        }
-        
-        if (printImage) {
-          const timer = setTimeout(() => {
-            window.print();
-          }, 1000);
-          return () => clearTimeout(timer);
-        }
-        
-        return () => document.body.classList.remove('no-animations');
-      }, [isPreparingPrint, printImage]);
+       if (isPreparingPrint || uploading) {
+         document.body.classList.add('no-animations');
+       } else {
+         document.body.classList.remove('no-animations');
+       }
+       return () => document.body.classList.remove('no-animations');
+     }, [isPreparingPrint, uploading]);
 
     // Extract content to a reusable component
     const FlyerContentInner = () => {
