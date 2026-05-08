@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check } from 'lucide-react'
+ import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
@@ -91,7 +91,47 @@ import { Badge } from '@/components/ui/badge'
    }
  
     const [copied, setCopied] = useState(false)
-    const [paying, setPaying] = useState(false)
+   const [paying, setPaying] = useState(false)
+   const [resendingProof, setResendingProof] = useState(false)
+   const handleResendProof = async () => {
+     setResendingProof(true)
+     try {
+       const { data: items, error: itemsError } = await supabase
+         .from('order_items')
+         .select('*, products(name)')
+         .eq('order_id', orderId)
+ 
+       if (itemsError) throw itemsError
+ 
+       const addressStr = order.delivery_address 
+         ? `${order.delivery_address.street}, ${order.delivery_address.number} - ${order.delivery_address.neighborhood}`
+         : 'Não informado'
+ 
+       const summary = formatWhatsAppMessage('order_summary', {
+         id: orderId,
+         customer_name: order.customer_name || order.profiles?.full_name || 'Cliente',
+         address: addressStr,
+         payment_method: order.payment_method,
+         items: items,
+         subtotal: Number(order.total_amount) - (Number(order.delivery_fee) || 0),
+         delivery_fee: Number(order.delivery_fee) || 0,
+         total_amount: Number(order.total_amount)
+       })
+ 
+       const phone = order.customer_phone || order.profiles?.whatsapp
+       if (phone) {
+         await sendWhatsAppMessage(phone, summary)
+         toast.success("Comprovante enviado para seu WhatsApp!")
+       } else {
+         toast.error("Número de telefone não encontrado.")
+       }
+     } catch (err: any) {
+       toast.error("Erro ao reenviar: " + err.message)
+     } finally {
+       setResendingProof(false)
+     }
+   }
+ 
     const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
     const [cardData, setCardData] = useState({
       number: '',
@@ -379,9 +419,21 @@ import { Badge } from '@/components/ui/badge'
                     <p className="text-[10px] font-bold opacity-50 uppercase">{order.payment_method || 'Pagamento'}</p>
                     <p className="text-2xl font-black italic tracking-tighter text-primary">{formatCurrency(order.total_amount)}</p>
                   </div>
-                  <Badge className="bg-primary/20 text-primary border-0 font-black uppercase text-[8px] py-1 px-3">
-                    {order.order_items?.length || 0} ITENS
-                  </Badge>
+                   <div className="flex flex-col gap-2 items-end">
+                     <Badge className="bg-primary/20 text-primary border-0 font-black uppercase text-[8px] py-1 px-3">
+                       {order.order_items?.length || 0} ITENS
+                     </Badge>
+                     <Button 
+                       size="sm" 
+                       variant="ghost" 
+                       className="h-8 text-[8px] font-black uppercase text-primary bg-primary/5 hover:bg-primary/10 rounded-xl"
+                       onClick={handleResendProof}
+                       disabled={resendingProof}
+                     >
+                       {resendingProof ? <Loader2 className="animate-spin mr-1" size={10} /> : <Phone className="mr-1" size={10} />}
+                       Receber Comprovante
+                     </Button>
+                   </div>
                 </div>
               </CardContent>
             </Card>
