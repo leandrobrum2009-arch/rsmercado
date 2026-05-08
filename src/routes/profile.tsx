@@ -99,7 +99,18 @@ export const Route = createFileRoute('/profile')({
                })
                .select()
                .maybeSingle();
-             if (!createError) profileData = newProfile;
+             if (!createError && newProfile) {
+               profileData = newProfile;
+             } else {
+               // Fallback virtual profile if DB insert fails
+               profileData = {
+                 id: userId,
+                 full_name: metadata?.full_name || data.session.user.email?.split('@')[0],
+                 whatsapp: metadata?.whatsapp || '',
+                 household_status: metadata?.household_status || '',
+                 points_balance: 0
+               };
+             }
           }
          setProfile(profileData);
  
