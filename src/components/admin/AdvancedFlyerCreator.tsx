@@ -2958,9 +2958,30 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                         </div>
                     </div>
                   </div>
-                   <div className="p-8 flex flex-col items-center justify-center w-full gap-6">
-                     {!previewImageUrl ? (
-                       <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-8 rounded-3xl border border-white/10">
+                    <div className="p-4 md:p-8 flex flex-col items-center justify-center w-full gap-6">
+                      {useHtmlMode ? (
+                        <div 
+                          className="bg-white shadow-2xl overflow-hidden origin-top scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8]"
+                          style={{
+                            width: '794px',
+                            height: '1123px',
+                            backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                            position: 'relative'
+                          }}
+                        >
+                          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ opacity: removeFlyerBg ? 0 : 1 }}>
+                            {backgroundType === 'image' && backgroundUrl ? (
+                              <img src={backgroundUrl} crossOrigin="anonymous" className="absolute inset-0 w-full h-full object-fill" alt="" />
+                            ) : (
+                              <div className="absolute inset-0 w-full h-full" style={{ background: backgroundType === 'gradient' ? backgroundGradient : backgroundColor }} />
+                            )}
+                          </div>
+                          <div className="relative z-10 w-full h-full flex flex-col">
+                            <FlyerContentInner />
+                          </div>
+                        </div>
+                      ) : !previewImageUrl ? (
+                        <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-6 md:p-8 rounded-3xl border border-white/10">
                          <div className="relative">
                            <Loader2 className="w-12 h-12 animate-spin text-primary" />
                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
