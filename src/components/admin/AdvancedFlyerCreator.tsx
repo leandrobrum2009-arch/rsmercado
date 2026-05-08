@@ -97,7 +97,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
     const [loadingSaved, setLoadingSaved] = useState(false)
-      const [showPreviewModal, setShowPreviewModal] = useState(false)
+       const [showPreviewModal, setShowPreviewModal] = useState(false)
+       const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
       const [printImage, setPrintImage] = useState<string | null>(null)
       const [isPreparingPrint, setIsPreparingPrint] = useState(false)
      const [flyerScale, setFlyerScale] = useState(0.8)
@@ -912,7 +913,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       setSelectedProducts(updated)
     }
  
-    const handlePrint = async () => {
+     const handlePrint = async (shouldSave = true) => {
       if (selectedProducts.length === 0) {
         toast.error('Adicione produtos ao encarte primeiro');
         return;
@@ -947,7 +948,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const updatedHistory = [historyItem, ...flyerHistory].slice(0, 20);
         setFlyerHistory(updatedHistory);
         localStorage.setItem('flyer_history', JSON.stringify(updatedHistory));
-        saveToDatabase().catch(err => console.error("Auto-save failed:", err));
+         if (shouldSave) {
+           try {
+             await saveToDatabase();
+           } catch (saveErr) {
+             console.error("Save failed during print preparation:", saveErr);
+           }
+         }
+ 
 
         // Wait for all images to load
         const images = Array.from(flyerElement.querySelectorAll('img'));
@@ -1005,12 +1013,49 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         console.error('Error preparing print:', error);
         toast.error('Erro ao preparar impressão');
         toast.dismiss(loadingToast);
-      } finally {
-        setIsPreparingPrint(false);
-      }
-    };
-
-    const handleDownloadImage = async () => {
+       } finally {
+         setIsPreparingPrint(false);
+       }
+     };
+ 
+     const handleGeneratePreview = async () => {
+       const flyerElement = document.getElementById('flyer-content');
+       if (!flyerElement) return;
+       
+       setIsPreparingPrint(true);
+       try {
+         const images = Array.from(flyerElement.querySelectorAll('img'));
+         await Promise.all(images.map(img => {
+           if (img.complete) return Promise.resolve();
+           return new Promise((resolve) => {
+             img.onload = resolve;
+             img.onerror = resolve;
+           });
+         }));
+ 
+         const originalTransform = flyerElement.style.transform;
+         flyerElement.style.transform = 'scale(1)';
+         await new Promise(resolve => setTimeout(resolve, 300));
+ 
+         const canvas = await html2canvas(flyerElement, {
+           useCORS: true,
+           scale: 2, 
+           backgroundColor: removeFlyerBg ? null : '#ffffff',
+           logging: false
+         });
+ 
+         flyerElement.style.transform = originalTransform;
+         const dataUrl = canvas.toDataURL('image/png', 0.8);
+         setPreviewImageUrl(dataUrl);
+       } catch (error) {
+         console.error('Error generating preview:', error);
+         toast.error('Erro ao gerar prévia');
+       } finally {
+         setIsPreparingPrint(false);
+       }
+     };
+ 
+     const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
       if (!element) {
         toast.error('Conteúdo do encarte não encontrado')
@@ -2099,7 +2144,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                   <Button 
                     variant="outline" 
                     className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs border-2 col-span-1 md:col-span-2" 
-                    onClick={handlePrint}
+                    onClick={() => handlePrint()}
                     disabled={isPreparingPrint}
                   >
                     {isPreparingPrint ? (
@@ -2210,58 +2255,69 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Preview Real A4
             </div>
-              <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="rounded-full h-8 px-4 text-[10px] font-black uppercase bg-white">
-                    <Eye className="w-3 h-3 mr-2" /> Prévia
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar">
+               <Dialog open={showPreviewModal} onOpenChange={(open) => {
+                 setShowPreviewModal(open);
+                 if (open) handleGeneratePreview();
+                 else setPreviewImageUrl(null);
+               }}>
+                 <Button 
+                   size="sm" 
+                   variant="outline" 
+                   className="rounded-full h-8 px-4 text-[10px] font-black uppercase bg-white"
+                   onClick={() => setShowPreviewModal(true)}
+                 >
+                   <Eye className="w-3 h-3 mr-2" /> Prévia
+                 </Button>
+                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-zinc-900/90 backdrop-blur-xl flex flex-col items-center no-scrollbar no-scrollbar">
                   <div className="p-4 w-full flex justify-between items-center text-white sticky top-0 bg-zinc-900/50 backdrop-blur-md z-[60]">
                     <h3 className="font-black uppercase italic tracking-tighter">Prévia de Impressão (A4)</h3>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => setShowPreviewModal(false)}>Fechar</Button>
-                      <Button size="sm" variant="secondary" onClick={() => { setShowPreviewModal(false); setTimeout(handleDownloadPDF, 300); }}>
-                        <Download className="w-3 h-3 mr-1" /> Baixar PDF
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        className="bg-primary text-white" 
-                        onClick={() => { setShowPreviewModal(false); setTimeout(handlePrint, 300); }}
-                        disabled={isPreparingPrint}
-                      >
-                        {isPreparingPrint ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <Printer className="w-3 h-3 mr-1" />
-                        )}
-                        Imprimir Agora
-                      </Button>
+                       <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={() => { setShowPreviewModal(false); setPreviewImageUrl(null); }}>Fechar</Button>
+                       <Button 
+                         size="sm" 
+                         variant="secondary" 
+                         onClick={async () => { 
+                           setIsPreparingPrint(true);
+                           await handleDownloadPDF(); 
+                           setIsPreparingPrint(false);
+                           setShowPreviewModal(false); 
+                           setPreviewImageUrl(null);
+                         }}
+                         disabled={isPreparingPrint}
+                       >
+                         {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Download className="w-3 h-3 mr-1" />}
+                         Baixar PDF
+                       </Button>
+                       <Button 
+                         size="sm" 
+                         className="bg-primary text-white" 
+                         onClick={async () => { 
+                           setIsPreparingPrint(true);
+                           await handlePrint(false); 
+                           setIsPreparingPrint(false);
+                           setShowPreviewModal(false); 
+                           setPreviewImageUrl(null);
+                         }}
+                         disabled={isPreparingPrint}
+                       >
+                         {isPreparingPrint ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Printer className="w-3 h-3 mr-1" />}
+                         Imprimir Agora
+                       </Button>
                     </div>
                   </div>
-                  <div className="p-8 flex justify-center w-full">
-                    <div 
-                      className="bg-white shadow-2xl relative flex flex-col aspect-[210/297] w-full max-w-[600px] overflow-hidden"
-                      style={{
-                        backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
-                      }}
-                    >
-                      {/* Dedicated Background Layer for better print reliability */}
-                      <div 
-                        className="absolute inset-0 z-0 pointer-events-none"
-                        style={{
-                          backgroundImage: backgroundType === 'image' && backgroundUrl ? `url(${backgroundUrl})` : (backgroundType === 'gradient' ? backgroundGradient : 'none'),
-                          backgroundSize: '100% 100%',
-                          backgroundPosition: 'center',
-                          backgroundRepeat: 'no-repeat',
-                          opacity: removeFlyerBg ? 0 : 1
-                        }}
-                      />
-                      
-                      <div className="relative z-10 w-full h-full flex flex-col">
-                        <FlyerContentInner />
-                      </div>
-                    </div>
+                   <div className="p-8 flex flex-col items-center justify-center w-full gap-4">
+                     {!previewImageUrl ? (
+                       <div className="flex flex-col items-center gap-4">
+                         <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                         <p className="text-white font-bold uppercase text-xs">Gerando Prévia de Alta Fidelidade...</p>
+                       </div>
+                     ) : (
+                       <img 
+                         src={previewImageUrl} 
+                         className="bg-white shadow-2xl aspect-[210/297] w-full max-w-[600px] object-contain animate-in fade-in zoom-in duration-500" 
+                         alt="Preview" 
+                       />
+                     )}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -2269,8 +2325,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 size="sm" 
                 variant="secondary" 
                 className="rounded-full h-8 px-4 text-[10px] font-black uppercase" 
-                onClick={handlePrint}
-                disabled={isPreparingPrint}
+                 onClick={() => handlePrint()}
+                 disabled={isPreparingPrint}
               >
                 {isPreparingPrint ? (
                   <Loader2 className="w-3 h-3 mr-2 animate-spin" />
