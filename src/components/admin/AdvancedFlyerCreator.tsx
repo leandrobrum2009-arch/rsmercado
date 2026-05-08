@@ -178,11 +178,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                       )}
                     >
                       <div className="flex flex-col items-center gap-2">
-                        <img 
-                          src={storeSettings.logo_url} 
+                        <img
+                          src={storeSettings.logo_url}
+                          crossOrigin="anonymous"
                           style={{ width: `${logoSize}px` }}
-                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500" 
-                          alt="Logo" 
+                          className="object-contain drop-shadow-xl animate-in fade-in zoom-in duration-500"
+                          alt="Logo"
                         />
                         {showSubtitle && subtitleText && (
                           <p 
