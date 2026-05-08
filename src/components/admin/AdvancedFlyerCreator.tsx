@@ -1104,6 +1104,26 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        }
      };
  
+    const handleDirectPrint = async () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro');
+        return;
+      }
+      
+      // Save history and to database in background
+      try {
+        await saveToDatabase();
+      } catch (e) {
+        console.error('Save failed but proceeding to print:', e);
+      }
+
+      setPrintImage(null); // Ensure high-fidelity overlay is NOT shown
+      toast.info('Abrindo diálogo de impressão direta...');
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    };
+
       const handleGeneratePreview = async () => {
         const flyerElement = document.getElementById('flyer-content');
         if (!flyerElement) return;
