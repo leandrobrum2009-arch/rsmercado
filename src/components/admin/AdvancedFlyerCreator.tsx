@@ -539,10 +539,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                 return avg > threshold && diff < 30
               }
 
-              // Create a mask for background pixels
-              const width = canvas.width
-              const height = canvas.height
-              const mask = new Uint8Array(width * height)
+               // Create a mask for background pixels using already defined dimensions
+               const mask = new Uint8Array(width * height)
               
               // Simple flood fill from edges to avoid removing white inside the product
               const queue: [number, number][] = []
