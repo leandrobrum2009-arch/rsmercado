@@ -1204,14 +1204,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
           );
 
+          logStep('Passo 3: Renderizando html2canvas para prévia');
           const canvasPromise = html2canvas(flyerElement, {
             useCORS: true,
-            scale: 1.2, // Very safe scale for preview
+            scale: 1.2, 
             backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
             logging: true,
             allowTaint: false,
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
+              logStep('onclone: Ajustando estilos no clone da prévia');
               const clonedFlyer = clonedDoc.getElementById('flyer-content');
               if (clonedFlyer) {
                 clonedFlyer.style.transform = 'none';
@@ -1230,6 +1232,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     el.className = el.className.replace(/\banimate-\S+/g, '');
                   }
                 });
+              } else {
+                logStep('onclone: ERRO - flyer-content não encontrado no clone da prévia');
               }
             }
           });
