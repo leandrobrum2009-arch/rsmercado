@@ -2469,15 +2469,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
           body * { visibility: hidden !important; }
           
-          /* Show the captured image if it exists, otherwise fall back to content */
-          .flyer-print-overlay, 
-          .flyer-print-overlay img,
-          #flyer-content, 
-          #flyer-content * { 
-            visibility: visible !important; 
-          }
-
-          #flyer-content {
+          /* Priority visibility for the image overlay during print */
+          .flyer-print-overlay,
+          .flyer-print-overlay img {
+            visibility: visible !important;
+            display: block !important;
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
@@ -2485,27 +2481,27 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             height: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            border: none !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
-            transform: none !important;
-            transition: none !important;
-            box-shadow: none !important;
-            z-index: 99998 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            z-index: 99999 !important;
+            background: white !important;
+            object-fit: contain !important;
           }
-          
-          .flyer-print-overlay {
+
+          /* Fallback visibility for content if image is not yet generated */
+          #flyer-content:not(.print\:hidden) {
+            visibility: visible !important;
+            display: flex !important;
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             width: 210mm !important;
             height: 297mm !important;
-            z-index: 99999 !important;
+            z-index: 99998 !important;
+            transform: none !important;
             background: white !important;
+          }
+          
+          #flyer-content:not(.print\:hidden) * {
+            visibility: visible !important;
           }
           
           .print\:hidden { display: none !important; }
