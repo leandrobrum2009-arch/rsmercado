@@ -1117,8 +1117,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           logStep(`Canvas gerado: ${canvas.width}x${canvas.height}`);
  
           logStep('Convertendo canvas para DataURL (PNG)');
-          const dataUrl = canvas.toDataURL('image/png');
-          logStep(`DataURL gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          let dataUrl = '';
+          try {
+            dataUrl = canvas.toDataURL('image/png');
+            logStep(`DataURL gerado. Tamanho: ${Math.round(dataUrl.length / 1024)} KB`);
+          } catch (exportError: any) {
+            logStep('ERRO ao exportar canvas (possível canvas sujo/tainted):', exportError);
+            throw new Error('CANVAS_TAINTED');
+          }
           
           setGenerationProgress(100);
           setGenerationStep('Concluído!');
