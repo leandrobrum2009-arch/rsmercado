@@ -1464,9 +1464,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform
         element.style.transition = originalTransition
 
+        logStep('Passo 3: Gerando documento PDF');
         setGenerationProgress(80)
         setGenerationStep('Gerando documento PDF...')
         const imgData = canvas.toDataURL('image/png')
+        logStep(`PDF DataURL gerado. Tamanho: ${Math.round(imgData.length / 1024)} KB`);
         setGenerationProgress(100)
         setGenerationStep('Concluído!')
         const pdf = new jsPDF({
