@@ -1206,21 +1206,26 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const canvas = await html2canvas(element, {
           useCORS: true,
           allowTaint: false,
-          scale: 3,
-          backgroundColor: removeFlyerBg ? null : '#ffffff',
+          scale: 2,
+          backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
           logging: true,
-          imageTimeout: 60000,
+          imageTimeout: 20000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
               clonedElement.style.transform = 'none';
               clonedElement.style.transition = 'none';
+              clonedElement.style.animation = 'none';
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.visibility = 'visible';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
+                el.style.transition = 'none';
+                el.style.animation = 'none';
+                el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
@@ -1285,20 +1290,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const canvas = await html2canvas(element, {
           useCORS: true,
           allowTaint: false,
-          scale: 3,
-          backgroundColor: removeFlyerBg ? null : '#ffffff',
-          imageTimeout: 60000,
+          scale: 2,
+          backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+          imageTimeout: 20000,
           onclone: (clonedDoc) => {
             const clonedElement = clonedDoc.getElementById('flyer-content');
             if (clonedElement) {
               clonedElement.style.transform = 'none';
               clonedElement.style.transition = 'none';
+              clonedElement.style.animation = 'none';
               clonedElement.style.margin = '0';
               clonedElement.style.boxShadow = 'none';
               clonedElement.style.display = 'flex';
+              clonedElement.style.visibility = 'visible';
 
               const allElements = clonedElement.querySelectorAll('*');
               allElements.forEach((el: any) => {
+                el.style.transition = 'none';
+                el.style.animation = 'none';
+                el.style.backdropFilter = 'none';
                 el.style.fontVariantNumeric = 'tabular-nums';
                 if (el.classList.contains('price-container')) {
                   el.style.overflow = 'visible';
