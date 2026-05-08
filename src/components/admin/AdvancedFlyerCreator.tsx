@@ -1013,12 +1013,49 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         console.error('Error preparing print:', error);
         toast.error('Erro ao preparar impressão');
         toast.dismiss(loadingToast);
-      } finally {
-        setIsPreparingPrint(false);
-      }
-    };
-
-    const handleDownloadImage = async () => {
+       } finally {
+         setIsPreparingPrint(false);
+       }
+     };
+ 
+     const handleGeneratePreview = async () => {
+       const flyerElement = document.getElementById('flyer-content');
+       if (!flyerElement) return;
+       
+       setIsPreparingPrint(true);
+       try {
+         const images = Array.from(flyerElement.querySelectorAll('img'));
+         await Promise.all(images.map(img => {
+           if (img.complete) return Promise.resolve();
+           return new Promise((resolve) => {
+             img.onload = resolve;
+             img.onerror = resolve;
+           });
+         }));
+ 
+         const originalTransform = flyerElement.style.transform;
+         flyerElement.style.transform = 'scale(1)';
+         await new Promise(resolve => setTimeout(resolve, 300));
+ 
+         const canvas = await html2canvas(flyerElement, {
+           useCORS: true,
+           scale: 2, 
+           backgroundColor: removeFlyerBg ? null : '#ffffff',
+           logging: false
+         });
+ 
+         flyerElement.style.transform = originalTransform;
+         const dataUrl = canvas.toDataURL('image/png', 0.8);
+         setPreviewImageUrl(dataUrl);
+       } catch (error) {
+         console.error('Error generating preview:', error);
+         toast.error('Erro ao gerar prévia');
+       } finally {
+         setIsPreparingPrint(false);
+       }
+     };
+ 
+     const handleDownloadImage = async () => {
       const element = document.getElementById('flyer-content')
       if (!element) {
         toast.error('Conteúdo do encarte não encontrado')
