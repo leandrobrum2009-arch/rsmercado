@@ -989,15 +989,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          // Capture using high reliability settings
          const canvas = await html2canvas(flyerElement, {
            useCORS: true,
-           scale: 3, // Scale 3 is safer for memory while still high res
+           scale: 3,
            backgroundColor: removeFlyerBg ? null : '#ffffff',
            logging: true,
            imageTimeout: 60000,
-           allowTaint: false, // Security: don't allow tainted images as they break toDataURL
+           allowTaint: false,
            onclone: (clonedDoc) => {
              const clonedFlyer = clonedDoc.getElementById('flyer-content');
              if (clonedFlyer) {
-               // Ensure it's rendered at full size without any transforms/scaling
                clonedFlyer.style.transform = 'none';
                clonedFlyer.style.transition = 'none';
                clonedFlyer.style.margin = '0';
@@ -1005,11 +1004,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                clonedFlyer.style.top = '0';
                clonedFlyer.style.left = '0';
                clonedFlyer.style.boxShadow = 'none';
+               clonedFlyer.style.display = 'flex';
                
-               // Fix for prices shifting: ensure containers are not too tight
-               const priceContainers = clonedFlyer.querySelectorAll('.price-container');
-               priceContainers.forEach((container: any) => {
-                 container.style.overflow = 'visible';
+               const allElements = clonedFlyer.querySelectorAll('*');
+               allElements.forEach((el: any) => {
+                 el.style.fontVariantNumeric = 'tabular-nums';
+                 el.style.webkitFontSmoothing = 'antialiased';
+                 if (el.classList.contains('price-container')) {
+                   el.style.overflow = 'visible';
+                   el.style.display = 'block';
+                   el.style.minWidth = '100%';
+                 }
                });
              }
            }
