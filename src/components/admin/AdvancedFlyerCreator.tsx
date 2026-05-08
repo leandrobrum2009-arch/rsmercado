@@ -10,6 +10,7 @@ import { jsPDF } from 'jspdf'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
+ import { Progress } from '@/components/ui/progress'
 import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X } from 'lucide-react'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
@@ -100,8 +101,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const [showPreviewModal, setShowPreviewModal] = useState(false)
        const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
       const [printImage, setPrintImage] = useState<string | null>(null)
-      const [isPreparingPrint, setIsPreparingPrint] = useState(false)
-     const [flyerScale, setFlyerScale] = useState(0.8)
+       const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+       const [generationProgress, setGenerationProgress] = useState(0)
+       const [generationStep, setGenerationStep] = useState('')
+      const [flyerScale, setFlyerScale] = useState(0.8)
  
       useEffect(() => {
         const handleResize = () => {
@@ -749,6 +752,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.error('Erro ao salvar modelo: ' + error.message)
       } finally {
         setUploading(false)
+        setTimeout(() => {
+          setGenerationProgress(0)
+          setGenerationStep('')
+        }, 500)
       }
     }
 
@@ -943,9 +950,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setIsPreparingPrint(true);
+      setGenerationProgress(10);
+      setGenerationStep('Iniciando processamento...');
       const loadingToast = toast.loading('Gerando imagem de alta fidelidade...');
 
       try {
+        setGenerationStep('Sincronizando banco de dados...');
+        setGenerationProgress(20);
+
         // Save history and to database in background
         const historyItem = {
           id: Math.random().toString(36).substring(7),
@@ -977,6 +989,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
 
         // Wait for all images and fonts to load
+        setGenerationStep('Carregando recursos...');
+        setGenerationProgress(40);
         const images = Array.from(flyerElement.querySelectorAll('img'));
         await Promise.all([
           ...images.map(img => {
@@ -988,6 +1002,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando em alta fidelidade...');
+        setGenerationProgress(60);
 
           // Capture using high reliability settings with timeout
           const generatePrintCanvas = async () => {
@@ -1051,10 +1068,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
             printTimeoutPromise
           ]);
           
+          setGenerationProgress(90);
+          setGenerationStep('Preparando impressão...');
           const canvas = printCanvasResult as HTMLCanvasElement;
  
           // Always use PNG for print to ensure maximum fidelity of positions and colors
           const dataUrl = canvas.toDataURL('image/png');
+          setGenerationProgress(100);
+          setGenerationStep('Concluído!');
           setPrintImage(dataUrl);
           toast.dismiss(loadingToast);
           
@@ -1076,6 +1097,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.dismiss(loadingToast);
        } finally {
          setIsPreparingPrint(false);
+         setTimeout(() => {
+           setGenerationProgress(0);
+           setGenerationStep('');
+         }, 500);
        }
      };
  
@@ -1084,24 +1109,21 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         if (!flyerElement) return;
         
         setIsPreparingPrint(true);
+        setGenerationProgress(10);
+        setGenerationStep('Preparando ambiente...');
         console.log('[Preview] Iniciando geração de prévia...');
         
         try {
-          // 1. Small delay to ensure Modal is rendered and DOM is stable
           await new Promise(resolve => setTimeout(resolve, 500));
+          setGenerationProgress(20);
+          setGenerationStep('Carregando imagens e fontes...');
 
-          // 2. Resource Loading with hard timeout
           const images = Array.from(flyerElement.querySelectorAll('img'));
-          console.log(`[Preview] Aguardando ${images.length} imagens e fontes...`);
-          
           const loadResources = Promise.all([
             ...images.map((img, idx) => {
               if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
               return new Promise((resolve) => {
-                const timer = setTimeout(() => {
-                  console.warn(`[Preview] Timeout imagem ${idx + 1}`);
-                  resolve(null);
-                }, 3000);
+                const timer = setTimeout(() => resolve(null), 3000);
                 img.onload = () => { clearTimeout(timer); resolve(null); };
                 img.onerror = () => { clearTimeout(timer); resolve(null); };
               });
@@ -1111,7 +1133,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
           await Promise.race([loadResources, new Promise(resolve => setTimeout(resolve, 8000))]);
           
-          // 3. Generation with hard timeout
+          setGenerationProgress(40);
+          setGenerationStep('Renderizando conteúdo...');
+          
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
           );
@@ -1147,10 +1171,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           });
 
           const canvas = await Promise.race([canvasPromise, timeoutPromise]) as HTMLCanvasElement;
+          setGenerationProgress(80);
+          setGenerationStep('Finalizando imagem...');
           const dataUrl = canvas.toDataURL('image/png');
           
           if (!dataUrl || dataUrl === 'data:,') throw new Error('EMPTY_IMAGE');
           
+          setGenerationProgress(100);
+          setGenerationStep('Concluído!');
           setPreviewImageUrl(dataUrl);
           console.log('[Preview] Prévia gerada com sucesso.');
         } catch (error: any) {
@@ -1164,6 +1192,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setShowPreviewModal(false);
         } finally {
           setIsPreparingPrint(false);
+          setTimeout(() => {
+            setGenerationProgress(0);
+            setGenerationStep('');
+          }, 500);
         }
       };
  
@@ -1175,9 +1207,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setUploading(true)
+      setGenerationProgress(10)
+      setGenerationStep('Iniciando captura...')
       const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
 
       try {
+        setGenerationStep('Carregando imagens...')
+        setGenerationProgress(30)
         // Ensure all images are loaded before capturing
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
@@ -1190,6 +1226,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando imagem...')
+        setGenerationProgress(60)
 
         // Temporary styles for capture to ensure best result
         const originalTransform = element.style.transform;
@@ -1239,7 +1278,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform;
         element.style.transition = originalTransition;
 
+        setGenerationProgress(90)
+        setGenerationStep('Finalizando arquivo...')
         const image = canvas.toDataURL('image/png')
+        setGenerationProgress(100)
+        setGenerationStep('Pronto!')
         const link = document.createElement('a')
         link.href = image
         link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
@@ -1255,6 +1298,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         toast.error('Erro ao gerar imagem. Verifique se as imagens dos produtos estão carregando corretamente ou use a opção PDF.')
       } finally {
         setUploading(false)
+        setTimeout(() => {
+          setGenerationProgress(0)
+          setGenerationStep('')
+        }, 500)
       }
     }
 
@@ -1266,9 +1313,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
 
       setUploading(true)
+      setGenerationProgress(10)
+      setGenerationStep('Iniciando PDF...')
       const loadingToast = toast.loading('Gerando PDF de alta qualidade...')
 
       try {
+        setGenerationStep('Carregando recursos...')
+        setGenerationProgress(30)
         // Ensure all images are loaded
         const images = Array.from(element.getElementsByTagName('img'));
         await Promise.all([
@@ -1281,6 +1332,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }),
           document.fonts?.ready || Promise.resolve()
         ]);
+
+        setGenerationStep('Renderizando páginas...')
+        setGenerationProgress(60)
 
         const originalTransform = element.style.transform
         const originalTransition = element.style.transition
@@ -1328,7 +1382,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         element.style.transform = originalTransform
         element.style.transition = originalTransition
 
+        setGenerationProgress(80)
+        setGenerationStep('Gerando documento PDF...')
         const imgData = canvas.toDataURL('image/png')
+        setGenerationProgress(100)
+        setGenerationStep('Concluído!')
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
@@ -1434,10 +1492,39 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         className="w-[210mm] h-[297mm] object-contain mx-auto print:w-full print:h-full print:object-contain" 
         alt="Print Preview" 
         onLoad={() => {
-          // Safety check: sometimes the print triggers before the image is visually ready
           console.log('Print image loaded in overlay');
         }}
       />
+    </div>
+  )}
+
+  {/* Global Progress Overlay for Print/Download */}
+  {(isPreparingPrint || uploading) && !showPreviewModal && !printImage && (
+    <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
+      <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
+        <CardContent className="p-8 flex flex-col items-center gap-6">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+          <div className="w-full space-y-4">
+            <div className="text-center">
+              <h3 className="font-black uppercase italic tracking-tighter text-lg">Processando Encarte</h3>
+              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{generationStep}</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <span>Progresso</span>
+                <span>{generationProgress}%</span>
+              </div>
+              <Progress value={generationProgress} className="h-3" />
+            </div>
+          </div>
+          <p className="text-[10px] text-zinc-400 font-bold uppercase text-center leading-relaxed">
+            Aguarde enquanto preparamos seu arquivo em alta resolução. 
+            <br />Não feche esta aba.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )}
       <div className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start", printImage && "print:hidden")}>
@@ -2485,11 +2572,25 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                        </Button>
                     </div>
                   </div>
-                   <div className="p-8 flex flex-col items-center justify-center w-full gap-4">
+                   <div className="p-8 flex flex-col items-center justify-center w-full gap-6">
                      {!previewImageUrl ? (
-                       <div className="flex flex-col items-center gap-4">
-                         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                         <p className="text-white font-bold uppercase text-xs">Gerando Prévia de Alta Fidelidade...</p>
+                       <div className="flex flex-col items-center gap-6 w-full max-w-md bg-zinc-800/50 p-8 rounded-3xl border border-white/10">
+                         <div className="relative">
+                           <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                           <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
+                             {generationProgress}%
+                           </div>
+                         </div>
+                         <div className="w-full space-y-3">
+                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                             <span>{generationStep}</span>
+                             <span>{generationProgress}%</span>
+                           </div>
+                           <Progress value={generationProgress} className="h-2 bg-zinc-700" />
+                         </div>
+                         <p className="text-white/60 font-medium text-center text-xs px-4">
+                           Isso pode levar alguns segundos dependendo da quantidade de produtos e qualidade das imagens.
+                         </p>
                        </div>
                      ) : (
                        <img 
