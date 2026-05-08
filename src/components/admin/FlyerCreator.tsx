@@ -26,7 +26,8 @@ export function FlyerCreator() {
   const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
    const { settings: storeSettings } = useStoreSettings()
     const [title, setTitle] = useState('Ofertas Especiais')
-    const [printImage, setPrintImage] = useState<string | null>(null)
+     const [printImage, setPrintImage] = useState<string | null>(null)
+     const [previewImage, setPreviewImage] = useState<string | null>(null)
     const [isPreparingPrint, setIsPreparingPrint] = useState(false)
  
     useEffect(() => {
@@ -368,15 +369,23 @@ export function FlyerCreator() {
                      <Button 
                        variant="outline" 
                        onClick={async () => {
-                         const element = document.getElementById('flyer-content')
-                         if (!element) return
-                         setIsPreparingPrint(true)
-                         try {
-                           const canvas = await html2canvas(element, { useCORS: true, scale: 2 })
-                           setPrintImage(canvas.toDataURL('image/png'))
-                         } finally {
-                           setIsPreparingPrint(false)
-                         }
+                          const element = document.getElementById('flyer-content');
+                          if (!element) return;
+                          setIsPreparingPrint(true);
+                          try {
+                            const images = Array.from(element.getElementsByTagName('img'));
+                            await Promise.all(images.map(img => {
+                              if (img.complete) return Promise.resolve();
+                              return new Promise((resolve) => {
+                                img.onload = resolve;
+                                img.onerror = resolve;
+                              });
+                            }));
+                            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
+                            setPreviewImage(canvas.toDataURL('image/png'));
+                          } finally {
+                            setIsPreparingPrint(false);
+                          }
                        }}
                        disabled={isPreparingPrint}
                      >
@@ -387,17 +396,20 @@ export function FlyerCreator() {
                      <DialogHeader>
                        <DialogTitle>Prévia do Encarte (Imagem)</DialogTitle>
                      </DialogHeader>
-                     <div className="flex justify-center p-4 bg-zinc-100 rounded-xl overflow-auto max-h-[70vh]">
-                       {printImage ? (
-                         <img src={printImage} className="max-w-full shadow-2xl" alt="Flyer Preview" />
-                       ) : (
-                         <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
-                       )}
-                     </div>
-                     <div className="flex justify-end gap-2 mt-4">
-                       <Button variant="outline" onClick={() => setPrintImage(null)}>Fechar</Button>
-                       <Button onClick={handlePrint}><Printer className="w-4 h-4 mr-2" /> Imprimir</Button>
-                     </div>
+                      <div className="flex justify-center p-4 bg-zinc-100 rounded-xl overflow-auto max-h-[70vh]">
+                        {previewImage ? (
+                          <img src={previewImage} className="max-w-full shadow-2xl animate-in fade-in zoom-in duration-300" alt="Flyer Preview" />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 p-8">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <p className="text-xs font-bold uppercase text-zinc-500">Gerando Prévia...</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setPreviewImage(null)}>Fechar</Button>
+                        <Button onClick={() => { setPreviewImage(null); handlePrint(); }}><Printer className="w-4 h-4 mr-2" /> Imprimir Agora</Button>
+                      </div>
                    </DialogContent>
                  </Dialog>
                </div>
