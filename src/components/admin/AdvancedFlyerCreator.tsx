@@ -116,7 +116,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
        const [generationProgress, setGenerationProgress] = useState(0)
        const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
-        const [useHtmlMode, setUseHtmlMode] = useState(false)
+        const [useHtmlMode, setUseHtmlMode] = useState(true)
  
       useEffect(() => {
         const handleResize = () => {
@@ -1161,7 +1161,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isTimeout = error.message === 'Tempo limite excedido ao preparar impressão';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isTimeout ? 'O processamento demorou muito.' : 'Erro na geração da imagem.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
@@ -1347,16 +1347,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           setPreviewImageUrl(dataUrl);
         } catch (error: any) {
           logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
-          if (error.message === 'CANVAS_TAINTED') {
-            toast.error('Erro de segurança (CORS): Algumas imagens não permitem prévia em alta qualidade. Tente o "Modo Fallback".', {
-              duration: 7000
-            });
-          } else if (error.message === 'TIMEOUT_EXCEEDED') {
-            toast.error('O processo demorou muito. Tentando com qualidade reduzida...');
-          } else {
-            toast.error('Erro ao gerar prévia. Verifique sua conexão ou tente o "Modo Fallback".');
-          }
-          setShowPreviewModal(false);
+          logStep(`ERRO handleGeneratePreview: ${error.message}`, error);
+          setUseHtmlMode(true);
+          toast.error('Erro ao gerar prévia em alta resolução. Ativando Modo HTML automático.', {
+            description: 'Você ainda pode visualizar e imprimir o encarte agora.',
+            duration: 5000
+          });
         } finally {
           setIsPreparingPrint(false);
           setTimeout(() => {
@@ -1510,7 +1506,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isCORS = err.message === 'CANVAS_TAINTED';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar imagem.', {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
@@ -1683,7 +1679,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const isPDFError = err.message === 'PDF_GENERATION_FAILED';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isPDFError ? 'Erro crítico ao montar o arquivo PDF.' : 'Erro ao gerar PDF.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo Fallback)?',
+          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
           duration: 10000,
           action: {
             label: 'Imprimir Direto',
