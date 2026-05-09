@@ -1,10 +1,28 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing } from 'lucide-react'
+ import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing, Save, Loader2 } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { Switch } from '@/components/ui/switch'
  import { Slider } from '@/components/ui/slider'
+ import { cn } from '@/lib/utils'
+ import { Button } from '@/components/ui/button'
+ import { Input } from '@/components/ui/input'
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+ import { toast } from '@/lib/toast'
+ import { Badge } from '@/components/ui/badge'
+ 
+ export function AlertManager() {
+   const [alerts, setAlerts] = useState<any[]>([])
+    const [message, setMessage] = useState('')
+    const [targetUrl, setTargetUrl] = useState('')
+    const [duration, setDuration] = useState('10')
+    const [shimmerSpeed, setShimmerSpeed] = useState('2.0')
+   const [type, setType] = useState('info')
+   const [loading, setLoading] = useState(false)
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
     const [panelSettings, setPanelSettings] = useState<any>({
       order_sound_enabled: true,
       order_visual_pulse: true,
@@ -46,24 +64,6 @@
       }
       setLoading(false)
     }
-
- import { Button } from '@/components/ui/button'
- import { Input } from '@/components/ui/input'
- import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
- import { toast } from '@/lib/toast'
- import { Badge } from '@/components/ui/badge'
- 
- export function AlertManager() {
-   const [alerts, setAlerts] = useState<any[]>([])
-    const [message, setMessage] = useState('')
-    const [targetUrl, setTargetUrl] = useState('')
-    const [duration, setDuration] = useState('10')
-    const [shimmerSpeed, setShimmerSpeed] = useState('2.0')
-   const [type, setType] = useState('info')
-   const [loading, setLoading] = useState(false)
-   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
- 
    useEffect(() => {
      fetchAlerts()
    }, [])
