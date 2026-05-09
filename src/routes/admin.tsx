@@ -145,15 +145,25 @@ export const Route = createFileRoute('/admin')({
           setSession(currentSession)
           
           if (currentSession) {
-            const { data: roleData } = await supabase
+            const { data: roleData, error: roleError } = await supabase
              .from('user_roles')
-             .select('permissions')
+             .select('role, permissions')
              .eq('user_id', currentSession.user.id)
              .maybeSingle()
            
-            if (roleData?.permissions) {
+            if (roleData?.permissions && Array.isArray(roleData.permissions) && roleData.permissions.length > 0) {
               setUserPermissions(roleData.permissions)
             } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
+            } else if (roleData?.role === 'admin') {
+              // Se for admin mas não tiver permissões explícitas, dá acesso total (fallback de segurança)
+              setUserPermissions([
+                "delivery_report", "dashboard", "orders", "products", "customers", 
+                "loyalty", "layout", "categories", "organizer", "importer", 
+                "offers", "banners", "flyers", "recipes", "notifications", 
+                "alerts", "settings", "theme", "whatsapp", "webhooks", 
+                "admin_roles", "activity_logs", "feedback"
+              ])
+            }
               setUserPermissions([
                 "delivery_report", "dashboard", "orders", "products", "customers", 
                 "loyalty", "layout", "categories", "organizer", "importer", 
