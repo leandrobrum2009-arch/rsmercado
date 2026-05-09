@@ -37,8 +37,9 @@ export function WhatsAppManager() {
      status_update: '',
      promotion: '',
      order: '',
-     order_summary: '',
-     flyer_share: ''
+      order_summary: '',
+      flyer_share: '',
+      payment_confirmed: ''
    })
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
@@ -606,9 +607,10 @@ export function WhatsAppManager() {
                      { id: 'status_update', label: 'Mundança de Status', placeholder: 'Enviado ao trocar status' },
                      { id: 'order_summary', label: 'Resumo do Pedido', placeholder: 'Lista de itens e total' },
                      { id: 'points_earned', label: 'Pontos Ganhos', placeholder: 'Ao entregar pedido' },
-                     { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
-                     { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
-                     { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' }
+                      { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
+                      { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
+                      { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' },
+                      { id: 'payment_confirmed', label: 'Pagamento Confirmado', placeholder: 'Enviado ao receber pagamento' }
                    ].map((item) => (
                      <div key={item.id} className="space-y-2">
                        <Label className="text-[10px] font-black uppercase text-zinc-500">{item.label}</Label>
