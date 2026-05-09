@@ -153,17 +153,8 @@ export const Route = createFileRoute('/admin')({
            
             if (roleData?.permissions && Array.isArray(roleData.permissions) && roleData.permissions.length > 0) {
               setUserPermissions(roleData.permissions)
-            } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
-            } else if (roleData?.role === 'admin') {
-              // Se for admin mas não tiver permissões explícitas, dá acesso total (fallback de segurança)
-              setUserPermissions([
-                "delivery_report", "dashboard", "orders", "products", "customers", 
-                "loyalty", "layout", "categories", "organizer", "importer", 
-                "offers", "banners", "flyers", "recipes", "notifications", 
-                "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "activity_logs", "feedback"
-              ])
-            }
+            } else if (currentSession.user.email === 'leandrobrum2009@gmail.com' || roleData?.role === 'admin') {
+              // Super admin ou admin sem permissões explícitas ganham acesso total por padrão
               setUserPermissions([
                 "delivery_report", "dashboard", "orders", "products", "customers", 
                 "loyalty", "layout", "categories", "organizer", "importer", 
