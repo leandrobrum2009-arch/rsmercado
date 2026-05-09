@@ -343,10 +343,11 @@
                 `${name} acabou de escolher ${product}.`,
                 `Alguém de Petrópolis adicionou ${product} à cesta.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-cart-${Math.random()}`,
+                id: `sim-cart-${name}-${product}-${phraseIndex}`,
                 type: 'purchase',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: ShoppingBag
               });
               break;
@@ -362,10 +363,11 @@
                 `${name} está de olho em ${product}.`,
                 `Produto popular: ${product} foi favoritado agora.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-wish-${Math.random()}`,
+                id: `sim-wish-${name}-${product}-${phraseIndex}`,
                 type: 'level',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: TrendingUp
               });
               break;
