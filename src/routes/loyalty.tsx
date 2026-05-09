@@ -281,26 +281,54 @@
              ))}
            </div>
            
-           {redemptions.length > 0 && (
-             <div className="mt-10">
-                <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="text-green-600" /> Meus Resgates
-                </h3>
-                <div className="space-y-2">
-                  {redemptions.map(red => (
-                    <div key={red.id} className="p-3 bg-white rounded-2xl border border-zinc-100 flex items-center justify-between">
-                      <div>
-                        <p className="font-black uppercase text-[10px] text-zinc-800">{red.loyalty_rewards?.title}</p>
-                        <p className="text-[8px] text-zinc-400">{new Date(red.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <Badge className={red.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}>
-                        {red.status === 'pending' ? 'Pendente' : 'Concluído'}
-                      </Badge>
+            <div className="space-y-6">
+               <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-2">
+                 <Clock className="text-blue-500" /> Histórico de Pontos
+               </h3>
+               <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden">
+                 {history.length === 0 ? (
+                   <p className="p-8 text-center text-xs font-bold text-zinc-400 uppercase tracking-widest">Nenhuma atividade recente</p>
+                 ) : (
+                   <div className="divide-y divide-zinc-50">
+                     {history.map(item => (
+                       <div key={item.id} className="p-4 flex items-center justify-between">
+                         <div>
+                           <p className="font-black uppercase text-[10px] text-zinc-800">{item.description}</p>
+                           <p className="text-[8px] text-zinc-400">{new Date(item.created_at).toLocaleDateString()}</p>
+                         </div>
+                         <span className={`font-black text-xs ${item.points > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                           {item.points > 0 ? `+${item.points}` : item.points} pts
+                         </span>
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </div>
+
+               {redemptions.length > 0 && (
+                 <div className="mt-10 space-y-4">
+                    <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-2">
+                      <Ticket className="text-green-600" /> Meus Cupons e Prêmios
+                    </h3>
+                    <div className="space-y-2">
+                      {redemptions.map(red => (
+                        <div key={red.id} className="p-4 bg-white rounded-3xl border border-zinc-100 flex items-center justify-between">
+                          <div>
+                            <p className="font-black uppercase text-[10px] text-zinc-800">{red.loyalty_rewards?.title}</p>
+                            {red.details?.coupon_code && (
+                              <p className="font-mono text-primary font-bold text-xs mt-1">CUPOM: {red.details.coupon_code}</p>
+                            )}
+                            <p className="text-[8px] text-zinc-400 mt-1">{new Date(red.created_at).toLocaleDateString()}</p>
+                          </div>
+                          <Badge className={red.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}>
+                            {red.status === 'pending' ? 'Pendente' : 'Concluído'}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-             </div>
-           )}
+                 </div>
+               )}
+            </div>
          </div>
        </div>
      </div>
