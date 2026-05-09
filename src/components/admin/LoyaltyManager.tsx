@@ -390,26 +390,53 @@ export function LoyaltyManager() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase text-zinc-500">Níveis de Fidelidade</label>
-                  <div className="space-y-2">
+                <div className="space-y-4 col-span-1 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase text-zinc-500">Níveis de Fidelidade</label>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {settings.tiers?.map((tier: any, i: number) => (
-                      <div key={i} className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: tier.color }} />
-                        <div className="flex-1">
-                          <p className="text-[10px] font-black uppercase">{tier.name}</p>
-                          <p className="text-[8px] font-bold text-zinc-400">Min. {tier.min_points} PTS</p>
+                      <div key={i} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: tier.color }} />
+                          <Input 
+                            className="h-7 text-[10px] font-black uppercase bg-transparent border-none p-0 focus-visible:ring-0" 
+                            value={tier.name}
+                            onChange={e => {
+                              const newTiers = [...settings.tiers];
+                              newTiers[i].name = e.target.value;
+                              setSettings({...settings, tiers: newTiers});
+                            }}
+                          />
                         </div>
-                        <Input 
-                          type="number" 
-                          className="w-20 h-8 text-[10px] font-bold" 
-                          value={tier.min_points}
-                          onChange={e => {
-                            const newTiers = [...settings.tiers];
-                            newTiers[i].min_points = parseInt(e.target.value);
-                            setSettings({...settings, tiers: newTiers});
-                          }}
-                        />
+                        
+                        <div className="space-y-1">
+                          <label className="text-[8px] font-black uppercase text-zinc-400">Pontos Mínimos</label>
+                          <Input 
+                            type="number" 
+                            className="h-8 text-[10px] font-bold" 
+                            value={tier.min_points}
+                            onChange={e => {
+                              const newTiers = [...settings.tiers];
+                              newTiers[i].min_points = parseInt(e.target.value) || 0;
+                              setSettings({...settings, tiers: newTiers});
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[8px] font-black uppercase text-zinc-400">Benefícios (exibidos p/ cliente)</label>
+                          <textarea 
+                            className="w-full text-[10px] font-medium p-2 rounded-lg border border-zinc-200 bg-white min-h-[60px]"
+                            placeholder="Ex: Frete grátis e brindes"
+                            value={tier.benefits || ''}
+                            onChange={e => {
+                              const newTiers = [...settings.tiers];
+                              newTiers[i].benefits = e.target.value;
+                              setSettings({...settings, tiers: newTiers});
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
