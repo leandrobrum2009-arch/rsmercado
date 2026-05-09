@@ -830,9 +830,8 @@
                          </div>
                        </div>
                      </div>
-                   </div>
-
-                   <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
+                    </div>
+                    <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                      <div>
                        <div className="flex items-center gap-2 mb-4">
