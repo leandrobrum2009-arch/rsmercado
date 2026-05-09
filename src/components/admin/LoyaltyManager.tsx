@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X } from 'lucide-react'
+ import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X, CheckCircle2, Clock, Ticket } from 'lucide-react'
  import { Badge } from '@/components/ui/badge'
  import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
@@ -26,6 +26,7 @@ export function LoyaltyManager() {
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
     const [challenges, setChallenges] = useState<any[]>([])
+    const [redemptions, setRedemptions] = useState<any[]>([])
     const [tierStats, setTierStats] = useState<Record<string, number>>({})
    const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
@@ -93,6 +94,14 @@ export function LoyaltyManager() {
       const { data: cData, error: cErr } = await supabase.from('weekly_challenges').select('*').order('start_date', { ascending: false });
       if (!cErr) setChallenges(cData || []);
       else console.error('Error fetching challenges:', cErr);
+
+      // Fetch Redemptions
+      const { data: redData, error: redErr } = await supabase
+        .from('loyalty_redemptions')
+        .select('*, profiles(full_name, whatsapp), loyalty_rewards(title, points_cost)')
+        .order('created_at', { ascending: false });
+      if (!redErr) setRedemptions(redData || []);
+      else console.error('Error fetching redemptions:', redErr);
 
       // Fetch Tier Stats
       const { data: profiles, error: pErr } = await supabase.from('profiles').select('loyalty_points');
@@ -189,11 +198,23 @@ export function LoyaltyManager() {
       }
     }
 
-  const deleteNeighborhood = async (id: string) => {
-    const { error } = await supabase.from('delivery_neighborhoods').delete().eq('id', id)
-    if (error) toast.error('Erro ao remover')
-    else fetchData()
-  }
+   const deleteNeighborhood = async (id: string) => {
+     const { error } = await supabase.from('delivery_neighborhoods').delete().eq('id', id)
+     if (error) toast.error('Erro ao remover')
+     else fetchData()
+   }
+
+   const updateRedemptionStatus = async (id: string, status: string) => {
+     setLoading(true);
+     const { error } = await supabase.from('loyalty_redemptions').update({ status }).eq('id', id);
+     if (error) {
+       toast.error('Erro ao atualizar status: ' + error.message);
+     } else {
+       toast.success('Status atualizado!');
+       fetchData();
+     }
+     setLoading(false);
+   }
 
   return (
     <div className="space-y-6">
