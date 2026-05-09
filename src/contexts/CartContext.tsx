@@ -25,16 +25,24 @@
  export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
    const [items, setItems] = useState<CartItem[]>([]);
  
-   useEffect(() => {
-     const savedCart = localStorage.getItem('cart');
-     if (savedCart) {
-       setItems(JSON.parse(savedCart));
-     }
-   }, []);
- 
-   useEffect(() => {
-     localStorage.setItem('cart', JSON.stringify(items));
-   }, [items]);
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+          try {
+            setItems(JSON.parse(savedCart));
+          } catch (e) {
+            console.error('Error parsing cart from localStorage:', e);
+          }
+        }
+      }
+    }, []);
+
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cart', JSON.stringify(items));
+      }
+    }, [items]);
  
     const addToCart = (product: any) => {
       if (product.stock !== undefined && product.stock <= 0) {
