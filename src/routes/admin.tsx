@@ -136,21 +136,51 @@ export const Route = createFileRoute('/admin')({
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [hasNewOrder, setHasNewOrder] = useState(false)
+    const [panelConfig, setPanelConfig] = useState<any>(null)
     const audioRef = useRef<HTMLAudioElement | null>(null)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
     const [lastError, setLastError] = useState<string | null>(null)
  
     useEffect(() => {
-      // Setup notification sound
-      audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
-      
+      const fetchConfig = async () => {
+        const { data } = await supabase
+          .from('store_settings')
+          .select('value')
+          .eq('key', 'panel_alert_config')
+          .maybeSingle()
+        
+        if (data?.value) {
+          setPanelConfig(data.value)
+        }
+      }
+      fetchConfig()
+
       // Real-time listener for new orders
       const channel = supabase
         .channel('admin_new_orders')
-        .on('postgres_changes' as any, { event: 'INSERT', schema: 'public', table: 'orders' }, (payload: any) => {
+        .on('postgres_changes' as any, { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload: any) => {
           console.log('New order received!', payload)
-          setHasNewOrder(true)
-          audioRef.current?.play().catch(e => console.error('Audio play failed:', e))
+          
+          // Re-fetch config to get latest toggle state
+          const { data: latest } = await supabase
+            .from('store_settings')
+            .select('value')
+            .eq('key', 'panel_alert_config')
+            .maybeSingle()
+          
+          const config = latest?.value || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
+
+          if (config.order_visual_pulse !== false) {
+            setHasNewOrder(true)
+          }
+
+          if (config.order_sound_enabled !== false) {
+            if (!audioRef.current) {
+              audioRef.current = new Audio(config.notification_sound_url)
+            }
+            audioRef.current.volume = (config.order_sound_volume || 80) / 100
+            audioRef.current.play().catch(e => console.error('Audio play failed:', e))
+          }
         })
         .subscribe()
 
@@ -363,7 +393,7 @@ export const Route = createFileRoute('/admin')({
                         activeTab === item.id 
                           ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
                           : "hover:bg-zinc-800 hover:text-white",
-                        item.id === 'delivery_report' && hasNewOrder && "animate-pulse ring-2 ring-primary bg-primary/10 text-white"
+                        item.id === 'delivery_report' && hasNewOrder && "animate-pulse ring-2 ring-primary bg-primary/20 text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]"
                       )}
                     >
                       <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
