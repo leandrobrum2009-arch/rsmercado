@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-    import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone } from 'lucide-react'
+   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
@@ -54,9 +54,22 @@
             show_coupons: true,
             show_shares: true,
             show_carts: true,
-            show_wishlists: true,
-            time_template: 'agora mesmo'
-         },
+          show_wishlists: true,
+          time_template: 'agora mesmo',
+          frequencies: {
+            purchase: 5,
+            viewers: 5,
+            stock: 3,
+            level: 3,
+            delivered: 3,
+            payment: 3,
+            registration: 2,
+            coupon: 2,
+            share: 2,
+            cart: 2,
+            wishlist: 2
+          }
+       },
       notifications: {
         sms_enabled: false,
         sms_provider: 'twilio',
@@ -559,29 +572,67 @@
                     <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Tipos de Balões Ativos</label>
                     
                     {[
-                      { id: 'show_purchases', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
-                      { id: 'show_viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
-                      { id: 'show_stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
-                      { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
-                      { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
-                      { id: 'show_payments', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' },
-                      { id: 'show_registrations', label: 'Novos Cadastros', desc: 'Leticia acabou de se cadastrar!' },
-                      { id: 'show_coupons', label: 'Uso de Cupons', desc: 'Bernardo usou um cupom agora.' },
-                      { id: 'show_shares', label: 'Ofertas Compartilhadas', desc: 'Kevin compartilhou uma oferta!' },
-                      { id: 'show_carts', label: 'Adição ao Carrinho', desc: 'Ana adicionou um produto ao carrinho.' },
-                      { id: 'show_wishlists', label: 'Favoritados', desc: 'Rafael salvou um produto nos favoritos.' }
+                      { id: 'show_purchases', freqId: 'purchase', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
+                      { id: 'show_viewers', freqId: 'viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
+                      { id: 'show_stock', freqId: 'stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
+                      { id: 'show_levels', freqId: 'level', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
+                      { id: 'show_delivered', freqId: 'delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
+                      { id: 'show_payments', freqId: 'payment', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' },
+                      { id: 'show_registrations', freqId: 'registration', label: 'Novos Cadastros', desc: 'Leticia acabou de se cadastrar!' },
+                      { id: 'show_coupons', freqId: 'coupon', label: 'Uso de Cupons', desc: 'Bernardo usou um cupom agora.' },
+                      { id: 'show_shares', freqId: 'share', label: 'Ofertas Compartilhadas', desc: 'Kevin compartilhou uma oferta!' },
+                      { id: 'show_carts', freqId: 'cart', label: 'Adição ao Carrinho', desc: 'Ana adicionou um produto ao carrinho.' },
+                      { id: 'show_wishlists', freqId: 'wishlist', label: 'Favoritados', desc: 'Rafael salvou um produto nos favoritos.' }
                     ].map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-xl hover:bg-zinc-50 transition-colors">
+                      <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-2xl hover:bg-zinc-50 transition-all group">
                         <input 
                           type="checkbox"
                           checked={settings.social_proof?.[item.id]}
                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, [item.id]: e.target.checked } })}
-                          className="w-4 h-4 rounded text-primary focus:ring-primary"
+                          className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
                         />
-                        <div>
+                        <div className="flex-1">
                           <p className="text-[11px] font-black uppercase text-zinc-800">{item.label}</p>
                           <p className="text-[10px] text-zinc-400 italic">Ex: {item.desc}</p>
                         </div>
+                        {settings.social_proof?.[item.id] && (
+                          <div className="flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <label className="text-[8px] font-black uppercase text-zinc-400">Freq. (1-10)</label>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="number" 
+                                min="1" 
+                                max="10"
+                                value={settings.social_proof?.frequencies?.[item.freqId] || 5}
+                                onChange={(e) => setSettings({
+                                  ...settings,
+                                  social_proof: {
+                                    ...settings.social_proof,
+                                    frequencies: {
+                                      ...settings.social_proof?.frequencies,
+                                      [item.freqId]: parseInt(e.target.value) || 1
+                                    }
+                                  }
+                                })}
+                                className="w-10 h-6 text-[10px] text-center border rounded-lg bg-zinc-50 font-black"
+                              />
+                              <button
+                                onClick={async () => {
+                                  await supabase.channel('social-proof-manual').send({
+                                    type: 'broadcast',
+                                    event: 'trigger',
+                                    payload: { type: item.freqId }
+                                  });
+                                  toast.success(`Evento "${item.label}" disparado!`);
+                                }}
+                                className="p-1.5 bg-yellow-400 text-black rounded-lg hover:scale-110 transition-transform shadow-sm"
+                                title="Disparar agora"
+                              >
+                                <Zap size={10} fill="currentColor" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

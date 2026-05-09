@@ -144,10 +144,21 @@
       }
     }, [queue, currentNotification]);
  
-   useEffect(() => {
-     if (!isEnabled || !config) return;
- 
-     // 1. Real-time Listeners
+    useEffect(() => {
+      if (!isEnabled || !config) return;
+  
+      // 0. Manual Trigger Listener
+      const manualChannel = supabase
+        .channel('social-proof-manual')
+        .on('broadcast', { event: 'trigger' }, (payload) => {
+          const { type } = payload.payload;
+          if (type) {
+             simulateEvent(type);
+          }
+        })
+        .subscribe();
+
+      // 1. Real-time Listeners
      const orderChannel = supabase
        .channel('social-proof-orders')
        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
@@ -228,49 +239,9 @@
        })
        .subscribe();
  
-     // 2. Fallback / Periodic simulated events
-     const fetchRandomNotification = async () => {
-       // Don't show random if one is already showing (to prioritize real events)
-       if (queue.length > 0 || currentNotification) return;
- 
-       const types = [];
-       if (config.show_purchases) types.push('purchase');
-       if (config.show_viewers) types.push('viewers');
-       if (config.show_stock) types.push('stock');
-        if (config.show_levels) types.push('level');
-        if (config.show_delivered) types.push('delivered');
-          if (config.show_payments) types.push('payment');
-          if (config.show_carts) types.push('cart');
-          if (config.show_wishlists) types.push('wishlist');
-          if (config.show_registrations) types.push('registration');
-          if (config.show_coupons) types.push('coupon');
-          if (config.show_shares) types.push('share');
- 
-       if (types.length === 0) return;
- 
-        // Filter out last type to ensure variety in categories
-        // Filter out types that have reached their "session limit" (e.g., 15 times)
-        // and ensure variety by excluding the last type
-        const availableTypes = types.filter(t => {
-          const usage = typeUsage[t] || 0;
-          return usage < 15 && t !== lastType;
-        });
-
-        // If all available types are exhausted or we only have one, reset or fallback
-        const finalTypes = availableTypes.length > 0 ? availableTypes : types.filter(t => (typeUsage[t] || 0) < 15);
-        
-        if (finalTypes.length === 0) return; // All limits reached for this session
-
-        const selectedType = finalTypes[Math.floor(Math.random() * finalTypes.length)];
-        
-        setLastType(selectedType);
-        setTypeUsage(prev => ({
-          ...prev,
-          [selectedType]: (prev[selectedType] || 0) + 1
-        }));
- 
-       try {
-         switch (selectedType) {
+      const simulateEvent = async (selectedType: string) => {
+        try {
+          switch (selectedType) {
             case 'purchase': {
               const firstNames = [
                 'Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 
@@ -499,11 +470,63 @@
               });
               break;
             }
-         }
-       } catch (err) {
-         console.error('Error fetching social proof:', err);
-       }
-     };
+          }
+        } catch (err) {
+          console.error('Error fetching social proof:', err);
+        }
+      };
+
+      // 2. Fallback / Periodic simulated events
+      const fetchRandomNotification = async () => {
+        // Don't show random if one is already showing (to prioritize real events)
+        if (queue.length > 0 || currentNotification) return;
+  
+        const types = [];
+        if (config.show_purchases) types.push('purchase');
+        if (config.show_viewers) types.push('viewers');
+        if (config.show_stock) types.push('stock');
+        if (config.show_levels) types.push('level');
+        if (config.show_delivered) types.push('delivered');
+        if (config.show_payments) types.push('payment');
+        if (config.show_carts) types.push('cart');
+        if (config.show_wishlists) types.push('wishlist');
+        if (config.show_registrations) types.push('registration');
+        if (config.show_coupons) types.push('coupon');
+        if (config.show_shares) types.push('share');
+  
+        if (types.length === 0) return;
+  
+        const availableTypes = types.filter(t => {
+          const usage = typeUsage[t] || 0;
+          return usage < 15 && t !== lastType;
+        });
+
+        const finalTypes = availableTypes.length > 0 ? availableTypes : types.filter(t => (typeUsage[t] || 0) < 15);
+        
+        if (finalTypes.length === 0) return;
+
+        // Weighted selection
+        const frequencies = config.frequencies || {};
+        const totalWeight = finalTypes.reduce((acc, t) => acc + (frequencies[t] || 5), 0);
+        let random = Math.random() * totalWeight;
+        
+        let selectedType = finalTypes[0];
+        for (const t of finalTypes) {
+          random -= (frequencies[t] || 5);
+          if (random <= 0) {
+            selectedType = t;
+            break;
+          }
+        }
+         
+        setLastType(selectedType);
+        setTypeUsage(prev => ({
+          ...prev,
+          [selectedType]: (prev[selectedType] || 0) + 1
+        }));
+
+        await simulateEvent(selectedType);
+      };
  
       let timeoutId: NodeJS.Timeout;
 
@@ -526,6 +549,7 @@
         clearTimeout(timeoutId);
         supabase.removeChannel(orderChannel);
         supabase.removeChannel(profileChannel);
+        supabase.removeChannel(manualChannel);
       };
    }, [isEnabled, config]);
  
