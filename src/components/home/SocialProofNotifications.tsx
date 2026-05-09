@@ -23,7 +23,7 @@
      return message;
    };
  
-   const defaultConfig = {
+   const defaultConfig: any = {
      enabled: true,
      interval: 15000,
      show_purchases: true,
