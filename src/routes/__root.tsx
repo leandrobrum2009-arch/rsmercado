@@ -1,4 +1,5 @@
-   import { StoreAlertBanner } from "../components/StoreAlertBanner";
+ import { StoreAlertBanner } from "../components/StoreAlertBanner";
+ import { SocialProofNotifications } from "../components/home/SocialProofNotifications";
    import { registerServiceWorker } from "../lib/webpush";
    import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
      import { Home, ShoppingCart, User, Search, ChefHat, Settings, Menu, ShieldCheck, AlertTriangle, ExternalLink, Bell, Trophy, ShoppingBag } from "lucide-react";
@@ -285,17 +286,21 @@ function RootShell({ children }: { children: React.ReactNode }) {
                     <span className="text-xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
                   )}
                 </Link>
-                <div className="flex items-center space-x-1">
-                  <NotificationCenter />
-                 <Link to="/search" search={{}} className="p-2 text-gray-600">
-                   <Search size={20} />
-                 </Link>
-                  <Link to="/search" search={{ tag: 'OFERTA' }} className="p-2 text-red-600 animate-pulse bg-red-50 rounded-full">
-                    <ShoppingBag size={20} />
-                  </Link>
-                  <Link to="/cart" className="relative p-2 text-gray-600">
-                    <ShoppingCart size={20} />
-                    {cartCount > 0 && (
+                 <div className="flex items-center space-x-2">
+                   <NotificationCenter />
+                   <Link to="/search" search={{}} className="p-2 text-gray-600">
+                     <Search size={20} />
+                   </Link>
+                   <Link 
+                     to="/search" 
+                     search={{ tag: 'OFERTA' }} 
+                     className="p-2 text-white bg-red-600 rounded-full animate-bounce animate-glow shadow-lg shadow-red-200 ring-2 ring-red-400 ring-offset-2 flex items-center justify-center"
+                   >
+                     <ShoppingBag size={18} />
+                   </Link>
+                   <Link to="/cart" className={`relative p-2 transition-all duration-300 ${cartCount > 0 ? 'text-green-600 scale-110' : 'text-gray-600'}`}>
+                     <ShoppingCart size={20} className={cartCount > 0 ? 'animate-wiggle' : ''} />
+                     {cartCount > 0 && (
                       <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
                         {cartCount}
                       </span>
@@ -323,15 +328,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 const isOferta = item.name === 'Ofertas';
                 
                 return (
-                  <Link
-                    key={item.path + (isOferta ? 'oferta' : '')}
-                    to={item.path}
-                    // @ts-ignore
-                    search={item.search}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
-                      isActive ? "text-green-600" : isOferta ? "text-red-600 animate-pulse font-black bg-red-50 px-2 py-1 rounded-lg" : "text-gray-600"
-                    }`}
-                  >
+                   <Link
+                     key={item.path + (isOferta ? 'oferta' : '')}
+                     to={item.path}
+                     // @ts-ignore
+                     search={item.search}
+                     className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
+                       isActive ? "text-green-600" : isOferta ? "text-white bg-red-600 animate-pulse animate-glow font-black px-4 py-2 rounded-full shadow-lg shadow-red-100 hover:bg-red-700 transition-all hover:scale-105 ring-2 ring-red-400 ring-offset-1" : "text-gray-600"
+                     }`}
+                   >
                     <item.icon size={20} />
                     <span>{item.name}</span>
                     {item.badge ? (
@@ -352,10 +357,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
        </header>
  
  
-        <main className="flex-1 pb-20 md:pb-0">
-          <Outlet />
-          {!isAdminPage && <FeedbackButton />}
-        </main>
+         <main className="flex-1 pb-20 md:pb-0">
+           <Outlet />
+           {!isAdminPage && (
+             <>
+               <FeedbackButton />
+               <SocialProofNotifications />
+             </>
+           )}
+         </main>
  
        {/* Mobile Bottom Navigation */}
        {!isAdminPage && (
