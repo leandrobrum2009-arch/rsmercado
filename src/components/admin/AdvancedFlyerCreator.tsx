@@ -117,6 +117,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
          const [useHtmlMode, setUseHtmlMode] = useState(true)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
+    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
 
     // Auto-load last configuration
     useEffect(() => {
@@ -534,9 +536,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }, [globalRemoveBg])
 
-    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
-    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
- 
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
