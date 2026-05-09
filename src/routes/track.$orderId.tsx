@@ -9,7 +9,7 @@
  import { Input } from '@/components/ui/input'
  import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
- import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
+ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
  
  export const Route = createFileRoute('/track/$orderId')({
    component: TrackingPage,
@@ -220,14 +220,15 @@ import { Badge } from '@/components/ui/badge'
         
         logAttempt('payment_attempt', 'success', { order_id: orderId, type: order?.payment_method, simulation: true });
         
-        // Notify via WhatsApp if enabled
-        const config = await getWhatsAppConfig();
-        if (config?.notify_order_status !== false) {
-          const message = formatWhatsAppMessage('status_update', {
+         // Notify via WhatsApp if enabled
+         const config = await getWhatsAppConfig();
+         if (config?.notify_order_status !== false) {
+           const templates = await getWhatsAppTemplates();
+           const message = formatWhatsAppMessage('status_update', {
             id: orderId,
             status: 'approved',
-            customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
-          });
+             customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
+           }, templates);
           const phone = order?.customer_phone || order?.profiles?.whatsapp;
           if (phone) await sendWhatsAppMessage(phone, message);
         }
