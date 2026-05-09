@@ -605,15 +605,35 @@ export function WhatsAppManager() {
                 </div>
               ) : (
                 <div className="divide-y">
-                  {logs.map(log => (
-                    <div key={log.id} className="p-4 hover:bg-zinc-50 transition-colors">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] font-black text-zinc-900">{log.phone}</span>
-                        <span className="text-[9px] font-bold text-zinc-400">{new Date(log.sent_at).toLocaleString()}</span>
-                      </div>
-                      <p className="text-[10px] text-zinc-500 italic line-clamp-1">"{log.message_text}"</p>
-                    </div>
-                  ))}
+                   {logs.map(log => (
+                     <div key={log.id} className="p-4 hover:bg-zinc-50 transition-colors">
+                       <div className="flex justify-between items-start mb-1">
+                         <div className="space-y-0.5">
+                           <span className="text-[10px] font-black text-zinc-900">{log.phone}</span>
+                           <div className="flex items-center gap-1.5">
+                             <span className={`text-[7px] font-black uppercase px-1 py-0.5 rounded ${
+                               log.status === 'sent' ? 'bg-green-100 text-green-700' : 
+                               log.status === 'manual' ? 'bg-blue-100 text-blue-700' :
+                               'bg-red-100 text-red-700'
+                             }`}>
+                               {log.status === 'sent' ? 'API' : log.status === 'manual' ? 'Manual' : 'Erro'}
+                             </span>
+                             <span className="text-[7px] font-bold text-zinc-400 uppercase tracking-tighter">
+                               {new Date(log.sent_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                             </span>
+                           </div>
+                         </div>
+                         {log.status === 'error' && (
+                           <Badge variant="destructive" className="text-[7px] px-1 py-0 h-4">
+                             {log.error_message || 'Erro'}
+                           </Badge>
+                         )}
+                       </div>
+                       <p className="text-[10px] text-zinc-500 italic line-clamp-2 mt-1 bg-zinc-50/50 p-2 rounded-lg border border-zinc-100/50">
+                         "{log.message_text}"
+                       </p>
+                     </div>
+                   ))}
                 </div>
               )
              ) : (
