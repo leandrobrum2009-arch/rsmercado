@@ -234,11 +234,11 @@
         if (config.show_levels) types.push('level');
         if (config.show_delivered) types.push('delivered');
           if (config.show_payments) types.push('payment');
-          types.push('cart');
-          types.push('wishlist');
-          types.push('registration');
-          types.push('coupon');
-          types.push('share');
+          if (config.show_carts) types.push('cart');
+          if (config.show_wishlists) types.push('wishlist');
+          if (config.show_registrations) types.push('registration');
+          if (config.show_coupons) types.push('coupon');
+          if (config.show_shares) types.push('share');
  
        if (types.length === 0) return;
  
