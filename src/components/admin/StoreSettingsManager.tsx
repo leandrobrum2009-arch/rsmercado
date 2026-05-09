@@ -571,11 +571,10 @@
                    <div className="px-4 py-2 rounded-xl text-zinc-900 text-xs font-black uppercase shadow-sm border border-zinc-200" style={{ backgroundColor: settings.colors.secondary }}>Botão Secundário</div>
                  </div>
                </div>
-             </CardContent>
-           </Card>
- 
-            {/* Efeitos e Prova Social */}
-            <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
+               </CardContent>
+             </Card>
+           </div>
+         </TabsContent>
               <CardHeader className="bg-zinc-900 border-b border-zinc-800">
                 <CardTitle className="flex items-center gap-2 text-white">
                   <div className="p-2 bg-yellow-400 rounded-lg text-black">
