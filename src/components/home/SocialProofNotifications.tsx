@@ -22,6 +22,10 @@
       const saved = sessionStorage.getItem('social_proof_type_usage');
       return saved ? JSON.parse(saved) : {};
     });
+    const [usedParams, setUsedParams] = useState<Record<string, string[]>>(() => {
+      const saved = sessionStorage.getItem('social_proof_used_params');
+      return saved ? JSON.parse(saved) : { names: [], neighborhoods: [], products: [] };
+    });
     useEffect(() => {
       sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
     }, [shownIds]);
@@ -29,6 +33,26 @@
     useEffect(() => {
       sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
     }, [typeUsage]);
+
+    useEffect(() => {
+      sessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+    }, [usedParams]);
+
+    const getUniqueItem = (list: string[], key: string, maxHistory = 40) => {
+      const used = usedParams[key] || [];
+      const available = list.filter(item => !used.includes(item));
+      const selection = available.length > 0 
+        ? available[Math.floor(Math.random() * available.length)]
+        : list[Math.floor(Math.random() * list.length)];
+      
+      setUsedParams(prev => {
+        const current = prev[key] || [];
+        const next = [selection, ...current].slice(0, maxHistory);
+        return { ...prev, [key]: next };
+      });
+      
+      return selection;
+    };
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [config, setConfig] = useState<any>(null);
