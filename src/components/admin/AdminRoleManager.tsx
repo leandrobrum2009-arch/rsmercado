@@ -7,52 +7,51 @@
  import { Checkbox } from '@/components/ui/checkbox'
   import { toast } from 'sonner'
   import { Input } from '@/components/ui/input'
-    const [searchEmail, setSearchEmail] = useState('')
-    const [isPromoting, setIsPromoting] = useState(false)
- 
-    const handlePromoteUser = async () => {
-      if (!searchEmail) return
-      setIsPromoting(true)
-      try {
-        // Primeiro buscar o usuário pelo e-mail na tabela profiles
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .eq('email', searchEmail.trim().toLowerCase())
-          .maybeSingle()
- 
-        if (profileError) throw profileError
-        if (!profile) {
-          toast.error('Usuário não encontrado com este e-mail')
-          return
-        }
- 
-        // Criar ou atualizar o cargo para admin
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .upsert({ 
-            user_id: profile.id, 
-            role: 'admin',
-            permissions: ["dashboard", "orders", "products"] // Permissões padrão
-          })
- 
-        if (roleError) throw roleError
-        
-        toast.success(`${profile.full_name || searchEmail} agora é um administrador!`)
-        setSearchEmail('')
-        fetchAdmins()
-      } catch (err: any) {
-        console.error('Error promoting user:', err)
-        toast.error('Erro ao promover usuário: ' + err.message)
-      } finally {
-        setIsPromoting(false)
-      }
-    }
- 
  import { Badge } from '@/components/ui/badge'
  
  export function AdminRoleManager() {
    const [admins, setAdmins] = useState<any[]>([])
+   const [searchEmail, setSearchEmail] = useState('')
+   const [isPromoting, setIsPromoting] = useState(false)
+
+   const handlePromoteUser = async () => {
+     if (!searchEmail) return
+     setIsPromoting(true)
+     try {
+       // Primeiro buscar o usuário pelo e-mail na tabela profiles
+       const { data: profile, error: profileError } = await supabase
+         .from('profiles')
+         .select('id, full_name, email')
+         .eq('email', searchEmail.trim().toLowerCase())
+         .maybeSingle()
+
+       if (profileError) throw profileError
+       if (!profile) {
+         toast.error('Usuário não encontrado com este e-mail')
+         return
+       }
+
+       // Criar ou atualizar o cargo para admin
+       const { error: roleError } = await supabase
+         .from('user_roles')
+         .upsert({ 
+           user_id: profile.id, 
+           role: 'admin',
+           permissions: ["dashboard", "orders", "products"] // Permissões padrão
+         })
+
+       if (roleError) throw roleError
+       
+       toast.success(`${profile.full_name || searchEmail} agora é um administrador!`)
+       setSearchEmail('')
+       fetchAdmins()
+     } catch (err: any) {
+       console.error('Error promoting user:', err)
+       toast.error('Erro ao promover usuário: ' + err.message)
+     } finally {
+       setIsPromoting(false)
+     }
+   }
    const [loading, setLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
    const [editingAdmin, setEditingAdmin] = useState<any>(null)
