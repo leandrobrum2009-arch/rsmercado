@@ -527,8 +527,9 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
               </CardContent>
             </Card>
 
-            {/* Contato e Endereço */}
-             <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+             {/* Contato e Endereço */}
+             <Card className="border-zinc-200 shadow-sm md:col-span-2">
+               <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                <CardTitle className="flex items-center gap-2 text-zinc-800">
                  <ImageIcon className="h-5 w-5 text-green-500" />
                  Informações de Contato e Localização
