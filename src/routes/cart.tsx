@@ -278,14 +278,22 @@ function CartPage() {
 
       if (itemsError) throw itemsError;
 
-       // 3. Send WhatsApp Notifications
-       const userMessage = formatWhatsAppMessage('order', {
-         id: order.id,
-         total_amount: total,
-         status: 'Recebido'
-       });
-       
-       await sendWhatsAppMessage(customerPhone, userMessage);
+        // 3. Send WhatsApp Notifications
+        const addressStr = `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`;
+        const userSummary = formatWhatsAppMessage('order_summary', {
+          id: order.id,
+          customer_name: customerName,
+          address: addressStr,
+          payment_method: paymentMethod === 'money' ? `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ' (Sem troco)'}` : paymentMethod,
+          items: items,
+          subtotal: total,
+          discount: discount,
+          delivery_fee: deliveryFee,
+          total_amount: total - discount + deliveryFee
+        });
+        
+        const userFullMessage = `✅ *PEDIDO RECEBIDO COM SUCESSO!* ✅\n\nOlá *${customerName}*, seu pedido foi processado e já estamos preparando tudo!\n\n${userSummary}`;
+        await sendWhatsAppMessage(customerPhone, userFullMessage);
 
        // Notify Admin if enabled
        const waConfig = await getWhatsAppConfig();
