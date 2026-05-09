@@ -1,6 +1,6 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing, Save, Loader2 } from 'lucide-react'
+ import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing, Save, Loader2, History as HistoryIcon, RefreshCcw } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { Switch } from '@/components/ui/switch'
@@ -147,7 +147,7 @@
               <BellRing className="mr-2 h-3.5 w-3.5" /> Alertas Ativos
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-black uppercase text-[10px] italic">
-              <History className="mr-2 h-3.5 w-3.5" /> Histórico
+              <HistoryIcon className="mr-2 h-3.5 w-3.5" /> Histórico
             </TabsTrigger>
             <TabsTrigger value="panel" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-black uppercase text-[10px] italic">
               <Settings2 className="mr-2 h-3.5 w-3.5" /> Config. Painel
@@ -158,7 +158,7 @@
               <CardHeader className="bg-zinc-800 text-white p-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                    <History className="h-6 w-6" />
+                    <HistoryIcon className="h-6 w-6" />
                   </div>
                   <div>
                     <CardTitle className="text-xl font-black italic uppercase tracking-tighter">Histórico de Envios</CardTitle>
