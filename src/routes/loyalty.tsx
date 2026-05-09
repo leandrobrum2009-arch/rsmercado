@@ -12,13 +12,20 @@
    component: LoyaltyPage,
  })
  
- function LoyaltyPage() {
-   const [profile, setProfile] = useState<any>(null)
-   const [challenges, setChallenges] = useState<any[]>([])
-   const [rewards, setRewards] = useState<any[]>([])
-   const [redemptions, setRedemptions] = useState<any[]>([])
-   const [loading, setLoading] = useState(true)
-   const [isRedeeming, setIsRedeeming] = useState(false)
+  function LoyaltyPage() {
+    const [profile, setProfile] = useState<any>(null)
+    const [challenges, setChallenges] = useState<any[]>([])
+    const [rewards, setRewards] = useState<any[]>([])
+    const [redemptions, setRedemptions] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [isRedeeming, setIsRedeeming] = useState(false)
+    const [settings, setSettings] = useState<any>({
+      tiers: [
+        { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
+        { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
+        { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
+      ]
+    })
  
    useEffect(() => {
      fetchData()
@@ -33,6 +40,12 @@
        const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
        setProfile(prof)
  
+        // Fetch Settings
+        const { data: sData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle()
+        if (sData?.value) {
+          setSettings(sData.value)
+        }
+
        const { data: cData } = await supabase.from('weekly_challenges').select('*').eq('active', true)
        const { data: rData } = await supabase.from('loyalty_rewards').select('*').eq('active', true)
        
@@ -83,9 +96,17 @@
      }
    }
  
-   if (loading) {
-     return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" size={40} /></div>
-   }
+    const currentTier = [...(settings?.tiers || [])]
+      .sort((a, b) => b.min_points - a.min_points)
+      .find(t => (profile?.points_balance || 0) >= t.min_points) || settings?.tiers?.[0]
+
+    const nextTier = [...(settings?.tiers || [])]
+      .sort((a, b) => a.min_points - b.min_points)
+      .find(t => (profile?.points_balance || 0) < t.min_points)
+
+    if (loading) {
+      return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" size={40} /></div>
+    }
  
    return (
      <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-32">
@@ -108,15 +129,15 @@
                <h2 className="text-6xl font-black tracking-tighter">{profile?.points_balance || 0}</h2>
                <span className="text-amber-400 font-bold uppercase">Pontos</span>
              </div>
-             <div className="flex items-center gap-2 mt-4">
-               <Badge className="bg-amber-500 text-white border-0 py-1 px-3">
-                 <Star size={12} className="mr-1 fill-white" />
-                 Nível {profile?.points_balance > 1000 ? 'Platinum' : profile?.points_balance > 500 ? 'Ouro' : 'Bronze'}
-               </Badge>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                  {profile?.points_balance > 1000 ? 'Vantagens Máximas Ativadas' : `Faltam ${profile?.points_balance > 500 ? 1000 - profile.points_balance : 500 - profile.points_balance} para o próximo nível`}
-                </p>
-             </div>
+              <div className="flex items-center gap-2 mt-4">
+                <Badge className="text-white border-0 py-1 px-3" style={{ backgroundColor: currentTier?.color || '#fbbf24' }}>
+                  <Star size={12} className="mr-1 fill-white" />
+                  Nível {currentTier?.name}
+                </Badge>
+                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                   {!nextTier ? 'Vantagens Máximas Ativadas' : `Faltam ${nextTier.min_points - (profile?.points_balance || 0)} para o nível ${nextTier.name}`}
+                 </p>
+              </div>
            </div>
            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10 flex-shrink-0">
              <p className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70">Como ganhar mais?</p>
@@ -134,6 +155,36 @@
          </div>
        </div>
  
+        {/* Loyalty Tiers Section */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-2">
+            <Trophy className="text-amber-500" /> Níveis de Fidelidade
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {settings.tiers?.map((tier: any) => (
+              <Card key={tier.name} className={`border-0 shadow-lg rounded-3xl overflow-hidden transition-all ${currentTier?.name === tier.name ? 'ring-2 ring-primary scale-[1.02]' : 'opacity-80'}`}>
+                <CardContent className="p-6 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: tier.color }}>
+                      <Star size={20} fill="currentColor" />
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-black uppercase">
+                      {tier.min_points} PTS
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="font-black uppercase text-sm text-zinc-900">{tier.name}</h4>
+                    <p className="text-[10px] text-zinc-500 font-medium mt-1">{tier.benefits || 'Vantagens exclusivas do nível'}</p>
+                  </div>
+                  {currentTier?.name === tier.name && (
+                    <Badge className="w-full justify-center py-1 bg-green-100 text-green-700 hover:bg-green-100 border-0 text-[8px] font-black uppercase">Seu Nível Atual</Badge>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
          {/* Rewards Section */}
          <div className="space-y-6">
