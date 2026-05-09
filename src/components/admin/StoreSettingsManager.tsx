@@ -877,11 +877,12 @@
                            </p>
                            <p className="text-[9px] text-zinc-400 mt-1 font-medium">agora mesmo</p>
                          </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </CardContent>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
              {/* Contato e Endereço */}
