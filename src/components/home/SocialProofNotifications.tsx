@@ -291,10 +291,10 @@
                 'Caxambu', 'Fazenda Inglesa', 'Mosela', 'Duarte da Silveira', 'Capela', 'Secretário', 'Pedro do Rio'
               ];
               
-              const first = firstNames[Math.floor(Math.random() * firstNames.length)];
-              const last = lastNames[Math.floor(Math.random() * lastNames.length)];
-              const name = `${first} ${last[0]}.`;
-              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+               const first = getUniqueItem(firstNames, 'firstNames');
+               const last = getUniqueItem(lastNames, 'lastNames');
+               const name = `${first} ${last[0]}.`;
+               const neighborhood = getUniqueItem(neighborhoods, 'neighborhoods');
               const templates = [
                 '{name} acabou de fazer uma compra no bairro {neighborhood}',
                 '{name} garantiu suas compras em {neighborhood}',
@@ -351,11 +351,13 @@
              break;
            }
             case 'level': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const firstNamesList = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNamesList = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
               const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante', 'Platina', 'Safira', 'Esmeralda'];
-              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-              const level = levels[Math.floor(Math.random() * levels.length)];
+              const first = getUniqueItem(firstNamesList, 'firstNames');
+              const last = getUniqueItem(lastNamesList, 'lastNames');
+              const name = `${first} ${last[0]}.`;
+              const level = getUniqueItem(levels, 'levels');
               const template = config.level_template || '{name} subiu para o nível {level}!';
               addToQueue({
                 id: `sim-level-${name}-${level}`,
