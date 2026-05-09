@@ -409,18 +409,34 @@ export function LoyaltyManager() {
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                  {rewards.map(r => (
-                   <div key={r.id} className="p-4 bg-white border border-zinc-100 rounded-2xl flex items-center justify-between shadow-sm">
-                     <div>
-                       <p className="font-black uppercase text-xs">{r.title}</p>
+                    <div key={r.id} className={`p-4 bg-white border ${r.active ? 'border-zinc-100' : 'border-red-100 bg-red-50/20'} rounded-2xl flex items-center justify-between shadow-sm`}>
+                      <div className="flex-1">
+                        <p className={`font-black uppercase text-xs ${r.active ? 'text-zinc-900' : 'text-zinc-400'}`}>{r.title}</p>
                        <p className="font-bold text-[10px] text-amber-600">{r.points_cost} PONTOS</p>
                        <Badge variant="outline" className="text-[8px] uppercase mt-1">{r.reward_type}</Badge>
                      </div>
-                     <Button variant="ghost" size="icon" onClick={async () => {
-                       await supabase.from('loyalty_rewards').delete().eq('id', r.id);
-                       fetchData();
-                     }} className="text-zinc-300 hover:text-red-500">
-                       <Trash2 size={16} />
-                     </Button>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={async () => {
+                            await supabase.from('loyalty_rewards').update({ active: !r.active }).eq('id', r.id);
+                            fetchData();
+                          }} 
+                          title={r.active ? "Pausar Prêmio" : "Ativar Prêmio"}
+                          className={r.active ? "text-zinc-400 hover:text-amber-500" : "text-zinc-400 hover:text-green-500"}
+                        >
+                          <RefreshCcw size={16} className={r.active ? "" : "rotate-180"} />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={async () => {
+                          if (confirm('Deseja excluir este prêmio do catálogo?')) {
+                            await supabase.from('loyalty_rewards').delete().eq('id', r.id);
+                            fetchData();
+                          }
+                        }} className="text-zinc-300 hover:text-red-500">
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
                    </div>
                  ))}
                </div>
