@@ -743,6 +743,7 @@
             <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
               <CardHeader className="bg-zinc-900 border-b border-zinc-800">
                 <CardTitle className="flex items-center gap-2 text-white">
+                  <div className="p-2 bg-yellow-400 rounded-lg text-black">
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   Efeitos e Prova Social (Gatilhos de Venda)
@@ -1515,10 +1516,9 @@
                 </div>
               </CardContent>
             </Card>
-             </div>
            </TabsContent>
          </Tabs>
- 
+
          <div className="flex justify-end sticky bottom-4 z-10">
            <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full md:w-auto rounded-2xl shadow-xl shadow-primary/20 font-black uppercase tracking-tighter">
              {isSaving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2 h-5 w-5" />}
