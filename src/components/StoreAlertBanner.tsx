@@ -1,6 +1,7 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, X, Info, AlertTriangle, CheckCircle } from 'lucide-react'
+  import { Bell, X, Info, AlertTriangle, CheckCircle, Tag } from 'lucide-react'
+  import { cn } from '@/lib/utils'
  import { motion, AnimatePresence } from 'framer-motion'
  
  export function StoreAlertBanner() {
@@ -50,19 +51,21 @@
  
    if (!alert) return null
  
-   const bgColors: Record<string, string> = {
-     info: 'bg-blue-600',
-     warning: 'bg-amber-500',
-     success: 'bg-green-600',
-     danger: 'bg-red-600'
-   }
- 
-   const Icons: Record<string, any> = {
-     info: Info,
-     warning: AlertTriangle,
-     success: CheckCircle,
-     danger: Bell
-   }
+    const bgColors: Record<string, string> = {
+      info: 'bg-blue-600',
+      warning: 'bg-amber-500',
+      success: 'bg-green-600',
+      danger: 'bg-red-600',
+      flyer: 'bg-red-600'
+    }
+  
+    const Icons: Record<string, any> = {
+      info: Info,
+      warning: AlertTriangle,
+      success: CheckCircle,
+      danger: Bell,
+      flyer: Tag
+    }
  
    const Icon = Icons[alert.type] || Info
  
@@ -86,7 +89,11 @@
                  window.open(alert.target_url, '_blank');
                }
              }}
-              className={`${bgColors[alert.type] || 'bg-zinc-900'} text-white relative overflow-hidden shadow-2xl z-[100] md:relative ${alert.type === 'danger' ? 'animate-shake-critical ring-4 ring-red-400 ring-inset' : ''} m-2 md:m-0 rounded-2xl md:rounded-none border-2 border-white/20 cursor-pointer active:scale-[0.98] transition-all touch-none`}
+               className={cn(
+                 "text-white relative overflow-hidden shadow-2xl z-[100] rounded-2xl md:rounded-none border-2 border-white/20 cursor-pointer active:scale-[0.98] transition-all touch-none",
+                 bgColors[alert.type] || 'bg-zinc-900',
+                 (alert.type === 'danger' || alert.type === 'flyer') ? 'animate-shake-critical ring-4 ring-red-400 ring-inset m-2' : 'm-2 md:m-0'
+               )}
            >
             <div className="container mx-auto px-4 py-4 md:py-3 flex flex-col md:flex-row items-center md:justify-between gap-3 relative z-10">
               <div 
