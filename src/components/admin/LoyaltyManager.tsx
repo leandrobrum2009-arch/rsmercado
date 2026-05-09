@@ -18,31 +18,31 @@ export function LoyaltyManager() {
        min_order_value_to_earn: 10,
        points_expiry_days: 365,
        max_redeem_per_month: 5,
-   const handleCancelRedemption = async (redemptionId: string) => {
-     if (!confirm('Tem certeza que deseja cancelar este resgate e devolver os pontos ao cliente?')) return;
-     setLoading(true);
-     try {
-       const { data, error } = await supabase.rpc('cancel_redemption', { p_redemption_id: redemptionId });
-       if (error) throw error;
-       if (data.success) {
-         toast.success(data.message);
-         fetchData();
-       } else {
-         toast.error(data.message);
-       }
-     } catch (err: any) {
-       console.error('Cancel redemption error:', err);
-       toast.error('Erro ao cancelar: ' + err.message);
-     } finally {
-       setLoading(false);
-     }
-   }
+       tiers: [
+         { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
+         { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
+         { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
+       ]
+    }
  
-      tiers: [
-        { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
-        { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
-        { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
-      ]
+    const handleCancelRedemption = async (redemptionId: string) => {
+      if (!confirm('Tem certeza que deseja cancelar este resgate e devolver os pontos ao cliente?')) return;
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.rpc('cancel_redemption', { p_redemption_id: redemptionId });
+        if (error) throw error;
+        if (data.success) {
+          toast.success(data.message);
+          fetchData();
+        } else {
+          toast.error(data.message);
+        }
+      } catch (err: any) {
+        console.error('Cancel redemption error:', err);
+        toast.error('Erro ao cancelar: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
     }
     const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS)
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
