@@ -30,7 +30,16 @@ export function WhatsAppManager() {
    const [loadingCampaigns, setLoadingCampaigns] = useState(true)
   const [logs, setLogs] = useState<any[]>([])
   const [loadingLogs, setLoadingLogs] = useState(false)
-  const [activeHistoryTab, setActiveHistoryTab] = useState<'campaigns' | 'logs'>('campaigns')
+   const [activeHistoryTab, setActiveHistoryTab] = useState<'campaigns' | 'logs' | 'auto'>('campaigns')
+   const [autoTemplates, setAutoTemplates] = useState<any>({
+     loyalty_redeem: '',
+     points_earned: '',
+     status_update: '',
+     promotion: '',
+     order: '',
+     order_summary: '',
+     flyer_share: ''
+   })
    const [templates, setTemplates] = useState<any[]>([])
    const [newTemplate, setNewTemplate] = useState({ name: '', content: '' })
     const [isSavingTemplate, setIsSavingTemplate] = useState(false)
@@ -245,6 +254,17 @@ export function WhatsAppManager() {
       }
     }
 
+   const fetchAutoTemplates = async () => {
+     const { data } = await supabase.from('store_settings').select('value').eq('key', 'whatsapp_templates').maybeSingle()
+     if (data?.value) setAutoTemplates(data.value)
+   }
+ 
+   const handleSaveAutoTemplates = async () => {
+     const { error } = await supabase.from('store_settings').upsert({ key: 'whatsapp_templates', value: autoTemplates }, { onConflict: 'key' })
+     if (error) toast.error('Erro ao salvar modelos automáticos')
+     else toast.success('Modelos automáticos salvos!')
+   }
+ 
     useEffect(() => {
       fetchConfig()
       fetchCampaigns()
@@ -252,6 +272,7 @@ export function WhatsAppManager() {
       fetchCoupons()
       fetchTemplates()
       fetchRecentCustomers()
+     fetchAutoTemplates()
     }, [])
  
     const fetchRecentCustomers = async () => {
@@ -494,12 +515,18 @@ export function WhatsAppManager() {
               >
                 <Clock size={14} /> Campanhas
               </button>
-              <button
-                onClick={() => setActiveHistoryTab('logs')}
-                className={`flex-1 py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeHistoryTab === 'logs' ? 'bg-white text-zinc-900 border-b-2 border-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
-              >
-                <ListChecks size={14} /> Histórico (Logs)
-              </button>
+               <button
+                 onClick={() => setActiveHistoryTab('logs')}
+                 className={`flex-1 py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeHistoryTab === 'logs' ? 'bg-white text-zinc-900 border-b-2 border-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+               >
+                 <ListChecks size={14} /> Histórico (Logs)
+               </button>
+               <button
+                 onClick={() => setActiveHistoryTab('auto')}
+                 className={`flex-1 py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeHistoryTab === 'auto' ? 'bg-white text-zinc-900 border-b-2 border-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+               >
+                 <Zap size={14} /> Automáticas
+               </button>
             </div>
           </CardHeader>
           <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
@@ -563,10 +590,46 @@ export function WhatsAppManager() {
                   ))}
                 </div>
               )
-            )}
-          </CardContent>
-        </Card>
-        </div>
+             ) : (
+               <div className="p-6 space-y-6">
+                 <div className="space-y-4">
+                   <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 text-amber-800 text-xs">
+                     <AlertTriangle className="flex-shrink-0" />
+                     <p>Use placeholders como <span className="font-mono font-bold text-red-600">{`{customer_name}`}</span>, <span className="font-mono font-bold text-red-600">{`{order_id}`}</span>, <span className="font-mono font-bold text-red-600">{`{status}`}</span> para dados dinâmicos.</p>
+                   </div>
+ 
+                   {[
+                     { id: 'order', label: 'Pedido Recebido', placeholder: 'Confirmação inicial' },
+                     { id: 'status_update', label: 'Mundança de Status', placeholder: 'Enviado ao trocar status' },
+                     { id: 'order_summary', label: 'Resumo do Pedido', placeholder: 'Lista de itens e total' },
+                     { id: 'points_earned', label: 'Pontos Ganhos', placeholder: 'Ao entregar pedido' },
+                     { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
+                     { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
+                     { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' }
+                   ].map((item) => (
+                     <div key={item.id} className="space-y-2">
+                       <Label className="text-[10px] font-black uppercase text-zinc-500">{item.label}</Label>
+                       <textarea 
+                         className="w-full h-24 p-3 rounded-xl border border-zinc-200 text-xs focus:ring-green-500 outline-none"
+                         value={autoTemplates[item.id]}
+                         onChange={(e) => setAutoTemplates({...autoTemplates, [item.id]: e.target.value})}
+                         placeholder={`Modelo para ${item.label.toLowerCase()}...`}
+                       />
+                     </div>
+                   ))}
+ 
+                   <Button 
+                     onClick={handleSaveAutoTemplates}
+                     className="w-full bg-green-600 hover:bg-green-700 font-black uppercase italic"
+                   >
+                     Salvar Modelos Automáticos
+                   </Button>
+                 </div>
+               </div>
+             )}
+           </CardContent>
+         </Card>
+         </div>
  
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          <Card className="border-zinc-200 shadow-lg overflow-hidden flex flex-col">
