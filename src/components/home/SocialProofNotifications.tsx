@@ -231,15 +231,24 @@
                 'Caxambu', 'Fazenda Inglesa', 'Mosela', 'Duarte da Silveira', 'Capela', 'Secretário', 'Pedro do Rio'
               ];
               
-              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+              const name = `${first} ${last[0]}.`;
               const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
-             const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-             addToQueue({
-               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
-               type: 'purchase',
-               message: formatMessage(template, { name, neighborhood }),
-               icon: ShoppingBag
-             });
+              const templates = [
+                '{name} acabou de fazer uma compra no bairro {neighborhood}',
+                '{name} garantiu suas compras em {neighborhood}',
+                'Novo pedido saindo para {name} em {neighborhood}',
+                'Mais um cliente satisfeito: {name} de {neighborhood}',
+                '{name} aproveitou as ofertas e pediu entrega em {neighborhood}'
+              ];
+              const template = templates[Math.floor(Math.random() * templates.length)];
+              addToQueue({
+                id: `sim-purch-${Math.random()}`,
+                type: 'purchase',
+                message: formatMessage(template, { name, neighborhood }),
+                icon: ShoppingBag
+              });
              break;
            }
            case 'viewers': {
