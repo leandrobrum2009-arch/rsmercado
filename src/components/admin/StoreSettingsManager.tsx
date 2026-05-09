@@ -34,6 +34,8 @@
        stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
         level_template: '{name} subiu para o nível {level}!',
         delivered_template: '{name} já recebeu suas compras em casa!',
+        payment_template: 'Pagamento confirmado para o pedido de {name}!',
+        show_payments: true,
         time_template: 'agora mesmo'
      }
    })
@@ -493,8 +495,9 @@
                       { id: 'show_purchases', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
                       { id: 'show_viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
                       { id: 'show_stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
-                      { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
-                      { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' }
+                       { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
+                       { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
+                       { id: 'show_payments', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' }
                     ].map((item) => (
                       <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-xl hover:bg-zinc-50 transition-colors">
                         <input 
@@ -556,6 +559,15 @@
                             value={settings.social_proof?.delivered_template}
                             onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, delivered_template: e.target.value } })}
                             placeholder="{name} recebeu o pedido"
+                            className="rounded-xl border-zinc-200 h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Pagamento Confirmado</label>
+                          <Input 
+                            value={settings.social_proof?.payment_template}
+                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, payment_template: e.target.value } })}
+                            placeholder="Pagamento de {name} confirmado"
                             className="rounded-xl border-zinc-200 h-9 text-xs"
                           />
                         </div>
