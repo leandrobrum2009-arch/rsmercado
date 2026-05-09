@@ -125,12 +125,15 @@ import { toast } from '@/lib/toast'
      if (customerPhone && config?.notify_order_status !== false) {
        const templates = await getWhatsAppTemplates();
        // Status Update Notification
-       const message = formatWhatsAppMessage('status_update', {
-        id: orderId,
-        status: status,
+       const isApproved = status === 'approved';
+       const messageType = isApproved ? 'payment_confirmed' : 'status_update';
+       
+       const message = formatWhatsAppMessage(messageType, {
+         id: orderId,
+         status: status,
          customer_name: customerName || 'Cliente'
        }, templates);
-      await sendWhatsAppMessage(customerPhone, message);
+       await sendWhatsAppMessage(customerPhone, message);
 
       // If delivered, also send points earned notification
       if (isDelivered) {
