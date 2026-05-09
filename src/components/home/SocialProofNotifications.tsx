@@ -358,7 +358,9 @@
                  {currentNotification.message}
                </p>
                 <p className="text-[10px] text-zinc-400 mt-1 font-medium">
-                  {config.time_template || 'agora mesmo'}
+                  {currentNotification.id.startsWith('sim-') 
+                    ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
+                    : config.time_template || 'agora mesmo'}
                 </p>
              </div>
            </motion.div>
