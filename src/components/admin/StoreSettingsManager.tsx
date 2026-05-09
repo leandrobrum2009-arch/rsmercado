@@ -790,8 +790,8 @@
                      </div>
 
                      <div className="space-y-4">
-                     <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
-                     <div className="space-y-3">
+                       <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
+                       <div className="space-y-3">
                         {[
                           { id: 'purchase_template', label: 'Compra Realizada', placeholder: '{name} comprou em {neighborhood}' },
                           { id: 'viewers_template', label: 'Pessoas Online', placeholder: '{count} pessoas vendo agora' },
@@ -818,15 +818,16 @@
                             </div>
                           );
                         })}
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
-                          <Input 
-                            value={settings.social_proof?.time_template}
-                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, time_template: e.target.value } })}
-                            placeholder="agora mesmo"
-                            className="rounded-xl border-zinc-200 h-9 text-xs"
-                          />
-                        </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
+                            <Input 
+                              value={settings.social_proof?.time_template}
+                              onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, time_template: e.target.value } })}
+                              placeholder="agora mesmo"
+                              className="rounded-xl border-zinc-200 h-9 text-xs"
+                            />
+                          </div>
+                       </div>
                      </div>
                    </div>
                  </div>
