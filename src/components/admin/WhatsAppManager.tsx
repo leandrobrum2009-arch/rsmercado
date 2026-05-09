@@ -569,7 +569,7 @@ export function WhatsAppManager() {
                   ))}
                 </div>
               )
-            ) : (
+            ) : activeHistoryTab === 'logs' ? (
               loadingLogs ? (
                 <div className="flex justify-center p-8"><Loader2 className="animate-spin text-zinc-300" /></div>
               ) : logs.length === 0 ? (
