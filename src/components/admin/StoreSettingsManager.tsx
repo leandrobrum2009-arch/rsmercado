@@ -572,51 +572,6 @@
                             </div>
                           );
                         })}
-                       <div className="space-y-1">
-                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Pessoas Online</label>
-                         <Input 
-                           value={settings.social_proof?.viewers_template}
-                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, viewers_template: e.target.value } })}
-                           placeholder="{count} pessoas vendo agora"
-                           className="rounded-xl border-zinc-200 h-9 text-xs"
-                         />
-                       </div>
-                       <div className="space-y-1">
-                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Estoque Baixo</label>
-                         <Input 
-                           value={settings.social_proof?.stock_template}
-                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, stock_template: e.target.value } })}
-                           placeholder="Restam {stock} de {product}"
-                           className="rounded-xl border-zinc-200 h-9 text-xs"
-                         />
-                       </div>
-                       <div className="space-y-1">
-                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Novo Nível</label>
-                         <Input 
-                           value={settings.social_proof?.level_template}
-                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, level_template: e.target.value } })}
-                           placeholder="{name} agora é {level}"
-                           className="rounded-xl border-zinc-200 h-9 text-xs"
-                         />
-                       </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Recebido em Casa</label>
-                          <Input 
-                            value={settings.social_proof?.delivered_template}
-                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, delivered_template: e.target.value } })}
-                            placeholder="{name} recebeu o pedido"
-                            className="rounded-xl border-zinc-200 h-9 text-xs"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Pagamento Confirmado</label>
-                          <Input 
-                            value={settings.social_proof?.payment_template}
-                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, payment_template: e.target.value } })}
-                            placeholder="Pagamento de {name} confirmado"
-                            className="rounded-xl border-zinc-200 h-9 text-xs"
-                          />
-                        </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
                           <Input 
