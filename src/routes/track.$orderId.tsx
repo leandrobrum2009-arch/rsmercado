@@ -224,9 +224,9 @@ import { Badge } from '@/components/ui/badge'
          const config = await getWhatsAppConfig();
          if (config?.notify_order_status !== false) {
            const templates = await getWhatsAppTemplates();
-           const message = formatWhatsAppMessage('status_update', {
-            id: orderId,
-            status: 'approved',
+           const message = formatWhatsAppMessage('payment_confirmed', {
+             id: orderId,
+             status: 'approved',
              customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
            }, templates);
           const phone = order?.customer_phone || order?.profiles?.whatsapp;

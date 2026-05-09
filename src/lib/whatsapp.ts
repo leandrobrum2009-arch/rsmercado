@@ -89,7 +89,7 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
-   export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned' | 'flyer_share';
+   export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned' | 'flyer_share' | 'payment_confirmed';
  
    export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any, customTemplates?: any) => {
      const defaultTemplates: any = {
@@ -99,7 +99,8 @@ export const formatCurrency = (value: number) => {
        promotion: `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*{title}*\n\n{description}\n\n👉 Confira aqui: {product_url}\n\n*Aproveite enquanto durarem os estoques!* 🛒`,
        order: `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #{order_id} foi recebido com sucesso!\n\n💰 Total: R$ {total_amount}\n🚚 Status: {status}\n\n📍 *Rastreie seu pedido aqui:* {track_url}`,
        order_summary: `🛒 *RESUMO DO PEDIDO #{order_id}*\n\n👤 Cliente: *{customer_name}*\n📍 Endereço: {address}\n💳 Pagamento: {payment_method}\n\n📦 *Itens:*\n{items}\n\n💰 Subtotal: R$ {subtotal}\n🚚 Entrega: R$ {delivery_fee}\n⭐ *Total: R$ {total_amount}*\n\n📍 Rastreio: {track_url}`,
-       flyer_share: `🔥 *OFERTAS DO DIA - {site_name}* 🔥\n\n{product_list}\n\n🛒 *Peça agora pelo site:* {site_url}\n📦 *Entregamos na sua casa!*`
+       flyer_share: `🔥 *OFERTAS DO DIA - {site_name}* 🔥\n\n{product_list}\n\n🛒 *Peça agora pelo site:* {site_url}\n📦 *Entregamos na sua casa!*`,
+       payment_confirmed: `✅ *PAGAMENTO CONFIRMADO!* ✅\n\nOlá *{customer_name}*,\n\nRecebemos o pagamento do seu pedido #{order_id} com sucesso!\n\nAgora estamos agilizando a separação dos seus produtos para que cheguem o quanto antes até você. 🚀\n\n📍 *Acompanhe aqui:* {track_url}`
      };
  
      const template = customTemplates?.[type] || defaultTemplates[type];
