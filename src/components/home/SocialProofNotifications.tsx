@@ -312,7 +312,7 @@
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
               addToQueue({
-                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-pay-${name}`,
                 type: 'payment',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
@@ -325,7 +325,7 @@
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
               addToQueue({
-                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-deliv-${name}`,
                 type: 'delivered',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
