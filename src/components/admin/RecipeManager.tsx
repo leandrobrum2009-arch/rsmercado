@@ -22,8 +22,8 @@ export function RecipeManager() {
    const [manualRecipe, setManualRecipe] = useState({
      title: '',
      description: '',
-     instructions: '',
-     category: 'Brasileira',
+    instructions: '',
+    category: 'Carnes',
      difficulty: 'Média',
      image_url: '',
      ingredients: [{ name: '', quantity: '' }]
