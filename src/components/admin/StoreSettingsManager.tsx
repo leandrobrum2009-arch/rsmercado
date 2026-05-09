@@ -574,8 +574,10 @@
                </CardContent>
              </Card>
            </div>
-         </TabsContent>
-              <CardHeader className="bg-zinc-900 border-b border-zinc-800">
+          </TabsContent>
+ 
+           {/* Efeitos e Prova Social - Moved later to Social Tab */}
+           {/* Wait, I'll just keep it here but wrap it in a temporary tab or just move it now */}
                 <CardTitle className="flex items-center gap-2 text-white">
                   <div className="p-2 bg-yellow-400 rounded-lg text-black">
                     <TrendingUp className="h-5 w-5" />
