@@ -1,12 +1,13 @@
  import { useState, useEffect } from 'react'
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { supabase } from '@/lib/supabase'
- import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap, ShoppingBag } from 'lucide-react'
+  import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap, ShoppingBag, Clock, Ticket } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Badge } from '@/components/ui/badge'
  import { Progress } from '@/components/ui/progress'
- import { toast } from '@/lib/toast'
+  import { toast } from 'sonner'
+  import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
  
  export const Route = createFileRoute('/loyalty')({
    component: LoyaltyPage,
@@ -16,7 +17,8 @@
     const [profile, setProfile] = useState<any>(null)
     const [challenges, setChallenges] = useState<any[]>([])
     const [rewards, setRewards] = useState<any[]>([])
-    const [redemptions, setRedemptions] = useState<any[]>([])
+     const [redemptions, setRedemptions] = useState<any[]>([])
+     const [history, setHistory] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isRedeeming, setIsRedeeming] = useState(false)
     const [settings, setSettings] = useState<any>({
@@ -47,7 +49,11 @@
         }
 
        const { data: cData } = await supabase.from('weekly_challenges').select('*').eq('active', true)
-       const { data: rData } = await supabase.from('loyalty_rewards').select('*').eq('active', true)
+        const { data: rData } = await supabase.from('loyalty_rewards').select('*').eq('active', true)
+ 
+        // Fetch Points History
+        const { data: histData } = await supabase.from('points_history').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10)
+        setHistory(histData || [])
        
        // Try to fetch redemptions if table exists
        try {
@@ -81,10 +87,27 @@
  
        if (error) throw error
  
-       if (data.success) {
-         toast.success(data.message)
-         fetchData()
-       } else {
+        if (data.success) {
+          const successMsg = data.coupon_code 
+            ? `Resgate realizado! Seu cupom é: ${data.coupon_code}` 
+            : data.message;
+            
+          toast.success(successMsg, { duration: 10000 });
+          
+          // WhatsApp Notification
+          try {
+            const msg = formatWhatsAppMessage('loyalty_redeem', {
+              customer_name: profile.full_name || 'Cliente',
+              reward_title: reward.title,
+              coupon_code: data.coupon_code
+            });
+            if (profile.whatsapp) await sendWhatsAppMessage(profile.whatsapp, msg);
+          } catch (e) {
+            console.error('WhatsApp notify error:', e);
+          }
+          
+          fetchData()
+        } else {
          toast.error(data.message)
        }
      } catch (err: any) {
