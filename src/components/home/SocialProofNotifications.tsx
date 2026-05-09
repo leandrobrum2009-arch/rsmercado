@@ -11,7 +11,7 @@
  }
  
   export function SocialProofNotifications() {
-    const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
+    const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
     const [queue, setQueue] = useState<Notification[]>([]);
     const [shownIds, setShownIds] = useState<Set<string>>(() => {
       const saved = sessionStorage.getItem('social_proof_shown_ids');
@@ -131,18 +131,18 @@
     };
 
     useEffect(() => {
-      if (queue.length > 0 && !currentNotification) {
+      if (queue.length > 0 && visibleNotifications.length < 3) {
         const next = queue[0];
-        setCurrentNotification(next);
+        setVisibleNotifications(prev => [...prev, next]);
         setQueue(prev => prev.slice(1));
         
         const timer = setTimeout(() => {
-          setCurrentNotification(null);
+          setVisibleNotifications(prev => prev.filter(n => n.id !== next.id));
         }, 5000);
         
         return () => clearTimeout(timer);
       }
-    }, [queue, currentNotification]);
+    }, [queue, visibleNotifications]);
  
     useEffect(() => {
       if (!isEnabled || !config) return;
@@ -478,8 +478,8 @@
 
       // 2. Fallback / Periodic simulated events
       const fetchRandomNotification = async () => {
-        // Don't show random if one is already showing (to prioritize real events)
-        if (queue.length > 0 || currentNotification) return;
+        // Don't show random if many are already showing (to prioritize real events)
+        if (queue.length > 0 || visibleNotifications.length > 0) return;
   
         const types = [];
         if (config.show_purchases) types.push('purchase');
@@ -553,52 +553,54 @@
       };
    }, [isEnabled, config]);
  
-   if (!isEnabled || !currentNotification) return null;
- 
-   return (
-     <div className="fixed bottom-20 left-4 z-[100] pointer-events-none md:bottom-6">
-       <AnimatePresence>
-         {currentNotification && (
-           <motion.div
-             initial={{ opacity: 0, x: -50, scale: 0.8 }}
-             animate={{ opacity: 1, x: 0, scale: 1 }}
-             exit={{ opacity: 0, x: -50, scale: 0.8 }}
-              className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[300px] pointer-events-auto flex items-start gap-3 relative overflow-hidden group"
-            >
-              <div className="absolute top-0 right-0 p-1 opacity-20 group-hover:opacity-40 transition-opacity">
-                <Sparkles size={12} className="text-primary" />
+    if (!isEnabled || visibleNotifications.length === 0) return null;
+  
+    return (
+      <div className="fixed bottom-20 left-4 z-[100] pointer-events-none md:bottom-6 flex flex-col gap-3">
+        <AnimatePresence mode="popLayout">
+          {visibleNotifications.map((notification) => (
+            <motion.div
+              key={notification.id}
+              layout
+              initial={{ opacity: 0, x: -50, scale: 0.8 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -20, scale: 0.8 }}
+               className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[300px] pointer-events-auto flex items-start gap-3 relative overflow-hidden group"
+             >
+               <div className="absolute top-0 right-0 p-1 opacity-20 group-hover:opacity-40 transition-opacity">
+                 <Sparkles size={12} className="text-primary" />
+               </div>
+               <div className={`p-2 rounded-xl shrink-0 shadow-sm ${
+                 notification.type === 'purchase' ? 'bg-green-100 text-green-600' :
+                 notification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
+                 notification.type === 'stock' ? 'bg-orange-100 text-orange-600' :
+                 notification.type === 'level' ? 'bg-purple-100 text-purple-600' :
+                 notification.type === 'payment' ? 'bg-blue-100 text-blue-600' :
+                 'bg-teal-100 text-teal-600'
+              }`}>
+                <notification.icon size={20} />
               </div>
-              <div className={`p-2 rounded-xl shrink-0 shadow-sm ${
-                currentNotification.type === 'purchase' ? 'bg-green-100 text-green-600' :
-                currentNotification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
-                currentNotification.type === 'stock' ? 'bg-orange-100 text-orange-600' :
-                currentNotification.type === 'level' ? 'bg-purple-100 text-purple-600' :
-                currentNotification.type === 'payment' ? 'bg-blue-100 text-blue-600' :
-                'bg-teal-100 text-teal-600'
-             }`}>
-               <currentNotification.icon size={20} />
-             </div>
-             <div>
-               <p className="text-xs font-bold text-zinc-800 leading-tight">
-                 {currentNotification.message}
-               </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-[10px] text-zinc-400 font-medium">
-                    {config.realistic_ai && currentNotification.id.startsWith('sim-') 
-                      ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
-                      : config.time_template || 'agora mesmo'}
-                  </p>
-                  {config.realistic_ai && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
-                      <Sparkles size={8} className="text-zinc-400" />
-                      Realtime IA
-                    </span>
-                  )}
-                </div>
-             </div>
-           </motion.div>
-         )}
-       </AnimatePresence>
-     </div>
-   );
+              <div>
+                <p className="text-xs font-bold text-zinc-800 leading-tight">
+                  {notification.message}
+                </p>
+                 <div className="flex items-center gap-2 mt-1">
+                   <p className="text-[10px] text-zinc-400 font-medium">
+                     {config.realistic_ai && notification.id.startsWith('sim-') 
+                       ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
+                       : config.time_template || 'agora mesmo'}
+                   </p>
+                   {config.realistic_ai && (
+                     <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
+                       <Sparkles size={8} className="text-zinc-400" />
+                       Realtime IA
+                     </span>
+                   )}
+                 </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    );
  }
