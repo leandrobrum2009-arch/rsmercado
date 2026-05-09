@@ -595,7 +595,10 @@ export function WhatsAppManager() {
                  <div className="space-y-4">
                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 text-amber-800 text-xs">
                      <AlertTriangle className="flex-shrink-0" />
-                     <p>Use placeholders como <span className="font-mono font-bold text-red-600">{`{customer_name}`}</span>, <span className="font-mono font-bold text-red-600">{`{order_id}`}</span>, <span className="font-mono font-bold text-red-600">{`{status}`}</span> para dados dinâmicos.</p>
+                     <div className="space-y-1">
+                       <p>Use placeholders como <span className="font-mono font-bold text-red-600">{`{customer_name}`}</span>, <span className="font-mono font-bold text-red-600">{`{order_id}`}</span>, <span className="font-mono font-bold text-red-600">{`{status}`}</span>.</p>
+                       <p>Outros: <span className="font-mono font-bold text-blue-600">{`{points}`}</span>, <span className="font-mono font-bold text-blue-600">{`{new_balance}`}</span>, <span className="font-mono font-bold text-blue-600">{`{total_amount}`}</span>, <span className="font-mono font-bold text-blue-600">{`{items}`}</span>, <span className="font-mono font-bold text-blue-600">{`{track_url}`}</span>.</p>
+                     </div>
                    </div>
  
                    {[
