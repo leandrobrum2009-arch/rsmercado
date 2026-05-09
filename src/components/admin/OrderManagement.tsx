@@ -125,10 +125,11 @@ import { toast } from '@/lib/toast'
      if (customerPhone && config?.notify_order_status !== false) {
        const templates = await getWhatsAppTemplates();
        // Status Update Notification
-       const isApproved = status === 'approved';
-       const messageType = isApproved ? 'payment_confirmed' : 'status_update';
-       
-       const message = formatWhatsAppMessage(messageType, {
+        const statusKey = `status_${status}` as any;
+        const hasStatusTemplate = templates && templates[statusKey];
+        const messageType = hasStatusTemplate ? statusKey : (status === 'approved' ? 'payment_confirmed' : 'status_update');
+
+        const message = formatWhatsAppMessage(messageType, {
          id: orderId,
          status: status,
          customer_name: customerName || 'Cliente'

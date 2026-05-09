@@ -629,13 +629,21 @@ export function WhatsAppManager() {
  
                    {[
                      { id: 'order', label: 'Pedido Recebido', placeholder: 'Confirmação inicial' },
-                     { id: 'status_update', label: 'Mundança de Status', placeholder: 'Enviado ao trocar status' },
-                     { id: 'order_summary', label: 'Resumo do Pedido', placeholder: 'Lista de itens e total' },
-                     { id: 'points_earned', label: 'Pontos Ganhos', placeholder: 'Ao entregar pedido' },
-                     { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
-                     { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
-                     { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' },
-                     { id: 'payment_confirmed', label: 'Pagamento Confirmado', placeholder: 'Enviado ao receber pagamento' }
+                      { id: 'status_update', label: 'Mundança de Status (Geral)', placeholder: 'Enviado ao trocar status' },
+                      { id: 'status_pending', label: 'Status: Pendente', placeholder: 'Aguardando aprovação' },
+                      { id: 'status_approved', label: 'Status: Aprovado', placeholder: 'Pagamento ok / Aprovado' },
+                      { id: 'status_collecting', label: 'Status: Separando', placeholder: 'Coletando itens' },
+                      { id: 'status_collected', label: 'Status: Pronto', placeholder: 'Pronto para envio' },
+                      { id: 'status_waiting_courier', label: 'Status: Aguardando Entregador', placeholder: 'Bipado/Aguardando' },
+                      { id: 'status_out_for_delivery', label: 'Status: Em Rota', placeholder: 'Saiu para entrega' },
+                      { id: 'status_delivered', label: 'Status: Entregue', placeholder: 'Finalizado' },
+                      { id: 'status_cancelled', label: 'Status: Cancelado', placeholder: 'Pedido abortado' },
+                      { id: 'order_summary', label: 'Resumo do Pedido', placeholder: 'Lista de itens e total' },
+                      { id: 'points_earned', label: 'Pontos Ganhos', placeholder: 'Ao entregar pedido' },
+                      { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
+                      { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
+                      { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' },
+                      { id: 'payment_confirmed', label: 'Pagamento Confirmado (Atalho)', placeholder: 'Enviado ao receber pagamento' }
                    ].map((item) => {
                      const invalid = validatePlaceholders(autoTemplates[item.id] || '');
                      return (
