@@ -25,8 +25,9 @@ export function LoyaltyManager() {
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
-   const [challenges, setChallenges] = useState<any[]>([])
-  const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
+    const [challenges, setChallenges] = useState<any[]>([])
+    const [tierStats, setTierStats] = useState<Record<string, number>>({})
+   const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
   const [editingFee, setEditingFee] = useState<{ id: string, fee: string } | null>(null)
 
@@ -93,6 +94,22 @@ export function LoyaltyManager() {
       if (!cErr) setChallenges(cData || []);
       else console.error('Error fetching challenges:', cErr);
 
+      // Fetch Tier Stats
+      const { data: profiles, error: pErr } = await supabase.from('profiles').select('loyalty_points');
+      if (!pErr && profiles) {
+        const stats: Record<string, number> = {};
+        profiles.forEach(p => {
+          const points = p.loyalty_points || 0;
+          const tiers = settings?.tiers || DEFAULT_SETTINGS.tiers;
+          const tier = [...tiers]
+            .sort((a, b) => b.min_points - a.min_points)
+            .find(t => points >= t.min_points);
+          if (tier) {
+            stats[tier.name] = (stats[tier.name] || 0) + 1;
+          }
+        });
+        setTierStats(stats);
+      }
     } catch (error) {
       console.error('Error fetching loyalty data:', error)
     } finally {
@@ -190,13 +207,13 @@ export function LoyaltyManager() {
         </div>
       </div>
 
-      <Tabs defaultValue="settings" className="w-full">
+      <Tabs defaultValue="levels" className="w-full">
          <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6 flex overflow-x-auto no-scrollbar">
-            <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Configurações Gerais</TabsTrigger>
             <TabsTrigger value="levels" className="rounded-lg font-bold uppercase text-[10px] flex-1">Níveis de Fidelidade</TabsTrigger>
-           <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Recompensas</TabsTrigger>
-           <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Desafios Semanais</TabsTrigger>
-           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Bairros & Taxas</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Regras de Pontos</TabsTrigger>
+           <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Catálogo de Troca</TabsTrigger>
+           <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Missões</TabsTrigger>
+           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Entregas</TabsTrigger>
          </TabsList>
          <TabsContent value="rewards">
            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
@@ -391,11 +408,15 @@ export function LoyaltyManager() {
                   </div>
                 </div>
 
-                <div className="space-y-4 col-span-1 md:col-span-2">
-                </div>
               </div>
+              <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-         <TabsContent value="levels">
+        <TabsContent value="levels">
            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
              <CardHeader className="bg-zinc-900 text-white">
                <div className="flex justify-between items-center">
@@ -461,6 +482,9 @@ export function LoyaltyManager() {
                              setSettings({...settings, tiers: newTiers});
                            }}
                          />
+                         <p className="text-[8px] font-bold text-zinc-400 uppercase ml-3 mt-0.5">
+                           {tierStats[tier.name] || 0} Clientes neste nível
+                         </p>
                        </div>
                      </div>
                      
@@ -521,12 +545,6 @@ export function LoyaltyManager() {
              </CardContent>
            </Card>
          </TabsContent>
-              <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="neighborhoods">
           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">

@@ -2,15 +2,16 @@
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-  import { Users, Loader2, Search, Edit, Save, X, Plus } from 'lucide-react'
+  import { Users, Loader2, Search, Edit, Save, X, Plus, Trophy } from 'lucide-react'
   import { Input } from '@/components/ui/input'
   import { Button } from '@/components/ui/button'
   import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
   import { toast } from '@/lib/toast'
  
  export function CustomerManagement() {
-   const [customers, setCustomers] = useState<any[]>([])
-   const [loading, setLoading] = useState(true)
+    const [customers, setCustomers] = useState<any[]>([])
+    const [loyaltySettings, setLoyaltySettings] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
    const [searchTerm, setSearchTerm] = useState('')
    const [editingCustomer, setEditingCustomer] = useState<any>(null)
     const [isSaving, setIsSaving] = useState(false)
@@ -48,9 +49,15 @@
    }
  
  
-   useEffect(() => {
-     fetchCustomers()
-   }, [])
+    useEffect(() => {
+      fetchCustomers()
+      fetchLoyaltySettings()
+    }, [])
+
+    const fetchLoyaltySettings = async () => {
+      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle()
+      if (data?.value) setLoyaltySettings(data.value)
+    }
  
    const fetchCustomers = async () => {
      setLoading(true)
@@ -170,8 +177,8 @@
            <TableHeader>
              <TableRow>
                <TableHead>Nome</TableHead>
-               <TableHead>WhatsApp</TableHead>
-               <TableHead>Pontos</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Nível / Pontos</TableHead>
                <TableHead>Data Cadastro</TableHead>
                <TableHead className="text-right">Ações</TableHead>
              </TableRow>
@@ -187,12 +194,29 @@
                filteredCustomers.map((customer) => (
                  <TableRow key={customer.id}>
                    <TableCell className="font-bold">{customer.full_name || 'Sem nome'}</TableCell>
-                   <TableCell>{customer.whatsapp || 'Não informado'}</TableCell>
-                   <TableCell>
-                     <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg font-bold text-xs">
-                       {customer.loyalty_points || 0} pts
-                     </span>
-                   </TableCell>
+                    <TableCell>{customer.whatsapp || 'Não informado'}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {(() => {
+                          const points = customer.loyalty_points || 0;
+                          const tier = [...(loyaltySettings?.tiers || [])]
+                            .sort((a, b) => b.min_points - a.min_points)
+                            .find(t => points >= t.min_points);
+                          
+                          return tier ? (
+                            <span 
+                              className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase text-white flex items-center gap-1 w-fit shadow-sm"
+                              style={{ backgroundColor: tier.color }}
+                            >
+                              <Trophy size={8} /> {tier.name}
+                            </span>
+                          ) : null;
+                        })()}
+                        <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg font-bold text-[10px] w-fit border border-amber-100">
+                          {customer.loyalty_points || 0} pts
+                        </span>
+                      </div>
+                    </TableCell>
                    <TableCell className="text-xs text-muted-foreground">
                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                    </TableCell>

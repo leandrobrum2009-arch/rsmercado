@@ -25,7 +25,8 @@
     Truck,
     Percent,
     Lock,
-    LayoutGrid
+    LayoutGrid,
+    Trophy
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
@@ -220,9 +221,9 @@ export const Route = createFileRoute('/admin')({
        items: [
           { id: 'orders', label: 'Pedidos', icon: ClipboardList },
           { id: 'products', label: 'Produtos', icon: ShoppingBag },
-          { id: 'customers', label: 'Clientes', icon: Users },
-           { id: 'loyalty', label: 'Fidelidade & Bairros', icon: ShieldCheck },
-           { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
+           { id: 'customers', label: 'Clientes', icon: Users },
+            { id: 'loyalty', label: 'Níveis e Fidelidade', icon: Trophy },
+            { id: 'layout', label: 'Layout Home', icon: LayoutTemplate },
              { id: 'categories', label: 'Categorias', icon: Tag },
               { id: 'organizer', label: 'Organizador', icon: LayoutGrid },
               { id: 'importer', label: 'Importação', icon: Upload },
