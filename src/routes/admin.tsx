@@ -147,7 +147,7 @@ export const Route = createFileRoute('/admin')({
       // Real-time listener for new orders
       const channel = supabase
         .channel('admin_new_orders')
-        .on('postgres_changes', { event: 'INSERT', table: 'orders' }, (payload) => {
+        .on('postgres_changes' as any, { event: 'INSERT', schema: 'public', table: 'orders' }, (payload: any) => {
           console.log('New order received!', payload)
           setHasNewOrder(true)
           audioRef.current?.play().catch(e => console.error('Audio play failed:', e))
