@@ -947,12 +947,8 @@
                       </div>
                     </div>
                   </div>
-              </CardContent>
                </CardContent>
              </Card>
-           </TabsContent>
-         </Tabs>
-         </TabsContent>
  
          <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
