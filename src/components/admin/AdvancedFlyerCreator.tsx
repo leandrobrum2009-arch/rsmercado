@@ -804,8 +804,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                target_url: '/offers',
                duration_seconds: 15
              });
+             
+             // Notify all users via notification bell
+             await supabase.rpc('notify_all_users', {
+               p_title: '🔥 NOVO ENCARTE DISPONÍVEL!',
+               p_message: 'Confira as super ofertas que acabamos de preparar para você.',
+               p_type: 'promo'
+             });
            } catch (e) {
-             console.warn('Alert creation failed:', e);
+             console.warn('Alert/Notification creation failed:', e);
            }
 
            fetchSavedFlyers()
