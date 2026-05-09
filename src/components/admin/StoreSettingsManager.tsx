@@ -2,7 +2,8 @@
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
- import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
     import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
