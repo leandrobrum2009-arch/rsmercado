@@ -546,6 +546,44 @@ export function LoyaltyManager() {
                   </div>
                 </div>
 
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle size={16} className="text-amber-500" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">Regras de Operação</h3>
+                  </div>
+                  <div className="space-y-4 bg-zinc-50 p-6 rounded-3xl border border-zinc-100">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Valor Mínimo do Pedido p/ ganhar pontos</label>
+                      <Input 
+                        type="number" 
+                        value={settings.min_order_value_to_earn} 
+                        onChange={e => setSettings({...settings, min_order_value_to_earn: parseFloat(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Pedidos abaixo deste valor não geram pontos.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Validade dos Pontos (Dias)</label>
+                      <Input 
+                        type="number" 
+                        value={settings.points_expiry_days} 
+                        onChange={e => setSettings({...settings, points_expiry_days: parseInt(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Padrão: 365 dias (1 ano).</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Limite de Resgates por Mês (Por Cliente)</label>
+                      <Input 
+                        type="number" 
+                        value={settings.max_redeem_per_month} 
+                        onChange={e => setSettings({...settings, max_redeem_per_month: parseInt(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Evita resgates excessivos em curto período.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
