@@ -192,9 +192,12 @@
        if (config.show_stock) types.push('stock');
         if (config.show_levels) types.push('level');
         if (config.show_delivered) types.push('delivered');
-         if (config.show_payments) types.push('payment');
+          if (config.show_payments) types.push('payment');
           types.push('cart');
           types.push('wishlist');
+          types.push('registration');
+          types.push('coupon');
+          types.push('share');
  
        if (types.length === 0) return;
  
@@ -312,27 +315,92 @@
               break;
             }
             case 'cart': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
-              const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação'];
+              const names = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação', 'Refrigerante 2L', 'Pão de Queijo', 'Frango Inteiro', 'Ovos Caipira', 'Manteiga'];
               const product = products[Math.floor(Math.random() * products.length)];
+              const phrases = [
+                `${name} adicionou ${product} ao carrinho!`,
+                `${name} está levando ${product} agora mesmo.`,
+                `${name} acabou de escolher ${product}.`,
+                `Alguém de Petrópolis adicionou ${product} à cesta.`
+              ];
               addToQueue({
-                id: `sim-cart-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-cart-${Math.random()}`,
                 type: 'purchase',
-                message: `${name} adicionou ${product} ao carrinho!`,
+                message: phrases[Math.floor(Math.random() * phrases.length)],
                 icon: ShoppingBag
               });
               break;
             }
             case 'wishlist': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
-              const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego'];
+              const names = ['Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego', 'Sorvete de Baunilha', 'Castanha de Caju', 'Camarão Congelado'];
               const product = products[Math.floor(Math.random() * products.length)];
+              const phrases = [
+                `${name} salvou ${product} nos favoritos!`,
+                `${name} amou o produto: ${product}`,
+                `${name} está de olho em ${product}.`,
+                `Produto popular: ${product} foi favoritado agora.`
+              ];
               addToQueue({
-                id: `sim-wish-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-wish-${Math.random()}`,
                 type: 'level',
-                message: `${name} favoritou o produto: ${product}`,
+                message: phrases[Math.floor(Math.random() * phrases.length)],
+                icon: TrendingUp
+              });
+              break;
+            }
+            case 'registration': {
+              const names = ['Leticia', 'Marcelo', 'Natália', 'Otávio', 'Patrícia', 'Ruan', 'Sabrina', 'Thais', 'Vitor', 'Yasmin'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const phrases = [
+                `${name} acabou de se cadastrar no site!`,
+                `Boas-vindas para ${name}, novo cliente do Supermercado.`,
+                `${name} agora faz parte da nossa comunidade.`,
+                `Mais um cliente cadastrado no bairro Centro.`
+              ];
+              addToQueue({
+                id: `sim-reg-${Math.random()}`,
+                type: 'level',
+                message: phrases[Math.floor(Math.random() * phrases.length)],
+                icon: Users
+              });
+              break;
+            }
+            case 'coupon': {
+              const names = ['Bernardo', 'Catarina', 'Davi', 'Emanuel', 'Flávia', 'Gustavo', 'Hilda', 'Isaac', 'Janaina'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const phrases = [
+                `${name} economizou usando um cupom de desconto!`,
+                `${name} aplicou o cupom PRIMEIRACOMPRA.`,
+                `${name} garantiu 10% de desconto no pedido.`,
+                `Cupom de desconto ativado por um cliente agora.`
+              ];
+              addToQueue({
+                id: `sim-coupon-${Math.random()}`,
+                type: 'payment',
+                message: phrases[Math.floor(Math.random() * phrases.length)],
+                icon: CheckCircle2
+              });
+              break;
+            }
+            case 'share': {
+              const names = ['Kevin', 'Lorena', 'Murilo', 'Nayara', 'Osvaldo', 'Priscila', 'Raul', 'Sueli', 'Túlio'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const products = ['Picanha Maturata', 'Cerveja Especial', 'Nutella 350g', 'Papel Higiênico (Leve 12 Pague 11)'];
+              const product = products[Math.floor(Math.random() * products.length)];
+              const phrases = [
+                `${name} compartilhou a oferta de ${product}!`,
+                `${name} enviou o link de ${product} para um amigo.`,
+                `${name} indicou o Supermercado no WhatsApp.`,
+                `Oferta compartilhada: ${product} está fazendo sucesso.`
+              ];
+              addToQueue({
+                id: `sim-share-${Math.random()}`,
+                type: 'viewers',
+                message: phrases[Math.floor(Math.random() * phrases.length)],
                 icon: TrendingUp
               });
               break;
