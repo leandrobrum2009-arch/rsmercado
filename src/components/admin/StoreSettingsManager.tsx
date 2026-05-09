@@ -741,7 +741,7 @@
           <div className="space-y-6">
             {/* Efeitos e Prova Social */}
             <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
-                <CardTitle className="flex items-center gap-2 text-white">
+              <CardHeader className="bg-zinc-900 border-b border-zinc-800">
                   <div className="p-2 bg-yellow-400 rounded-lg text-black">
                     <TrendingUp className="h-5 w-5" />
                   </div>
@@ -1112,8 +1112,8 @@
                       </div>
                     </div>
                   </div>
-               </CardContent>
-             </Card>
+
+
  
              <Card className="border-zinc-200 shadow-sm md:col-span-2">
                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
@@ -1341,9 +1341,9 @@
               </CardContent>
             </Card>
 
-             </div>
-           </TabsContent>
-          </div>
+
+
+
         </TabsContent>
            <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-left-4 duration-300">
              {/* Notificações (SMS e Ligações) */}
