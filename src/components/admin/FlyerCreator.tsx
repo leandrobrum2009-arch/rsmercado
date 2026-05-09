@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare } from 'lucide-react'
- import { sendWhatsAppMessage } from '@/lib/whatsapp'
+  import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
  import { toast } from '@/lib/toast'
 type FlyerProduct = {
   id: string
@@ -202,28 +202,30 @@ export function FlyerCreator() {
       }
     }
  
-   const handleWhatsAppShare = async () => {
-     if (selectedProducts.length === 0) {
-       toast.error('Adicione produtos ao encarte primeiro')
-       return
-     }
- 
-     let message = `🔥 *OFERTAS DO DIA - ${storeSettings.site_name || 'RS SUPERMERCADO'}* 🔥\n\n`
-     
-     selectedProducts.forEach((p: any) => {
-       message += `📍 *${p.name}*\n`
-       message += `💰 Por apenas: *R$ ${p.price.toFixed(2)}*\n`
-       message += `➖➖\n`
-     })
- 
-     message += `\n🛒 *Peça agora pelo site:* ${window.location.origin}\n`
-     message += `📦 *Entregamos na sua casa!*`
- 
-     const url = `https://wa.me/?text=${encodeURIComponent(message)}`
-     window.open(url, '_blank')
-     
-     toast.success('WhatsApp aberto para compartilhamento!')
-   }
+    const handleWhatsAppShare = async () => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro')
+        return
+      }
+  
+      let productList = ''
+      selectedProducts.forEach((p: any) => {
+        productList += `📍 *${p.name}*\n`
+        productList += `💰 Por apenas: *R$ ${p.price.toFixed(2)}*\n`
+        productList += `➖➖\n`
+      })
+  
+      const templates = await getWhatsAppTemplates()
+      const message = formatWhatsAppMessage('flyer_share', {
+        site_name: storeSettings.site_name || 'RS SUPERMERCADO',
+        product_list: productList
+      }, templates)
+  
+      const url = `https://wa.me/?text=${encodeURIComponent(message)}`
+      window.open(url, '_blank')
+      
+      toast.success('WhatsApp aberto para compartilhamento!')
+    }
 
    return (
      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">

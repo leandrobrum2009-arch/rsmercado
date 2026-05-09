@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "../contexts/CartContext";
    import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle, Phone, Search, ShoppingBag, User } from "lucide-react";
 import { useState, useEffect } from "react";
-import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig } from "../lib/whatsapp";
+ import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig, getWhatsAppTemplates } from "../lib/whatsapp";
 import { supabase } from "@/lib/supabase";
  import { toast } from "@/lib/toast";
  import { logAttempt } from "@/lib/logs";
@@ -281,9 +281,10 @@ function CartPage() {
 
       if (itemsError) throw itemsError;
 
-        // 3. Send WhatsApp Notifications
-        const addressStr = `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`;
-        const userSummary = formatWhatsAppMessage('order_summary', {
+         // 3. Send WhatsApp Notifications
+         const addressStr = `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`;
+         const templates = await getWhatsAppTemplates();
+         const userSummary = formatWhatsAppMessage('order_summary', {
           id: order.id,
           customer_name: customerName,
           address: addressStr,
@@ -292,18 +293,18 @@ function CartPage() {
           subtotal: total,
           discount: discount,
           delivery_fee: deliveryFee,
-          total_amount: total - discount + deliveryFee
-        });
+           total_amount: total - discount + deliveryFee
+         }, templates);
         
         const userFullMessage = `✅ *PEDIDO RECEBIDO COM SUCESSO!* ✅\n\nOlá *${customerName}*, seu pedido foi processado e já estamos preparando tudo!\n\n${userSummary}`;
         await sendWhatsAppMessage(customerPhone, userFullMessage);
 
        // Notify Admin if enabled
        const waConfig = await getWhatsAppConfig();
-       if (waConfig?.notify_new_order_admin !== false) {
-        const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
-        if (adminSettings && adminSettings.value) {
-           const adminSummary = formatWhatsAppMessage('order_summary', {
+        if (waConfig?.notify_new_order_admin !== false) {
+         const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+         if (adminSettings && adminSettings.value) {
+            const adminSummary = formatWhatsAppMessage('order_summary', {
              id: order.id,
              customer_name: customerName,
               address: `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`,
@@ -312,8 +313,8 @@ function CartPage() {
              subtotal: total,
              discount: discount,
              delivery_fee: deliveryFee,
-             total_amount: total - discount + deliveryFee
-           });
+              total_amount: total - discount + deliveryFee
+            }, templates);
           
           const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
           await sendWhatsAppMessage(adminSettings.value, adminFullMessage);

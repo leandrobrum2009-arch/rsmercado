@@ -32,8 +32,9 @@
        purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
        viewers_template: '{count} pessoas visualizando produtos no site agora',
        stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
-       level_template: '{name} subiu para o nível {level}!',
-       delivered_template: '{name} já recebeu suas compras em casa!'
+        level_template: '{name} subiu para o nível {level}!',
+        delivered_template: '{name} já recebeu suas compras em casa!',
+        time_template: 'agora mesmo'
      }
    })
    const [isLoading, setIsLoading] = useState(true)
@@ -549,15 +550,24 @@
                            className="rounded-xl border-zinc-200 h-9 text-xs"
                          />
                        </div>
-                       <div className="space-y-1">
-                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Recebido em Casa</label>
-                         <Input 
-                           value={settings.social_proof?.delivered_template}
-                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, delivered_template: e.target.value } })}
-                           placeholder="{name} recebeu o pedido"
-                           className="rounded-xl border-zinc-200 h-9 text-xs"
-                         />
-                       </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Recebido em Casa</label>
+                          <Input 
+                            value={settings.social_proof?.delivered_template}
+                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, delivered_template: e.target.value } })}
+                            placeholder="{name} recebeu o pedido"
+                            className="rounded-xl border-zinc-200 h-9 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
+                          <Input 
+                            value={settings.social_proof?.time_template}
+                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, time_template: e.target.value } })}
+                            placeholder="agora mesmo"
+                            className="rounded-xl border-zinc-200 h-9 text-xs"
+                          />
+                        </div>
                      </div>
                    </div>
                  </div>
