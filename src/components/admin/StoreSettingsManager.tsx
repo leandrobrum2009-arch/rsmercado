@@ -831,7 +831,6 @@
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
 
                 <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
