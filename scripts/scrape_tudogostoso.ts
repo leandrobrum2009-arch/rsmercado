@@ -13,13 +13,7 @@
  
  const CATEGORIES = [
    { name: 'Carnes', url: '/categorias/1000-carnes' },
-   { name: 'Aves', url: '/categorias/1004-aves' },
-   { name: 'Massas', url: '/categorias/1014-massas' },
-   { name: 'Doces e sobremesas', url: '/categorias/1020-doces-e-sobremesas' },
-   { name: 'Peixes e frutos do mar', url: '/categorias/1008-peixes-e-frutos-do-mar' },
-   { name: 'Saladas e molhos', url: '/categorias/1028-saladas-molhos-e-acompanhamentos' },
-   { name: 'Sopas', url: '/categorias/1032-sopas' },
-   { name: 'Bebidas', url: '/categorias/1036-bebidas' }
+   { name: 'Doces e sobremesas', url: '/categorias/1020-doces-e-sobremesas' }
  ]
  
  async function getRecipeDetails(url: string) {
@@ -133,7 +127,7 @@
    console.log('Starting Master Crawler...')
    let total = 0
    for (const cat of CATEGORIES) {
-     const added = await crawlCategory(cat, 10)
+     const added = await crawlCategory(cat, 5) // Just 5 per category for testing
      total += added
    }
    console.log(`Crawler finished. Total added: ${total}`)
