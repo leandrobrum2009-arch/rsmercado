@@ -2,11 +2,14 @@
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
- import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle } from 'lucide-react'
+  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
-   import { Badge } from '@/components/ui/badge'
+    import { Badge } from '@/components/ui/badge'
+    import { Switch } from '@/components/ui/switch'
+
  
    const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
  
@@ -17,38 +20,50 @@
    };
  
  export function StoreSettingsManager() {
-   const [settings, setSettings] = useState<any>({
-     site_name: '',
-     logo_url: '',
-     colors: { primary: '#ef4444', secondary: '#facc15' },
-     address: '',
-     whatsapp: '',
-     opening_hours: '',
-     instagram_url: '',
-     facebook_url: '',
-      store_description: '',
-      points_ratio: '1',
-    instagram_post_count: '6',
-    instagram_items: [],
-    admin_whatsapp: '',
-    social_proof: {
-      enabled: true,
-      interval: 15000,
-      show_purchases: true,
-      show_viewers: true,
-       show_stock: true,
-       show_levels: true,
-       show_delivered: true,
-       purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
-       viewers_template: '{count} pessoas visualizando produtos no site agora',
-       stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
-        level_template: '{name} subiu para o nível {level}!',
-        delivered_template: '{name} já recebeu suas compras em casa!',
-        payment_template: 'Pagamento confirmado para o pedido de {name}!',
-        show_payments: true,
-        time_template: 'agora mesmo'
-     }
-   })
+    const [settings, setSettings] = useState<any>({
+      site_name: '',
+      logo_url: '',
+      colors: { primary: '#ef4444', secondary: '#facc15' },
+      address: '',
+      whatsapp: '',
+      opening_hours: '',
+      instagram_url: '',
+      facebook_url: '',
+       store_description: '',
+       points_ratio: '1',
+     instagram_post_count: '6',
+     instagram_items: [],
+     admin_whatsapp: '',
+     social_proof: {
+       enabled: true,
+       interval: 15000,
+       show_purchases: true,
+       show_viewers: true,
+        show_stock: true,
+        show_levels: true,
+        show_delivered: true,
+        purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+        viewers_template: '{count} pessoas visualizando produtos no site agora',
+        stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+         level_template: '{name} subiu para o nível {level}!',
+         delivered_template: '{name} já recebeu suas compras em casa!',
+         payment_template: 'Pagamento confirmado para o pedido de {name}!',
+         show_payments: true,
+         time_template: 'agora mesmo'
+      },
+      notifications: {
+        sms_enabled: false,
+        sms_provider: 'twilio',
+        sms_api_key: '',
+        sms_api_secret: '',
+        sms_from: '',
+        call_enabled: false,
+        call_provider: 'totalvoice',
+        call_api_key: '',
+        call_admin_phone: '',
+        call_tts_message: 'Você recebeu um novo pedido no Supermercado!'
+      }
+    })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState<string | boolean>(false)
@@ -100,8 +115,9 @@
              }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
-              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
-              if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
+               if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
+               if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
+               if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -277,9 +293,10 @@
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
-           { key: 'admin_whatsapp', value: settings.admin_whatsapp },
-           { key: 'social_proof_settings', value: settings.social_proof }
-         ];
+            { key: 'admin_whatsapp', value: settings.admin_whatsapp },
+            { key: 'social_proof_settings', value: settings.social_proof },
+            { key: 'external_notification_config', value: settings.notifications }
+          ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
        if (error) {
@@ -860,6 +877,136 @@
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest">Novo Item</span>
                   </button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notificações (SMS e Ligações) */}
+            <Card className="border-zinc-200 shadow-sm md:col-span-2">
+              <CardHeader className="bg-zinc-900 text-white border-b border-zinc-100 rounded-t-xl">
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  Notificações Críticas (SMS e Ligações)
+                </CardTitle>
+                <CardDescription className="text-zinc-400">Habilite avisos por SMS ou Ligação para o proprietário em novos pedidos</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* SMS Settings */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <p className="text-sm font-black uppercase italic tracking-tighter">Notificações por SMS</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase">Avisar via mensagem de texto</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={settings.notifications?.sms_enabled} 
+                        onCheckedChange={(val) => setSettings({
+                          ...settings, 
+                          notifications: { ...settings.notifications, sms_enabled: val }
+                        })} 
+                      />
+                    </div>
+
+                    {settings.notifications?.sms_enabled && (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Provedor SMS</label>
+                          <Select 
+                            value={settings.notifications?.sms_provider} 
+                            onValueChange={(val) => setSettings({
+                              ...settings, 
+                              notifications: { ...settings.notifications, sms_provider: val }
+                            })}
+                          >
+                            <SelectTrigger className="rounded-xl">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="twilio">Twilio</SelectItem>
+                              <SelectItem value="zenvia">Zenvia</SelectItem>
+                              <SelectItem value="custom">Custom Webhook</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">API Key / Token</label>
+                          <Input 
+                            type="password"
+                            value={settings.notifications?.sms_api_key}
+                            onChange={(e) => setSettings({
+                              ...settings, 
+                              notifications: { ...settings.notifications, sms_api_key: e.target.value }
+                            })}
+                            className="rounded-xl h-10"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Call Settings */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <PhoneCall className="h-5 w-5 text-green-500" />
+                        <div>
+                          <p className="text-sm font-black uppercase italic tracking-tighter">Notificações por Ligação</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase">Receber chamada automática</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={settings.notifications?.call_enabled} 
+                        onCheckedChange={(val) => setSettings({
+                          ...settings, 
+                          notifications: { ...settings.notifications, call_enabled: val }
+                        })} 
+                      />
+                    </div>
+
+                    {settings.notifications?.call_enabled && (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">API Token (TotalVoice/Zenvia)</label>
+                          <Input 
+                            type="password"
+                            value={settings.notifications?.call_api_key}
+                            onChange={(e) => setSettings({
+                              ...settings, 
+                              notifications: { ...settings.notifications, call_api_key: e.target.value }
+                            })}
+                            className="rounded-xl h-10"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Telefone do Proprietário</label>
+                          <Input 
+                            value={settings.notifications?.call_admin_phone}
+                            onChange={(e) => setSettings({
+                              ...settings, 
+                              notifications: { ...settings.notifications, call_admin_phone: e.target.value }
+                            })}
+                            placeholder="Ex: 5511999999999"
+                            className="rounded-xl h-10"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Mensagem de Voz (TTS)</label>
+                          <Input 
+                            value={settings.notifications?.call_tts_message}
+                            onChange={(e) => setSettings({
+                              ...settings, 
+                              notifications: { ...settings.notifications, call_tts_message: e.target.value }
+                            })}
+                            className="rounded-xl h-10"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

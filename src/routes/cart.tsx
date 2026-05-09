@@ -4,6 +4,7 @@ import { useCart } from "../contexts/CartContext";
    import { Trash2, Plus, Minus, ArrowRight, Ticket, CreditCard, Banknote, QrCode, ShoppingCart, Loader2, ChefHat, MapPin, Info, AlertCircle, Phone, Search, ShoppingBag, User } from "lucide-react";
 import { useState, useEffect } from "react";
  import { formatCurrency, sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppConfig, getWhatsAppTemplates } from "../lib/whatsapp";
+ import { sendSMS, makeNotificationCall } from "../lib/notifications";
 import { supabase } from "@/lib/supabase";
  import { toast } from "@/lib/toast";
  import { logAttempt } from "@/lib/logs";
@@ -316,8 +317,12 @@ function CartPage() {
               total_amount: total - discount + deliveryFee
             }, templates);
           
-          const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
-          await sendWhatsAppMessage(adminSettings.value, adminFullMessage);
+           const adminFullMessage = `🔔 *NOVO PEDIDO RECEBIDO!* 🔔\n\n${adminSummary}\n\n👉 Gerenciar no painel: ${window.location.origin}/admin`;
+           await sendWhatsAppMessage(adminSettings.value, adminFullMessage);
+           
+           // SMS and Call notifications to admin
+           await sendSMS(adminSettings.value, `Novo pedido #${order.id.substring(0, 8)} recebido! Total: R$ ${(total - discount + deliveryFee).toFixed(2)}`);
+           await makeNotificationCall(adminSettings.value);
         }
        }
 
