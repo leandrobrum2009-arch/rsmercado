@@ -200,11 +200,13 @@
  
        try {
          switch (selectedType) {
-           case 'purchase': {
-             const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
-             const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas'];
-             const name = names[Math.floor(Math.random() * names.length)];
-             const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+            case 'purchase': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego', 'Elaine', 'Fabio', 'Gisele', 'Hugo', 'Isabel', 'Jonas', 'Katia', 'Leonardo', 'Marta', 'Nelson', 'Otavio', 'Paula', 'Renato', 'Simone', 'Tatiana'];
+              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes', 'Vieira', 'Barbosa'];
+              const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas', 'Jardim América', 'Bela Vista', 'Santo Antônio', 'São Francisco', 'Parque das Flores', 'Alto da Serra', 'Boa Vista', 'Itamarati', 'Quitandinha', 'Cascatinha', 'Retiro', 'Carangola', 'Bingen', 'Corrêas', 'Araras', 'Itaipava', 'Nogueira', 'Posse'];
+              
+              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
              const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
              addToQueue({
                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
