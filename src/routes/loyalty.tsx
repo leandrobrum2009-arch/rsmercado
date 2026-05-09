@@ -72,7 +72,12 @@
      }
    }
  
-   const handleRedeem = async (reward: any) => {
+    const handleRedeem = async (reward: any) => {
+      if (settings?.min_points_redemption && (profile?.points_balance || 0) < settings.min_points_redemption) {
+        toast.error(`Mínimo de ${settings.min_points_redemption} pontos para começar a resgatar.`);
+        return
+      }
+
      if (!profile || profile.points_balance < reward.points_cost) {
        toast.error('Saldo de pontos insuficiente!')
        return
