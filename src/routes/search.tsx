@@ -1,5 +1,5 @@
-import { createFileRoute, useSearch, Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+ import { createFileRoute, useSearch, Link, useNavigate } from '@tanstack/react-router'
+ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ProductCard } from '@/components/ProductCard'
 import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag } from 'lucide-react'
@@ -15,8 +15,22 @@ export const Route = createFileRoute('/search')({
   component: RouteComponent,
 })
 
-function RouteComponent() {
-   const { q, category, tag } = useSearch({ from: '/search' })
+ function RouteComponent() {
+    const { q, category, tag } = useSearch({ from: '/search' })
+   const navigate = useNavigate()
+   const [inputValue, setInputValue] = useState(q || '')
+   useEffect(() => {
+     setInputValue(q || '')
+   }, [q])
+
+   const handleSearch = (e: React.FormEvent) => {
+     e.preventDefault()
+     navigate({
+       to: '/search',
+       search: (prev) => ({ ...prev, q: inputValue, category: undefined, tag: undefined })
+     })
+   }
+
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [multiplier, setMultiplier] = useState(1)
@@ -94,17 +108,17 @@ function RouteComponent() {
           <Link to="/" className="text-white">
             <ArrowLeft size={24} />
           </Link>
-          <div className="flex-1 relative">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <form action="/search" method="GET">
-              <input 
-                name="q"
-                defaultValue={q}
-                placeholder="O que você procura?"
-                className="w-full bg-white rounded-2xl py-3 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
-              />
-            </form>
-          </div>
+           <div className="flex-1 relative">
+             <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+             <form onSubmit={handleSearch}>
+               <input 
+                 value={inputValue}
+                 onChange={(e) => setInputValue(e.target.value)}
+                 placeholder="O que você procura?"
+                 className="w-full bg-white rounded-2xl py-3 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
+               />
+             </form>
+           </div>
         </div>
       </div>
 
