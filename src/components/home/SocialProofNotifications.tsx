@@ -15,6 +15,14 @@
    const [isEnabled, setIsEnabled] = useState(false);
    const [config, setConfig] = useState<any>(null);
  
+   const formatMessage = (template: string, data: Record<string, any>) => {
+     let message = template;
+     Object.entries(data).forEach(([key, value]) => {
+       message = message.replace(`{${key}}`, value);
+     });
+     return message;
+   };
+ 
    useEffect(() => {
      const fetchConfig = async () => {
        const { data } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
@@ -69,20 +77,24 @@
                const order = orders[Math.floor(Math.random() * orders.length)];
                const name = (order.profiles as any)?.full_name || 'Alguém';
                const neighborhood = (order.delivery_address as any)?.neighborhood || 'da região';
+               const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
                notification = {
                  id: Math.random().toString(),
                  type: 'purchase',
-                 message: `${name} acabou de fazer uma compra no bairro ${neighborhood}`,
+                 message: formatMessage(template, { name, neighborhood }),
                  icon: ShoppingBag
                };
              } else {
                // Fallback to simulated if no orders
                const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos'];
                const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra'];
+               const name = names[Math.floor(Math.random() * names.length)];
+               const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+               const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
                notification = {
                  id: Math.random().toString(),
                  type: 'purchase',
-                 message: `${names[Math.floor(Math.random() * names.length)]} acabou de fazer uma compra no bairro ${neighborhoods[Math.floor(Math.random() * neighborhoods.length)]}`,
+                 message: formatMessage(template, { name, neighborhood }),
                  icon: ShoppingBag
                };
              }
@@ -90,10 +102,11 @@
            }
            case 'viewers': {
              const viewersCount = Math.floor(Math.random() * 20) + 5;
+             const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
              notification = {
                id: Math.random().toString(),
                type: 'viewers',
-               message: `${viewersCount} pessoas visualizando produtos no site agora`,
+               message: formatMessage(template, { count: viewersCount }),
                icon: Users
              };
              break;
@@ -108,10 +121,11 @@
              
              if (products && products.length > 0) {
                const prod = products[Math.floor(Math.random() * products.length)];
+               const template = config.stock_template || 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.';
                notification = {
                  id: Math.random().toString(),
                  type: 'stock',
-                 message: `Este produto "${prod.name}" está acabando! Restam apenas ${prod.stock} unidades.`,
+                 message: formatMessage(template, { product: prod.name, stock: prod.stock }),
                  icon: AlertTriangle
                };
              }
@@ -122,10 +136,11 @@
              const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante'];
              const name = names[Math.floor(Math.random() * names.length)];
              const level = levels[Math.floor(Math.random() * levels.length)];
+             const template = config.level_template || '{name} subiu para o nível {level}!';
              notification = {
                id: Math.random().toString(),
                type: 'level',
-               message: `${name} subiu para o nível ${level}!`,
+               message: formatMessage(template, { name, level }),
                icon: TrendingUp
              };
              break;
@@ -133,10 +148,11 @@
            case 'delivered': {
              const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
              const name = names[Math.floor(Math.random() * names.length)];
+             const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
              notification = {
                id: Math.random().toString(),
                type: 'delivered',
-               message: `${name} já recebeu suas compras em casa!`,
+               message: formatMessage(template, { name }),
                icon: CheckCircle2
              };
              break;
