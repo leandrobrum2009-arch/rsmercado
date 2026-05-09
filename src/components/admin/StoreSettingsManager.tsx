@@ -542,9 +542,14 @@
                       { id: 'show_purchases', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
                       { id: 'show_viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
                       { id: 'show_stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
-                       { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
-                       { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
-                       { id: 'show_payments', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' }
+                      { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
+                      { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
+                      { id: 'show_payments', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' },
+                      { id: 'show_registrations', label: 'Novos Cadastros', desc: 'Leticia acabou de se cadastrar!' },
+                      { id: 'show_coupons', label: 'Uso de Cupons', desc: 'Bernardo usou um cupom agora.' },
+                      { id: 'show_shares', label: 'Ofertas Compartilhadas', desc: 'Kevin compartilhou uma oferta!' },
+                      { id: 'show_carts', label: 'Adição ao Carrinho', desc: 'Ana adicionou um produto ao carrinho.' },
+                      { id: 'show_wishlists', label: 'Favoritados', desc: 'Rafael salvou um produto nos favoritos.' }
                     ].map((item) => (
                       <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-xl hover:bg-zinc-50 transition-colors">
                         <input 
