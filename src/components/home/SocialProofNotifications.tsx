@@ -1,7 +1,7 @@
  import { useState, useEffect } from 'react';
  import { supabase } from '@/lib/supabase';
  import { motion, AnimatePresence } from 'framer-motion';
- import { ShoppingBag, Users, AlertTriangle, TrendingUp, CheckCircle2 } from 'lucide-react';
+ import { ShoppingBag, Users, AlertTriangle, TrendingUp, CheckCircle2, Sparkles } from 'lucide-react';
  
  interface Notification {
    id: string;
@@ -499,13 +499,26 @@
        }
      };
  
-     const interval = setInterval(fetchRandomNotification, config.interval || 15000);
-     
-     return () => {
-       clearInterval(interval);
-       supabase.removeChannel(orderChannel);
-       supabase.removeChannel(profileChannel);
-     };
+      let timeoutId: NodeJS.Timeout;
+
+      const scheduleNext = () => {
+        // Realistic variation: random delay between 8s and 30s
+        const baseInterval = config.interval || 15000;
+        const randomDelay = baseInterval * (0.6 + Math.random() * 1.4);
+        
+        timeoutId = setTimeout(async () => {
+          await fetchRandomNotification();
+          scheduleNext();
+        }, randomDelay);
+      };
+
+      scheduleNext();
+      
+      return () => {
+        clearTimeout(timeoutId);
+        supabase.removeChannel(orderChannel);
+        supabase.removeChannel(profileChannel);
+      };
    }, [isEnabled, config]);
  
    if (!isEnabled || !currentNotification) return null;
@@ -518,9 +531,12 @@
              initial={{ opacity: 0, x: -50, scale: 0.8 }}
              animate={{ opacity: 1, x: 0, scale: 1 }}
              exit={{ opacity: 0, x: -50, scale: 0.8 }}
-             className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[280px] pointer-events-auto flex items-start gap-3"
-           >
-             <div className={`p-2 rounded-xl shrink-0 ${
+              className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[300px] pointer-events-auto flex items-start gap-3 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-1 opacity-20 group-hover:opacity-40 transition-opacity">
+                <Sparkles size={12} className="text-primary" />
+              </div>
+              <div className={`p-2 rounded-xl shrink-0 shadow-sm ${
                 currentNotification.type === 'purchase' ? 'bg-green-100 text-green-600' :
                 currentNotification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
                 currentNotification.type === 'stock' ? 'bg-orange-100 text-orange-600' :
@@ -534,11 +550,17 @@
                <p className="text-xs font-bold text-zinc-800 leading-tight">
                  {currentNotification.message}
                </p>
-                <p className="text-[10px] text-zinc-400 mt-1 font-medium">
-                  {currentNotification.id.startsWith('sim-') 
-                    ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
-                    : config.time_template || 'agora mesmo'}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-[10px] text-zinc-400 font-medium">
+                    {currentNotification.id.startsWith('sim-') 
+                      ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
+                      : config.time_template || 'agora mesmo'}
+                  </p>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
+                    <Sparkles size={8} className="text-zinc-400" />
+                    Realtime IA
+                  </span>
+                </div>
              </div>
            </motion.div>
          )}
