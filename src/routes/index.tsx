@@ -43,7 +43,19 @@ export const Route = createFileRoute("/")({
 
 // IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
 // create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-  function Index() {
+   function Index() {
+     const navigate = useNavigate();
+     const [searchQuery, setSearchQuery] = useState('');
+
+     const handleSearch = (e: React.FormEvent) => {
+       e.preventDefault();
+       if (!searchQuery.trim()) return;
+       navigate({
+         to: '/search',
+         search: { q: searchQuery }
+       });
+     };
+
     const [layout, setLayout] = useState<any[]>([
       { id: 'search', visible: true },
       { id: 'delivery_check', visible: true },
@@ -85,14 +97,24 @@ export const Route = createFileRoute("/")({
             <div key="search" className="bg-green-600 px-4 pt-6 pb-10 md:pb-16 rounded-b-[40px] shadow-lg">
               <div className="container mx-auto">
                 <h1 className="text-white text-2xl font-bold mb-4">Olá, o que você busca hoje?</h1>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input 
-                    type="text" 
-                    placeholder="Busque por produtos, marcas..."
-                    className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
-                  />
-                </div>
+                 <form onSubmit={handleSearch} className="relative">
+                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                   <input 
+                     type="text" 
+                     placeholder="Busque por produtos, marcas..."
+                     value={searchQuery}
+                     onChange={(e) => setSearchQuery(e.target.value)}
+                     className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
+                   />
+                   {searchQuery && (
+                     <button 
+                       type="submit"
+                       className="absolute right-3 top-1/2 -translate-y-1/2 bg-green-600 text-white px-4 py-1.5 rounded-xl font-black uppercase text-[10px] shadow-lg active:scale-95 transition-transform"
+                     >
+                       Buscar
+                     </button>
+                   )}
+                 </form>
               </div>
             </div>
           );
