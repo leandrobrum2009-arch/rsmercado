@@ -499,13 +499,26 @@
        }
      };
  
-     const interval = setInterval(fetchRandomNotification, config.interval || 15000);
-     
-     return () => {
-       clearInterval(interval);
-       supabase.removeChannel(orderChannel);
-       supabase.removeChannel(profileChannel);
-     };
+      let timeoutId: NodeJS.Timeout;
+
+      const scheduleNext = () => {
+        // Realistic variation: random delay between 8s and 30s
+        const baseInterval = config.interval || 15000;
+        const randomDelay = baseInterval * (0.6 + Math.random() * 1.4);
+        
+        timeoutId = setTimeout(async () => {
+          await fetchRandomNotification();
+          scheduleNext();
+        }, randomDelay);
+      };
+
+      scheduleNext();
+      
+      return () => {
+        clearTimeout(timeoutId);
+        supabase.removeChannel(orderChannel);
+        supabase.removeChannel(profileChannel);
+      };
    }, [isEnabled, config]);
  
    if (!isEnabled || !currentNotification) return null;
