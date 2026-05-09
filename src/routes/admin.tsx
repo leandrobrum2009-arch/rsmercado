@@ -32,8 +32,9 @@
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
-import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
+ import { supabase } from '@/lib/supabase'
+ import { toast } from '@/lib/toast'
+ import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
  import { CategoryManagement } from '@/components/admin/CategoryManagement'
@@ -170,11 +171,16 @@ export const Route = createFileRoute('/admin')({
           
           const config = latest?.value || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
 
-          if (config.order_visual_pulse !== false) {
-            setHasNewOrder(true)
-          }
+           if (config.order_visual_pulse !== false) {
+             setHasNewOrder(true)
+           }
 
-          if (config.order_sound_enabled !== false) {
+           toast.success('NOVO PEDIDO RECEBIDO!', {
+             description: `Um novo pedido acabou de chegar. Verifique na seção de entregas.`,
+             duration: 10000,
+           })
+ 
+           if (config.order_sound_enabled !== false) {
             if (!audioRef.current) {
               audioRef.current = new Audio(config.notification_sound_url)
             }
