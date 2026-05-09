@@ -804,16 +804,38 @@ export function WhatsAppManager() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
-                <div>
-                  <p className="text-xs font-black uppercase">Avisar Admin (Novo Pedido)</p>
-                  <p className="text-[10px] text-zinc-500 font-bold">Notifica o admin sobre novas vendas</p>
-                </div>
-                <Switch 
-                  checked={config.notify_new_order_admin !== false} 
-                  onCheckedChange={(val) => setConfig({...config, notify_new_order_admin: val})} 
-                />
-              </div>
+               <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                 <div>
+                   <p className="text-xs font-black uppercase">Avisar Admin (Novo Pedido)</p>
+                   <p className="text-[10px] text-zinc-500 font-bold">Notifica o admin sobre novas vendas</p>
+                 </div>
+                 <Switch 
+                   checked={config.notify_new_order_admin !== false} 
+                   onCheckedChange={(val) => setConfig({...config, notify_new_order_admin: val})} 
+                 />
+               </div>
+ 
+               <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                 <div>
+                   <p className="text-xs font-black uppercase">Avisar Pontos Ganhos</p>
+                   <p className="text-[10px] text-zinc-500 font-bold">Notifica o cliente ao ganhar pontos</p>
+                 </div>
+                 <Switch 
+                   checked={config.notify_points_earned !== false} 
+                   onCheckedChange={(val) => setConfig({...config, notify_points_earned: val})} 
+                 />
+               </div>
+ 
+               <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                 <div>
+                   <p className="text-xs font-black uppercase">Avisar Resgate de Prêmios</p>
+                   <p className="text-[10px] text-zinc-500 font-bold">Confirma o resgate via WhatsApp</p>
+                 </div>
+                 <Switch 
+                   checked={config.notify_loyalty_redeem !== false} 
+                   onCheckedChange={(val) => setConfig({...config, notify_loyalty_redeem: val})} 
+                 />
+               </div>
 
               <div className="space-y-1">
                 <Label className="text-[10px] font-black uppercase text-zinc-400">Janela de Bloqueio (Horas)</Label>
