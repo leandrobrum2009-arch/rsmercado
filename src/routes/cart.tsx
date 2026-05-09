@@ -65,6 +65,7 @@ function CartPage() {
     const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
    const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
+   const [sipagEnabled, setSipagEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
@@ -97,12 +98,16 @@ function CartPage() {
     }, [selectedAddress]);
 
     useEffect(() => {
-     const fetchSettings = async () => {
-       const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
-       if (data && data.value) {
-         setLoyaltySettings(data.value);
-       }
-     };
+      const fetchSettings = async () => {
+        const { data: pointsData } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
+        if (pointsData && pointsData.value) {
+          setLoyaltySettings(pointsData.value);
+        }
+        const { data: sipagData } = await supabase.from('store_settings').select('value').eq('key', 'sipag_config').maybeSingle();
+        if (sipagData && sipagData.value) {
+          setSipagEnabled(sipagData.value.enabled);
+        }
+      };
 
      const fetchData = async () => {
        const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -511,7 +516,7 @@ function CartPage() {
           <div className="grid grid-cols-1 gap-2">
             {[
               { id: 'pix', label: 'PIX (Automático)', icon: QrCode },
-              { id: 'sipag', label: 'Cartão (SIPAG)', icon: CreditCard },
+              ...(sipagEnabled ? [{ id: 'sipag', label: 'Cartão (SIPAG)', icon: CreditCard }] : []),
               { id: 'money', label: 'Dinheiro na Entrega', icon: Banknote },
             ].map((method) => (
               <div key={method.id} className="space-y-2">
