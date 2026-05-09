@@ -79,9 +79,25 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
- export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update';
+  export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned';
  
- export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any) => {
+  export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any) => {
+    if (type === 'loyalty_redeem') {
+      let text = `🎁 *PARABÉNS PELO RESGATE!* 🎁\n\nOlá *${data.customer_name}*,\n\nVocê acaba de resgatar: *${data.reward_title}*\n`;
+      
+      if (data.coupon_code) {
+        text += `\n🎫 Seu cupom de desconto: *${data.coupon_code}*\n\nUse este código no seu próximo pedido para aproveitar seu desconto!`;
+      } else {
+        text += `\n🚀 Em breve entraremos em contato para combinar a entrega do seu prêmio.`;
+      }
+      
+      return text + `\n\nContinue comprando e acumulando pontos! 🛒`;
+    }
+ 
+    if (type === 'points_earned') {
+      return `⭐ *VOCÊ GANHOU PONTOS!* ⭐\n\nOlá *${data.customer_name}*,\n\nSeu pedido #${data.order_id.substring(0, 8)} foi entregue e você ganhou *${data.points} pontos* de fidelidade!\n\n💰 Saldo Atual: *${data.new_balance} pontos*\n\n📍 Confira seus prêmios aqui: ${window.location.origin}/loyalty\n\nObrigado por comprar conosco! 🛒`;
+    }
+ 
    if (type === 'status_update') {
      const statusLabels: Record<string, string> = {
        pending: 'Aguardando Aprovação ⏳',
