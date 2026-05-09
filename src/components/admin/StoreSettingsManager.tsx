@@ -18,10 +18,19 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
      facebook_url: '',
       store_description: '',
       points_ratio: '1',
-      instagram_post_count: '6',
-      instagram_items: [],
-      admin_whatsapp: ''
-    })
+    instagram_post_count: '6',
+    instagram_items: [],
+    admin_whatsapp: '',
+    social_proof: {
+      enabled: true,
+      interval: 15000,
+      show_purchases: true,
+      show_viewers: true,
+      show_stock: true,
+      show_levels: true,
+      show_delivered: true
+    }
+  })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState<string | boolean>(false)
@@ -73,8 +82,9 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
              }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
-             if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
-           });
+              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
+              if (item.key === 'social_proof_settings') newSettings.social_proof = item.value;
+            });
          setSettings(newSettings);
        }
        setIsLoading(false);
@@ -230,8 +240,9 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
-          { key: 'admin_whatsapp', value: settings.admin_whatsapp }
-        ];
+           { key: 'admin_whatsapp', value: settings.admin_whatsapp },
+           { key: 'social_proof_settings', value: settings.social_proof }
+         ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
        if (error) {
@@ -432,8 +443,91 @@ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instag
              </CardContent>
            </Card>
  
-           {/* Contato e Endereço */}
-           <Card className="border-zinc-200 shadow-sm md:col-span-2">
+            {/* Efeitos e Prova Social */}
+            <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
+              <CardHeader className="bg-zinc-900 border-b border-zinc-800">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <div className="p-2 bg-yellow-400 rounded-lg text-black">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  Efeitos e Prova Social (Gatilhos de Venda)
+                </CardTitle>
+                <CardDescription className="text-zinc-400">Ative notificações flutuantes para aumentar a confiança dos clientes</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl mb-6">
+                  <div className="space-y-0.5">
+                    <h4 className="text-sm font-black uppercase text-zinc-800">Status do Recurso</h4>
+                    <p className="text-[10px] font-medium text-zinc-500">Ative ou desative todas as notificações flutuantes no site.</p>
+                  </div>
+                  <button 
+                    onClick={() => setSettings({ ...settings, social_proof: { ...settings.social_proof, enabled: !settings.social_proof.enabled } })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settings.social_proof?.enabled ? 'bg-green-500' : 'bg-zinc-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <label className="text-xs font-black uppercase text-zinc-500">Intervalo entre notificações (ms)</label>
+                    <Input 
+                      type="number"
+                      value={settings.social_proof?.interval}
+                      onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, interval: parseInt(e.target.value) } })}
+                      className="rounded-xl border-zinc-200"
+                    />
+                    <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 15000 (15 segundos)</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Tipos de Balões Ativos</label>
+                    
+                    {[
+                      { id: 'show_purchases', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
+                      { id: 'show_viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
+                      { id: 'show_stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
+                      { id: 'show_levels', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
+                      { id: 'show_delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' }
+                    ].map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-xl hover:bg-zinc-50 transition-colors">
+                        <input 
+                          type="checkbox"
+                          checked={settings.social_proof?.[item.id]}
+                          onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, [item.id]: e.target.checked } })}
+                          className="w-4 h-4 rounded text-primary focus:ring-primary"
+                        />
+                        <div>
+                          <p className="text-[11px] font-black uppercase text-zinc-800">{item.label}</p>
+                          <p className="text-[10px] text-zinc-400 italic">Ex: {item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-zinc-900 rounded-3xl p-6 text-white space-y-4 shadow-2xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Modo de Visualização</span>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-start gap-3">
+                      <div className="p-2 bg-green-500 rounded-xl">
+                        <ShoppingBag size={18} className="text-black" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold leading-tight">Fernanda Lima acabou de fazer uma compra no bairro Centro</p>
+                        <p className="text-[9px] text-zinc-400 mt-1 font-medium italic">agora mesmo</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 leading-relaxed font-bold italic">
+                      * O sistema utiliza dados reais de pedidos, visitas e estoque. Se não houver dados suficientes, mensagens simuladas serão exibidas para manter o engajamento.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contato e Endereço */}
              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                <CardTitle className="flex items-center gap-2 text-zinc-800">
                  <ImageIcon className="h-5 w-5 text-green-500" />
