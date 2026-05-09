@@ -26,11 +26,16 @@
       interval: 15000,
       show_purchases: true,
       show_viewers: true,
-      show_stock: true,
-      show_levels: true,
-      show_delivered: true
-    }
-  })
+       show_stock: true,
+       show_levels: true,
+       show_delivered: true,
+       purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+       viewers_template: '{count} pessoas visualizando produtos no site agora',
+       stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+       level_template: '{name} subiu para o nível {level}!',
+       delivered_template: '{name} já recebeu suas compras em casa!'
+     }
+   })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState<string | boolean>(false)
@@ -83,7 +88,7 @@
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
               if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
-              if (item.key === 'social_proof_settings') newSettings.social_proof = item.value;
+              if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -505,26 +510,108 @@
                     ))}
                   </div>
 
-                  <div className="bg-zinc-900 rounded-3xl p-6 text-white space-y-4 shadow-2xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Modo de Visualização</span>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-start gap-3">
-                      <div className="p-2 bg-green-500 rounded-xl">
-                        <ShoppingBag size={18} className="text-black" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold leading-tight">Fernanda Lima acabou de fazer uma compra no bairro Centro</p>
-                        <p className="text-[9px] text-zinc-400 mt-1 font-medium italic">agora mesmo</p>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-zinc-500 leading-relaxed font-bold italic">
-                      * O sistema utiliza dados reais de pedidos, visitas e estoque. Se não houver dados suficientes, mensagens simuladas serão exibidas para manter o engajamento.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
+                   <div className="space-y-4">
+                     <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
+                     <div className="space-y-3">
+                       <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Compra Realizada</label>
+                         <Input 
+                           value={settings.social_proof?.purchase_template}
+                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, purchase_template: e.target.value } })}
+                           placeholder="{name} comprou em {neighborhood}"
+                           className="rounded-xl border-zinc-200 h-9 text-xs"
+                         />
+                       </div>
+                       <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Pessoas Online</label>
+                         <Input 
+                           value={settings.social_proof?.viewers_template}
+                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, viewers_template: e.target.value } })}
+                           placeholder="{count} pessoas vendo agora"
+                           className="rounded-xl border-zinc-200 h-9 text-xs"
+                         />
+                       </div>
+                       <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Estoque Baixo</label>
+                         <Input 
+                           value={settings.social_proof?.stock_template}
+                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, stock_template: e.target.value } })}
+                           placeholder="Restam {stock} de {product}"
+                           className="rounded-xl border-zinc-200 h-9 text-xs"
+                         />
+                       </div>
+                       <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Novo Nível</label>
+                         <Input 
+                           value={settings.social_proof?.level_template}
+                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, level_template: e.target.value } })}
+                           placeholder="{name} agora é {level}"
+                           className="rounded-xl border-zinc-200 h-9 text-xs"
+                         />
+                       </div>
+                       <div className="space-y-1">
+                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Recebido em Casa</label>
+                         <Input 
+                           value={settings.social_proof?.delivered_template}
+                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, delivered_template: e.target.value } })}
+                           placeholder="{name} recebeu o pedido"
+                           className="rounded-xl border-zinc-200 h-9 text-xs"
+                         />
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                     <div>
+                       <div className="flex items-center gap-2 mb-4">
+                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Dica de Configuração</span>
+                       </div>
+                       <p className="text-sm text-zinc-300 mb-4 leading-relaxed">
+                         Use os <span className="text-yellow-400 font-bold">placeholders</span> entre chaves para que o sistema preencha automaticamente com dados reais:
+                       </p>
+                       <div className="grid grid-cols-2 gap-2">
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{name}"}</span>: Nome do cliente
+                         </div>
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{neighborhood}"}</span>: Bairro
+                         </div>
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{count}"}</span>: Quantidade
+                         </div>
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{product}"}</span>: Nome do produto
+                         </div>
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{stock}"}</span>: Unidades em estoque
+                         </div>
+                         <div className="bg-white/5 p-2 rounded-lg border border-white/10 text-[10px]">
+                           <span className="text-yellow-400 font-mono">{"{level}"}</span>: Nível de fidelidade
+                         </div>
+                       </div>
+                     </div>
+                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                       <p className="text-[10px] font-black uppercase text-zinc-400 mb-4 tracking-widest">Exemplo no Site</p>
+                       <div className="bg-white rounded-2xl p-4 flex items-start gap-3 shadow-xl">
+                         <div className="p-2 bg-green-100 text-green-600 rounded-xl">
+                           <ShoppingBag size={20} />
+                         </div>
+                         <div>
+                           <p className="text-xs font-bold text-zinc-800 leading-tight">
+                             {(settings.social_proof?.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}')
+                               .replace('{name}', 'Fernanda Lima')
+                               .replace('{neighborhood}', 'Centro')}
+                           </p>
+                           <p className="text-[9px] text-zinc-400 mt-1 font-medium">agora mesmo</p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </CardContent>
             </Card>
 
              {/* Contato e Endereço */}
