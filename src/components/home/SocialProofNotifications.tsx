@@ -34,8 +34,9 @@
      purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
      viewers_template: '{count} pessoas visualizando produtos no site agora',
      stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
-     level_template: '{name} subiu para o nível {level}!',
-     delivered_template: '{name} já recebeu suas compras em casa!'
+      level_template: '{name} subiu para o nível {level}!',
+      delivered_template: '{name} já recebeu suas compras em casa!',
+      time_template: 'agora mesmo'
    };
  
    useEffect(() => {
@@ -265,9 +266,9 @@
                <p className="text-xs font-bold text-zinc-800 leading-tight">
                  {currentNotification.message}
                </p>
-               <p className="text-[10px] text-zinc-400 mt-1 font-medium">
-                 agora mesmo
-               </p>
+                <p className="text-[10px] text-zinc-400 mt-1 font-medium">
+                  {config.time_template || 'agora mesmo'}
+                </p>
              </div>
            </motion.div>
          )}
