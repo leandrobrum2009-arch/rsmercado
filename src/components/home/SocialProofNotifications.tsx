@@ -13,32 +13,44 @@
   export function SocialProofNotifications() {
     const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
     const [queue, setQueue] = useState<Notification[]>([]);
-    const [shownIds, setShownIds] = useState<Set<string>>(() => {
-      const saved = sessionStorage.getItem('social_proof_shown_ids');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    });
+    const [shownIds, setShownIds] = useState<Set<string>>(new Set());
     const [lastType, setLastType] = useState<string | null>(null);
     const [sessionCount, setSessionCount] = useState(0);
     const [minuteCount, setMinuteCount] = useState(0);
 
-    const [typeUsage, setTypeUsage] = useState<Record<string, number>>(() => {
-      const saved = sessionStorage.getItem('social_proof_type_usage');
-      return saved ? JSON.parse(saved) : {};
-    });
-    const [usedParams, setUsedParams] = useState<Record<string, string[]>>(() => {
-      const saved = sessionStorage.getItem('social_proof_used_params');
-      return saved ? JSON.parse(saved) : { names: [], neighborhoods: [], products: [] };
-    });
+    const [typeUsage, setTypeUsage] = useState<Record<string, number>>({});
+    const [usedParams, setUsedParams] = useState<Record<string, string[]>>({ names: [], neighborhoods: [], products: [] });
+
+    // Load from sessionStorage on mount
     useEffect(() => {
-      sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
+      if (typeof window !== 'undefined') {
+        const savedShownIds = sessionStorage.getItem('social_proof_shown_ids');
+        if (savedShownIds) setShownIds(new Set(JSON.parse(savedShownIds)));
+
+        const savedTypeUsage = sessionStorage.getItem('social_proof_type_usage');
+        if (savedTypeUsage) setTypeUsage(JSON.parse(savedTypeUsage));
+
+        const savedUsedParams = sessionStorage.getItem('social_proof_used_params');
+        if (savedUsedParams) setUsedParams(JSON.parse(savedUsedParams));
+      }
+    }, []);
+
+    useEffect(() => {
+      if (typeof window !== 'undefined' && shownIds.size > 0) {
+        sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
+      }
     }, [shownIds]);
 
     useEffect(() => {
-      sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
+      if (typeof window !== 'undefined' && Object.keys(typeUsage).length > 0) {
+        sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
+      }
     }, [typeUsage]);
 
     useEffect(() => {
-      sessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+      if (typeof window !== 'undefined' && (usedParams.names?.length > 0 || usedParams.neighborhoods?.length > 0 || usedParams.products?.length > 0)) {
+        sessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+      }
     }, [usedParams]);
 
     const getUniqueItem = (list: string[], key: string, maxHistory = 40) => {
