@@ -391,11 +391,15 @@ export function LoyaltyManager() {
                   </div>
                 </div>
 
-                <div className="space-y-4 col-span-1 md:col-span-2">
-                </div>
               </div>
+              <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-         <TabsContent value="levels">
+        <TabsContent value="levels">
            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
              <CardHeader className="bg-zinc-900 text-white">
                <div className="flex justify-between items-center">
@@ -521,12 +525,6 @@ export function LoyaltyManager() {
              </CardContent>
            </Card>
          </TabsContent>
-              <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="neighborhoods">
           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
