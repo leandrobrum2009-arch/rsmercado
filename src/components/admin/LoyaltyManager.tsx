@@ -231,6 +231,79 @@ export function LoyaltyManager() {
       <Tabs defaultValue="levels" className="w-full">
          <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6 flex overflow-x-auto no-scrollbar">
             <TabsTrigger value="levels" className="rounded-lg font-bold uppercase text-[10px] flex-1">Níveis de Fidelidade</TabsTrigger>
+            <TabsTrigger value="redemptions" className="rounded-lg font-bold uppercase text-[10px] flex-1">Resgates de Prêmios</TabsTrigger>
+
+        <TabsContent value="redemptions">
+          <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
+            <CardHeader className="bg-zinc-900 text-white">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Ticket size={16} /> Gestão de Resgates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {redemptions.length === 0 ? (
+                  <div className="text-center py-12 text-zinc-400">
+                    <Clock size={48} className="mx-auto mb-4 opacity-10" />
+                    <p className="text-xs font-bold uppercase tracking-widest">Nenhum resgate realizado ainda</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {redemptions.map(red => (
+                      <div key={red.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-full ${red.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                            <Gift size={20} />
+                          </div>
+                          <div>
+                            <p className="font-black uppercase text-xs text-zinc-900">{red.loyalty_rewards?.title}</p>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+                              {red.profiles?.full_name || 'Cliente'} • {red.profiles?.whatsapp || 'Sem WhatsApp'}
+                            </p>
+                            <p className="text-[8px] font-medium text-zinc-400 mt-1 uppercase">
+                              Realizado em: {new Date(red.created_at).toLocaleString('pt-BR')}
+                            </p>
+                            {red.details?.coupon_code && (
+                              <Badge variant="outline" className="mt-2 text-[9px] font-black uppercase border-primary text-primary">
+                                Cupom: {red.details.coupon_code}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="text-right mr-2 hidden md:block">
+                            <p className="text-[10px] font-black uppercase text-zinc-400">Status</p>
+                            <p className={`text-[10px] font-black uppercase ${red.status === 'completed' ? 'text-green-600' : 'text-amber-600'}`}>
+                              {red.status === 'pending' ? 'Pendente' : 'Concluído'}
+                            </p>
+                          </div>
+                          
+                          {red.status === 'pending' ? (
+                            <Button 
+                              onClick={() => updateRedemptionStatus(red.id, 'completed')}
+                              className="bg-green-600 hover:bg-green-700 h-9 rounded-xl font-black uppercase text-[9px]"
+                            >
+                              Marcar como Entregue
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="outline"
+                              onClick={() => updateRedemptionStatus(red.id, 'pending')}
+                              className="border-zinc-200 h-9 rounded-xl font-black uppercase text-[9px] text-zinc-500"
+                            >
+                              Reverter p/ Pendente
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
             <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Regras de Pontos</TabsTrigger>
            <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Catálogo de Troca</TabsTrigger>
            <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Missões</TabsTrigger>
