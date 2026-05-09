@@ -192,7 +192,9 @@
        if (config.show_stock) types.push('stock');
         if (config.show_levels) types.push('level');
         if (config.show_delivered) types.push('delivered');
-        if (config.show_payments) types.push('payment');
+         if (config.show_payments) types.push('payment');
+          types.push('cart');
+          types.push('wishlist');
  
        if (types.length === 0) return;
  
@@ -200,11 +202,13 @@
  
        try {
          switch (selectedType) {
-           case 'purchase': {
-             const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
-             const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas'];
-             const name = names[Math.floor(Math.random() * names.length)];
-             const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+            case 'purchase': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego', 'Elaine', 'Fabio', 'Gisele', 'Hugo', 'Isabel', 'Jonas', 'Katia', 'Leonardo', 'Marta', 'Nelson', 'Otavio', 'Paula', 'Renato', 'Simone', 'Tatiana'];
+              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes', 'Vieira', 'Barbosa'];
+              const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas', 'Jardim América', 'Bela Vista', 'Santo Antônio', 'São Francisco', 'Parque das Flores', 'Alto da Serra', 'Boa Vista', 'Itamarati', 'Quitandinha', 'Cascatinha', 'Retiro', 'Carangola', 'Bingen', 'Corrêas', 'Araras', 'Itaipava', 'Nogueira', 'Posse'];
+              
+              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
              const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
              addToQueue({
                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
@@ -245,10 +249,11 @@
              }
              break;
            }
-           case 'level': {
-             const names = ['Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ana Paula', 'Carlos Eduardo'];
-             const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante'];
-             const name = names[Math.floor(Math.random() * names.length)];
+            case 'level': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante', 'Platina', 'Safira', 'Esmeralda'];
+              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
              const level = levels[Math.floor(Math.random() * levels.length)];
              const template = config.level_template || '{name} subiu para o nível {level}!';
              addToQueue({
@@ -260,8 +265,9 @@
               break;
             }
             case 'payment': {
-              const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
               addToQueue({
                 id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
@@ -272,17 +278,44 @@
               break;
             }
             case 'delivered': {
-             const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
-             const name = names[Math.floor(Math.random() * names.length)];
-             const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
-             addToQueue({
-               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
-               type: 'delivered',
-               message: formatMessage(template, { name }),
-               icon: CheckCircle2
-             });
-             break;
-           }
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
+              addToQueue({
+                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
+                type: 'delivered',
+                message: formatMessage(template, { name }),
+                icon: CheckCircle2
+              });
+              break;
+            }
+            case 'cart': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação'];
+              const product = products[Math.floor(Math.random() * products.length)];
+              addToQueue({
+                id: `sim-cart-${Math.floor(Date.now() / 1000)}`,
+                type: 'purchase',
+                message: `${name} adicionou ${product} ao carrinho!`,
+                icon: ShoppingBag
+              });
+              break;
+            }
+            case 'wishlist': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego'];
+              const product = products[Math.floor(Math.random() * products.length)];
+              addToQueue({
+                id: `sim-wish-${Math.floor(Date.now() / 1000)}`,
+                type: 'level',
+                message: `${name} favoritou o produto: ${product}`,
+                icon: TrendingUp
+              });
+              break;
+            }
          }
        } catch (err) {
          console.error('Error fetching social proof:', err);
@@ -325,7 +358,9 @@
                  {currentNotification.message}
                </p>
                 <p className="text-[10px] text-zinc-400 mt-1 font-medium">
-                  {config.time_template || 'agora mesmo'}
+                  {currentNotification.id.startsWith('sim-') 
+                    ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
+                    : config.time_template || 'agora mesmo'}
                 </p>
              </div>
            </motion.div>
