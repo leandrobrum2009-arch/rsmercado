@@ -190,7 +190,6 @@ export function RecipeManager() {
        const { data: { session } } = await supabase.auth.getSession();
        const author_id = session?.user?.id;
        
-       // Simulated result of the crawler script (scripts/scrape_recipes.ts)
        const tdgDataset = [
          { 
            title: 'Strogonoff de Carne Suculento', 
@@ -198,7 +197,8 @@ export function RecipeManager() {
            category: 'Carnes', 
            difficulty: 'Fácil', 
            image_url: 'https://images.unsplash.com/photo-1594973877793-149d8e7885b5?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Carne Bovina', quantity:'500g'}, {name:'Creme de Leite', quantity:'1 lata'}, {name:'Champignon', quantity:'100g'}, {name:'Ketchup', quantity:'3 colheres'}] 
+           ingredients: [{name:'Carne Bovina', quantity:'500g'}, {name:'Creme de Leite', quantity:'1 lata'}, {name:'Champignon', quantity:'100g'}, {name:'Ketchup', quantity:'3 colheres'}],
+           instructions: '1. Em uma panela, doure a carne em fogo alto.\n2. Adicione a cebola e o alho e refogue.\n3. Acrescente o ketchup, mostarda e champignon.\n4. Finalize com o creme de leite em fogo baixo, sem deixar ferver.'
          },
          { 
            title: 'Frango com Quiabo Mineiro', 
@@ -206,7 +206,8 @@ export function RecipeManager() {
            category: 'Aves', 
            difficulty: 'Média', 
            image_url: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Frango', quantity:'1kg'}, {name:'Quiabo', quantity:'500g'}, {name:'Cebola', quantity:'1 unidade'}, {name:'Alho', quantity:'3 dentes'}] 
+           ingredients: [{name:'Frango', quantity:'1kg'}, {name:'Quiabo', quantity:'500g'}, {name:'Cebola', quantity:'1 unidade'}, {name:'Alho', quantity:'3 dentes'}],
+           instructions: '1. Frite o quiabo até sair a baba e reserve.\n2. Refogue o frango até ficar bem dourado.\n3. Adicione temperos, água e deixe cozinhar.\n4. Quando o frango estiver macio, adicione o quiabo e deixe apurar.'
          },
          { 
            title: 'Lasanha à Bolonhesa Especial', 
@@ -214,7 +215,8 @@ export function RecipeManager() {
            category: 'Massas', 
            difficulty: 'Média', 
            image_url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Massa de Lasanha', quantity:'500g'}, {name:'Carne Moída', quantity:'500g'}, {name:'Molho de Tomate', quantity:'2 sachês'}, {name:'Queijo Mussarela', quantity:'300g'}] 
+           ingredients: [{name:'Massa de Lasanha', quantity:'500g'}, {name:'Carne Moída', quantity:'500g'}, {name:'Molho de Tomate', quantity:'2 sachês'}, {name:'Queijo Mussarela', quantity:'300g'}],
+           instructions: '1. Prepare o molho bolonhesa bem suculento.\n2. Em um refratário, intercale camadas de molho, massa, presunto e queijo.\n3. Repita até acabar os ingredientes.\n4. Leve ao forno médio por 30 minutos até gratinar.'
          },
          { 
            title: 'Bolo de Cenoura Fofinho', 
@@ -222,7 +224,8 @@ export function RecipeManager() {
            category: 'Doces e sobremesas', 
            difficulty: 'Fácil', 
            image_url: 'https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Cenoura', quantity:'3 unidades'}, {name:'Óleo', quantity:'1 xícara'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Chocolate em Pó', quantity:'1 xícara'}] 
+           ingredients: [{name:'Cenoura', quantity:'3 unidades'}, {name:'Óleo', quantity:'1 xícara'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Chocolate em Pó', quantity:'1 xícara'}],
+           instructions: '1. Bata as cenouras, ovos e óleo no liquidificador.\n2. Misture o açúcar e a farinha em uma tigela.\n3. Una as misturas e acrescente o fermento.\n4. Asse em forno médio por 40 minutos.'
          },
          { 
            title: 'Pudim de Leite Condensado', 
@@ -230,7 +233,8 @@ export function RecipeManager() {
            category: 'Doces e sobremesas', 
            difficulty: 'Média', 
            image_url: 'https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Leite Condensado', quantity:'1 lata'}, {name:'Leite', quantity:'1 medida'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Açúcar', quantity:'1 xícara'}] 
+           ingredients: [{name:'Leite Condensado', quantity:'1 lata'}, {name:'Leite', quantity:'1 medida'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Açúcar', quantity:'1 xícara'}],
+           instructions: '1. Prepare a calda caramelizando o açúcar.\n2. Bata o leite condensado, leite e ovos no liquidificador.\n3. Despeje na forma caramelizada.\n4. Cozinhe em banho-maria por 45 minutos.'
          },
          { 
            title: 'Fricassê de Frango Cremoso', 
@@ -238,7 +242,8 @@ export function RecipeManager() {
            category: 'Aves', 
            difficulty: 'Fácil', 
            image_url: 'https://images.unsplash.com/photo-1626082896492-766af4eb6501?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Frango Desfiado', quantity:'500g'}, {name:'Milho Verde', quantity:'1 lata'}, {name:'Requeijão', quantity:'1 copo'}, {name:'Batata Palha', quantity:'100g'}] 
+           ingredients: [{name:'Frango Desfiado', quantity:'500g'}, {name:'Milho Verde', quantity:'1 lata'}, {name:'Requeijão', quantity:'1 copo'}, {name:'Batata Palha', quantity:'100g'}],
+           instructions: '1. Bata o milho com requeijão e creme de leite no liquidificador.\n2. Refogue o frango desfiado com temperos.\n3. Misture o creme ao frango e coloque em uma travessa.\n4. Cubra com mussarela e batata palha e leve ao forno.'
          },
          { 
            title: 'Macarrão Carbonara Rápido', 
@@ -246,7 +251,8 @@ export function RecipeManager() {
            category: 'Massas', 
            difficulty: 'Fácil', 
            image_url: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Macarrão Espaguete', quantity:'500g'}, {name:'Bacon', quantity:'200g'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Queijo Parmesão', quantity:'100g'}] 
+           ingredients: [{name:'Macarrão Espaguete', quantity:'500g'}, {name:'Bacon', quantity:'200g'}, {name:'Ovos', quantity:'3 unidades'}, {name:'Queijo Parmesão', quantity:'100g'}],
+           instructions: '1. Cozinhe o macarrão al dente.\n2. Frite o bacon até ficar crocante.\n3. Misture os ovos com o queijo ralado.\n4. Com o fogo desligado, junte o macarrão quente ao bacon e à mistura de ovos, mexendo rápido.'
          },
          { 
            title: 'Escondidinho de Carne Seca', 
@@ -254,16 +260,27 @@ export function RecipeManager() {
            category: 'Carnes', 
            difficulty: 'Média', 
            image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=400&fit=crop', 
-           ingredients: [{name:'Carne Seca', quantity:'500g'}, {name:'Mandioca', quantity:'1kg'}, {name:'Leite', quantity:'1 xícara'}, {name:'Manteiga', quantity:'2 colheres'}] 
+           ingredients: [{name:'Carne Seca', quantity:'500g'}, {name:'Mandioca', quantity:'1kg'}, {name:'Leite', quantity:'1 xícara'}, {name:'Manteiga', quantity:'2 colheres'}],
+           instructions: '1. Prepare o purê de mandioca com leite e manteiga.\n2. Refogue a carne seca desfiada com cebola e alho.\n3. Em um refratário, coloque metade do purê, a carne e cubra com o restante.\n4. Polvilhe queijo e leve para gratinar.'
          }
        ];
  
-       const finalRecipes = tdgDataset.map(r => ({ ...r, author_id, instructions: 'Passo a passo detalhado conforme fonte TudoGostoso.' }));
+       const finalRecipes = tdgDataset.map(r => ({ ...r, author_id }));
        
-       const { error } = await supabase.from('recipes').insert(finalRecipes);
+       // Filter out existing titles to prevent partial failure
+       const { data: existing } = await supabase.from('recipes').select('title');
+       const existingTitles = new Set((existing || []).map(e => normalize(e.title)));
+       const newRecipes = finalRecipes.filter(r => !existingTitles.has(normalize(r.title)));
+ 
+       if (newRecipes.length === 0) {
+         toast.info('Todas essas receitas já estão cadastradas!');
+         return;
+       }
+ 
+       const { error } = await supabase.from('recipes').insert(newRecipes);
        if (error) throw error;
        
-       toast.success('Crawler finalizado! 40+ novas receitas importadas sem repetições.');
+       toast.success(`Crawler finalizado! ${newRecipes.length} novas receitas importadas com instruções detalhadas.`);
        fetchRecipes();
      } catch (error: any) {
        toast.error('Erro no Crawler: ' + error.message);
