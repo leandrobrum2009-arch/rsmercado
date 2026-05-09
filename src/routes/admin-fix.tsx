@@ -452,7 +452,7 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    SET search_path = public, auth
    AS $BODY$
    BEGIN
-     IF (NEW.status = 'delivered' AND OLD.status != 'delivered') THEN
+     IF (NEW.status = 'delivered' AND (OLD.status IS NULL OR OLD.status != 'delivered')) THEN
        IF NEW.points_earned > 0 AND NEW.user_id IS NOT NULL THEN
          -- Credit points to profile
          UPDATE public.profiles 
@@ -473,8 +473,49 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
      AFTER UPDATE ON public.orders
      FOR EACH ROW
      EXECUTE FUNCTION public.handle_order_delivered_points();
+
+   -- 18. FUNÇÃO PARA CANCELAR RESGATE E REEMBOLSAR
+   CREATE OR REPLACE FUNCTION public.cancel_redemption(p_redemption_id UUID)
+   RETURNS JSONB
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = public, auth
+   AS $BODY$
+   DECLARE
+     v_user_id UUID;
+     v_points INTEGER;
+     v_status TEXT;
+     v_reward_title TEXT;
+   BEGIN
+     -- Get redemption data
+     SELECT r.user_id, rw.points_cost, r.status, rw.title 
+     INTO v_user_id, v_points, v_status, v_reward_title
+     FROM public.loyalty_redemptions r
+     JOIN public.loyalty_rewards rw ON r.reward_id = rw.id
+     WHERE r.id = p_redemption_id;
+     
+     IF v_user_id IS NULL THEN
+       RETURN jsonb_build_object('success', false, 'message', 'Resgate não encontrado.');
+     END IF;
+     
+     IF v_status = 'cancelled' THEN
+       RETURN jsonb_build_object('success', false, 'message', 'Resgate já está cancelado.');
+     END IF;
+     
+     -- Update redemption status
+     UPDATE public.loyalty_redemptions SET status = 'cancelled' WHERE id = p_redemption_id;
+     
+     -- Refund points
+     UPDATE public.profiles SET points_balance = points_balance + v_points WHERE id = v_user_id;
+     
+     -- Log history
+     INSERT INTO public.points_history (user_id, points, type, description)
+     VALUES (v_user_id, v_points, 'admin_adjustment', 'Reembolso de resgate: ' || v_reward_title);
+     
+     RETURN jsonb_build_object('success', true, 'message', 'Resgate cancelado e pontos reembolsados!');
+   END; $BODY$;
  
-   -- 18. REPARAR PERMISSÕES DE ADMINISTRADORES E PERFIS
+   -- 19. REPARAR PERMISSÕES DE ADMINISTRADORES E PERFIS
    ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
    ALTER TABLE IF EXISTS public.user_roles ADD COLUMN IF NOT EXISTS permissions TEXT[] DEFAULT '{}';
    

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X, CheckCircle2, Clock, Ticket } from 'lucide-react'
+   import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X, CheckCircle2, Clock, Ticket, AlertTriangle, RefreshCcw } from 'lucide-react'
  import { Badge } from '@/components/ui/badge'
  import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
@@ -12,14 +12,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export function LoyaltyManager() {
   const [loading, setLoading] = useState(false)
     const DEFAULT_SETTINGS = {
-      points_per_real: 1,
-      signup_bonus: 100,
-      min_points_redemption: 500,
-      tiers: [
-        { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
-        { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
-        { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
-      ]
+       points_per_real: 1,
+       signup_bonus: 100,
+       min_points_redemption: 500,
+       min_order_value_to_earn: 10,
+       points_expiry_days: 365,
+       max_redeem_per_month: 5,
+       tiers: [
+         { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
+         { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
+         { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
+       ]
+    }
+ 
+    const handleCancelRedemption = async (redemptionId: string) => {
+      if (!confirm('Tem certeza que deseja cancelar este resgate e devolver os pontos ao cliente?')) return;
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.rpc('cancel_redemption', { p_redemption_id: redemptionId });
+        if (error) throw error;
+        if (data.success) {
+          toast.success(data.message);
+          fetchData();
+        } else {
+          toast.error(data.message);
+        }
+      } catch (err: any) {
+        console.error('Cancel redemption error:', err);
+        toast.error('Erro ao cancelar: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
     }
     const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS)
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
@@ -252,7 +275,11 @@ export function LoyaltyManager() {
                     {redemptions.map(red => (
                       <div key={red.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-full ${red.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                           <div className={`p-3 rounded-full ${
+                             red.status === 'completed' ? 'bg-green-100 text-green-600' : 
+                             red.status === 'cancelled' ? 'bg-red-100 text-red-600' : 
+                             'bg-amber-100 text-amber-600'
+                           }`}>
                             <Gift size={20} />
                           </div>
                           <div>
@@ -274,26 +301,43 @@ export function LoyaltyManager() {
                         <div className="flex items-center gap-3">
                           <div className="text-right mr-2 hidden md:block">
                             <p className="text-[10px] font-black uppercase text-zinc-400">Status</p>
-                            <p className={`text-[10px] font-black uppercase ${red.status === 'completed' ? 'text-green-600' : 'text-amber-600'}`}>
-                              {red.status === 'pending' ? 'Pendente' : 'Concluído'}
+                            <p className={`text-[10px] font-black uppercase ${
+                              red.status === 'completed' ? 'text-green-600' : 
+                              red.status === 'cancelled' ? 'text-red-500' :
+                              'text-amber-600'
+                            }`}>
+                              {red.status === 'pending' ? 'Pendente' : red.status === 'completed' ? 'Concluído' : 'Cancelado'}
                             </p>
                           </div>
                           
-                          {red.status === 'pending' ? (
-                            <Button 
-                              onClick={() => updateRedemptionStatus(red.id, 'completed')}
-                              className="bg-green-600 hover:bg-green-700 h-9 rounded-xl font-black uppercase text-[9px]"
-                            >
-                              Marcar como Entregue
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="outline"
-                              onClick={() => updateRedemptionStatus(red.id, 'pending')}
-                              className="border-zinc-200 h-9 rounded-xl font-black uppercase text-[9px] text-zinc-500"
-                            >
-                              Reverter p/ Pendente
-                            </Button>
+                          {red.status !== 'cancelled' && (
+                            <div className="flex gap-2">
+                              {red.status === 'pending' ? (
+                                <>
+                                  <Button 
+                                    onClick={() => updateRedemptionStatus(red.id, 'completed')}
+                                    className="bg-green-600 hover:bg-green-700 h-9 rounded-xl font-black uppercase text-[9px]"
+                                  >
+                                    Marcar Entregue
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    onClick={() => handleCancelRedemption(red.id)}
+                                    className="border-red-100 bg-red-50 text-red-600 hover:bg-red-100 h-9 rounded-xl font-black uppercase text-[9px]"
+                                  >
+                                    Cancelar e Reembolsar
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button 
+                                  variant="outline"
+                                  onClick={() => updateRedemptionStatus(red.id, 'pending')}
+                                  className="border-zinc-200 h-9 rounded-xl font-black uppercase text-[9px] text-zinc-500"
+                                >
+                                  Reverter p/ Pendente
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -502,6 +546,44 @@ export function LoyaltyManager() {
                   </div>
                 </div>
 
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle size={16} className="text-amber-500" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">Regras de Operação</h3>
+                  </div>
+                  <div className="space-y-4 bg-zinc-50 p-6 rounded-3xl border border-zinc-100">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Valor Mínimo do Pedido p/ ganhar pontos</label>
+                      <Input 
+                        type="number" 
+                        value={settings.min_order_value_to_earn} 
+                        onChange={e => setSettings({...settings, min_order_value_to_earn: parseFloat(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Pedidos abaixo deste valor não geram pontos.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Validade dos Pontos (Dias)</label>
+                      <Input 
+                        type="number" 
+                        value={settings.points_expiry_days} 
+                        onChange={e => setSettings({...settings, points_expiry_days: parseInt(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Padrão: 365 dias (1 ano).</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-zinc-500">Limite de Resgates por Mês (Por Cliente)</label>
+                      <Input 
+                        type="number" 
+                        value={settings.max_redeem_per_month} 
+                        onChange={e => setSettings({...settings, max_redeem_per_month: parseInt(e.target.value)})}
+                        className="h-10 border-white bg-white font-bold"
+                      />
+                      <p className="text-[8px] font-medium text-zinc-400 uppercase tracking-tighter">Evita resgates excessivos em curto período.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações

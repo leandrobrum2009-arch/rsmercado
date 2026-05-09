@@ -1,7 +1,7 @@
  import { useState, useEffect } from 'react'
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { supabase } from '@/lib/supabase'
-  import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap, ShoppingBag, Clock, Ticket } from 'lucide-react'
+  import { Trophy, Target, Gift, CheckCircle2, ChevronRight, Coins, ArrowLeft, Loader2, Star, Zap, ShoppingBag, Clock, Ticket, AlertTriangle } from 'lucide-react'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Button } from '@/components/ui/button'
  import { Badge } from '@/components/ui/badge'
@@ -72,7 +72,12 @@
      }
    }
  
-   const handleRedeem = async (reward: any) => {
+    const handleRedeem = async (reward: any) => {
+      if (settings?.min_points_redemption && (profile?.points_balance || 0) < settings.min_points_redemption) {
+        toast.error(`Mínimo de ${settings.min_points_redemption} pontos para começar a resgatar.`);
+        return
+      }
+
      if (!profile || profile.points_balance < reward.points_cost) {
        toast.error('Saldo de pontos insuficiente!')
        return
@@ -330,7 +335,51 @@
                )}
             </div>
          </div>
-       </div>
-     </div>
-   )
- }
+        </div>
+
+        {/* Program Rules Section */}
+        <Card className="border-0 shadow-xl rounded-[2.5rem] bg-zinc-50 overflow-hidden mt-12">
+          <CardContent className="p-8 space-y-6">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="text-amber-500" />
+              <h3 className="text-xl font-black uppercase italic tracking-tighter">Regras do Programa</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs shadow-sm">1</div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-900">Como ganhar pontos?</p>
+                    <p className="text-xs text-zinc-500 mt-1">A cada R$ 1,00 em compras, você ganha {settings?.points_per_real || 1} ponto. Pedidos mínimos de R$ {settings?.min_order_value_to_earn || 10} são necessários.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs shadow-sm">2</div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-900">Quando posso resgatar?</p>
+                    <p className="text-xs text-zinc-500 mt-1">Você pode começar a trocar seus pontos por prêmios assim que atingir o saldo mínimo de {settings?.min_points_redemption || 500} pontos.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs shadow-sm">3</div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-900">Qual a validade?</p>
+                    <p className="text-xs text-zinc-500 mt-1">Seus pontos têm validade de {settings?.points_expiry_days || 365} dias após a data da compra. Não deixe acumular por muito tempo!</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-black text-xs shadow-sm">4</div>
+                  <div>
+                    <p className="font-black uppercase text-[10px] text-zinc-900">Limites de Uso</p>
+                    <p className="text-xs text-zinc-500 mt-1">Cada cliente pode realizar até {settings?.max_redeem_per_month || 5} resgates por mês. Os cupons gerados são de uso único.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
