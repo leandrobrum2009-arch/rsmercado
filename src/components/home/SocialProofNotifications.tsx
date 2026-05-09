@@ -85,6 +85,7 @@
        show_shares: true,
        show_carts: true,
        show_wishlists: true,
+       realistic_ai: true,
        time_template: 'agora mesmo'
     };
   
@@ -507,14 +508,16 @@
       let timeoutId: NodeJS.Timeout;
 
       const scheduleNext = () => {
-        // Realistic variation: random delay between 8s and 30s
         const baseInterval = config.interval || 15000;
-        const randomDelay = baseInterval * (0.6 + Math.random() * 1.4);
+        // Realistic variation: random delay if enabled
+        const delay = config.realistic_ai 
+          ? baseInterval * (0.6 + Math.random() * 1.4)
+          : baseInterval;
         
         timeoutId = setTimeout(async () => {
           await fetchRandomNotification();
           scheduleNext();
-        }, randomDelay);
+        }, delay);
       };
 
       scheduleNext();
@@ -557,14 +560,16 @@
                </p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-[10px] text-zinc-400 font-medium">
-                    {currentNotification.id.startsWith('sim-') 
+                    {config.realistic_ai && currentNotification.id.startsWith('sim-') 
                       ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
                       : config.time_template || 'agora mesmo'}
                   </p>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
-                    <Sparkles size={8} className="text-zinc-400" />
-                    Realtime IA
-                  </span>
+                  {config.realistic_ai && (
+                    <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
+                      <Sparkles size={8} className="text-zinc-400" />
+                      Realtime IA
+                    </span>
+                  )}
                 </div>
              </div>
            </motion.div>

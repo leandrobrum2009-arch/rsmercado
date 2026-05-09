@@ -34,28 +34,29 @@
      instagram_post_count: '6',
      instagram_items: [],
      admin_whatsapp: '',
-     social_proof: {
-       enabled: true,
-       interval: 15000,
-       show_purchases: true,
-       show_viewers: true,
-        show_stock: true,
-        show_levels: true,
-        show_delivered: true,
-        purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
-        viewers_template: '{count} pessoas visualizando produtos no site agora',
-        stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
-         level_template: '{name} subiu para o nível {level}!',
-         delivered_template: '{name} já recebeu suas compras em casa!',
-         payment_template: 'Pagamento confirmado para o pedido de {name}!',
-         show_payments: true,
-         show_registrations: true,
-         show_coupons: true,
-         show_shares: true,
-         show_carts: true,
-         show_wishlists: true,
-         time_template: 'agora mesmo'
-      },
+        social_proof: {
+          enabled: true,
+          interval: 15000,
+          realistic_ai: true,
+          show_purchases: true,
+          show_viewers: true,
+           show_stock: true,
+           show_levels: true,
+           show_delivered: true,
+           purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+           viewers_template: '{count} pessoas visualizando produtos no site agora',
+           stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+            level_template: '{name} subiu para o nível {level}!',
+            delivered_template: '{name} já recebeu suas compras em casa!',
+            payment_template: 'Pagamento confirmado para o pedido de {name}!',
+            show_payments: true,
+            show_registrations: true,
+            show_coupons: true,
+            show_shares: true,
+            show_carts: true,
+            show_wishlists: true,
+            time_template: 'agora mesmo'
+         },
       notifications: {
         sms_enabled: false,
         sms_provider: 'twilio',
@@ -520,12 +521,26 @@
                     <h4 className="text-sm font-black uppercase text-zinc-800">Status do Recurso</h4>
                     <p className="text-[10px] font-medium text-zinc-500">Ative ou desative todas as notificações flutuantes no site.</p>
                   </div>
-                  <button 
-                    onClick={() => setSettings({ ...settings, social_proof: { ...settings.social_proof, enabled: !settings.social_proof.enabled } })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settings.social_proof?.enabled ? 'bg-green-500' : 'bg-zinc-300'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
+                  <div className="flex gap-4 items-center">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[9px] font-black uppercase text-zinc-400">Geral</span>
+                      <button 
+                        onClick={() => setSettings({ ...settings, social_proof: { ...settings.social_proof, enabled: !settings.social_proof.enabled } })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settings.social_proof?.enabled ? 'bg-green-500' : 'bg-zinc-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 border-l border-zinc-200 pl-4">
+                      <span className="text-[9px] font-black uppercase text-zinc-400">Modo Realista IA</span>
+                      <button 
+                        onClick={() => setSettings({ ...settings, social_proof: { ...settings.social_proof, realistic_ai: !settings.social_proof.realistic_ai } })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settings.social_proof?.realistic_ai ? 'bg-blue-500' : 'bg-zinc-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.realistic_ai ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
