@@ -4,12 +4,27 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
- import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag, Eye, Search } from 'lucide-react'
+ import { Label } from '@/components/ui/label'
+ import { Badge } from '@/components/ui/badge'
+   import { Loader2, Send, MessageSquare, ShieldCheck, AlertTriangle, Calendar, Clock, Trash2, CheckCircle, Filter, Users, FileText, Plus, ShieldAlert, Zap, ListChecks, Tag, Eye, Search, Info } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { getWhatsAppConfig, saveWhatsAppConfig, WhatsAppConfig, sendWhatsAppMessage } from '@/lib/whatsapp'
 
+   const ALLOWED_PLACEHOLDERS = [
+     'customer_name', 'order_id', 'points', 'new_balance', 'loyalty_url', 
+     'track_url', 'reward_title', 'coupon_info', 'coupon_code', 'status', 
+     'title', 'description', 'product_url', 'total_amount', 'subtotal', 
+     'delivery_fee', 'address', 'payment_method', 'items', 'site_name', 
+     'site_url', 'product_list'
+   ];
+ 
+   const validatePlaceholders = (text: string) => {
+     const found = text.match(/\{[a-zA-Z0-9_]+\}/g) || [];
+     const invalid = found.filter(p => !ALLOWED_PLACEHOLDERS.includes(p.replace(/[\{\}]/g, '')));
+     return invalid;
+   };
+ 
 export function WhatsAppManager() {
   const [config, setConfig] = useState<WhatsAppConfig>({
     apiKey: '',
@@ -261,6 +276,16 @@ export function WhatsAppManager() {
    }
  
    const handleSaveAutoTemplates = async () => {
+     // Validate all templates
+     for (const [key, value] of Object.entries(autoTemplates)) {
+       if (typeof value === 'string') {
+         const invalid = validatePlaceholders(value);
+         if (invalid.length > 0) {
+           return toast.error(`Placeholder(s) inválidos no modelo ${key}: ${invalid.join(', ')}`);
+         }
+       }
+     }
+ 
      const { error } = await supabase.from('store_settings').upsert({ key: 'whatsapp_templates', value: autoTemplates }, { onConflict: 'key' })
      if (error) toast.error('Erro ao salvar modelos automáticos')
      else toast.success('Modelos automáticos salvos!')
@@ -607,21 +632,31 @@ export function WhatsAppManager() {
                      { id: 'status_update', label: 'Mundança de Status', placeholder: 'Enviado ao trocar status' },
                      { id: 'order_summary', label: 'Resumo do Pedido', placeholder: 'Lista de itens e total' },
                      { id: 'points_earned', label: 'Pontos Ganhos', placeholder: 'Ao entregar pedido' },
-                      { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
-                      { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
-                      { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' },
-                      { id: 'payment_confirmed', label: 'Pagamento Confirmado', placeholder: 'Enviado ao receber pagamento' }
-                   ].map((item) => (
-                     <div key={item.id} className="space-y-2">
-                       <Label className="text-[10px] font-black uppercase text-zinc-500">{item.label}</Label>
-                       <textarea 
-                         className="w-full h-24 p-3 rounded-xl border border-zinc-200 text-xs focus:ring-green-500 outline-none"
-                         value={autoTemplates[item.id]}
-                         onChange={(e) => setAutoTemplates({...autoTemplates, [item.id]: e.target.value})}
-                         placeholder={`Modelo para ${item.label.toLowerCase()}...`}
-                       />
-                     </div>
-                   ))}
+                     { id: 'loyalty_redeem', label: 'Resgate de Prêmio', placeholder: 'Confirmação de troca' },
+                     { id: 'promotion', label: 'Oferta do Produto', placeholder: 'Enviado pelo OfferManager' },
+                     { id: 'flyer_share', label: 'Compartilhar Encarte', placeholder: 'No FlyerCreator' },
+                     { id: 'payment_confirmed', label: 'Pagamento Confirmado', placeholder: 'Enviado ao receber pagamento' }
+                   ].map((item) => {
+                     const invalid = validatePlaceholders(autoTemplates[item.id] || '');
+                     return (
+                       <div key={item.id} className="space-y-2">
+                         <div className="flex justify-between items-center">
+                           <Label className="text-[10px] font-black uppercase text-zinc-500">{item.label}</Label>
+                           {invalid.length > 0 && (
+                             <Badge variant="destructive" className="text-[8px] px-1 py-0 h-4 uppercase animate-pulse">
+                               Placeholder Inválido: {invalid[0]}
+                             </Badge>
+                           )}
+                         </div>
+                         <textarea 
+                           className={`w-full h-24 p-3 rounded-xl border ${invalid.length > 0 ? 'border-red-500 bg-red-50' : 'border-zinc-200'} text-xs focus:ring-green-500 outline-none transition-all`}
+                           value={autoTemplates[item.id]}
+                           onChange={(e) => setAutoTemplates({...autoTemplates, [item.id]: e.target.value})}
+                           placeholder={`Modelo para ${item.label.toLowerCase()}...`}
+                         />
+                       </div>
+                     );
+                   })}
  
                    <Button 
                      onClick={handleSaveAutoTemplates}
