@@ -142,14 +142,84 @@
     return (
       <div className="space-y-6">
         <Tabs defaultValue="live" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-12 rounded-2xl bg-zinc-100 p-1 mb-6">
+          <TabsList className="grid w-full grid-cols-3 h-12 rounded-2xl bg-zinc-100 p-1 mb-6">
             <TabsTrigger value="live" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-black uppercase text-[10px] italic">
-              <BellRing className="mr-2 h-3.5 w-3.5" /> Alertas para Clientes
+              <BellRing className="mr-2 h-3.5 w-3.5" /> Alertas Ativos
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-black uppercase text-[10px] italic">
+              <History className="mr-2 h-3.5 w-3.5" /> Histórico
             </TabsTrigger>
             <TabsTrigger value="panel" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm font-black uppercase text-[10px] italic">
-              <Settings2 className="mr-2 h-3.5 w-3.5" /> Alertas do Painel (Admin)
+              <Settings2 className="mr-2 h-3.5 w-3.5" /> Config. Painel
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="history" className="mt-0 outline-none">
+            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
+              <CardHeader className="bg-zinc-800 text-white p-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <History className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-black italic uppercase tracking-tighter">Histórico de Envios</CardTitle>
+                    <CardDescription className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
+                      Registro permanente de todos os alertas publicados
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Registros de Log</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={fetchAlertLogs}
+                      className="h-8 text-[10px] font-black uppercase"
+                    >
+                      <RefreshCcw className="mr-2 h-3 w-3" /> Atualizar
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {alertLogs.map(log => (
+                      <div key={log.id} className="flex items-center justify-between p-4 border rounded-2xl bg-zinc-50/30">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "p-2 rounded-lg",
+                            log.type === 'danger' ? 'bg-red-100 text-red-600' :
+                            log.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                            log.type === 'success' ? 'bg-green-100 text-green-700' :
+                            'bg-blue-100 text-blue-600'
+                          )}>
+                            <AlertCircle size={14} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-zinc-800">{log.message}</p>
+                            <div className="flex gap-2 items-center mt-1">
+                              <span className="text-[8px] font-black uppercase text-zinc-400">
+                                {new Date(log.created_at).toLocaleString('pt-BR')}
+                              </span>
+                              {log.target_url && (
+                                <span className="text-[8px] font-bold text-blue-400">→ {log.target_url}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {alertLogs.length === 0 && (
+                      <div className="py-12 text-center bg-zinc-50 rounded-2xl border-2 border-dashed border-zinc-200">
+                        <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Nenhum log de histórico encontrado</p>
+                        <p className="text-[9px] text-zinc-300 mt-1 italic">Tente criar um novo alerta ou rodar o script de reparo</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="live" className="mt-0 outline-none">
             <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
