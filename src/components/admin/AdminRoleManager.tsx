@@ -25,7 +25,8 @@
      { id: 'categories', label: 'Categorias', group: 'Vendas' },
      { id: 'loyalty', label: 'Fidelidade & Bairros', group: 'Vendas' },
      { id: 'layout', label: 'Layout Home', group: 'Vendas' },
-     { id: 'importer', label: 'Importação', group: 'Vendas' },
+      { id: 'importer', label: 'Importação', group: 'Vendas' },
+      { id: 'organizer', label: 'Organizador de Produtos', group: 'Vendas' },
      { id: 'banners', label: 'Banners', group: 'Marketing' },
      { id: 'flyers', label: 'Encartes', group: 'Marketing' },
      { id: 'recipes', label: 'Receitas', group: 'Marketing' },
@@ -33,7 +34,11 @@
      { id: 'alerts', label: 'Alertas', group: 'Marketing' },
      { id: 'settings', label: 'Configurações Loja', group: 'Sistêmico' },
      { id: 'whatsapp', label: 'WhatsApp', group: 'Sistêmico' },
-     { id: 'webhooks', label: 'Webhooks', group: 'Sistêmico' },
+      { id: 'webhooks', label: 'Webhooks', group: 'Sistêmico' },
+      { id: 'theme', label: 'Tema Visual', group: 'Sistêmico' },
+      { id: 'admin_roles', label: 'Gestão de Cargos', group: 'Controle de Acesso' },
+      { id: 'activity_logs', label: 'Logs de Auditoria', group: 'Controle de Acesso' },
+      { id: 'feedback', label: 'Feedbacks do App', group: 'Controle de Acesso' },
    ]
  
    useEffect(() => {
@@ -174,8 +179,8 @@
                    </div>
                  )}
  
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral'].map(group => (
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                     {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral', 'Controle de Acesso'].map(group => (
                       <div key={group} className="space-y-3">
                         <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b pb-1">{group}</h4>
                         <div className="space-y-2">
