@@ -14,6 +14,8 @@
     const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
     const [queue, setQueue] = useState<Notification[]>([]);
     const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+    const [lastType, setLastType] = useState<string | null>(null);
+    const [typeUsage, setTypeUsage] = useState<Record<string, number>>({});
     const [isEnabled, setIsEnabled] = useState(false);
     const [config, setConfig] = useState<any>(null);
   
@@ -202,7 +204,26 @@
  
        if (types.length === 0) return;
  
-       const selectedType = types[Math.floor(Math.random() * types.length)];
+        // Filter out last type to ensure variety in categories
+        // Filter out types that have reached their "session limit" (e.g., 15 times)
+        // and ensure variety by excluding the last type
+        const availableTypes = types.filter(t => {
+          const usage = typeUsage[t] || 0;
+          return usage < 15 && t !== lastType;
+        });
+
+        // If all available types are exhausted or we only have one, reset or fallback
+        const finalTypes = availableTypes.length > 0 ? availableTypes : types.filter(t => (typeUsage[t] || 0) < 15);
+        
+        if (finalTypes.length === 0) return; // All limits reached for this session
+
+        const selectedType = finalTypes[Math.floor(Math.random() * finalTypes.length)];
+        
+        setLastType(selectedType);
+        setTypeUsage(prev => ({
+          ...prev,
+          [selectedType]: (prev[selectedType] || 0) + 1
+        }));
  
        try {
          switch (selectedType) {
