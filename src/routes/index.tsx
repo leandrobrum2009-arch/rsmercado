@@ -1,5 +1,5 @@
  import { Truck } from "lucide-react";
- import { createFileRoute } from "@tanstack/react-router";
+   import { createFileRoute, useNavigate } from "@tanstack/react-router";
   import { BannerCarousel } from "@/components/home/BannerCarousel";
    import { HomeBanners } from "@/components/home/HomeBanners";
    import { CategoryBar } from "@/components/home/CategoryBar";
