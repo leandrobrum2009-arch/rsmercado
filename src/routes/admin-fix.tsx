@@ -359,7 +359,122 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.banners ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
  
-   -- 14. REPARAR PERMISSÕES DE ADMINISTRADORES E PERFIS
+   -- 14. TABELA DE HISTÓRICO DE PONTOS
+   CREATE TABLE IF NOT EXISTS public.points_history (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+       points INTEGER NOT NULL,
+       type TEXT NOT NULL, -- 'earn', 'redeem', 'admin_adjustment'
+       description TEXT,
+       order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ALTER TABLE IF EXISTS public.points_history ENABLE ROW LEVEL SECURITY;
+   DROP POLICY IF EXISTS "Users view own points history" ON public.points_history;
+   CREATE POLICY "Users view own points history" ON public.points_history FOR SELECT USING (auth.uid() = user_id);
+   DROP POLICY IF EXISTS "Admins view all points history" ON public.points_history;
+   CREATE POLICY "Admins view all points history" ON public.points_history FOR SELECT USING (public.is_admin());
+ 
+   -- 15. FUNÇÃO DE RESGATE DE RECOMPENSA MELHORADA
+   CREATE OR REPLACE FUNCTION public.redeem_reward(p_user_id UUID, p_reward_id UUID)
+   RETURNS JSONB
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = public, auth
+   AS $BODY$
+   DECLARE
+     v_points_balance INTEGER;
+     v_points_cost INTEGER;
+     v_reward_type TEXT;
+     v_reward_title TEXT;
+     v_coupon_code TEXT;
+   BEGIN
+     -- Check user balance
+     SELECT points_balance INTO v_points_balance FROM public.profiles WHERE id = p_user_id;
+     
+     -- Check reward cost and type
+     SELECT points_cost, reward_type, title INTO v_points_cost, v_reward_type, v_reward_title 
+     FROM public.loyalty_rewards WHERE id = p_reward_id AND active = true;
+     
+     IF v_points_cost IS NULL THEN
+       RETURN jsonb_build_object('success', false, 'message', 'Recompensa não encontrada ou inativa.');
+     END IF;
+     
+     IF v_points_balance < v_points_cost THEN
+       RETURN jsonb_build_object('success', false, 'message', 'Saldo de pontos insuficiente.');
+     END IF;
+     
+     -- Generate coupon if needed
+     IF v_reward_type = 'coupon' THEN
+       v_coupon_code := 'LOYALTY-' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8));
+       
+       INSERT INTO public.coupons (code, discount_type, value, min_purchase, expires_at)
+       VALUES (v_coupon_code, 'fixed', 10.00, 50.00, (NOW() + INTERVAL '30 days'));
+     END IF;
+     
+     -- Deduct points
+     UPDATE public.profiles SET points_balance = points_balance - v_points_cost WHERE id = p_user_id;
+     
+     -- Log history
+     INSERT INTO public.points_history (user_id, points, type, description)
+     VALUES (p_user_id, -v_points_cost, 'redeem', 'Resgate: ' || v_reward_title);
+     
+     -- Log redemption
+     INSERT INTO public.loyalty_redemptions (user_id, reward_id, status, details)
+     VALUES (p_user_id, p_reward_id, 'completed', jsonb_build_object('coupon_code', v_coupon_code));
+     
+     RETURN jsonb_build_object(
+       'success', true, 
+       'message', 'Resgate realizado com sucesso!', 
+       'coupon_code', v_coupon_code,
+       'reward_type', v_reward_type
+     );
+   END; $BODY$;
+ 
+   -- 16. TABELA DE REDEMPTIONS (CASO NÃO EXISTA)
+   CREATE TABLE IF NOT EXISTS public.loyalty_redemptions (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+       reward_id UUID REFERENCES public.loyalty_rewards(id),
+       status TEXT DEFAULT 'pending',
+       details JSONB DEFAULT '{}',
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ALTER TABLE IF EXISTS public.loyalty_redemptions ENABLE ROW LEVEL SECURITY;
+   DROP POLICY IF EXISTS "Users view own redemptions" ON public.loyalty_redemptions;
+   CREATE POLICY "Users view own redemptions" ON public.loyalty_redemptions FOR SELECT USING (auth.uid() = user_id);
+ 
+   -- 17. TRIGGER PARA CREDITAR PONTOS NO PEDIDO ENTREGUE
+   CREATE OR REPLACE FUNCTION public.handle_order_delivered_points()
+   RETURNS TRIGGER
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = public, auth
+   AS $BODY$
+   BEGIN
+     IF (NEW.status = 'delivered' AND OLD.status != 'delivered') THEN
+       IF NEW.points_earned > 0 AND NEW.user_id IS NOT NULL THEN
+         -- Credit points to profile
+         UPDATE public.profiles 
+         SET points_balance = COALESCE(points_balance, 0) + NEW.points_earned,
+             loyalty_points = COALESCE(loyalty_points, 0) + NEW.points_earned
+         WHERE id = NEW.user_id;
+         
+         -- Log in history
+         INSERT INTO public.points_history (user_id, points, type, description, order_id)
+         VALUES (NEW.user_id, NEW.points_earned, 'earn', 'Pontos do pedido #' || substring(NEW.id::text, 1, 8), NEW.id);
+       END IF;
+     END IF;
+     RETURN NEW;
+   END; $BODY$;
+ 
+   DROP TRIGGER IF EXISTS on_order_delivered_points ON public.orders;
+   CREATE TRIGGER on_order_delivered_points
+     AFTER UPDATE ON public.orders
+     FOR EACH ROW
+     EXECUTE FUNCTION public.handle_order_delivered_points();
+ 
+   -- 18. REPARAR PERMISSÕES DE ADMINISTRADORES E PERFIS
    ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
    ALTER TABLE IF EXISTS public.user_roles ADD COLUMN IF NOT EXISTS permissions TEXT[] DEFAULT '{}';
    
