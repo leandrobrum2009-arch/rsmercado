@@ -3,8 +3,18 @@
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag } from 'lucide-react'
+   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle } from 'lucide-react'
  import { toast } from '@/lib/toast'
+ 
+   import { Badge } from '@/components/ui/badge'
+ 
+   const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
+ 
+   const validateSPPlaceholders = (text: string) => {
+     const found = text.match(/\{[a-zA-Z0-9_]+\}/g) || [];
+     const invalid = found.filter(p => !ALLOWED_SP_PLACEHOLDERS.includes(p.replace(/[\{\}]/g, '')));
+     return invalid;
+   };
  
  export function StoreSettingsManager() {
    const [settings, setSettings] = useState<any>({
@@ -224,7 +234,26 @@
       }
     }
 
-    const handleSave = async () => {
+     const handleSave = async () => {
+      // Validate social proof templates
+      const spTemplates = [
+        settings.social_proof?.purchase_template,
+        settings.social_proof?.viewers_template,
+        settings.social_proof?.stock_template,
+        settings.social_proof?.level_template,
+        settings.social_proof?.delivered_template,
+        settings.social_proof?.payment_template
+      ];
+ 
+      for (const t of spTemplates) {
+        if (t) {
+          const invalid = validateSPPlaceholders(t);
+          if (invalid.length > 0) {
+            return toast.error(`Placeholder(s) inválidos no balão: ${invalid.join(', ')}`);
+          }
+        }
+      }
+ 
      if (!settings.site_name.trim()) return toast.error('Nome do site é obrigatório');
      
      setIsSaving(true)
@@ -517,15 +546,32 @@
                    <div className="space-y-4">
                      <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
                      <div className="space-y-3">
-                       <div className="space-y-1">
-                         <label className="text-[10px] font-bold text-zinc-400 uppercase">Compra Realizada</label>
-                         <Input 
-                           value={settings.social_proof?.purchase_template}
-                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, purchase_template: e.target.value } })}
-                           placeholder="{name} comprou em {neighborhood}"
-                           className="rounded-xl border-zinc-200 h-9 text-xs"
-                         />
-                       </div>
+                        {[
+                          { id: 'purchase_template', label: 'Compra Realizada', placeholder: '{name} comprou em {neighborhood}' },
+                          { id: 'viewers_template', label: 'Pessoas Online', placeholder: '{count} pessoas vendo agora' },
+                          { id: 'stock_template', label: 'Estoque Baixo', placeholder: 'Restam {stock} de {product}' },
+                          { id: 'level_template', label: 'Novo Nível', placeholder: '{name} agora é {level}' },
+                          { id: 'delivered_template', label: 'Recebido em Casa', placeholder: '{name} recebeu o pedido' },
+                          { id: 'payment_template', label: 'Pagamento Confirmado', placeholder: 'Pagamento de {name} confirmado' }
+                        ].map(item => {
+                          const invalid = validateSPPlaceholders(settings.social_proof?.[item.id] || '');
+                          return (
+                            <div key={item.id} className="space-y-1">
+                              <div className="flex justify-between items-center">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase">{item.label}</label>
+                                {invalid.length > 0 && (
+                                  <Badge variant="destructive" className="text-[7px] px-1 py-0 h-3 animate-pulse uppercase">Inválido: {invalid[0]}</Badge>
+                                )}
+                              </div>
+                              <Input 
+                                value={settings.social_proof?.[item.id]}
+                                onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, [item.id]: e.target.value } })}
+                                placeholder={item.placeholder}
+                                className={`rounded-xl border ${invalid.length > 0 ? 'border-red-500 bg-red-50' : 'border-zinc-200'} h-9 text-xs transition-all`}
+                              />
+                            </div>
+                          );
+                        })}
                        <div className="space-y-1">
                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Pessoas Online</label>
                          <Input 
