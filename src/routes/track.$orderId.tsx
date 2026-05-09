@@ -201,47 +201,56 @@ import { Badge } from '@/components/ui/badge'
      toast.success("Chave PIX copiada!")
    }
  
-   const handleSimulatePayment = async () => {
-     setPaying(true)
+    const handleSimulatePayment = async () => {
+      setPaying(true)
       setPaymentStep('processing')
-     try {
-        // Realistic delay
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        
-       const { error } = await supabase
-         .from('orders')
-         .update({ status: 'approved' })
-         .eq('id', orderId)
-       
-        if (error) {
-          logAttempt('payment_attempt', 'failure', { order_id: orderId, type: order?.payment_method, error: error.message });
-          throw error
+      try {
+        // If it's Sipag, use the real Edge Function
+        if (order?.payment_method === 'sipag') {
+          const { data, error } = await supabase.functions.invoke('process-sipag-payment', {
+            body: { orderId, cardData }
+          })
+
+          if (error || !data.success) {
+            throw new Error(data?.error || data?.message || 'Erro ao processar pagamento com Sipag')
+          }
+          
+          logAttempt('payment_attempt', 'success', { order_id: orderId, type: 'sipag' });
+        } else {
+          // Fallback to simulation for other methods (like Pix simulation button)
+          await new Promise(resolve => setTimeout(resolve, 3000))
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: 'approved' })
+            .eq('id', orderId)
+          
+          if (error) throw error;
+          logAttempt('payment_attempt', 'success', { order_id: orderId, type: order?.payment_method, simulation: true });
         }
-        
-        logAttempt('payment_attempt', 'success', { order_id: orderId, type: order?.payment_method, simulation: true });
-        
-         // Notify via WhatsApp if enabled
-         const config = await getWhatsAppConfig();
-         if (config?.notify_order_status !== false) {
-           const templates = await getWhatsAppTemplates();
-           const message = formatWhatsAppMessage('payment_confirmed', {
-             id: orderId,
-             status: 'approved',
-             customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
-           }, templates);
+         
+        // Notify via WhatsApp if enabled
+        const config = await getWhatsAppConfig();
+        if (config?.notify_order_status !== false) {
+          const templates = await getWhatsAppTemplates();
+          const message = formatWhatsAppMessage('payment_confirmed', {
+            id: orderId,
+            status: 'approved',
+            customer_name: order?.customer_name || order?.profiles?.full_name || 'Cliente'
+          }, templates);
           const phone = order?.customer_phone || order?.profiles?.whatsapp;
           if (phone) await sendWhatsAppMessage(phone, message);
         }
 
-        toast.success("Pagamento confirmado (Simulação)!")
+        toast.success("Pagamento confirmado!")
         setPaymentStep('done')
-     } catch (err: any) {
-       toast.error("Erro ao processar: " + err.message)
+      } catch (err: any) {
+        console.error('Payment error:', err)
+        toast.error(err.message || "Erro ao processar pagamento")
         setPaymentStep('form')
-     } finally {
-       setPaying(false)
-     }
-   }
+      } finally {
+        setPaying(false)
+      }
+    }
  
    const info = getStatusInfo(order.status)
           {/* Payment Simulation Section */}
