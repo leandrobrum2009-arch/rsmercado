@@ -17,38 +17,50 @@
    };
  
  export function StoreSettingsManager() {
-   const [settings, setSettings] = useState<any>({
-     site_name: '',
-     logo_url: '',
-     colors: { primary: '#ef4444', secondary: '#facc15' },
-     address: '',
-     whatsapp: '',
-     opening_hours: '',
-     instagram_url: '',
-     facebook_url: '',
-      store_description: '',
-      points_ratio: '1',
-    instagram_post_count: '6',
-    instagram_items: [],
-    admin_whatsapp: '',
-    social_proof: {
-      enabled: true,
-      interval: 15000,
-      show_purchases: true,
-      show_viewers: true,
-       show_stock: true,
-       show_levels: true,
-       show_delivered: true,
-       purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
-       viewers_template: '{count} pessoas visualizando produtos no site agora',
-       stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
-        level_template: '{name} subiu para o nível {level}!',
-        delivered_template: '{name} já recebeu suas compras em casa!',
-        payment_template: 'Pagamento confirmado para o pedido de {name}!',
-        show_payments: true,
-        time_template: 'agora mesmo'
-     }
-   })
+    const [settings, setSettings] = useState<any>({
+      site_name: '',
+      logo_url: '',
+      colors: { primary: '#ef4444', secondary: '#facc15' },
+      address: '',
+      whatsapp: '',
+      opening_hours: '',
+      instagram_url: '',
+      facebook_url: '',
+       store_description: '',
+       points_ratio: '1',
+     instagram_post_count: '6',
+     instagram_items: [],
+     admin_whatsapp: '',
+     social_proof: {
+       enabled: true,
+       interval: 15000,
+       show_purchases: true,
+       show_viewers: true,
+        show_stock: true,
+        show_levels: true,
+        show_delivered: true,
+        purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+        viewers_template: '{count} pessoas visualizando produtos no site agora',
+        stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+         level_template: '{name} subiu para o nível {level}!',
+         delivered_template: '{name} já recebeu suas compras em casa!',
+         payment_template: 'Pagamento confirmado para o pedido de {name}!',
+         show_payments: true,
+         time_template: 'agora mesmo'
+      },
+      notifications: {
+        sms_enabled: false,
+        sms_provider: 'twilio',
+        sms_api_key: '',
+        sms_api_secret: '',
+        sms_from: '',
+        call_enabled: false,
+        call_provider: 'totalvoice',
+        call_api_key: '',
+        call_admin_phone: '',
+        call_tts_message: 'Você recebeu um novo pedido no Supermercado!'
+      }
+    })
    const [isLoading, setIsLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState<string | boolean>(false)
@@ -100,8 +112,9 @@
              }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
-              if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
-              if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
+               if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
+               if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
+               if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -277,9 +290,10 @@
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
-           { key: 'admin_whatsapp', value: settings.admin_whatsapp },
-           { key: 'social_proof_settings', value: settings.social_proof }
-         ];
+            { key: 'admin_whatsapp', value: settings.admin_whatsapp },
+            { key: 'social_proof_settings', value: settings.social_proof },
+            { key: 'external_notification_config', value: settings.notifications }
+          ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
        if (error) {
