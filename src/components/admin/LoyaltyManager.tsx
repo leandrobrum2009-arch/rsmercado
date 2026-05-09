@@ -190,13 +190,13 @@ export function LoyaltyManager() {
         </div>
       </div>
 
-      <Tabs defaultValue="settings" className="w-full">
+      <Tabs defaultValue="levels" className="w-full">
          <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6 flex overflow-x-auto no-scrollbar">
-            <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Configurações Gerais</TabsTrigger>
             <TabsTrigger value="levels" className="rounded-lg font-bold uppercase text-[10px] flex-1">Níveis de Fidelidade</TabsTrigger>
-           <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Recompensas</TabsTrigger>
-           <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Desafios Semanais</TabsTrigger>
-           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Bairros & Taxas</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Regras de Pontos</TabsTrigger>
+           <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Catálogo de Troca</TabsTrigger>
+           <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Missões</TabsTrigger>
+           <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Entregas</TabsTrigger>
          </TabsList>
          <TabsContent value="rewards">
            <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
