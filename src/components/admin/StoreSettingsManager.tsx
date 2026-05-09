@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap } from 'lucide-react'
+   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
@@ -85,8 +85,24 @@
       }
     })
    const [isLoading, setIsLoading] = useState(true)
-   const [isSaving, setIsSaving] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
     const [uploading, setUploading] = useState<string | boolean>(false)
+    const [spHistory, setSpHistory] = useState<any[]>([])
+    useEffect(() => {
+      const channel = supabase.channel('social-proof-monitor')
+        .on('broadcast', { event: 'trigger' }, (payload) => {
+          const { type } = payload.payload;
+          setSpHistory(prev => [{ 
+            id: Date.now(), 
+            type, 
+            time: new Date().toLocaleTimeString(),
+            status: 'queued'
+          }, ...prev].slice(0, 5));
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(channel) };
+    }, []);
+
  
    useEffect(() => {
      fetchSettings()
@@ -568,73 +584,101 @@
                     <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 15000 (15 segundos)</p>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Tipos de Balões Ativos</label>
-                    
-                    {[
-                      { id: 'show_purchases', freqId: 'purchase', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
-                      { id: 'show_viewers', freqId: 'viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
-                      { id: 'show_stock', freqId: 'stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
-                      { id: 'show_levels', freqId: 'level', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
-                      { id: 'show_delivered', freqId: 'delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
-                      { id: 'show_payments', freqId: 'payment', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' },
-                      { id: 'show_registrations', freqId: 'registration', label: 'Novos Cadastros', desc: 'Leticia acabou de se cadastrar!' },
-                      { id: 'show_coupons', freqId: 'coupon', label: 'Uso de Cupons', desc: 'Bernardo usou um cupom agora.' },
-                      { id: 'show_shares', freqId: 'share', label: 'Ofertas Compartilhadas', desc: 'Kevin compartilhou uma oferta!' },
-                      { id: 'show_carts', freqId: 'cart', label: 'Adição ao Carrinho', desc: 'Ana adicionou um produto ao carrinho.' },
-                      { id: 'show_wishlists', freqId: 'wishlist', label: 'Favoritados', desc: 'Rafael salvou um produto nos favoritos.' }
-                    ].map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-2xl hover:bg-zinc-50 transition-all group">
-                        <input 
-                          type="checkbox"
-                          checked={settings.social_proof?.[item.id]}
-                          onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, [item.id]: e.target.checked } })}
-                          className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
-                        />
-                        <div className="flex-1">
-                          <p className="text-[11px] font-black uppercase text-zinc-800">{item.label}</p>
-                          <p className="text-[10px] text-zinc-400 italic">Ex: {item.desc}</p>
-                        </div>
-                        {settings.social_proof?.[item.id] && (
-                          <div className="flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <label className="text-[8px] font-black uppercase text-zinc-400">Freq. (1-10)</label>
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="number" 
-                                min="1" 
-                                max="10"
-                                value={settings.social_proof?.frequencies?.[item.freqId] || 5}
-                                onChange={(e) => setSettings({
-                                  ...settings,
-                                  social_proof: {
-                                    ...settings.social_proof,
-                                    frequencies: {
-                                      ...settings.social_proof?.frequencies,
-                                      [item.freqId]: parseInt(e.target.value) || 1
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Tipos de Balões Ativos</label>
+                      
+                      {[
+                        { id: 'show_purchases', freqId: 'purchase', label: 'Compras Recentes', desc: 'Fernanda acabou de comprar...' },
+                        { id: 'show_viewers', freqId: 'viewers', label: 'Pessoas Online', desc: '10 pessoas visualizando agora...' },
+                        { id: 'show_stock', freqId: 'stock', label: 'Estoque Baixo', desc: 'Restam apenas 5 unidades...' },
+                        { id: 'show_levels', freqId: 'level', label: 'Subida de Nível', desc: 'Jorge subiu para o nível Ouro...' },
+                        { id: 'show_delivered', freqId: 'delivered', label: 'Entrega Realizada', desc: 'Marina já recebeu em casa...' },
+                        { id: 'show_payments', freqId: 'payment', label: 'Pagamento Confirmado', desc: 'Pagamento confirmado para Fernanda...' },
+                        { id: 'show_registrations', freqId: 'registration', label: 'Novos Cadastros', desc: 'Leticia acabou de se cadastrar!' },
+                        { id: 'show_coupons', freqId: 'coupon', label: 'Uso de Cupons', desc: 'Bernardo usou um cupom agora.' },
+                        { id: 'show_shares', freqId: 'share', label: 'Ofertas Compartilhadas', desc: 'Kevin compartilhou uma oferta!' },
+                        { id: 'show_carts', freqId: 'cart', label: 'Adição ao Carrinho', desc: 'Ana adicionou um produto ao carrinho.' },
+                        { id: 'show_wishlists', freqId: 'wishlist', label: 'Favoritados', desc: 'Rafael salvou um produto nos favoritos.' }
+                      ].map((item) => (
+                        <div key={item.id} className="flex items-center gap-3 p-3 border border-zinc-100 rounded-2xl hover:bg-zinc-50 transition-all group">
+                          <input 
+                            type="checkbox"
+                            checked={settings.social_proof?.[item.id]}
+                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, [item.id]: e.target.checked } })}
+                            className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <p className="text-[11px] font-black uppercase text-zinc-800">{item.label}</p>
+                            <p className="text-[10px] text-zinc-400 italic">Ex: {item.desc}</p>
+                          </div>
+                          {settings.social_proof?.[item.id] && (
+                            <div className="flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <label className="text-[8px] font-black uppercase text-zinc-400">Freq. (1-10)</label>
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="number" 
+                                  min="1" 
+                                  max="10"
+                                  value={settings.social_proof?.frequencies?.[item.freqId] || 5}
+                                  onChange={(e) => setSettings({
+                                    ...settings,
+                                    social_proof: {
+                                      ...settings.social_proof,
+                                      frequencies: {
+                                        ...settings.social_proof?.frequencies,
+                                        [item.freqId]: parseInt(e.target.value) || 1
+                                      }
                                     }
-                                  }
-                                })}
-                                className="w-10 h-6 text-[10px] text-center border rounded-lg bg-zinc-50 font-black"
-                              />
-                              <button
-                                onClick={async () => {
-                                  await supabase.channel('social-proof-manual').send({
-                                    type: 'broadcast',
-                                    event: 'trigger',
-                                    payload: { type: item.freqId }
-                                  });
-                                  toast.success(`Evento "${item.label}" disparado!`);
-                                }}
-                                className="p-1.5 bg-yellow-400 text-black rounded-lg hover:scale-110 transition-transform shadow-sm"
-                                title="Disparar agora"
-                              >
-                                <Zap size={10} fill="currentColor" />
-                              </button>
+                                  })}
+                                  className="w-10 h-6 text-[10px] text-center border rounded-lg bg-zinc-50 font-black"
+                                />
+                                <button
+                                  onClick={async () => {
+                                    const msg = { type: item.freqId };
+                                    await supabase.channel('social-proof-manual').send({
+                                      type: 'broadcast',
+                                      event: 'trigger',
+                                      payload: msg
+                                    });
+                                    await supabase.channel('social-proof-monitor').send({
+                                      type: 'broadcast',
+                                      event: 'trigger',
+                                      payload: msg
+                                    });
+                                    toast.success(`Evento "${item.label}" disparado!`);
+                                  }}
+                                  className="p-1.5 bg-yellow-400 text-black rounded-lg hover:scale-110 transition-transform shadow-sm"
+                                  title="Disparar agora"
+                                >
+                                  <Zap size={10} fill="currentColor" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <List className="h-4 w-4 text-zinc-500" />
+                        <span className="text-[10px] font-black uppercase text-zinc-500">Fila de Disparos Recentes</span>
+                      </div>
+                      <div className="space-y-2">
+                        {spHistory.length === 0 ? (
+                          <p className="text-[10px] text-zinc-400 italic">Nenhum evento disparado nesta sessão.</p>
+                        ) : spHistory.map(h => (
+                          <div key={h.id} className="flex items-center justify-between text-[10px] bg-white p-2 rounded-lg border border-zinc-100 animate-in fade-in slide-in-from-left-2">
+                            <span className="font-bold uppercase text-zinc-600">{h.type}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-zinc-400">{h.time}</span>
+                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-black uppercase text-[8px]">Enviado</span>
                             </div>
                           </div>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
 
                    <div className="space-y-4">
