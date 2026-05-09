@@ -1,12 +1,16 @@
 import re
 
 def check_tags(content):
-    tags = re.findall(r'<(div|Card|CardContent|CardHeader|CardTitle|CardDescription)|</(div|Card|CardContent|CardHeader|CardTitle|CardDescription)>', content)
+    # Match the whole tag name
+    tags = re.findall(r'<([a-zA-Z]+)|</([a-zA-Z]+)>', content)
     stack = []
+    # Filter only relevant tags
+    relevant = {'div', 'Card', 'CardContent', 'CardHeader', 'CardTitle', 'CardDescription', 'CardFooter'}
+    
     for open_tag, close_tag in tags:
-        if open_tag:
+        if open_tag in relevant:
             stack.append(open_tag)
-        else:
+        elif close_tag in relevant:
             if not stack:
                 print(f"Extra closing tag: </{close_tag}>")
                 continue
@@ -19,6 +23,5 @@ def check_tags(content):
 
 with open('src/components/admin/StoreSettingsManager.tsx', 'r') as f:
     content = f.read()
-    # Strip comments to avoid false positives
     content = re.sub(r'\{/\*.*?\*/\}', '', content, flags=re.DOTALL)
     check_tags(content)
