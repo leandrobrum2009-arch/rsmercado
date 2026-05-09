@@ -116,8 +116,108 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         const [generationProgress, setGenerationProgress] = useState(0)
         const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
-        const [useHtmlMode, setUseHtmlMode] = useState(true)
- 
+         const [useHtmlMode, setUseHtmlMode] = useState(true)
+    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
+    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
+
+    // Auto-load last configuration
+    useEffect(() => {
+      const loadLastConfig = () => {
+        const lastConfig = localStorage.getItem('last_flyer_config')
+        if (lastConfig) {
+          try {
+            const config = JSON.parse(lastConfig)
+            // Manually apply without toast to avoid annoying on mount
+            if (config.layout) setLayout(config.layout)
+            if (config.backgroundType) setBackgroundType(config.backgroundType)
+            if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+            if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
+            if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+            if (config.columns) setColumns(config.columns)
+            if (config.gridGap !== undefined) setGridGap(config.gridGap)
+            if (config.showLogo !== undefined) setShowLogo(config.showLogo)
+            if (config.logoPosition) setLogoPosition(config.logoPosition)
+            if (config.logoSize) setLogoSize(config.logoSize)
+            if (config.titleColor) setTitleColor(config.titleColor)
+            if (config.priceColor) setPriceColor(config.priceColor)
+            if (config.fontSize) setFontSize(config.fontSize)
+            if (config.priceSize) setPriceSize(config.priceSize)
+            if (config.fontFamily) setFontFamily(config.fontFamily)
+            if (config.productBgColor) setProductBgColor(config.productBgColor)
+            if (config.productBgOpacity !== undefined) setProductBgOpacity(config.productBgOpacity)
+            if (config.productBlockHeight !== undefined) setProductBlockHeight(config.productBlockHeight)
+            if (config.showPriceBg !== undefined) setShowPriceBg(config.showPriceBg)
+            if (config.priceBgColor) setPriceBgColor(config.priceBgColor)
+            if (config.showShadows !== undefined) setShowShadows(config.showShadows)
+            if (config.removeFlyerBg !== undefined) setRemoveFlyerBg(config.removeFlyerBg)
+            if (config.priceLayout) setPriceLayout(config.priceLayout)
+            if (config.productPadding !== undefined) setProductPadding(config.productPadding)
+            if (config.globalRemoveBg !== undefined) setGlobalRemoveBg(config.globalRemoveBg)
+            if (config.imageSize !== undefined) setImageSize(config.imageSize)
+            if (config.nameOnTop !== undefined) setNameOnTop(config.nameOnTop)
+            if (config.bgRemovalThreshold !== undefined) setBgRemovalThreshold(config.bgRemovalThreshold)
+            if (config.bgRemovalSmoothing !== undefined) setBgRemovalSmoothing(config.bgRemovalSmoothing)
+            if (config.footerText !== undefined) setFooterText(config.footerText)
+            if (config.showFooter !== undefined) setShowFooter(config.showFooter)
+            if (config.footerFontSize !== undefined) setFooterFontSize(config.footerFontSize)
+            if (config.subtitleText !== undefined) setSubtitleText(config.subtitleText)
+            if (config.showSubtitle !== undefined) setShowSubtitle(config.showSubtitle)
+            if (config.showValidity) setShowValidity(config.showValidity)
+            if (config.validityText) setValidityText(config.validityText)
+            if (config.validityPosition) setValidityPosition(config.validityPosition)
+            if (config.validityBgColor) setValidityBgColor(config.validityBgColor)
+            if (config.validityTextColor) setValidityTextColor(config.validityTextColor)
+            if (config.nameOffsetY !== undefined) setNameOffsetY(config.nameOffsetY)
+            if (config.priceOffsetY !== undefined) setPriceOffsetY(config.priceOffsetY)
+            if (config.priceOffsetX !== undefined) setPriceOffsetX(config.priceOffsetX)
+            if (config.nameOffsetX !== undefined) setNameOffsetX(config.nameOffsetX)
+            if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
+            if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
+            if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
+          } catch (e) {
+            console.error('Error loading last flyer config:', e)
+          }
+        }
+        
+        const lastProducts = localStorage.getItem('last_flyer_products')
+        if (lastProducts) {
+          try {
+            setSelectedProducts(JSON.parse(lastProducts))
+          } catch (e) {
+            console.error('Error loading last flyer products:', e)
+          }
+        }
+      }
+      loadLastConfig()
+    }, [])
+
+    // Auto-save current configuration
+    useEffect(() => {
+      const config = {
+        layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+        columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+        fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+        productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+        priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+        nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
+        bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+      }
+      localStorage.setItem('last_flyer_config', JSON.stringify(config))
+    }, [
+      layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+      columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+      fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+      productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+      priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+      nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
+      bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+      showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+    ])
+
+    useEffect(() => {
+      localStorage.setItem('last_flyer_products', JSON.stringify(selectedProducts))
+    }, [selectedProducts])
       useEffect(() => {
         const handleResize = () => {
           if (typeof window !== 'undefined') {
@@ -436,9 +536,6 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }, [globalRemoveBg])
 
-    const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
-    const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
- 
    const PREDEFINED_BGS = [
      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
      'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',

@@ -71,7 +71,7 @@
      <div className="space-y-6">
        <div className="flex items-center justify-between mb-4">
          <div>
-           <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">Relatório de Entregas</h2>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">Últimas Entregas</h2>
            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Resumo de performance logística</p>
          </div>
          <Button variant="outline" className="text-[10px] font-black uppercase h-10 rounded-xl" onClick={() => window.print()}>
