@@ -195,6 +195,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     // Auto-save current configuration
     useEffect(() => {
+      if (typeof window === 'undefined') return;
+      
       const config = {
         layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
         columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
@@ -218,7 +220,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     ])
 
     useEffect(() => {
-      localStorage.setItem('last_flyer_products', JSON.stringify(selectedProducts))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('last_flyer_products', JSON.stringify(selectedProducts))
+      }
     }, [selectedProducts])
       useEffect(() => {
         const handleResize = () => {
