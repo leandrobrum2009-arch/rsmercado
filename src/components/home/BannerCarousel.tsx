@@ -11,11 +11,11 @@
    useEffect(() => {
       const fetchBanners = async () => {
         try {
-          const { data, error } = await supabase
-            .from('banners')
-            .select('*')
-            .eq('is_active', true)
-            .order('created_at', { ascending: false })
+           const { data, error } = await supabase
+             .from('banners')
+             .select('*, categories(slug)')
+             .eq('is_active', true)
+             .order('created_at', { ascending: false })
           
           if (error) {
             console.error('Error fetching banners:', error)
@@ -51,25 +51,33 @@
          className="flex transition-transform duration-500 ease-in-out"
          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
        >
-         {banners.map((banner) => (
-           <div key={banner.id} className="min-w-full">
-             {banner.link_url ? (
-               <Link to={banner.link_url}>
-                 <img 
-                   src={banner.image_url} 
-                   className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
-                   alt="Banner" 
-                 />
-               </Link>
-             ) : (
-               <img 
-                 src={banner.image_url} 
-                 className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
-                 alt="Banner" 
-               />
-             )}
-           </div>
-         ))}
+          {banners.map((banner) => (
+            <div key={banner.id} className="min-w-full">
+              {banner.link_url ? (
+                <Link to={banner.link_url}>
+                  <img 
+                    src={banner.image_url} 
+                    className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
+                    alt="Banner" 
+                  />
+                </Link>
+              ) : banner.categories?.slug ? (
+                <Link to="/search" search={{ category: banner.categories.slug }}>
+                  <img 
+                    src={banner.image_url} 
+                    className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
+                    alt="Banner" 
+                  />
+                </Link>
+              ) : (
+                <img 
+                  src={banner.image_url} 
+                  className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
+                  alt="Banner" 
+                />
+              )}
+            </div>
+          ))}
        </div>
        
        {banners.length > 1 && (
