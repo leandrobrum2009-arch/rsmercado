@@ -89,7 +89,7 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
-  export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned';
+   export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned' | 'flyer_share';
  
    export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any, customTemplates?: any) => {
      const defaultTemplates: any = {
