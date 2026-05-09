@@ -1,6 +1,16 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing, Save, Loader2, History as HistoryIcon, RefreshCcw } from 'lucide-react'
+   import { Bell, Send, Trash2, AlertCircle, Eye, Settings2, Volume2, Sparkles, Smartphone, BellRing, Save, Loader2, History as HistoryIcon, RefreshCcw, Play } from 'lucide-react'
+    const testSound = () => {
+      const audio = new Audio(panelSettings.notification_sound_url)
+      audio.volume = (panelSettings.order_sound_volume || 80) / 100
+      audio.play().catch(e => {
+        console.error('Audio play failed:', e)
+        toast.error('Erro ao tocar som. Verifique se o navegador bloqueou o áudio.')
+      })
+      toast.info('Testando som de notificação...')
+    }
+
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { Switch } from '@/components/ui/switch'
@@ -472,8 +482,16 @@
                       </div>
 
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center mb-1">
                           <p className="text-[10px] font-black uppercase text-zinc-500">Volume do Alerta ({panelSettings.order_sound_volume}%)</p>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={testSound}
+                            className="h-7 px-2 text-[8px] font-black uppercase flex gap-1 hover:bg-primary/10 hover:text-primary transition-colors"
+                          >
+                            <Play size={10} /> Testar Agora
+                          </Button>
                         </div>
                         <Slider 
                           value={[panelSettings.order_sound_volume]} 
