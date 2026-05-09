@@ -399,9 +399,9 @@
             }
             case 'cart': {
               const names = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação', 'Refrigerante 2L', 'Pão de Queijo', 'Frango Inteiro', 'Ovos Caipira', 'Manteiga'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} adicionou ${product} ao carrinho!`,
                 `${name} está levando ${product} agora mesmo.`,
@@ -419,9 +419,9 @@
             }
             case 'wishlist': {
               const names = ['Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego', 'Sorvete de Baunilha', 'Castanha de Caju', 'Camarão Congelado'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} salvou ${product} nos favoritos!`,
                 `${name} amou o produto: ${product}`,
@@ -439,7 +439,7 @@
             }
             case 'registration': {
               const names = ['Leticia', 'Marcelo', 'Natália', 'Otávio', 'Patrícia', 'Ruan', 'Sabrina', 'Thais', 'Vitor', 'Yasmin'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const phrases = [
                 `${name} acabou de se cadastrar no site!`,
                 `Boas-vindas para ${name}, novo cliente do Supermercado.`,
@@ -457,7 +457,7 @@
             }
             case 'coupon': {
               const names = ['Bernardo', 'Catarina', 'Davi', 'Emanuel', 'Flávia', 'Gustavo', 'Hilda', 'Isaac', 'Janaina'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const phrases = [
                 `${name} economizou usando um cupom de desconto!`,
                 `${name} aplicou o cupom PRIMEIRACOMPRA.`,
@@ -475,9 +475,9 @@
             }
             case 'share': {
               const names = ['Kevin', 'Lorena', 'Murilo', 'Nayara', 'Osvaldo', 'Priscila', 'Raul', 'Sueli', 'Túlio'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Picanha Maturata', 'Cerveja Especial', 'Nutella 350g', 'Papel Higiênico (Leve 12 Pague 11)'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} compartilhou a oferta de ${product}!`,
                 `${name} enviou o link de ${product} para um amigo.`,
