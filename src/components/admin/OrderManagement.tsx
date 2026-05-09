@@ -135,8 +135,8 @@ import { toast } from '@/lib/toast'
        }, templates);
        await sendWhatsAppMessage(customerPhone, message);
 
-      // If delivered, also send points earned notification
-      if (isDelivered) {
+       // If delivered, also send points earned notification if enabled
+       if (isDelivered && config?.notify_points_earned !== false) {
         const { data: orderData } = await supabase.from('orders').select('points_earned, user_id').eq('id', orderId).maybeSingle();
         if (orderData && orderData.points_earned > 0 && orderData.user_id) {
           const { data: profileData } = await supabase.from('profiles').select('points_balance').eq('id', orderData.user_id).maybeSingle();
