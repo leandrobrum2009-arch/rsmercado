@@ -75,7 +75,8 @@
       setShownIds(prev => {
         const next = new Set(prev);
         next.add(notification.id);
-        if (next.size > 50) {
+        // Increase history to avoid repetition in longer sessions
+        if (next.size > 200) {
           const firstKey = next.keys().next().value;
           if (firstKey !== undefined) next.delete(firstKey);
         }
@@ -242,9 +243,10 @@
                 'Mais um cliente satisfeito: {name} de {neighborhood}',
                 '{name} aproveitou as ofertas e pediu entrega em {neighborhood}'
               ];
-              const template = templates[Math.floor(Math.random() * templates.length)];
+              const templateIndex = Math.floor(Math.random() * templates.length);
+              const template = templates[templateIndex];
               addToQueue({
-                id: `sim-purch-${Math.random()}`,
+                id: `sim-purch-${name}-${neighborhood}-${templateIndex}`,
                 type: 'purchase',
                 message: formatMessage(template, { name, neighborhood }),
                 icon: ShoppingBag
@@ -259,9 +261,10 @@
                 'Sucesso! {count} clientes estão comprando agora',
                 '{count} pessoas de Petrópolis estão no site'
               ];
-              const template = templates[Math.floor(Math.random() * templates.length)];
+              const templateIndex = Math.floor(Math.random() * templates.length);
+              const template = templates[templateIndex];
               addToQueue({
-                id: `sim-view-${Math.random()}`,
+                id: `sim-view-${viewersCount}-${templateIndex}`,
                 type: 'viewers',
                 message: formatMessage(template, { count: viewersCount }),
                 icon: Users
@@ -293,13 +296,13 @@
               const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
               const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante', 'Platina', 'Safira', 'Esmeralda'];
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-             const level = levels[Math.floor(Math.random() * levels.length)];
-             const template = config.level_template || '{name} subiu para o nível {level}!';
-             addToQueue({
-               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
-               type: 'level',
-               message: formatMessage(template, { name, level }),
-               icon: TrendingUp
+              const level = levels[Math.floor(Math.random() * levels.length)];
+              const template = config.level_template || '{name} subiu para o nível {level}!';
+              addToQueue({
+                id: `sim-level-${name}-${level}`,
+                type: 'level',
+                message: formatMessage(template, { name, level }),
+                icon: TrendingUp
               });
               break;
             }
@@ -309,7 +312,7 @@
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
               addToQueue({
-                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-pay-${name}`,
                 type: 'payment',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
@@ -322,7 +325,7 @@
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
               addToQueue({
-                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
+                id: `sim-deliv-${name}`,
                 type: 'delivered',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
@@ -340,10 +343,11 @@
                 `${name} acabou de escolher ${product}.`,
                 `Alguém de Petrópolis adicionou ${product} à cesta.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-cart-${Math.random()}`,
+                id: `sim-cart-${name}-${product}-${phraseIndex}`,
                 type: 'purchase',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: ShoppingBag
               });
               break;
@@ -359,10 +363,11 @@
                 `${name} está de olho em ${product}.`,
                 `Produto popular: ${product} foi favoritado agora.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-wish-${Math.random()}`,
+                id: `sim-wish-${name}-${product}-${phraseIndex}`,
                 type: 'level',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: TrendingUp
               });
               break;
@@ -376,10 +381,11 @@
                 `${name} agora faz parte da nossa comunidade.`,
                 `Mais um cliente cadastrado no bairro Centro.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-reg-${Math.random()}`,
+                id: `sim-reg-${name}-${phraseIndex}`,
                 type: 'level',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: Users
               });
               break;
@@ -393,10 +399,11 @@
                 `${name} garantiu 10% de desconto no pedido.`,
                 `Cupom de desconto ativado por um cliente agora.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-coupon-${Math.random()}`,
+                id: `sim-coupon-${name}-${phraseIndex}`,
                 type: 'payment',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: CheckCircle2
               });
               break;
@@ -412,10 +419,11 @@
                 `${name} indicou o Supermercado no WhatsApp.`,
                 `Oferta compartilhada: ${product} está fazendo sucesso.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-share-${Math.random()}`,
+                id: `sim-share-${name}-${product}-${phraseIndex}`,
                 type: 'viewers',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: TrendingUp
               });
               break;
