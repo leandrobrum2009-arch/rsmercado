@@ -251,17 +251,23 @@
               });
              break;
            }
-           case 'viewers': {
-             const viewersCount = Math.floor(Math.random() * 20) + 5;
-             const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
-             addToQueue({
-               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
-               type: 'viewers',
-               message: formatMessage(template, { count: viewersCount }),
-               icon: Users
-             });
-             break;
-           }
+            case 'viewers': {
+              const viewersCount = Math.floor(Math.random() * 45) + 8;
+              const templates = [
+                '{count} pessoas visualizando produtos agora',
+                'O site está movimentado! {count} pessoas online',
+                'Sucesso! {count} clientes estão comprando agora',
+                '{count} pessoas de Petrópolis estão no site'
+              ];
+              const template = templates[Math.floor(Math.random() * templates.length)];
+              addToQueue({
+                id: `sim-view-${Math.random()}`,
+                type: 'viewers',
+                message: formatMessage(template, { count: viewersCount }),
+                icon: Users
+              });
+              break;
+            }
            case 'stock': {
              const { data: products } = await supabase
                .from('products')
