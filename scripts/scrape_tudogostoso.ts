@@ -13,13 +13,7 @@
  
  const CATEGORIES = [
    { name: 'Carnes', url: '/categorias/1000-carnes' },
-   { name: 'Aves', url: '/categorias/1004-aves' },
-   { name: 'Massas', url: '/categorias/1014-massas' },
-   { name: 'Doces e sobremesas', url: '/categorias/1020-doces-e-sobremesas' },
-   { name: 'Peixes e frutos do mar', url: '/categorias/1008-peixes-e-frutos-do-mar' },
-   { name: 'Saladas e molhos', url: '/categorias/1028-saladas-molhos-e-acompanhamentos' },
-   { name: 'Sopas', url: '/categorias/1032-sopas' },
-   { name: 'Bebidas', url: '/categorias/1036-bebidas' }
+   { name: 'Doces e sobremesas', url: '/categorias/1020-doces-e-sobremesas' }
  ]
  
  async function getRecipeDetails(url: string) {
@@ -74,10 +68,13 @@
      const $ = cheerio.load(html)
  
      const recipeLinks: string[] = []
-     $('.recipe-card a').each((_, el) => {
+     $('a').each((_, el) => {
        const href = $(el).attr('href')
-       if (href && href.startsWith('/receita/')) {
-         recipeLinks.push(`${BASE_URL}${href}`)
+       if (href && (href.startsWith('/receita/') || href.includes('tudogostoso.com.br/receita/'))) {
+         const fullUrl = href.startsWith('http') ? href : `${BASE_URL}${href}`
+         if (!recipeLinks.includes(fullUrl)) {
+           recipeLinks.push(fullUrl)
+         }
        }
      })
  
@@ -100,19 +97,27 @@
        }
  
        const details = await getRecipeDetails(link)
-       if (details && details.title && details.instructions) {
-         const { error } = await supabase.from('recipes').insert({
-           ...details,
-           category: category.name,
-           difficulty: 'Média'
-         })
+       if (!details) {
+         console.log(`Failed to get details for: ${link}`)
+         continue
+       }
+       
+       if (!details.title || !details.instructions) {
+         console.log(`Recipe missing title or instructions: ${link}`)
+         continue
+       }
  
-         if (error) {
-           console.error(`Error inserting ${details.title}:`, error.message)
-         } else {
-           console.log(`Successfully added: ${details.title}`)
-           count++
-         }
+       const { error } = await supabase.from('recipes').insert({
+         ...details,
+         category: category.name,
+         difficulty: 'Média'
+       })
+ 
+       if (error) {
+         console.error(`Error inserting ${details.title}:`, error.message)
+       } else {
+         console.log(`Successfully added: ${details.title}`)
+         count++
        }
        
        // Small delay to be polite
@@ -130,7 +135,7 @@
    console.log('Starting Master Crawler...')
    let total = 0
    for (const cat of CATEGORIES) {
-     const added = await crawlCategory(cat, 10)
+     const added = await crawlCategory(cat, 5) // Just 5 per category for testing
      total += added
    }
    console.log(`Crawler finished. Total added: ${total}`)

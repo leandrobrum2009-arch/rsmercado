@@ -79,37 +79,39 @@ export function RecipeManager() {
     }
   }
 
-  const normalize = (str: string) => {
-    if (!str) return '';
-    return str
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // Remove accents
-      .replace(/[^a-z0-9]/g, ""); // Remove special chars
-  };
-
-  const handleCreateAiRecipe = async () => {
-    if (!aiInput.trim()) return toast.error('Digite os produtos para a IA')
-    setIsAiGenerating(true)
-    
-    try {
-      const products = aiInput.split(',').map(p => p.trim())
-      const mainProduct = products[0] || 'Ingrediente'
-      const title = `Chef IA: ${mainProduct} Criativo`
-      
-      // Check for duplicates with robust normalization
-      const { data: allRecipes } = await supabase.from('recipes').select('title')
-      const nTitle = normalize(title)
-      const isDuplicate = (allRecipes || []).some(r => normalize(r.title) === nTitle)
-
-      if (isDuplicate) {
-        toast.error('Já existe uma receita similar a esta!');
-        setIsAiGenerating(false);
-        return;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 2000))
+   const normalize = (str: string) => {
+     if (!str) return '';
+     return str
+       .toLowerCase()
+       .trim()
+       .normalize("NFD")
+       .replace(/[\u0300-\u036f]/g, "") // Remove accents
+       .replace(/[^a-z0-9]/g, " ") // Replace special chars with space instead of removing
+       .replace(/\s+/g, " ") // Collapse spaces
+       .trim();
+   };
+ 
+   const handleCreateAiRecipe = async () => {
+     if (!aiInput.trim()) return toast.error('Digite os produtos para a IA')
+     setIsAiGenerating(true)
+     
+     try {
+       const products = aiInput.split(',').map(p => p.trim())
+       const mainProduct = products[0] || 'Ingrediente'
+       const title = `Chef IA: ${mainProduct} Criativo`
+       
+       // Check for duplicates with robust normalization
+       const { data: allRecipes } = await supabase.from('recipes').select('title')
+       const nTitle = normalize(title)
+       const isDuplicate = (allRecipes || []).some(r => normalize(r.title) === nTitle)
+ 
+       if (isDuplicate) {
+         toast.error('Já existe uma receita similar a esta!');
+         setIsAiGenerating(false);
+         return;
+       }
+ 
+       await new Promise(resolve => setTimeout(resolve, 2000))
       
        // Use multiple sources for images as requested
         const sources = [
@@ -318,38 +320,45 @@ export function RecipeManager() {
     }
   }
 
-  const handleCleanDuplicates = async () => {
-    setIsLoading(true)
-    try {
-      const { data } = await supabase.from('recipes').select('id, title').order('created_at', { ascending: true })
-      if (!data) return
-
-      const seen = new Set()
-      const toDelete = []
-
-      for (const recipe of data) {
-        const nTitle = normalize(recipe.title)
-        if (seen.has(nTitle)) {
-          toDelete.push(recipe.id)
-        } else {
-          seen.add(nTitle)
-        }
-      }
-
-      if (toDelete.length > 0) {
-        const { error } = await supabase.from('recipes').delete().in('id', toDelete)
-        if (error) throw error
-        toast.success(`${toDelete.length} duplicatas removidas!`)
-        fetchRecipes()
-      } else {
-        toast.info('Nenhuma duplicata encontrada.')
-      }
-    } catch (error) {
-      toast.error('Erro ao limpar duplicatas')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+   const handleCleanDuplicates = async () => {
+     setIsLoading(true)
+     try {
+       const { data } = await supabase.from('recipes').select('id, title, source_url').order('created_at', { ascending: true })
+       if (!data) return
+ 
+       const seenTitles = new Set()
+       const seenUrls = new Set()
+       const toDelete = []
+ 
+       for (const recipe of data) {
+         const nTitle = normalize(recipe.title)
+         const url = recipe.source_url
+ 
+         // Prioritize URL for duplicate check, then title
+         if (url && seenUrls.has(url)) {
+           toDelete.push(recipe.id)
+         } else if (seenTitles.has(nTitle)) {
+           toDelete.push(recipe.id)
+         } else {
+           if (url) seenUrls.add(url)
+           seenTitles.add(nTitle)
+         }
+       }
+ 
+       if (toDelete.length > 0) {
+         const { error } = await supabase.from('recipes').delete().in('id', toDelete)
+         if (error) throw error
+         toast.success(`${toDelete.length} duplicatas removidas!`)
+         fetchRecipes()
+       } else {
+         toast.info('Nenhuma duplicata encontrada.')
+       }
+     } catch (error) {
+       toast.error('Erro ao limpar duplicatas')
+     } finally {
+       setIsLoading(false)
+     }
+   }
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta receita?')) return
     try {
