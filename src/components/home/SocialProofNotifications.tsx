@@ -124,7 +124,7 @@
            const name = order.customer_name || 'Alguém';
            const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
            
-           showNotification({
+           addToQueue({
              id: Math.random().toString(),
              type: 'delivered',
              message: formatMessage(template, { name }),
@@ -206,7 +206,7 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
              const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-             showNotification({
+             addToQueue({
                id: Math.random().toString(),
                type: 'purchase',
                message: formatMessage(template, { name, neighborhood }),
@@ -217,7 +217,7 @@
            case 'viewers': {
              const viewersCount = Math.floor(Math.random() * 20) + 5;
              const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
-             showNotification({
+             addToQueue({
                id: Math.random().toString(),
                type: 'viewers',
                message: formatMessage(template, { count: viewersCount }),
@@ -236,7 +236,7 @@
              if (products && products.length > 0) {
                const prod = products[Math.floor(Math.random() * products.length)];
                const template = config.stock_template || 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.';
-               showNotification({
+               addToQueue({
                  id: Math.random().toString(),
                  type: 'stock',
                  message: formatMessage(template, { product: prod.name, stock: prod.stock }),
@@ -251,7 +251,7 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const level = levels[Math.floor(Math.random() * levels.length)];
              const template = config.level_template || '{name} subiu para o nível {level}!';
-             showNotification({
+             addToQueue({
                id: Math.random().toString(),
                type: 'level',
                message: formatMessage(template, { name, level }),
@@ -263,7 +263,7 @@
               const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
               const name = names[Math.floor(Math.random() * names.length)];
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
-              showNotification({
+              addToQueue({
                 id: Math.random().toString(),
                 type: 'payment',
                 message: formatMessage(template, { name }),
@@ -275,7 +275,7 @@
              const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
              const name = names[Math.floor(Math.random() * names.length)];
              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
-             showNotification({
+             addToQueue({
                id: Math.random().toString(),
                type: 'delivered',
                message: formatMessage(template, { name }),
