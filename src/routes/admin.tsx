@@ -205,11 +205,11 @@ export const Route = createFileRoute('/admin')({
 
      const menuGroups = [
        {
-         title: 'Relatórios',
-         items: [
-           { id: 'delivery_report', label: 'Relatório de Entregas', icon: Truck },
-         ]
-       },
+          title: 'Logística',
+          items: [
+            { id: 'delivery_report', label: 'Últimas Entregas', icon: Truck },
+          ]
+        },
       {
         title: 'Visão Geral',
         items: [
