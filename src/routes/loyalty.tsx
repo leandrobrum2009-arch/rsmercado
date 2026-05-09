@@ -7,7 +7,7 @@
  import { Badge } from '@/components/ui/badge'
  import { Progress } from '@/components/ui/progress'
   import { toast } from 'sonner'
-   import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
+   import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates, getWhatsAppConfig } from '@/lib/whatsapp'
  
  export const Route = createFileRoute('/loyalty')({
    component: LoyaltyPage,
@@ -120,13 +120,16 @@
           
            // WhatsApp Notification
            try {
-             const templates = await getWhatsAppTemplates();
-             const msg = formatWhatsAppMessage('loyalty_redeem', {
-               customer_name: profile.full_name || 'Cliente',
-               reward_title: reward.title,
-               coupon_code: data.coupon_code
-             }, templates);
-             if (profile.whatsapp) await sendWhatsAppMessage(profile.whatsapp, msg);
+             const config = await getWhatsAppConfig();
+             if (config?.notify_loyalty_redeem !== false) {
+               const templates = await getWhatsAppTemplates();
+               const msg = formatWhatsAppMessage('loyalty_redeem', {
+                 customer_name: profile.full_name || 'Cliente',
+                 reward_title: reward.title,
+                 coupon_code: data.coupon_code
+               }, templates);
+               if (profile.whatsapp) await sendWhatsAppMessage(profile.whatsapp, msg);
+             }
            } catch (e) {
              console.error('WhatsApp notify error:', e);
            }

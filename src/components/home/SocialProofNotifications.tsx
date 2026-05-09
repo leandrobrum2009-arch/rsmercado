@@ -10,62 +10,92 @@
    icon: any;
  }
  
- export function SocialProofNotifications() {
-   const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
-   const [isEnabled, setIsEnabled] = useState(false);
-   const [config, setConfig] = useState<any>(null);
- 
-   const formatMessage = (template: string, data: Record<string, any>) => {
-     let message = template;
-     Object.entries(data).forEach(([key, value]) => {
-       message = message.replace(`{${key}}`, value);
-     });
-     return message;
-   };
- 
-   const defaultConfig: any = {
-     enabled: true,
-     interval: 15000,
-     show_purchases: true,
-     show_viewers: true,
-     show_stock: true,
-     show_levels: true,
-     show_delivered: true,
-     purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
-     viewers_template: '{count} pessoas visualizando produtos no site agora',
-     stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+  export function SocialProofNotifications() {
+    const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
+    const [queue, setQueue] = useState<Notification[]>([]);
+    const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+    const [isEnabled, setIsEnabled] = useState(false);
+    const [config, setConfig] = useState<any>(null);
+  
+    const formatMessage = (template: string, data: Record<string, any>) => {
+      let message = template;
+      Object.entries(data).forEach(([key, value]) => {
+        message = message.replace(`{${key}}`, value);
+      });
+      return message;
+    };
+  
+    const defaultConfig: any = {
+      enabled: true,
+      interval: 15000,
+      show_purchases: true,
+      show_viewers: true,
+      show_stock: true,
+      show_levels: true,
+      show_delivered: true,
+      purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+      viewers_template: '{count} pessoas visualizando produtos no site agora',
+      stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
       level_template: '{name} subiu para o nível {level}!',
       delivered_template: '{name} já recebeu suas compras em casa!',
       payment_template: 'Pagamento confirmado para o pedido de {name}!',
       show_payments: true,
       time_template: 'agora mesmo'
-   };
- 
-   useEffect(() => {
-     const fetchConfig = async () => {
-       const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
-       const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
-       
-       let mergedConfig = { ...defaultConfig };
-       
-       if (spData && spData.value) {
-         mergedConfig = { ...mergedConfig, ...spData.value };
-       }
-       
-       if (pointsData && pointsData.value && pointsData.value.tiers) {
-         mergedConfig.tiers = pointsData.value.tiers;
-       }
- 
-       setConfig(mergedConfig);
-       setIsEnabled(mergedConfig.enabled);
-     };
-     fetchConfig();
-   }, []);
- 
-   const showNotification = (notification: Notification) => {
-     setCurrentNotification(notification);
-     setTimeout(() => setCurrentNotification(null), 5000);
-   };
+    };
+  
+    useEffect(() => {
+      const fetchConfig = async () => {
+        const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
+        const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+        
+        let mergedConfig = { ...defaultConfig };
+        
+        if (spData && spData.value) {
+          mergedConfig = { ...mergedConfig, ...spData.value };
+        }
+        
+        if (pointsData && pointsData.value && pointsData.value.tiers) {
+          mergedConfig.tiers = pointsData.value.tiers;
+        }
+  
+        setConfig(mergedConfig);
+        setIsEnabled(mergedConfig.enabled);
+      };
+      fetchConfig();
+    }, []);
+  
+    const addToQueue = (notification: Notification) => {
+      if (shownIds.has(notification.id)) return;
+      
+      setQueue(prev => {
+        if (prev.length >= 5) return prev;
+        return [...prev, notification];
+      });
+      
+      setShownIds(prev => {
+        const next = new Set(prev);
+        next.add(notification.id);
+        if (next.size > 50) {
+          const firstKey = next.keys().next().value;
+          if (firstKey !== undefined) next.delete(firstKey);
+        }
+        return next;
+      });
+    };
+
+    useEffect(() => {
+      if (queue.length > 0 && !currentNotification) {
+        const next = queue[0];
+        setCurrentNotification(next);
+        setQueue(prev => prev.slice(1));
+        
+        const timer = setTimeout(() => {
+          setCurrentNotification(null);
+        }, 5000);
+        
+        return () => clearTimeout(timer);
+      }
+    }, [queue, currentNotification]);
  
    useEffect(() => {
      if (!isEnabled || !config) return;
@@ -80,8 +110,8 @@
          const neighborhood = order.delivery_address?.neighborhood || 'da região';
          const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
          
-         showNotification({
-           id: Math.random().toString(),
+          addToQueue({
+            id: `order-${order.id}`,
            type: 'purchase',
            message: formatMessage(template, { name, neighborhood }),
            icon: ShoppingBag
@@ -94,8 +124,8 @@
            const name = order.customer_name || 'Alguém';
            const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
            
-           showNotification({
-             id: Math.random().toString(),
+           addToQueue({
+             id: `delivered-${order.id}`,
              type: 'delivered',
              message: formatMessage(template, { name }),
              icon: CheckCircle2
@@ -106,8 +136,8 @@
             const name = order.customer_name || 'Alguém';
             const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
             
-            showNotification({
-              id: Math.random().toString(),
+            addToQueue({
+              id: `payment-${order.id}`,
               type: 'payment',
               message: formatMessage(template, { name }),
               icon: CheckCircle2
@@ -140,8 +170,8 @@
              const name = payload.new.full_name || 'Um cliente';
              const template = config.level_template || '{name} subiu para o nível {level}!';
              
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `level-${payload.new.id}-${newTier.name}`,
                type: 'level',
                message: formatMessage(template, { name, level: newTier.name }),
                icon: TrendingUp
@@ -154,7 +184,7 @@
      // 2. Fallback / Periodic simulated events
      const fetchRandomNotification = async () => {
        // Don't show random if one is already showing (to prioritize real events)
-       if (currentNotification) return;
+       if (queue.length > 0 || currentNotification) return;
  
        const types = [];
        if (config.show_purchases) types.push('purchase');
@@ -176,8 +206,8 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
              const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                type: 'purchase',
                message: formatMessage(template, { name, neighborhood }),
                icon: ShoppingBag
@@ -187,8 +217,8 @@
            case 'viewers': {
              const viewersCount = Math.floor(Math.random() * 20) + 5;
              const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                type: 'viewers',
                message: formatMessage(template, { count: viewersCount }),
                icon: Users
@@ -206,8 +236,8 @@
              if (products && products.length > 0) {
                const prod = products[Math.floor(Math.random() * products.length)];
                const template = config.stock_template || 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.';
-               showNotification({
-                 id: Math.random().toString(),
+               addToQueue({
+                 id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                  type: 'stock',
                  message: formatMessage(template, { product: prod.name, stock: prod.stock }),
                  icon: AlertTriangle
@@ -221,8 +251,8 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const level = levels[Math.floor(Math.random() * levels.length)];
              const template = config.level_template || '{name} subiu para o nível {level}!';
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                type: 'level',
                message: formatMessage(template, { name, level }),
                icon: TrendingUp
@@ -233,8 +263,8 @@
               const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
               const name = names[Math.floor(Math.random() * names.length)];
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
-              showNotification({
-                id: Math.random().toString(),
+              addToQueue({
+                id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                 type: 'payment',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
@@ -245,8 +275,8 @@
              const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
              const name = names[Math.floor(Math.random() * names.length)];
              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
                type: 'delivered',
                message: formatMessage(template, { name }),
                icon: CheckCircle2
