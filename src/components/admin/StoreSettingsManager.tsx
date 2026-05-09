@@ -4,12 +4,12 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-    import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard } from 'lucide-react'
+ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
     import { Switch } from '@/components/ui/switch'
-
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  
    const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
  
@@ -93,7 +93,13 @@
          security_key: '',
          enabled: false,
          environment: 'sandbox'
-       }
+        },
+        mercadopago: {
+          public_key: '',
+          access_token: '',
+          enabled: false,
+          environment: 'sandbox'
+        }
     })
    const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -166,6 +172,7 @@
                if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
                 if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
                 if (item.key === 'sipag_config') newSettings.sipag = { ...newSettings.sipag, ...item.value };
+                if (item.key === 'mercadopago_config') newSettings.mercadopago = { ...newSettings.mercadopago, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -344,7 +351,8 @@
             { key: 'admin_whatsapp', value: settings.admin_whatsapp },
              { key: 'social_proof_settings', value: settings.social_proof },
              { key: 'external_notification_config', value: settings.notifications },
-             { key: 'sipag_config', value: settings.sipag }
+             { key: 'sipag_config', value: settings.sipag },
+             { key: 'mercadopago_config', value: settings.mercadopago }
           ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
