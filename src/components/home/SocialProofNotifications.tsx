@@ -125,7 +125,7 @@
            const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
            
            addToQueue({
-             id: Math.random().toString(),
+             id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
              type: 'delivered',
              message: formatMessage(template, { name }),
              icon: CheckCircle2
@@ -171,7 +171,7 @@
              const template = config.level_template || '{name} subiu para o nível {level}!';
              
              addToQueue({
-               id: `payment-${order.id}`,
+               id: `level-${payload.new.id}-${newTier.name}`,
                type: 'level',
                message: formatMessage(template, { name, level: newTier.name }),
                icon: TrendingUp
@@ -184,7 +184,7 @@
      // 2. Fallback / Periodic simulated events
      const fetchRandomNotification = async () => {
        // Don't show random if one is already showing (to prioritize real events)
-       if (currentNotification) return;
+       if (queue.length > 0 || currentNotification) return;
  
        const types = [];
        if (config.show_purchases) types.push('purchase');
@@ -207,7 +207,7 @@
              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
              const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
              addToQueue({
-               id: Math.random().toString(),
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                type: 'purchase',
                message: formatMessage(template, { name, neighborhood }),
                icon: ShoppingBag
@@ -218,7 +218,7 @@
              const viewersCount = Math.floor(Math.random() * 20) + 5;
              const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
              addToQueue({
-               id: Math.random().toString(),
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                type: 'viewers',
                message: formatMessage(template, { count: viewersCount }),
                icon: Users
@@ -237,7 +237,7 @@
                const prod = products[Math.floor(Math.random() * products.length)];
                const template = config.stock_template || 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.';
                addToQueue({
-                 id: Math.random().toString(),
+                 id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                  type: 'stock',
                  message: formatMessage(template, { product: prod.name, stock: prod.stock }),
                  icon: AlertTriangle
@@ -252,7 +252,7 @@
              const level = levels[Math.floor(Math.random() * levels.length)];
              const template = config.level_template || '{name} subiu para o nível {level}!';
              addToQueue({
-               id: Math.random().toString(),
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                type: 'level',
                message: formatMessage(template, { name, level }),
                icon: TrendingUp
@@ -264,7 +264,7 @@
               const name = names[Math.floor(Math.random() * names.length)];
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
               addToQueue({
-                id: Math.random().toString(),
+                id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                 type: 'payment',
                 message: formatMessage(template, { name }),
                 icon: CheckCircle2
@@ -276,7 +276,7 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
              addToQueue({
-               id: Math.random().toString(),
+               id: `sim-${selectedType}-${Math.floor(Date.now() / 10000)}`,
                type: 'delivered',
                message: formatMessage(template, { name }),
                icon: CheckCircle2
