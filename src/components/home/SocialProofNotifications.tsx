@@ -144,10 +144,21 @@
       }
     }, [queue, currentNotification]);
  
-   useEffect(() => {
-     if (!isEnabled || !config) return;
- 
-     // 1. Real-time Listeners
+    useEffect(() => {
+      if (!isEnabled || !config) return;
+  
+      // 0. Manual Trigger Listener
+      const manualChannel = supabase
+        .channel('social-proof-manual')
+        .on('broadcast', { event: 'trigger' }, (payload) => {
+          const { type } = payload.payload;
+          if (type) {
+             simulateEvent(type);
+          }
+        })
+        .subscribe();
+
+      // 1. Real-time Listeners
      const orderChannel = supabase
        .channel('social-proof-orders')
        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
@@ -526,6 +537,7 @@
         clearTimeout(timeoutId);
         supabase.removeChannel(orderChannel);
         supabase.removeChannel(profileChannel);
+        supabase.removeChannel(manualChannel);
       };
    }, [isEnabled, config]);
  
