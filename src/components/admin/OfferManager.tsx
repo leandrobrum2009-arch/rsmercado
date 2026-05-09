@@ -7,7 +7,7 @@
 import { Loader2, Zap, Trash2, Plus, Percent, Clock, Tag, Search, ShoppingBag, ArrowRight, Send } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
+ import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
  
  export function OfferManager() {
    const [products, setProducts] = useState<any[]>([])
@@ -26,12 +26,13 @@ import { sendWhatsAppMessage, formatWhatsAppMessage } from '@/lib/whatsapp'
  
     const notifyWhatsApp = async (product: any) => {
       setIsNotifying(product.id)
-      try {
-        const message = formatWhatsAppMessage('promotion', {
+       try {
+         const templates = await getWhatsAppTemplates();
+         const message = formatWhatsAppMessage('promotion', {
           id: product.id,
           title: product.name,
-          description: `De R$ ${product.old_price?.toFixed(2) || product.price.toFixed(2)} por apenas *R$ ${product.price.toFixed(2)}*!`
-        })
+           description: `De R$ ${product.old_price?.toFixed(2) || product.price.toFixed(2)} por apenas *R$ ${product.price.toFixed(2)}*!`
+         }, templates)
 
         // Get all customers with whatsapp
         const { data: customers } = await supabase
