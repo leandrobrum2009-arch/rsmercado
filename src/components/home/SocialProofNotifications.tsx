@@ -203,9 +203,30 @@
        try {
          switch (selectedType) {
             case 'purchase': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego', 'Elaine', 'Fabio', 'Gisele', 'Hugo', 'Isabel', 'Jonas', 'Katia', 'Leonardo', 'Marta', 'Nelson', 'Otavio', 'Paula', 'Renato', 'Simone', 'Tatiana'];
-              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes', 'Vieira', 'Barbosa'];
-              const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas', 'Jardim América', 'Bela Vista', 'Santo Antônio', 'São Francisco', 'Parque das Flores', 'Alto da Serra', 'Boa Vista', 'Itamarati', 'Quitandinha', 'Cascatinha', 'Retiro', 'Carangola', 'Bingen', 'Corrêas', 'Araras', 'Itaipava', 'Nogueira', 'Posse'];
+              const firstNames = [
+                'Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 
+                'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 
+                'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego', 'Elaine', 'Fabio', 'Gisele', 'Hugo', 'Isabel', 
+                'Jonas', 'Katia', 'Leonardo', 'Marta', 'Nelson', 'Otavio', 'Paula', 'Renato', 'Simone', 'Tatiana',
+                'Adriano', 'Aline', 'André', 'Bárbara', 'Caio', 'Clarice', 'Douglas', 'Erica', 'Felipe', 'Giovanna',
+                'Heitor', 'Iara', 'Joaquim', 'Leticia', 'Marcelo', 'Natália', 'Otávio', 'Patrícia', 'Ruan', 'Sabrina',
+                'Thais', 'Vitor', 'Yasmin', 'Zuleica', 'Bernardo', 'Catarina', 'Davi', 'Emanuel', 'Flávia', 'Gustavo',
+                'Hilda', 'Isaac', 'Janaina', 'Kevin', 'Lorena', 'Murilo', 'Nayara', 'Osvaldo', 'Priscila', 'Raul',
+                'Sueli', 'Túlio', 'Valentina', 'William', 'Xavier', 'Yago', 'Zilda', 'Antônio', 'Benedita', 'Cláudio'
+              ];
+              const lastNames = [
+                'Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 
+                'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes', 'Vieira', 'Barbosa',
+                'Mendes', 'Moreira', 'Nunes', 'Teixeira', 'Cardoso', 'Freitas', 'Rocha', 'Machado', 'Pinto', 'Dias',
+                'Castro', 'Duarte', 'Guimarães', 'Pinheiro', 'Moura', 'Andrade', 'Marques', 'Batista', 'Figueiredo', 'Campos'
+              ];
+              const neighborhoods = [
+                'Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas', 'Jardim América', 'Bela Vista', 'Santo Antônio', 
+                'São Francisco', 'Parque das Flores', 'Alto da Serra', 'Boa Vista', 'Itamarati', 'Quitandinha', 
+                'Cascatinha', 'Retiro', 'Carangola', 'Bingen', 'Corrêas', 'Araras', 'Itaipava', 'Nogueira', 'Posse',
+                'Morin', 'Quarteirão Brasileiro', 'Castelânea', 'Valparaíso', 'Siméria', 'Sargento Boening', 'Vila Militar',
+                'Caxambu', 'Fazenda Inglesa', 'Mosela', 'Duarte da Silveira', 'Capela', 'Secretário', 'Pedro do Rio'
+              ];
               
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
               const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
