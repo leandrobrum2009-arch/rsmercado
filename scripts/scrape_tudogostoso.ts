@@ -74,10 +74,13 @@
      const $ = cheerio.load(html)
  
      const recipeLinks: string[] = []
-     $('.recipe-card a').each((_, el) => {
+     $('a').each((_, el) => {
        const href = $(el).attr('href')
-       if (href && href.startsWith('/receita/')) {
-         recipeLinks.push(`${BASE_URL}${href}`)
+       if (href && (href.startsWith('/receita/') || href.includes('tudogostoso.com.br/receita/'))) {
+         const fullUrl = href.startsWith('http') ? href : `${BASE_URL}${href}`
+         if (!recipeLinks.includes(fullUrl)) {
+           recipeLinks.push(fullUrl)
+         }
        }
      })
  
