@@ -75,7 +75,8 @@
       setShownIds(prev => {
         const next = new Set(prev);
         next.add(notification.id);
-        if (next.size > 50) {
+        // Increase history to avoid repetition in longer sessions
+        if (next.size > 200) {
           const firstKey = next.keys().next().value;
           if (firstKey !== undefined) next.delete(firstKey);
         }
