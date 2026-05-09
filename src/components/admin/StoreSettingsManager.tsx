@@ -1514,8 +1514,10 @@
                 </div>
               </CardContent>
             </Card>
-          </div>
-   
+             </div>
+           </TabsContent>
+         </Tabs>
+ 
          <div className="flex justify-end sticky bottom-4 z-10">
            <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full md:w-auto rounded-2xl shadow-xl shadow-primary/20 font-black uppercase tracking-tighter">
              {isSaving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2 h-5 w-5" />}
