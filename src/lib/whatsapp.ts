@@ -49,17 +49,30 @@
    return !!data;
  }
  
- export const logSentMessage = async (phone: string, message: string, campaignId?: string) => {
-   const cleanPhone = phone.replace(/\D/g, '');
-   const hash = generateMessageHash(message);
-   
-   await supabase.from('whatsapp_logs').insert({
-     phone: cleanPhone,
-    message_text: message,
-     message_hash: hash,
-     campaign_id: campaignId || null
-   });
- }
+  export const logSentMessage = async (phone: string, message: string, campaignId?: string, status: string = 'sent', errorMessage?: string, method: string = 'api') => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const hash = generateMessageHash(message);
+    
+    try {
+      await supabase.from('whatsapp_logs').insert({
+        phone: cleanPhone,
+        message_text: message,
+        message_hash: hash,
+        campaign_id: campaignId || null,
+        status,
+        error_message: errorMessage || null,
+        method
+      });
+    } catch (e) {
+      // Fallback for old schema
+      await supabase.from('whatsapp_logs').insert({
+        phone: cleanPhone,
+        message_text: message,
+        message_hash: hash,
+        campaign_id: campaignId || null
+      });
+    }
+  }
  
 
 export const getWhatsAppConfig = async (): Promise<WhatsAppConfig | null> => {
@@ -170,12 +183,13 @@ export const formatCurrency = (value: number) => {
  export const sendWhatsAppMessage = async (phone: string, message: string, campaignId?: string) => {
    const config = await getWhatsAppConfig();
    
-   if (!config || !config.enabled || !config.apiKey) {
-     const cleanPhone = phone.replace(/\D/g, '');
-     const url = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
-     if (typeof window !== 'undefined') window.open(url, '_blank');
-     return { success: true, method: 'browser' };
-   }
+    if (!config || !config.enabled || !config.apiKey) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const url = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
+      if (typeof window !== 'undefined') window.open(url, '_blank');
+      await logSentMessage(phone, message, campaignId, 'manual', undefined, 'browser');
+      return { success: true, method: 'browser' };
+    }
  
    if (config.prevent_duplicates) {
      const isDuplicate = await checkDuplicateMessage(phone, message, config.duplicate_cooldown_hours || 24);
@@ -201,11 +215,12 @@ export const formatCurrency = (value: number) => {
      let result;
      try { result = await response.json(); } catch (e) { result = { message: 'Erro response' }; }
      
-     if (response.ok) {
-       await logSentMessage(phone, message, campaignId);
-     }
-     
-     return { success: response.ok, result, status: response.status, method: 'api' };
+      const status = response.ok ? 'sent' : 'error';
+      const errorMsg = response.ok ? undefined : (result?.message || result?.error || `HTTP ${response.status}`);
+      
+      await logSentMessage(phone, message, campaignId, status, errorMsg, 'api');
+      
+      return { success: response.ok, result, status: response.status, method: 'api' };
    } catch (error) {
      console.error('WhatsApp API Error:', error);
      return { success: false, error };
