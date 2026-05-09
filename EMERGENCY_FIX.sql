@@ -94,5 +94,40 @@
  WITH CHECK ( public.is_admin() );
  
  -- Grant execute permissions
- GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
- GRANT EXECUTE ON FUNCTION public.promote_to_admin(TEXT) TO authenticated;
+  GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
+  GRANT EXECUTE ON FUNCTION public.promote_to_admin(TEXT) TO authenticated;
+
+  -- 5. REPARAR TABELA DE RECEITAS (ADICIONAR SOURCE_URL)
+  CREATE TABLE IF NOT EXISTS public.recipes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL,
+      description TEXT,
+      instructions TEXT,
+      category TEXT,
+      difficulty TEXT DEFAULT 'Média',
+      image_url TEXT,
+      ingredients JSONB DEFAULT '[]',
+      source_url TEXT UNIQUE,
+      author_id UUID REFERENCES auth.users(id),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+
+  -- Adicionar coluna source_url se não existir
+  ALTER TABLE public.recipes ADD COLUMN IF NOT EXISTS source_url TEXT;
+
+  -- Tentar adicionar constraint UNIQUE se não houver duplicatas de URL
+  DO $$ 
+  BEGIN 
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'recipes_source_url_key') THEN
+          ALTER TABLE public.recipes ADD CONSTRAINT recipes_source_url_key UNIQUE (source_url);
+      END IF;
+  END $$;
+
+  -- Políticas de Receitas
+  ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Anyone can view recipes" ON public.recipes;
+  CREATE POLICY "Anyone can view recipes" ON public.recipes FOR SELECT USING (true);
+  DROP POLICY IF EXISTS "Anyone can insert recipes" ON public.recipes;
+  CREATE POLICY "Anyone can insert recipes" ON public.recipes FOR INSERT WITH CHECK (true);
+  DROP POLICY IF EXISTS "Admin manage recipes" ON public.recipes;
+  CREATE POLICY "Admin manage recipes" ON public.recipes FOR ALL USING (public.is_admin());
