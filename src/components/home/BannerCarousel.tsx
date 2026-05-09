@@ -51,33 +51,33 @@
          className="flex transition-transform duration-500 ease-in-out"
          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
        >
-          {banners.map((banner) => {
-            const linkProps = banner.link_url 
-              ? { to: banner.link_url } 
-              : banner.categories?.slug 
-                ? { to: '/search', search: { category: banner.categories.slug } }
-                : null;
-
-            return (
-              <div key={banner.id} className="min-w-full">
-                {linkProps ? (
-                  <Link {...linkProps}>
-                    <img 
-                      src={banner.image_url} 
-                      className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
-                      alt="Banner" 
-                    />
-                  </Link>
-                ) : (
+          {banners.map((banner) => (
+            <div key={banner.id} className="min-w-full">
+              {banner.link_url ? (
+                <Link to={banner.link_url}>
                   <img 
                     src={banner.image_url} 
                     className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
                     alt="Banner" 
                   />
-                )}
-              </div>
-            );
-          })}
+                </Link>
+              ) : banner.categories?.slug ? (
+                <Link to="/search" search={{ category: banner.categories.slug }}>
+                  <img 
+                    src={banner.image_url} 
+                    className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
+                    alt="Banner" 
+                  />
+                </Link>
+              ) : (
+                <img 
+                  src={banner.image_url} 
+                  className="w-full h-40 md:h-64 object-cover rounded-2xl shadow-md" 
+                  alt="Banner" 
+                />
+              )}
+            </div>
+          ))}
        </div>
        
        {banners.length > 1 && (
