@@ -40,15 +40,21 @@
  
    useEffect(() => {
      const fetchConfig = async () => {
-       const { data } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
-       if (data && data.value) {
-         const mergedConfig = { ...defaultConfig, ...data.value };
-         setConfig(mergedConfig);
-         setIsEnabled(mergedConfig.enabled);
-       } else {
-         setConfig(defaultConfig);
-         setIsEnabled(true);
+       const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
+       const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+       
+       let mergedConfig = { ...defaultConfig };
+       
+       if (spData && spData.value) {
+         mergedConfig = { ...mergedConfig, ...spData.value };
        }
+       
+       if (pointsData && pointsData.value && pointsData.value.tiers) {
+         mergedConfig.tiers = pointsData.value.tiers;
+       }
+ 
+       setConfig(mergedConfig);
+       setIsEnabled(mergedConfig.enabled);
      };
      fetchConfig();
    }, []);
