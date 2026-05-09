@@ -25,7 +25,8 @@
     Truck,
     Percent,
     Lock,
-    LayoutGrid
+    LayoutGrid,
+    Trophy
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
