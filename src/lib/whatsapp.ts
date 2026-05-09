@@ -91,7 +91,11 @@ export const formatCurrency = (value: number) => {
   }).format(value);
 }
 
-   export type WhatsAppMessageType = 'promotion' | 'order' | 'order_summary' | 'status_update' | 'loyalty_redeem' | 'points_earned' | 'flyer_share' | 'payment_confirmed';
+    export type WhatsAppMessageType = 
+      'promotion' | 'order' | 'order_summary' | 'status_update' | 
+      'loyalty_redeem' | 'points_earned' | 'flyer_share' | 'payment_confirmed' |
+      'status_pending' | 'status_approved' | 'status_collecting' | 'status_collected' | 
+      'status_waiting_courier' | 'status_out_for_delivery' | 'status_delivered' | 'status_cancelled';
  
    export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any, customTemplates?: any) => {
      const defaultTemplates: any = {
@@ -101,9 +105,17 @@ export const formatCurrency = (value: number) => {
        promotion: `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*{title}*\n\n{description}\n\n👉 Confira aqui: {product_url}\n\n*Aproveite enquanto durarem os estoques!* 🛒`,
        order: `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #{order_id} foi recebido com sucesso!\n\n💰 Total: R$ {total_amount}\n🚚 Status: {status}\n\n📍 *Rastreie seu pedido aqui:* {track_url}`,
        order_summary: `🛒 *RESUMO DO PEDIDO #{order_id}*\n\n👤 Cliente: *{customer_name}*\n📍 Endereço: {address}\n💳 Pagamento: {payment_method}\n\n📦 *Itens:*\n{items}\n\n💰 Subtotal: R$ {subtotal}\n🚚 Entrega: R$ {delivery_fee}\n⭐ *Total: R$ {total_amount}*\n\n📍 Rastreio: {track_url}`,
-       flyer_share: `🔥 *OFERTAS DO DIA - {site_name}* 🔥\n\n{product_list}\n\n🛒 *Peça agora pelo site:* {site_url}\n📦 *Entregamos na sua casa!*`,
-       payment_confirmed: `✅ *PAGAMENTO CONFIRMADO!* ✅\n\nOlá *{customer_name}*,\n\nRecebemos o pagamento do seu pedido #{order_id} com sucesso!\n\nAgora estamos agilizando a separação dos seus produtos para que cheguem o quanto antes até você. 🚀\n\n📍 *Acompanhe aqui:* {track_url}`
-     };
+        flyer_share: `🔥 *OFERTAS DO DIA - {site_name}* 🔥\n\n{product_list}\n\n🛒 *Peça agora pelo site:* {site_url}\n📦 *Entregamos na sua casa!*`,
+        payment_confirmed: `✅ *PAGAMENTO CONFIRMADO!* ✅\n\nOlá *{customer_name}*,\n\nRecebemos o pagamento do seu pedido #{order_id} com sucesso!\n\nAgora estamos agilizando a separação dos seus produtos para que cheguem o quanto antes até você. 🚀\n\n📍 *Acompanhe aqui:* {track_url}`,
+        status_pending: `Olá *{customer_name}*!\n\nSeu pedido #{order_id} está *Aguardando Aprovação* ⏳\n\n📍 *Acompanhe:* {track_url}`,
+        status_approved: `Olá *{customer_name}*!\n\nSeu pedido #{order_id} foi *Aprovado* ✅\n\n📍 *Acompanhe:* {track_url}`,
+        status_collecting: `Olá *{customer_name}*!\n\nEstamos *Separando os Produtos* do seu pedido #{order_id} 🛒\n\n📍 *Acompanhe:* {track_url}`,
+        status_collected: `Olá *{customer_name}*!\n\nSeu pedido #{order_id} já está *Pronto para Envio* 📦\n\n📍 *Acompanhe:* {track_url}`,
+        status_waiting_courier: `Olá *{customer_name}*!\n\nSeu pedido #{order_id} está *Aguardando o Entregador* 🛵\n\n📍 *Acompanhe:* {track_url}`,
+        status_out_for_delivery: `🚀 *SAIU PARA ENTREGA!* 🚀\n\nOlá *{customer_name}*! O entregador já está a caminho com o seu pedido #{order_id}. Prepare a mesa! 🚚💨\n\n📍 *Acompanhe em tempo real:* {track_url}`,
+        status_delivered: `🏁 *ENTREGUE COM SUCESSO!* 🏁\n\nOlá *{customer_name}*! Seu pedido #{order_id} foi entregue. Esperamos que goste! 😊\n\nObrigado pela preferência! 🛒`,
+        status_cancelled: `❌ *PEDIDO CANCELADO* ❌\n\nOlá *{customer_name}*, infelizmente seu pedido #{order_id} foi cancelado.\n\nPara mais informações, entre em contato conosco.`
+      };
  
      const template = customTemplates?.[type] || defaultTemplates[type];
      if (!template) return '';
