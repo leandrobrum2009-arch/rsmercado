@@ -25,8 +25,9 @@ export function LoyaltyManager() {
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
-   const [challenges, setChallenges] = useState<any[]>([])
-  const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
+    const [challenges, setChallenges] = useState<any[]>([])
+    const [tierStats, setTierStats] = useState<Record<string, number>>({})
+   const [newReward, setNewReward] = useState({ title: '', description: '', points_cost: '', reward_type: 'product' })
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points_reward: '', requirement_type: 'total_amount', start_date: '', end_date: '' })
   const [editingFee, setEditingFee] = useState<{ id: string, fee: string } | null>(null)
 
@@ -93,6 +94,22 @@ export function LoyaltyManager() {
       if (!cErr) setChallenges(cData || []);
       else console.error('Error fetching challenges:', cErr);
 
+      // Fetch Tier Stats
+      const { data: profiles, error: pErr } = await supabase.from('profiles').select('loyalty_points');
+      if (!pErr && profiles) {
+        const stats: Record<string, number> = {};
+        profiles.forEach(p => {
+          const points = p.loyalty_points || 0;
+          const tiers = settings?.tiers || DEFAULT_SETTINGS.tiers;
+          const tier = [...tiers]
+            .sort((a, b) => b.min_points - a.min_points)
+            .find(t => points >= t.min_points);
+          if (tier) {
+            stats[tier.name] = (stats[tier.name] || 0) + 1;
+          }
+        });
+        setTierStats(stats);
+      }
     } catch (error) {
       console.error('Error fetching loyalty data:', error)
     } finally {
@@ -465,6 +482,9 @@ export function LoyaltyManager() {
                              setSettings({...settings, tiers: newTiers});
                            }}
                          />
+                         <p className="text-[8px] font-bold text-zinc-400 uppercase ml-3 mt-0.5">
+                           {tierStats[tier.name] || 0} Clientes neste nível
+                         </p>
                        </div>
                      </div>
                      
