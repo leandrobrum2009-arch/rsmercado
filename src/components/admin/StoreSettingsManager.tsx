@@ -88,7 +88,7 @@
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
               if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
-              if (item.key === 'social_proof_settings') newSettings.social_proof = item.value;
+              if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
             });
          setSettings(newSettings);
        }
