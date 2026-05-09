@@ -31,7 +31,7 @@
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -134,11 +134,32 @@ export const Route = createFileRoute('/admin')({
       });
     }, [navigate]);
 
-   const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [hasNewOrder, setHasNewOrder] = useState(false)
+    const audioRef = useRef<HTMLAudioElement | null>(null)
    const [isAdminDiagnostic, setIsAdminDiagnostic] = useState<boolean | null>(null)
     const [lastError, setLastError] = useState<string | null>(null)
  
-   useEffect(() => {
+    useEffect(() => {
+      // Setup notification sound
+      audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+      
+      // Real-time listener for new orders
+      const channel = supabase
+        .channel('admin_new_orders')
+        .on('postgres_changes', { event: 'INSERT', table: 'orders' }, (payload) => {
+          console.log('New order received!', payload)
+          setHasNewOrder(true)
+          audioRef.current?.play().catch(e => console.error('Audio play failed:', e))
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }, [])
+
+    useEffect(() => {
       const fetchPermissionsAndAdmin = async () => {
         try {
           const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
@@ -329,24 +350,29 @@ export const Route = createFileRoute('/admin')({
                    {group.items.map((item) => {
                      const isAllowed = userPermissions.includes(item.id) || userPermissions.includes('all') || session?.user?.email === 'leandrobrum2009@gmail.com'
                      if (!isAllowed) return null
-                    return (
-                    <button
-                      key={item.id}
-                     onClick={() => {
-                       setActiveTab(item.id)
-                       setSidebarOpen(false)
-                     }}
-                     className={cn(
-                       "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase transition-all",
-                       activeTab === item.id 
-                         ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
-                         : "hover:bg-zinc-800 hover:text-white"
-                     )}
-                   >
-                     <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
-                     {item.label}
-                    </button>
-                    )
+                     return (
+                     <button
+                       key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id)
+                        setSidebarOpen(false)
+                        if (item.id === 'delivery_report') setHasNewOrder(false)
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase transition-all relative",
+                        activeTab === item.id 
+                          ? "bg-white text-zinc-900 shadow-lg shadow-black/20" 
+                          : "hover:bg-zinc-800 hover:text-white",
+                        item.id === 'delivery_report' && hasNewOrder && "animate-pulse ring-2 ring-primary bg-primary/10 text-white"
+                      )}
+                    >
+                      <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "")} />
+                      {item.label}
+                      {item.id === 'delivery_report' && hasNewOrder && (
+                        <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping" />
+                      )}
+                     </button>
+                     )
                   })}
                </div>
              </div>
