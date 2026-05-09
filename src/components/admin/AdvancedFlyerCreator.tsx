@@ -122,6 +122,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     // Auto-load last configuration
     useEffect(() => {
+      if (typeof window === 'undefined') return;
+      
       const loadLastConfig = () => {
         const lastConfig = localStorage.getItem('last_flyer_config')
         if (lastConfig) {
