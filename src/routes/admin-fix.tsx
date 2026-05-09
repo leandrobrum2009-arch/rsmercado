@@ -612,10 +612,23 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
   GRANT SELECT ON public.categories TO anon, authenticated;
   GRANT SELECT ON public.products TO anon, authenticated;
   GRANT SELECT ON public.banners TO anon, authenticated;
-  GRANT SELECT ON public.store_alerts TO anon, authenticated;
-  GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
+   GRANT SELECT ON public.store_alerts TO anon, authenticated;
+   GRANT SELECT ON public.delivery_neighborhoods TO anon, authenticated;
 
-  -- 12. SISTEMA DE AUDITORIA DE MIGRAÇÕES
+   -- 12. TABELA DE HISTÓRICO DE ALERTAS
+   CREATE TABLE IF NOT EXISTS public.alert_logs (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       message TEXT NOT NULL,
+       type TEXT NOT NULL,
+       target_url TEXT,
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+   ALTER TABLE public.alert_logs ENABLE ROW LEVEL SECURITY;
+   DROP POLICY IF EXISTS "Admins manage alert logs" ON public.alert_logs;
+   CREATE POLICY "Admins manage alert logs" ON public.alert_logs FOR ALL USING (public.is_admin() OR (auth.jwt() ->> 'email' = 'leandrobrum2009@gmail.com'));
+   GRANT SELECT ON public.alert_logs TO authenticated;
+ 
+   -- 13. SISTEMA DE AUDITORIA DE MIGRAÇÕES
   CREATE TABLE IF NOT EXISTS public.migration_audit_logs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       migration_name TEXT NOT NULL,
