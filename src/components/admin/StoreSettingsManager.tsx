@@ -49,6 +49,11 @@
          delivered_template: '{name} já recebeu suas compras em casa!',
          payment_template: 'Pagamento confirmado para o pedido de {name}!',
          show_payments: true,
+         show_registrations: true,
+         show_coupons: true,
+         show_shares: true,
+         show_carts: true,
+         show_wishlists: true,
          time_template: 'agora mesmo'
       },
       notifications: {
