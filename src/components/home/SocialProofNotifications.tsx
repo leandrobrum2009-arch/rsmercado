@@ -21,37 +21,50 @@
     const [typeUsage, setTypeUsage] = useState<Record<string, number>>({});
     const [usedParams, setUsedParams] = useState<Record<string, string[]>>({ names: [], neighborhoods: [], products: [] });
 
-    // Load from sessionStorage on mount
+    // Safe storage access for SSR
+    const safeSessionStorage = typeof window !== 'undefined' ? window.sessionStorage : null;
+
+    // Load from storage on mount
     useEffect(() => {
-      if (typeof window !== 'undefined') {
-        const savedShownIds = sessionStorage.getItem('social_proof_shown_ids');
-        if (savedShownIds) setShownIds(new Set(JSON.parse(savedShownIds)));
+      if (safeSessionStorage) {
+        try {
+          const savedShownIds = safeSessionStorage.getItem('social_proof_shown_ids');
+          if (savedShownIds) setShownIds(new Set(JSON.parse(savedShownIds)));
 
-        const savedTypeUsage = sessionStorage.getItem('social_proof_type_usage');
-        if (savedTypeUsage) setTypeUsage(JSON.parse(savedTypeUsage));
+          const savedTypeUsage = safeSessionStorage.getItem('social_proof_type_usage');
+          if (savedTypeUsage) setTypeUsage(JSON.parse(savedTypeUsage));
 
-        const savedUsedParams = sessionStorage.getItem('social_proof_used_params');
-        if (savedUsedParams) setUsedParams(JSON.parse(savedUsedParams));
+          const savedUsedParams = safeSessionStorage.getItem('social_proof_used_params');
+          if (savedUsedParams) setUsedParams(JSON.parse(savedUsedParams));
+        } catch (e) {
+          console.error('Error loading social proof from storage:', e);
+        }
       }
-    }, []);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined' && shownIds.size > 0) {
-        sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
-      }
-    }, [shownIds]);
-
-    useEffect(() => {
-      if (typeof window !== 'undefined' && Object.keys(typeUsage).length > 0) {
-        sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
-      }
-    }, [typeUsage]);
+    }, [safeSessionStorage]);
 
     useEffect(() => {
-      if (typeof window !== 'undefined' && (usedParams.names?.length > 0 || usedParams.neighborhoods?.length > 0 || usedParams.products?.length > 0)) {
-        sessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+      if (safeSessionStorage && shownIds.size > 0) {
+        try {
+          safeSessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
+        } catch (e) { /* ignore */ }
       }
-    }, [usedParams]);
+    }, [shownIds, safeSessionStorage]);
+
+    useEffect(() => {
+      if (safeSessionStorage && Object.keys(typeUsage).length > 0) {
+        try {
+          safeSessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
+        } catch (e) { /* ignore */ }
+      }
+    }, [typeUsage, safeSessionStorage]);
+
+    useEffect(() => {
+      if (safeSessionStorage && (usedParams.names?.length > 0 || usedParams.neighborhoods?.length > 0 || usedParams.products?.length > 0)) {
+        try {
+          safeSessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+        } catch (e) { /* ignore */ }
+      }
+    }, [usedParams, safeSessionStorage]);
 
     const getUniqueItem = (list: string[], key: string, maxHistory = 40) => {
       const used = usedParams[key] || [];
