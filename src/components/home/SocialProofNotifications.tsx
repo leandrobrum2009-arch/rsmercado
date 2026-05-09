@@ -10,62 +10,92 @@
    icon: any;
  }
  
- export function SocialProofNotifications() {
-   const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
-   const [isEnabled, setIsEnabled] = useState(false);
-   const [config, setConfig] = useState<any>(null);
- 
-   const formatMessage = (template: string, data: Record<string, any>) => {
-     let message = template;
-     Object.entries(data).forEach(([key, value]) => {
-       message = message.replace(`{${key}}`, value);
-     });
-     return message;
-   };
- 
-   const defaultConfig: any = {
-     enabled: true,
-     interval: 15000,
-     show_purchases: true,
-     show_viewers: true,
-     show_stock: true,
-     show_levels: true,
-     show_delivered: true,
-     purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
-     viewers_template: '{count} pessoas visualizando produtos no site agora',
-     stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+  export function SocialProofNotifications() {
+    const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
+    const [queue, setQueue] = useState<Notification[]>([]);
+    const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+    const [isEnabled, setIsEnabled] = useState(false);
+    const [config, setConfig] = useState<any>(null);
+  
+    const formatMessage = (template: string, data: Record<string, any>) => {
+      let message = template;
+      Object.entries(data).forEach(([key, value]) => {
+        message = message.replace(`{${key}}`, value);
+      });
+      return message;
+    };
+  
+    const defaultConfig: any = {
+      enabled: true,
+      interval: 15000,
+      show_purchases: true,
+      show_viewers: true,
+      show_stock: true,
+      show_levels: true,
+      show_delivered: true,
+      purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+      viewers_template: '{count} pessoas visualizando produtos no site agora',
+      stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
       level_template: '{name} subiu para o nível {level}!',
       delivered_template: '{name} já recebeu suas compras em casa!',
       payment_template: 'Pagamento confirmado para o pedido de {name}!',
       show_payments: true,
       time_template: 'agora mesmo'
-   };
- 
-   useEffect(() => {
-     const fetchConfig = async () => {
-       const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
-       const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
-       
-       let mergedConfig = { ...defaultConfig };
-       
-       if (spData && spData.value) {
-         mergedConfig = { ...mergedConfig, ...spData.value };
-       }
-       
-       if (pointsData && pointsData.value && pointsData.value.tiers) {
-         mergedConfig.tiers = pointsData.value.tiers;
-       }
- 
-       setConfig(mergedConfig);
-       setIsEnabled(mergedConfig.enabled);
-     };
-     fetchConfig();
-   }, []);
- 
-   const showNotification = (notification: Notification) => {
-     setCurrentNotification(notification);
-     setTimeout(() => setCurrentNotification(null), 5000);
-   };
+    };
+  
+    useEffect(() => {
+      const fetchConfig = async () => {
+        const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
+        const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+        
+        let mergedConfig = { ...defaultConfig };
+        
+        if (spData && spData.value) {
+          mergedConfig = { ...mergedConfig, ...spData.value };
+        }
+        
+        if (pointsData && pointsData.value && pointsData.value.tiers) {
+          mergedConfig.tiers = pointsData.value.tiers;
+        }
+  
+        setConfig(mergedConfig);
+        setIsEnabled(mergedConfig.enabled);
+      };
+      fetchConfig();
+    }, []);
+  
+    const addToQueue = (notification: Notification) => {
+      if (shownIds.has(notification.id)) return;
+      
+      setQueue(prev => {
+        if (prev.length >= 5) return prev;
+        return [...prev, notification];
+      });
+      
+      setShownIds(prev => {
+        const next = new Set(prev);
+        next.add(notification.id);
+        if (next.size > 50) {
+          const firstKey = next.keys().next().value;
+          if (firstKey !== undefined) next.delete(firstKey);
+        }
+        return next;
+      });
+    };
+
+    useEffect(() => {
+      if (queue.length > 0 && !currentNotification) {
+        const next = queue[0];
+        setCurrentNotification(next);
+        setQueue(prev => prev.slice(1));
+        
+        const timer = setTimeout(() => {
+          setCurrentNotification(null);
+        }, 5000);
+        
+        return () => clearTimeout(timer);
+      }
+    }, [queue, currentNotification]);
  
    useEffect(() => {
      if (!isEnabled || !config) return;
