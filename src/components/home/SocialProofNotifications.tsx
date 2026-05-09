@@ -53,10 +53,88 @@
      fetchConfig();
    }, []);
  
+   const showNotification = (notification: Notification) => {
+     setCurrentNotification(notification);
+     setTimeout(() => setCurrentNotification(null), 5000);
+   };
+ 
    useEffect(() => {
      if (!isEnabled || !config) return;
  
+     // 1. Real-time Listeners
+     const orderChannel = supabase
+       .channel('social-proof-orders')
+       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+         if (!config.show_purchases) return;
+         const order = payload.new;
+         const name = order.customer_name || 'Alguém';
+         const neighborhood = order.delivery_address?.neighborhood || 'da região';
+         const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
+         
+         showNotification({
+           id: Math.random().toString(),
+           type: 'purchase',
+           message: formatMessage(template, { name, neighborhood }),
+           icon: ShoppingBag
+         });
+       })
+       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+         if (!config.show_delivered) return;
+         if (payload.new.status === 'delivered' && payload.old.status !== 'delivered') {
+           const order = payload.new;
+           const name = order.customer_name || 'Alguém';
+           const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
+           
+           showNotification({
+             id: Math.random().toString(),
+             type: 'delivered',
+             message: formatMessage(template, { name }),
+             icon: CheckCircle2
+           });
+         }
+       })
+       .subscribe();
+ 
+     const profileChannel = supabase
+       .channel('social-proof-profiles')
+       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, async (payload) => {
+         if (!config.show_levels) return;
+         
+         const newPoints = payload.new.points_balance || 0;
+         const oldPoints = payload.old.points_balance || 0;
+         
+         // Only check if points increased
+         if (newPoints > oldPoints) {
+           // Logic to detect tier change
+           const tiers = config.tiers || [
+             { name: 'Bronze', min_points: 0 },
+             { name: 'Ouro', min_points: 500 },
+             { name: 'Platinum', min_points: 1000 }
+           ];
+ 
+           const oldTier = tiers.filter((t: any) => oldPoints >= t.min_points).pop();
+           const newTier = tiers.filter((t: any) => newPoints >= t.min_points).pop();
+ 
+           if (newTier && oldTier && newTier.name !== oldTier.name) {
+             const name = payload.new.full_name || 'Um cliente';
+             const template = config.level_template || '{name} subiu para o nível {level}!';
+             
+             showNotification({
+               id: Math.random().toString(),
+               type: 'level',
+               message: formatMessage(template, { name, level: newTier.name }),
+               icon: TrendingUp
+             });
+           }
+         }
+       })
+       .subscribe();
+ 
+     // 2. Fallback / Periodic simulated events
      const fetchRandomNotification = async () => {
+       // Don't show random if one is already showing (to prioritize real events)
+       if (currentNotification) return;
+ 
        const types = [];
        if (config.show_purchases) types.push('purchase');
        if (config.show_viewers) types.push('viewers');
@@ -68,72 +146,50 @@
  
        const selectedType = types[Math.floor(Math.random() * types.length)];
  
-       let notification: Notification | null = null;
- 
        try {
          switch (selectedType) {
            case 'purchase': {
-             const { data: orders } = await supabase
-               .from('orders')
-               .select('id, profiles(full_name), delivery_address')
-               .order('created_at', { ascending: false })
-               .limit(5);
-             
-             if (orders && orders.length > 0) {
-               const order = orders[Math.floor(Math.random() * orders.length)];
-               const name = (order.profiles as any)?.full_name || 'Alguém';
-               const neighborhood = (order.delivery_address as any)?.neighborhood || 'da região';
-               const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-               notification = {
-                 id: Math.random().toString(),
-                 type: 'purchase',
-                 message: formatMessage(template, { name, neighborhood }),
-                 icon: ShoppingBag
-               };
-             } else {
-               // Fallback to simulated if no orders
-               const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos'];
-               const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra'];
-               const name = names[Math.floor(Math.random() * names.length)];
-               const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
-               const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-               notification = {
-                 id: Math.random().toString(),
-                 type: 'purchase',
-                 message: formatMessage(template, { name, neighborhood }),
-                 icon: ShoppingBag
-               };
-             }
+             const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
+             const neighborhoods = ['Centro', 'Jardins', 'Vila Nova', 'Barra', 'Mottas'];
+             const name = names[Math.floor(Math.random() * names.length)];
+             const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+             const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
+             showNotification({
+               id: Math.random().toString(),
+               type: 'purchase',
+               message: formatMessage(template, { name, neighborhood }),
+               icon: ShoppingBag
+             });
              break;
            }
            case 'viewers': {
              const viewersCount = Math.floor(Math.random() * 20) + 5;
              const template = config.viewers_template || '{count} pessoas visualizando produtos no site agora';
-             notification = {
+             showNotification({
                id: Math.random().toString(),
                type: 'viewers',
                message: formatMessage(template, { count: viewersCount }),
                icon: Users
-             };
+             });
              break;
            }
            case 'stock': {
              const { data: products } = await supabase
                .from('products')
                .select('name, stock')
-               .lt('stock', 10)
+               .lt('stock', 15)
                .gt('stock', 0)
                .limit(10);
              
              if (products && products.length > 0) {
                const prod = products[Math.floor(Math.random() * products.length)];
                const template = config.stock_template || 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.';
-               notification = {
+               showNotification({
                  id: Math.random().toString(),
                  type: 'stock',
                  message: formatMessage(template, { product: prod.name, stock: prod.stock }),
                  icon: AlertTriangle
-               };
+               });
              }
              break;
            }
@@ -143,42 +199,39 @@
              const name = names[Math.floor(Math.random() * names.length)];
              const level = levels[Math.floor(Math.random() * levels.length)];
              const template = config.level_template || '{name} subiu para o nível {level}!';
-             notification = {
+             showNotification({
                id: Math.random().toString(),
                type: 'level',
                message: formatMessage(template, { name, level }),
                icon: TrendingUp
-             };
+             });
              break;
            }
            case 'delivered': {
              const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
              const name = names[Math.floor(Math.random() * names.length)];
              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
-             notification = {
+             showNotification({
                id: Math.random().toString(),
                type: 'delivered',
                message: formatMessage(template, { name }),
                icon: CheckCircle2
-             };
+             });
              break;
            }
          }
        } catch (err) {
          console.error('Error fetching social proof:', err);
        }
- 
-       if (notification) {
-         setCurrentNotification(notification);
-         setTimeout(() => setCurrentNotification(null), 5000);
-       }
      };
  
      const interval = setInterval(fetchRandomNotification, config.interval || 15000);
-     // Initial call
-     setTimeout(fetchRandomNotification, 3000);
- 
-     return () => clearInterval(interval);
+     
+     return () => {
+       clearInterval(interval);
+       supabase.removeChannel(orderChannel);
+       supabase.removeChannel(profileChannel);
+     };
    }, [isEnabled, config]);
  
    if (!isEnabled || !currentNotification) return null;
