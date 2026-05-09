@@ -500,91 +500,6 @@
                </CardContent>
              </Card>
  
-             {/* Integração SIPAG */}
-             <Card className="border-zinc-200 shadow-sm md:col-span-2">
-               <CardHeader className="bg-zinc-100 border-b border-zinc-200 rounded-t-xl">
-                 <CardTitle className="flex items-center gap-2 text-zinc-800">
-                   <CreditCard className="h-5 w-5 text-blue-600" />
-                   Integração Sipag (Sicoob)
-                 </CardTitle>
-                 <CardDescription>Configure as credenciais para recebimento via cartão de crédito e débito</CardDescription>
-               </CardHeader>
-               <CardContent className="p-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-6">
-                     <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                         <div className="p-1.5 bg-blue-600 rounded-lg">
-                           <Zap className="h-4 w-4 text-white" />
-                         </div>
-                         <div>
-                           <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
-                           <p className="text-[10px] font-bold text-zinc-400 uppercase">Habilitar pagamentos via Sipag</p>
-                         </div>
-                       </div>
-                       <Switch 
-                         checked={settings.sipag?.enabled} 
-                         onCheckedChange={(val) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, enabled: val }
-                         })} 
-                       />
-                     </div>
- 
-                     <div className="space-y-4">
-                       <div className="space-y-2">
-                         <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
-                         <Select 
-                           value={settings.sipag?.environment} 
-                           onValueChange={(val) => setSettings({
-                             ...settings, 
-                             sipag: { ...settings.sipag, environment: val }
-                           })}
-                         >
-                           <SelectTrigger className="rounded-xl">
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
-                             <SelectItem value="production">Produção (Real)</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                     </div>
-                   </div>
- 
-                   <div className="space-y-4">
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Merchant ID</label>
-                       <Input 
-                         value={settings.sipag?.merchant_id}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, merchant_id: e.target.value }
-                         })}
-                         placeholder="Fornecido pelo Sicoob"
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Chave de Segurança (Client Secret)</label>
-                       <Input 
-                         type="password"
-                         value={settings.sipag?.security_key}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, security_key: e.target.value }
-                         })}
-                         placeholder="Sua chave secreta da Sipag"
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                   </div>
-                 </div>
-               </CardContent>
-             </Card>
-   
-            {/* Cores e Fidelidade */}
             <Card className="border-zinc-200 shadow-sm">
               <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-zinc-800">
@@ -1034,7 +949,173 @@
                     </div>
                   </div>
               </CardContent>
-            </Card>
+             </Card>
+           </div>
+         </TabsContent>
+ 
+         <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {/* Integração SIPAG */}
+             <Card className="border-zinc-200 shadow-sm">
+               <CardHeader className="bg-zinc-100 border-b border-zinc-200 rounded-t-xl">
+                 <CardTitle className="flex items-center gap-2 text-zinc-800">
+                   <CreditCard className="h-5 w-5 text-blue-600" />
+                   Integração Sipag (Sicoob)
+                 </CardTitle>
+                 <CardDescription>Configure as credenciais para recebimento via cartão</CardDescription>
+               </CardHeader>
+               <CardContent className="p-6">
+                 <div className="space-y-6">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                       <div className="p-1.5 bg-blue-600 rounded-lg">
+                         <Zap className="h-4 w-4 text-white" />
+                       </div>
+                       <div>
+                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
+                         <p className="text-[10px] font-bold text-zinc-400 uppercase">Habilitar Sipag</p>
+                       </div>
+                     </div>
+                     <Switch 
+                       checked={settings.sipag?.enabled} 
+                       onCheckedChange={(val) => setSettings({
+                         ...settings, 
+                         sipag: { ...settings.sipag, enabled: val }
+                       })} 
+                     />
+                   </div>
+ 
+                   <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
+                       <Select 
+                         value={settings.sipag?.environment} 
+                         onValueChange={(val) => setSettings({
+                           ...settings, 
+                           sipag: { ...settings.sipag, environment: val }
+                         })}
+                       >
+                         <SelectTrigger className="rounded-xl">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
+                           <SelectItem value="production">Produção (Real)</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Merchant ID</label>
+                       <Input 
+                         value={settings.sipag?.merchant_id}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           sipag: { ...settings.sipag, merchant_id: e.target.value }
+                         })}
+                         placeholder="Fornecido pelo Sicoob"
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Chave de Segurança</label>
+                       <Input 
+                         type="password"
+                         value={settings.sipag?.security_key}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           sipag: { ...settings.sipag, security_key: e.target.value }
+                         })}
+                         placeholder="Sua chave secreta da Sipag"
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+ 
+             {/* Integração Mercado Pago */}
+             <Card className="border-zinc-200 shadow-sm">
+               <CardHeader className="bg-blue-600 text-white border-b border-blue-700 rounded-t-xl">
+                 <CardTitle className="flex items-center gap-2">
+                   <Wallet className="h-5 w-5" />
+                   Mercado Pago (Checkout Pro)
+                 </CardTitle>
+                 <CardDescription className="text-blue-100">Pix, Cartão e Boleto com baixa automática</CardDescription>
+               </CardHeader>
+               <CardContent className="p-6">
+                 <div className="space-y-6">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                       <div className="p-1.5 bg-white/20 rounded-lg">
+                         <Zap className="h-4 w-4 text-white" />
+                       </div>
+                       <div>
+                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
+                         <p className="text-[10px] font-bold text-blue-100 uppercase">Habilitar Mercado Pago</p>
+                       </div>
+                     </div>
+                     <Switch 
+                       checked={settings.mercadopago?.enabled} 
+                       onCheckedChange={(val) => setSettings({
+                         ...settings, 
+                         mercadopago: { ...settings.mercadopago, enabled: val }
+                       })} 
+                     />
+                   </div>
+ 
+                   <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
+                       <Select 
+                         value={settings.mercadopago?.environment} 
+                         onValueChange={(val) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, environment: val }
+                         })}
+                       >
+                         <SelectTrigger className="rounded-xl">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
+                           <SelectItem value="production">Produção (Real)</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Public Key</label>
+                       <Input 
+                         value={settings.mercadopago?.public_key}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, public_key: e.target.value }
+                         })}
+                         placeholder="APP_USR-..."
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Access Token</label>
+                       <Input 
+                         type="password"
+                         value={settings.mercadopago?.access_token}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, access_token: e.target.value }
+                         })}
+                         placeholder="APP_USR-..."
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+           </div>
+         </TabsContent>
+ 
+         <TabsContent value="social" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
              {/* Contato e Endereço */}
              <Card className="border-zinc-200 shadow-sm md:col-span-2">
                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
