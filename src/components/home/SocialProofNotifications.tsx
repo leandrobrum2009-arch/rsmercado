@@ -14,6 +14,7 @@
     const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
     const [queue, setQueue] = useState<Notification[]>([]);
     const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+    const [lastType, setLastType] = useState<string | null>(null);
     const [isEnabled, setIsEnabled] = useState(false);
     const [config, setConfig] = useState<any>(null);
   
@@ -202,7 +203,13 @@
  
        if (types.length === 0) return;
  
-       const selectedType = types[Math.floor(Math.random() * types.length)];
+        // Filter out last type to ensure variety in categories
+        const availableTypes = types.length > 1 
+          ? types.filter(t => t !== lastType)
+          : types;
+        
+        const selectedType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+        setLastType(selectedType);
  
        try {
          switch (selectedType) {
