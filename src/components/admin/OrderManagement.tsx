@@ -82,7 +82,8 @@ import { toast } from '@/lib/toast'
         ? `${order.delivery_address.street}, ${order.delivery_address.number} - ${order.delivery_address.neighborhood}`
         : 'Não informado';
 
-      const summary = formatWhatsAppMessage('order_summary', {
+       const templates = await getWhatsAppTemplates();
+       const summary = formatWhatsAppMessage('order_summary', {
         id: order.id,
         customer_name: order.profiles?.full_name || 'Cliente',
         address: addressStr,
@@ -90,8 +91,8 @@ import { toast } from '@/lib/toast'
         items: items,
         subtotal: Number(order.total_amount) - (Number(order.delivery_fee) || 0),
         delivery_fee: Number(order.delivery_fee) || 0,
-        total_amount: Number(order.total_amount)
-      });
+         total_amount: Number(order.total_amount)
+       }, templates);
 
       await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary);
       toast.success('Resumo enviado com sucesso!');
