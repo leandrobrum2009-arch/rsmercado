@@ -1,7 +1,7 @@
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
  import { subscribeToPush } from '@/lib/webpush'
- import { Bell, BellDot, X, Check, ShoppingBag, Trophy, Tag, Megaphone, Smartphone } from 'lucide-react'
+ import { Bell, BellDot, X, Check, ShoppingBag, Trophy, Tag, Megaphone, Smartphone, Trash2 } from 'lucide-react'
    const getTypeIcon = (type: string) => {
      switch (type) {
        case 'order_status': return <ShoppingBag className="h-4 w-4 text-blue-500" />
@@ -100,27 +100,45 @@
        .update({ is_read: true })
        .eq('id', id)
  
-     if (!error) {
-       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
-       setUnreadCount(prev => Math.max(0, prev - 1))
-     }
-   }
- 
-   const markAllAsRead = async () => {
-     const { data: { user } } = await supabase.auth.getUser()
-     if (!user) return
- 
-     const { error } = await supabase
-       .from('notifications')
-       .update({ is_read: true })
-       .eq('user_id', user.id)
-       .eq('is_read', false)
- 
-     if (!error) {
-       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-       setUnreadCount(0)
-     }
-   }
+    if (!error) {
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    }
+  }
+
+  const deleteNotification = async (id: string) => {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', id)
+
+    if (!error) {
+      setNotifications(prev => prev.filter(n => n.id !== id))
+      const wasUnread = notifications.find(n => n.id === id && !n.is_read)
+      if (wasUnread) {
+        setUnreadCount(prev => Math.max(0, prev - 1))
+      }
+      toast.success('Notificação removida')
+    }
+  }
+
+  const clearAllNotifications = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    if (!confirm('Deseja apagar todas as notificações permanentemente?')) return
+
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', user.id)
+
+    if (!error) {
+      setNotifications([])
+      setUnreadCount(0)
+      toast.success('Histórico limpo!')
+    }
+  }
  
    return (
      <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -145,11 +163,11 @@
                <Button variant="outline" size="sm" onClick={handleSubscribe} className="text-[10px] h-7 px-2 border-primary/50 bg-primary/5 hover:bg-primary/10">
                  <Smartphone className="h-3 w-3 mr-1" /> Ativar Push
                </Button>
-             {unreadCount > 0 && (
-               <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-[10px] h-7 px-2">
-                 Limpar
-               </Button>
-             )}
+              {notifications.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllNotifications} className="text-[10px] h-7 px-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+                  Apagar Tudo
+                </Button>
+              )}
            </div>
          </div>
          <ScrollArea className="h-[400px]">
@@ -172,16 +190,26 @@
                          {notification.title}
                        </p>
                      </div>
-                     {!notification.is_read && (
-                       <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         className="h-5 w-5 shrink-0" 
-                         onClick={() => markAsRead(notification.id)}
-                       >
-                         <Check className="h-3 w-3" />
-                       </Button>
-                     )}
+                      <div className="flex gap-1">
+                        {!notification.is_read && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 text-green-600 hover:bg-green-50" 
+                            onClick={() => markAsRead(notification.id)}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 text-zinc-300 hover:text-red-500 hover:bg-red-50" 
+                          onClick={() => deleteNotification(notification.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                    </div>
                    <p className="text-xs text-muted-foreground mt-1">
                      {notification.message}
