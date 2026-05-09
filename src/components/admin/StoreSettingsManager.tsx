@@ -742,7 +742,7 @@
             {/* Efeitos e Prova Social */}
             <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
               <CardHeader className="bg-zinc-900 border-b border-zinc-800">
-                  <div className="p-2 bg-yellow-400 rounded-lg text-black">
+                <CardTitle className="flex items-center gap-2 text-white">
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   Efeitos e Prova Social (Gatilhos de Venda)
