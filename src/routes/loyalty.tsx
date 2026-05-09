@@ -72,7 +72,26 @@
      }
    }
  
-    const handleRedeem = async (reward: any) => {
+   const handleCancelRedemption = async (redemptionId: string) => {
+     if (!confirm('Deseja cancelar este resgate e receber seus pontos de volta?')) return;
+     setLoading(true);
+     try {
+       const { data, error } = await supabase.rpc('cancel_redemption', { p_redemption_id: redemptionId });
+       if (error) throw error;
+       if (data.success) {
+         toast.success(data.message);
+         fetchData();
+       } else {
+         toast.error(data.message);
+       }
+     } catch (err: any) {
+       toast.error('Erro ao cancelar: ' + err.message);
+     } finally {
+       setLoading(false);
+     }
+   }
+
+   const handleRedeem = async (reward: any) => {
       if (settings?.min_points_redemption && (profile?.points_balance || 0) < settings.min_points_redemption) {
         toast.error(`Mínimo de ${settings.min_points_redemption} pontos para começar a resgatar.`);
         return
@@ -325,9 +344,23 @@
                             )}
                             <p className="text-[8px] text-zinc-400 mt-1">{new Date(red.created_at).toLocaleDateString()}</p>
                           </div>
-                          <Badge className={red.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'}>
-                            {red.status === 'pending' ? 'Pendente' : 'Concluído'}
-                          </Badge>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={
+                              red.status === 'pending' ? 'bg-amber-100 text-amber-600' : 
+                              red.status === 'cancelled' ? 'bg-red-100 text-red-600' :
+                              'bg-green-100 text-green-600'
+                            }>
+                              {red.status === 'pending' ? 'Pendente' : red.status === 'cancelled' ? 'Cancelado' : 'Concluído'}
+                            </Badge>
+                            {red.status === 'pending' && (
+                              <button 
+                                onClick={() => handleCancelRedemption(red.id)}
+                                className="text-[8px] font-black uppercase text-red-500 hover:underline"
+                              >
+                                Cancelar Resgate
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
