@@ -523,6 +523,11 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    -- Sincronizar e-mails dos perfis a partir da tabela auth.users (necessário para o gestor de permissões)
    UPDATE public.profiles p SET email = u.email FROM auth.users u WHERE p.id = u.id AND p.email IS NULL;
  
+   -- Garantir que a configuração do WhatsApp do Admin exista (vazia por padrão)
+   INSERT INTO public.store_settings (key, value) 
+   VALUES ('admin_whatsapp', '"21999999999"')
+   ON CONFLICT (key) DO NOTHING;
+
    UPDATE public.user_roles 
    SET permissions = ARRAY['delivery_report', 'dashboard', 'orders', 'products', 'customers', 'loyalty', 'layout', 'categories', 'organizer', 'importer', 'offers', 'banners', 'flyers', 'recipes', 'notifications', 'alerts', 'settings', 'theme', 'whatsapp', 'webhooks', 'admin_roles', 'activity_logs', 'feedback']
    WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'leandrobrum2009@gmail.com');

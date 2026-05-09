@@ -114,20 +114,42 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
       return
     }
 
-    const pointsMessage = status === 'delivered' ? ' e pontos creditados!' : '!';
+    const isDelivered = status === 'delivered';
+    const pointsMessage = isDelivered ? ' e pontos creditados!' : '!';
     toast.success(`Status atualizado${pointsMessage}`);
-    fetchOrders()
+    fetchOrders();
 
-     // Notify via WhatsApp if enabled
-     const config = await getWhatsAppConfig();
-     if (customerPhone && config?.notify_order_status !== false) {
-       const message = formatWhatsAppMessage('status_update', {
-         id: orderId,
-         status: status,
-         customer_name: customerName || 'Cliente'
-       });
-       await sendWhatsAppMessage(customerPhone, message);
-     }
+    // Notify via WhatsApp if enabled
+    const config = await getWhatsAppConfig();
+    if (customerPhone && config?.notify_order_status !== false) {
+      // Status Update Notification
+      const message = formatWhatsAppMessage('status_update', {
+        id: orderId,
+        status: status,
+        customer_name: customerName || 'Cliente'
+      });
+      await sendWhatsAppMessage(customerPhone, message);
+
+      // If delivered, also send points earned notification
+      if (isDelivered) {
+        const { data: orderData } = await supabase.from('orders').select('points_earned, user_id').eq('id', orderId).maybeSingle();
+        if (orderData && orderData.points_earned > 0 && orderData.user_id) {
+          const { data: profileData } = await supabase.from('profiles').select('points_balance').eq('id', orderData.user_id).maybeSingle();
+          
+          const pointsMsg = formatWhatsAppMessage('points_earned', {
+            customer_name: customerName || 'Cliente',
+            order_id: orderId,
+            points: orderData.points_earned,
+            new_balance: profileData?.points_balance || 0
+          });
+          
+          // Wait a bit before sending second message
+          setTimeout(() => {
+            sendWhatsAppMessage(customerPhone, pointsMsg);
+          }, 2000);
+        }
+      }
+    }
   }
 
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
