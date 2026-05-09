@@ -1,5 +1,5 @@
  import { Truck } from "lucide-react";
- import { createFileRoute } from "@tanstack/react-router";
+   import { createFileRoute, useNavigate } from "@tanstack/react-router";
   import { BannerCarousel } from "@/components/home/BannerCarousel";
    import { HomeBanners } from "@/components/home/HomeBanners";
    import { CategoryBar } from "@/components/home/CategoryBar";
@@ -11,28 +11,33 @@
     import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
  import { Badge } from "@/components/ui/badge";
  
- function DailyFlyer() {
-   return (
-     <div className="bg-green-600 text-white p-5 rounded-3xl mb-8 flex items-center justify-between shadow-xl shadow-green-100 relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]">
-       <div className="absolute -right-10 -top-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:scale-150 transition-transform" />
-       <div className="flex items-center gap-4 relative z-10">
-         <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm shadow-inner">
-           <Bell className="animate-bounce" size={24} />
-         </div>
-         <div>
-           <div className="flex items-center gap-2 mb-1">
-             <Badge className="bg-amber-400 text-amber-900 border-0 text-[8px] font-black uppercase px-2 py-0.5 shadow-sm">Oferta do Dia</Badge>
-             <h3 className="font-black uppercase italic tracking-tighter text-xl leading-none">Super Encarte</h3>
-           </div>
-            <p className="text-[10px] font-bold uppercase text-green-100 opacity-90">Hortifruti e Açougue válidos até 21h!</p>
-         </div>
-       </div>
-       <button className="bg-white text-green-600 px-5 py-2.5 rounded-xl font-black uppercase text-[10px] shadow-lg relative z-10 hover:bg-zinc-100 transition-colors">
-         Ver Agora
-       </button>
-     </div>
-   )
- }
+  function DailyFlyer() {
+    return (
+      <Link to="/offers" className="block">
+        <div className="bg-red-600 text-white p-6 rounded-[32px] mb-8 flex items-center justify-between shadow-2xl shadow-red-200 relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] animate-in fade-in zoom-in duration-500">
+          <div className="absolute -right-20 -top-20 bg-white/20 w-64 h-64 rounded-full blur-3xl group-hover:scale-110 transition-transform" />
+          <div className="absolute -left-10 -bottom-10 bg-black/10 w-40 h-40 rounded-full blur-2xl" />
+          
+          <div className="flex items-center gap-5 relative z-10">
+            <div className="bg-white/20 p-4 rounded-3xl backdrop-blur-md shadow-inner ring-4 ring-white/10 animate-pulse">
+              <Bell className="text-amber-300" size={32} strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <Badge className="bg-amber-400 text-amber-900 border-0 text-[9px] font-black uppercase px-2.5 py-1 shadow-lg ring-2 ring-amber-200 ring-offset-1">NOVO!</Badge>
+                <h3 className="font-black uppercase italic tracking-tighter text-2xl leading-none drop-shadow-md">Super Encarte</h3>
+              </div>
+               <p className="text-xs font-black uppercase tracking-widest text-red-100 drop-shadow-sm">Confira as ofertas de hoje!</p>
+            </div>
+          </div>
+          
+          <div className="bg-white text-red-600 w-14 h-14 rounded-3xl flex items-center justify-center shadow-2xl group-hover:translate-x-2 transition-transform relative z-10 ring-4 ring-red-500 ring-offset-4 ring-offset-red-600">
+            <ChevronRight size={32} strokeWidth={3} />
+          </div>
+        </div>
+      </Link>
+    )
+  }
 import { Link } from "@tanstack/react-router";
  import { useEffect, useState } from "react";
  import { supabase } from "@/lib/supabase";
@@ -43,7 +48,19 @@ export const Route = createFileRoute("/")({
 
 // IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
 // create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-  function Index() {
+   function Index() {
+     const navigate = useNavigate();
+     const [searchQuery, setSearchQuery] = useState('');
+
+     const handleSearch = (e: React.FormEvent) => {
+       e.preventDefault();
+       if (!searchQuery.trim()) return;
+       navigate({
+         to: '/search',
+         search: { q: searchQuery }
+       });
+     };
+
     const [layout, setLayout] = useState<any[]>([
       { id: 'search', visible: true },
       { id: 'delivery_check', visible: true },
@@ -85,14 +102,24 @@ export const Route = createFileRoute("/")({
             <div key="search" className="bg-green-600 px-4 pt-6 pb-10 md:pb-16 rounded-b-[40px] shadow-lg">
               <div className="container mx-auto">
                 <h1 className="text-white text-2xl font-bold mb-4">Olá, o que você busca hoje?</h1>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input 
-                    type="text" 
-                    placeholder="Busque por produtos, marcas..."
-                    className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
-                  />
-                </div>
+                 <form onSubmit={handleSearch} className="relative">
+                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                   <input 
+                     type="text" 
+                     placeholder="Busque por produtos, marcas..."
+                     value={searchQuery}
+                     onChange={(e) => setSearchQuery(e.target.value)}
+                     className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
+                   />
+                   {searchQuery && (
+                     <button 
+                       type="submit"
+                       className="absolute right-3 top-1/2 -translate-y-1/2 bg-green-600 text-white px-4 py-1.5 rounded-xl font-black uppercase text-[10px] shadow-lg active:scale-95 transition-transform"
+                     >
+                       Buscar
+                     </button>
+                   )}
+                 </form>
               </div>
             </div>
           );
