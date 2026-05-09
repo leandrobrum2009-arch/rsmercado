@@ -381,10 +381,11 @@
                 `${name} agora faz parte da nossa comunidade.`,
                 `Mais um cliente cadastrado no bairro Centro.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-reg-${Math.random()}`,
+                id: `sim-reg-${name}-${phraseIndex}`,
                 type: 'level',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: Users
               });
               break;
@@ -398,10 +399,11 @@
                 `${name} garantiu 10% de desconto no pedido.`,
                 `Cupom de desconto ativado por um cliente agora.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-coupon-${Math.random()}`,
+                id: `sim-coupon-${name}-${phraseIndex}`,
                 type: 'payment',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: CheckCircle2
               });
               break;
@@ -417,10 +419,11 @@
                 `${name} indicou o Supermercado no WhatsApp.`,
                 `Oferta compartilhada: ${product} está fazendo sucesso.`
               ];
+              const phraseIndex = Math.floor(Math.random() * phrases.length);
               addToQueue({
-                id: `sim-share-${Math.random()}`,
+                id: `sim-share-${name}-${product}-${phraseIndex}`,
                 type: 'viewers',
-                message: phrases[Math.floor(Math.random() * phrases.length)],
+                message: phrases[phraseIndex],
                 icon: TrendingUp
               });
               break;
