@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X, CheckCircle2, Clock, Ticket } from 'lucide-react'
+   import { Trophy, Gift, Target, MapPin, Plus, Trash2, Save, Loader2, Coins, Upload, MapIcon, X, CheckCircle2, Clock, Ticket, AlertTriangle, RefreshCcw } from 'lucide-react'
  import { Badge } from '@/components/ui/badge'
  import { Label } from '@/components/ui/label'
 import { toast } from '@/lib/toast'
@@ -12,9 +12,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export function LoyaltyManager() {
   const [loading, setLoading] = useState(false)
     const DEFAULT_SETTINGS = {
-      points_per_real: 1,
-      signup_bonus: 100,
-      min_points_redemption: 500,
+       points_per_real: 1,
+       signup_bonus: 100,
+       min_points_redemption: 500,
+       min_order_value_to_earn: 10,
+       points_expiry_days: 365,
+       max_redeem_per_month: 5,
+   const handleCancelRedemption = async (redemptionId: string) => {
+     if (!confirm('Tem certeza que deseja cancelar este resgate e devolver os pontos ao cliente?')) return;
+     setLoading(true);
+     try {
+       const { data, error } = await supabase.rpc('cancel_redemption', { p_redemption_id: redemptionId });
+       if (error) throw error;
+       if (data.success) {
+         toast.success(data.message);
+         fetchData();
+       } else {
+         toast.error(data.message);
+       }
+     } catch (err: any) {
+       console.error('Cancel redemption error:', err);
+       toast.error('Erro ao cancelar: ' + err.message);
+     } finally {
+       setLoading(false);
+     }
+   }
+ 
       tiers: [
         { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
         { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
@@ -252,7 +275,11 @@ export function LoyaltyManager() {
                     {redemptions.map(red => (
                       <div key={red.id} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-full ${red.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                           <div className={`p-3 rounded-full ${
+                             red.status === 'completed' ? 'bg-green-100 text-green-600' : 
+                             red.status === 'cancelled' ? 'bg-red-100 text-red-600' : 
+                             'bg-amber-100 text-amber-600'
+                           }`}>
                             <Gift size={20} />
                           </div>
                           <div>
@@ -274,26 +301,43 @@ export function LoyaltyManager() {
                         <div className="flex items-center gap-3">
                           <div className="text-right mr-2 hidden md:block">
                             <p className="text-[10px] font-black uppercase text-zinc-400">Status</p>
-                            <p className={`text-[10px] font-black uppercase ${red.status === 'completed' ? 'text-green-600' : 'text-amber-600'}`}>
-                              {red.status === 'pending' ? 'Pendente' : 'Concluído'}
+                            <p className={`text-[10px] font-black uppercase ${
+                              red.status === 'completed' ? 'text-green-600' : 
+                              red.status === 'cancelled' ? 'text-red-500' :
+                              'text-amber-600'
+                            }`}>
+                              {red.status === 'pending' ? 'Pendente' : red.status === 'completed' ? 'Concluído' : 'Cancelado'}
                             </p>
                           </div>
                           
-                          {red.status === 'pending' ? (
-                            <Button 
-                              onClick={() => updateRedemptionStatus(red.id, 'completed')}
-                              className="bg-green-600 hover:bg-green-700 h-9 rounded-xl font-black uppercase text-[9px]"
-                            >
-                              Marcar como Entregue
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="outline"
-                              onClick={() => updateRedemptionStatus(red.id, 'pending')}
-                              className="border-zinc-200 h-9 rounded-xl font-black uppercase text-[9px] text-zinc-500"
-                            >
-                              Reverter p/ Pendente
-                            </Button>
+                          {red.status !== 'cancelled' && (
+                            <div className="flex gap-2">
+                              {red.status === 'pending' ? (
+                                <>
+                                  <Button 
+                                    onClick={() => updateRedemptionStatus(red.id, 'completed')}
+                                    className="bg-green-600 hover:bg-green-700 h-9 rounded-xl font-black uppercase text-[9px]"
+                                  >
+                                    Marcar Entregue
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    onClick={() => handleCancelRedemption(red.id)}
+                                    className="border-red-100 bg-red-50 text-red-600 hover:bg-red-100 h-9 rounded-xl font-black uppercase text-[9px]"
+                                  >
+                                    Cancelar e Reembolsar
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button 
+                                  variant="outline"
+                                  onClick={() => updateRedemptionStatus(red.id, 'pending')}
+                                  className="border-zinc-200 h-9 rounded-xl font-black uppercase text-[9px] text-zinc-500"
+                                >
+                                  Reverter p/ Pendente
+                                </Button>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
