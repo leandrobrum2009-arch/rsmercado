@@ -23,23 +23,29 @@
      return message;
    };
  
+   const defaultConfig = {
+     enabled: true,
+     interval: 15000,
+     show_purchases: true,
+     show_viewers: true,
+     show_stock: true,
+     show_levels: true,
+     show_delivered: true,
+     purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
+     viewers_template: '{count} pessoas visualizando produtos no site agora',
+     stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
+     level_template: '{name} subiu para o nível {level}!',
+     delivered_template: '{name} já recebeu suas compras em casa!'
+   };
+ 
    useEffect(() => {
      const fetchConfig = async () => {
        const { data } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
        if (data && data.value) {
-         setConfig(data.value);
-         setIsEnabled(data.value.enabled);
+         const mergedConfig = { ...defaultConfig, ...data.value };
+         setConfig(mergedConfig);
+         setIsEnabled(mergedConfig.enabled);
        } else {
-         // Default config
-         const defaultConfig = {
-           enabled: true,
-           interval: 15000,
-           show_purchases: true,
-           show_viewers: true,
-           show_stock: true,
-           show_levels: true,
-           show_delivered: true
-         };
          setConfig(defaultConfig);
          setIsEnabled(true);
        }
