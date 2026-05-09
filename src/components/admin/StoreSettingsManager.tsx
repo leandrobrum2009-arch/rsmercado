@@ -61,7 +61,8 @@
         call_provider: 'totalvoice',
         call_api_key: '',
         call_admin_phone: '',
-        call_tts_message: 'Você recebeu um novo pedido no Supermercado!'
+        call_tts_message: 'Você recebeu um novo pedido no Supermercado!',
+        whatsapp_enabled: true
       }
     })
    const [isLoading, setIsLoading] = useState(true)
