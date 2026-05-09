@@ -63,7 +63,7 @@ function CartPage() {
 
     const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
-  const [pointsMultiplier, setPointsMultiplier] = useState(1);
+   const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
@@ -96,13 +96,12 @@ function CartPage() {
     }, [selectedAddress]);
 
     useEffect(() => {
-      const fetchSettings = async () => {
-      const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
-      if (data && data.value) {
-        const val = typeof data.value === 'object' ? data.value.points_per_real : data.value;
-        setPointsMultiplier(Number(val) || 1);
-      }
-    };
+     const fetchSettings = async () => {
+       const { data } = await supabase.from('store_settings').select('value').eq('key', 'points_multiplier').maybeSingle();
+       if (data && data.value) {
+         setLoyaltySettings(data.value);
+       }
+     };
 
      const fetchData = async () => {
        const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -224,9 +223,13 @@ function CartPage() {
          discount_amount: discount,
          delivery_fee: deliveryFee,
          payment_method: paymentMethod,
-         status: 'pending',
-         points_earned: Math.floor(total * pointsMultiplier),
-         customer_name: customerName,
+          status: 'pending',
+          points_earned: (() => {
+            const multiplier = Number(loyaltySettings?.points_per_real) || 1;
+            const minValue = Number(loyaltySettings?.min_order_value_to_earn) || 0;
+            return total >= minValue ? Math.floor(total * multiplier) : 0;
+          })(),
+          customer_name: customerName,
          customer_phone: customerPhone,
          delivery_address: deliveryAddress,
          coupon_code: coupon
@@ -317,9 +320,12 @@ function CartPage() {
         }
        }
 
-       toast.success(`Pedido #${order.id.substring(0, 8)} enviado!`);
-       if (profile) toast.success(`Você ganhou ${Math.floor(total * pointsMultiplier)} pontos.`);
-      clearCart();
+        toast.success(`Pedido #${order.id.substring(0, 8)} enviado!`);
+        const earnedPoints = loyaltySettings && total >= (loyaltySettings.min_order_value_to_earn || 0) 
+          ? Math.floor(total * (loyaltySettings.points_per_real || 1)) 
+          : 0;
+        if (profile && earnedPoints > 0) toast.success(`Você ganhará ${earnedPoints} pontos após a entrega.`);
+       clearCart();
       navigate({ to: `/track/${order.id}` });
      } catch (error: any) {
        console.error("Checkout error:", error);
