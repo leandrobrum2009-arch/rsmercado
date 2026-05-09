@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock } from 'lucide-react'
+    import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
