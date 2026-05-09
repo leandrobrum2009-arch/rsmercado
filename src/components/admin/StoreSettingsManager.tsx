@@ -373,11 +373,32 @@
  
    if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
  
-     return (
-       <div className="space-y-6 pb-20">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           {/* Identidade */}
-           <Card className="border-zinc-200 shadow-sm">
+   return (
+     <div className="space-y-6 pb-20">
+       <Tabs defaultValue="geral" className="w-full">
+         <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto p-1 bg-zinc-100 rounded-2xl mb-8">
+           <TabsTrigger value="geral" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+             <Settings className="w-4 h-4 mr-2" />
+             <span className="font-bold text-xs uppercase tracking-tighter">Geral</span>
+           </TabsTrigger>
+           <TabsTrigger value="pagamentos" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+             <CreditCard className="w-4 h-4 mr-2" />
+             <span className="font-bold text-xs uppercase tracking-tighter">Pagamentos</span>
+           </TabsTrigger>
+           <TabsTrigger value="social" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+             <Share2 className="w-4 h-4 mr-2" />
+             <span className="font-bold text-xs uppercase tracking-tighter">Social</span>
+           </TabsTrigger>
+           <TabsTrigger value="notificacoes" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+             <Smartphone className="w-4 h-4 mr-2" />
+             <span className="font-bold text-xs uppercase tracking-tighter">Avisos</span>
+           </TabsTrigger>
+         </TabsList>
+ 
+         <TabsContent value="geral" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {/* Identidade */}
+             <Card className="border-zinc-200 shadow-sm">
              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                <CardTitle className="flex items-center gap-2 text-zinc-800">
                  <Globe className="h-5 w-5 text-blue-500" />
