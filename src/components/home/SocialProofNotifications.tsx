@@ -192,7 +192,37 @@
        if (config.show_stock) types.push('stock');
         if (config.show_levels) types.push('level');
         if (config.show_delivered) types.push('delivered');
-        if (config.show_payments) types.push('payment');
+         if (config.show_payments) types.push('payment');
+         types.push('cart'); // New type
+         types.push('wishlist'); // New type
+            case 'cart': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação'];
+              const product = products[Math.floor(Math.random() * products.length)];
+              
+              addToQueue({
+                id: `sim-cart-${Math.floor(Date.now() / 1000)}`,
+                type: 'purchase',
+                message: `${name} adicionou ${product} ao carrinho!`,
+                icon: ShoppingBag
+              });
+              break;
+            }
+            case 'wishlist': {
+              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+              const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego'];
+              const product = products[Math.floor(Math.random() * products.length)];
+              
+              addToQueue({
+                id: `sim-wish-${Math.floor(Date.now() / 1000)}`,
+                type: 'level',
+                message: `${name} favoritou o produto: ${product}`,
+                icon: TrendingUp
+              });
+              break;
+            }
  
        if (types.length === 0) return;
  
