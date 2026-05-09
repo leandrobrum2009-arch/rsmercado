@@ -34,15 +34,17 @@
      instagram_post_count: '6',
      instagram_items: [],
      admin_whatsapp: '',
-        social_proof: {
-          enabled: true,
-          interval: 15000,
-          realistic_ai: true,
-          show_purchases: true,
-          show_viewers: true,
-           show_stock: true,
-           show_levels: true,
-           show_delivered: true,
+                        social_proof: {
+                          enabled: true,
+                          interval: 15000,
+                          max_per_minute: 4,
+                          max_per_session: 20,
+                          realistic_ai: true,
+                          show_purchases: true,
+                          show_viewers: true,
+                           show_stock: true,
+                           show_levels: true,
+                           show_delivered: true,
            purchase_template: '{name} acabou de fazer uma compra no bairro {neighborhood}',
            viewers_template: '{count} pessoas visualizando produtos no site agora',
            stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
@@ -576,18 +578,47 @@
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase text-zinc-500">Intervalo entre notificações (ms)</label>
-                    <Input 
-                      type="number"
-                      value={settings.social_proof?.interval}
-                      onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, interval: parseInt(e.target.value) } })}
-                      className="rounded-xl border-zinc-200"
-                    />
-                    <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 15000 (15 segundos)</p>
-                  </div>
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <label className="text-xs font-black uppercase text-zinc-500">Intervalo entre notificações (ms)</label>
+                        <Input 
+                          type="number"
+                          value={settings.social_proof?.interval}
+                          onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, interval: parseInt(e.target.value) } })}
+                          className="rounded-xl border-zinc-200"
+                        />
+                        <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 15000 (15 segundos)</p>
+                      </div>
 
-                  <div className="space-y-4">
+                      <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                        <label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+                          <Zap className="h-3 w-3 text-yellow-500" /> Limites por Janela de Tempo
+                        </label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">Máx. por Minuto</label>
+                            <Input 
+                              type="number"
+                              value={settings.social_proof?.max_per_minute || 4}
+                              onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, max_per_minute: parseInt(e.target.value) } })}
+                              className="h-9 rounded-xl text-xs"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">Máx. por Sessão</label>
+                            <Input 
+                              type="number"
+                              value={settings.social_proof?.max_per_session || 20}
+                              onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, max_per_session: parseInt(e.target.value) } })}
+                              className="h-9 rounded-xl text-xs"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[9px] text-zinc-400 italic font-medium">Evita saturação e mantém a prova social realista.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
                     <div className="space-y-3">
                       <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Tipos de Balões Ativos</label>
                       
@@ -827,11 +858,10 @@
                               className="rounded-xl border-zinc-200 h-9 text-xs"
                             />
                           </div>
-                          </div>
                         </div>
                       </div>
                     </div>
-                </div>
+                  </div>
 
                 <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
