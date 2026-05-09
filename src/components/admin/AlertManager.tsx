@@ -108,12 +108,15 @@
          toast.error('Erro ao criar alerta. Tente executar o script de reparo.')
        } else {
          // Log the action
-         await supabase.from('alert_logs').insert({
-           message,
-           type,
-           target_url: targetUrl || null
-         }).catch(e => console.warn('History log failed:', e))
-
+         try {
+           await supabase.from('alert_logs').insert({
+             message,
+             type,
+             target_url: targetUrl || null
+           });
+         } catch (e) {
+           console.warn('History log failed:', e);
+         }
          toast.success('Alerta enviado em tempo real!')
          setMessage('')
          setTargetUrl('')
