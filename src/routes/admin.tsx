@@ -154,7 +154,13 @@ export const Route = createFileRoute('/admin')({
             if (roleData?.permissions) {
               setUserPermissions(roleData.permissions)
             } else if (currentSession.user.email === 'leandrobrum2009@gmail.com') {
-              setUserPermissions(["delivery_report", "dashboard", "orders", "products", "customers", "loyalty", "layout", "categories", "organizer", "importer", "offers", "banners", "flyers", "recipes", "notifications", "alerts", "settings", "theme", "whatsapp", "webhooks", "admin_roles"])
+              setUserPermissions([
+                "delivery_report", "dashboard", "orders", "products", "customers", 
+                "loyalty", "layout", "categories", "organizer", "importer", 
+                "offers", "banners", "flyers", "recipes", "notifications", 
+                "alerts", "settings", "theme", "whatsapp", "webhooks", 
+                "admin_roles", "activity_logs", "feedback"
+              ])
             }
          }
  
