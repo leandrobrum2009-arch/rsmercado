@@ -210,8 +210,14 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_logs (
     message_text TEXT,
     message_hash TEXT,
     campaign_id UUID,
+    status TEXT DEFAULT 'sent',
+    error_message TEXT,
+    method TEXT DEFAULT 'api',
     sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE public.whatsapp_logs ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'sent';
+ALTER TABLE public.whatsapp_logs ADD COLUMN IF NOT EXISTS error_message TEXT;
+ALTER TABLE public.whatsapp_logs ADD COLUMN IF NOT EXISTS method TEXT DEFAULT 'api';
 ALTER TABLE public.whatsapp_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
