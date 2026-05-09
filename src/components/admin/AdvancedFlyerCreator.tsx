@@ -796,13 +796,17 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            toast.success('Encarte salvo com sucesso no banco de dados!')
            
            // Create an alert automatically
-           await supabase.from('store_alerts').insert({
-             message: `🚀 NOVO ENCARTE PUBLICADO! Confira as ofertas agora.`,
-             type: 'flyer',
-             is_active: true,
-             target_url: '/offers',
-             duration_seconds: 15
-           }).catch(e => console.warn('Alert creation failed:', e))
+           try {
+             await supabase.from('store_alerts').insert({
+               message: `🚀 NOVO ENCARTE PUBLICADO! Confira as ofertas agora.`,
+               type: 'flyer',
+               is_active: true,
+               target_url: '/offers',
+               duration_seconds: 15
+             });
+           } catch (e) {
+             console.warn('Alert creation failed:', e);
+           }
 
            fetchSavedFlyers()
          }
