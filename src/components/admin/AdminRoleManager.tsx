@@ -2,14 +2,56 @@
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { ShieldCheck, Loader2, Shield, Save, X, Lock } from 'lucide-react'
+  import { ShieldCheck, Loader2, Shield, Save, X, Lock, UserPlus, Search } from 'lucide-react'
  import { Button } from '@/components/ui/button'
  import { Checkbox } from '@/components/ui/checkbox'
- import { toast } from '@/lib/toast'
+  import { toast } from 'sonner'
+  import { Input } from '@/components/ui/input'
  import { Badge } from '@/components/ui/badge'
  
  export function AdminRoleManager() {
    const [admins, setAdmins] = useState<any[]>([])
+   const [searchEmail, setSearchEmail] = useState('')
+   const [isPromoting, setIsPromoting] = useState(false)
+
+   const handlePromoteUser = async () => {
+     if (!searchEmail) return
+     setIsPromoting(true)
+     try {
+       // Primeiro buscar o usuário pelo e-mail na tabela profiles
+       const { data: profile, error: profileError } = await supabase
+         .from('profiles')
+         .select('id, full_name, email')
+         .eq('email', searchEmail.trim().toLowerCase())
+         .maybeSingle()
+
+       if (profileError) throw profileError
+       if (!profile) {
+         toast.error('Usuário não encontrado com este e-mail')
+         return
+       }
+
+       // Criar ou atualizar o cargo para admin
+       const { error: roleError } = await supabase
+         .from('user_roles')
+         .upsert({ 
+           user_id: profile.id, 
+           role: 'admin',
+           permissions: ["dashboard", "orders", "products"] // Permissões padrão
+         })
+
+       if (roleError) throw roleError
+       
+       toast.success(`${profile.full_name || searchEmail} agora é um administrador!`)
+       setSearchEmail('')
+       fetchAdmins()
+     } catch (err: any) {
+       console.error('Error promoting user:', err)
+       toast.error('Erro ao promover usuário: ' + err.message)
+     } finally {
+       setIsPromoting(false)
+     }
+   }
    const [loading, setLoading] = useState(true)
    const [isSaving, setIsSaving] = useState(false)
    const [editingAdmin, setEditingAdmin] = useState<any>(null)
@@ -25,7 +67,8 @@
      { id: 'categories', label: 'Categorias', group: 'Vendas' },
      { id: 'loyalty', label: 'Fidelidade & Bairros', group: 'Vendas' },
      { id: 'layout', label: 'Layout Home', group: 'Vendas' },
-     { id: 'importer', label: 'Importação', group: 'Vendas' },
+      { id: 'importer', label: 'Importação', group: 'Vendas' },
+      { id: 'organizer', label: 'Organizador de Produtos', group: 'Vendas' },
      { id: 'banners', label: 'Banners', group: 'Marketing' },
      { id: 'flyers', label: 'Encartes', group: 'Marketing' },
      { id: 'recipes', label: 'Receitas', group: 'Marketing' },
@@ -33,7 +76,11 @@
      { id: 'alerts', label: 'Alertas', group: 'Marketing' },
      { id: 'settings', label: 'Configurações Loja', group: 'Sistêmico' },
      { id: 'whatsapp', label: 'WhatsApp', group: 'Sistêmico' },
-     { id: 'webhooks', label: 'Webhooks', group: 'Sistêmico' },
+      { id: 'webhooks', label: 'Webhooks', group: 'Sistêmico' },
+      { id: 'theme', label: 'Tema Visual', group: 'Sistêmico' },
+      { id: 'admin_roles', label: 'Gestão de Cargos', group: 'Controle de Acesso' },
+      { id: 'activity_logs', label: 'Logs de Auditoria', group: 'Controle de Acesso' },
+      { id: 'feedback', label: 'Feedbacks do App', group: 'Controle de Acesso' },
    ]
  
    useEffect(() => {
@@ -48,12 +95,12 @@
          .select('*, profiles(full_name, email)')
          .eq('role', 'admin')
        
-       if (error) {
-         if (error.message.includes('column "permissions" does not exist')) {
-           setIsColumnMissing(true)
-         }
-         throw error
-       }
+        if (error) {
+          if (error.message.includes('column "permissions" does not exist') || error.message.includes('column "email" does not exist')) {
+            setIsColumnMissing(true)
+          }
+          throw error
+        }
         setAdmins(data || [])
      } catch (err: any) {
        console.error('Error fetching admins:', err)
@@ -108,7 +155,34 @@
          </div>
        </div>
  
-       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Card className="lg:col-span-12 border-0 shadow-xl rounded-3xl overflow-hidden bg-white mb-2">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1 space-y-2">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest ml-1">Promover Novo Administrador</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-4 w-4" />
+                    <Input 
+                      placeholder="E-mail do usuário..." 
+                      value={searchEmail}
+                      onChange={(e) => setSearchEmail(e.target.value)}
+                      className="pl-10 h-12 rounded-2xl bg-zinc-50 border-zinc-100 text-xs font-bold uppercase"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={handlePromoteUser}
+                  disabled={isPromoting || !searchEmail}
+                  className="h-12 px-8 rounded-2xl font-black uppercase tracking-wider text-xs bg-primary shadow-lg shadow-primary/20"
+                >
+                  {isPromoting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                  Promover para Admin
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {isColumnMissing && (
             <div className="lg:col-span-12 bg-red-50 border border-red-200 p-4 rounded-xl mb-6">
               <p className="text-red-800 text-xs font-black uppercase">Erro: Estrutura de Banco de Dados Ausente</p>
@@ -174,8 +248,8 @@
                    </div>
                  )}
  
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral'].map(group => (
+                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                     {['Relatórios', 'Vendas', 'Marketing', 'Sistêmico', 'Geral', 'Controle de Acesso'].map(group => (
                       <div key={group} className="space-y-3">
                         <h4 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest border-b pb-1">{group}</h4>
                         <div className="space-y-2">

@@ -358,6 +358,18 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.flyers ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.banners ENABLE ROW LEVEL SECURITY;
    ALTER TABLE IF EXISTS public.store_settings ENABLE ROW LEVEL SECURITY;
+ 
+   -- 14. REPARAR PERMISSÕES DE ADMINISTRADORES E PERFIS
+   ALTER TABLE IF EXISTS public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
+   ALTER TABLE IF EXISTS public.user_roles ADD COLUMN IF NOT EXISTS permissions TEXT[] DEFAULT '{}';
+   
+   -- Garantir que o super admin tenha todas as permissões se a coluna acabou de ser criada
+   -- Sincronizar e-mails dos perfis a partir da tabela auth.users (necessário para o gestor de permissões)
+   UPDATE public.profiles p SET email = u.email FROM auth.users u WHERE p.id = u.id AND p.email IS NULL;
+ 
+   UPDATE public.user_roles 
+   SET permissions = ARRAY['delivery_report', 'dashboard', 'orders', 'products', 'customers', 'loyalty', 'layout', 'categories', 'organizer', 'importer', 'offers', 'banners', 'flyers', 'recipes', 'notifications', 'alerts', 'settings', 'theme', 'whatsapp', 'webhooks', 'admin_roles', 'activity_logs', 'feedback']
+   WHERE user_id IN (SELECT id FROM auth.users WHERE email = 'leandrobrum2009@gmail.com');
     ALTER TABLE IF EXISTS public.user_addresses ENABLE ROW LEVEL SECURITY;
 
     -- 13. REPARAR TABELA DE RECEITAS (ADICIONAR SOURCE_URL)
