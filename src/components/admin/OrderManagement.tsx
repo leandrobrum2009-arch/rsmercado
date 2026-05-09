@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
   import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote } from 'lucide-react'
 import { toast } from '@/lib/toast'
-import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage } from '@/lib/whatsapp'
+ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
@@ -121,13 +121,14 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
 
     // Notify via WhatsApp if enabled
     const config = await getWhatsAppConfig();
-    if (customerPhone && config?.notify_order_status !== false) {
-      // Status Update Notification
-      const message = formatWhatsAppMessage('status_update', {
+     if (customerPhone && config?.notify_order_status !== false) {
+       const templates = await getWhatsAppTemplates();
+       // Status Update Notification
+       const message = formatWhatsAppMessage('status_update', {
         id: orderId,
         status: status,
-        customer_name: customerName || 'Cliente'
-      });
+         customer_name: customerName || 'Cliente'
+       }, templates);
       await sendWhatsAppMessage(customerPhone, message);
 
       // If delivered, also send points earned notification
@@ -136,12 +137,12 @@ import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppM
         if (orderData && orderData.points_earned > 0 && orderData.user_id) {
           const { data: profileData } = await supabase.from('profiles').select('points_balance').eq('id', orderData.user_id).maybeSingle();
           
-          const pointsMsg = formatWhatsAppMessage('points_earned', {
+           const pointsMsg = formatWhatsAppMessage('points_earned', {
             customer_name: customerName || 'Cliente',
             order_id: orderId,
             points: orderData.points_earned,
-            new_balance: profileData?.points_balance || 0
-          });
+             new_balance: profileData?.points_balance || 0
+           }, templates);
           
           // Wait a bit before sending second message
           setTimeout(() => {
