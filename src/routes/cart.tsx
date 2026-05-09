@@ -300,11 +300,14 @@ function CartPage() {
         const userFullMessage = `✅ *PEDIDO RECEBIDO COM SUCESSO!* ✅\n\nOlá *${customerName}*, seu pedido foi processado e já estamos preparando tudo!\n\n${userSummary}`;
         await sendWhatsAppMessage(customerPhone, userFullMessage);
 
-       // Notify Admin if enabled
-       const waConfig = await getWhatsAppConfig();
-        if (waConfig?.notify_new_order_admin !== false) {
-         const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
-         if (adminSettings && adminSettings.value) {
+        // Notify Admin via WhatsApp if enabled
+        const waConfig = await getWhatsAppConfig();
+        const { data: extConfig } = await supabase.from('store_settings').select('value').eq('key', 'external_notification_config').maybeSingle();
+        const notifications = extConfig?.value || {};
+
+         if (waConfig?.notify_new_order_admin !== false || notifications.whatsapp_enabled) {
+          const { data: adminSettings } = await supabase.from('store_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+          if (adminSettings && adminSettings.value) {
             const adminSummary = formatWhatsAppMessage('order_summary', {
              id: order.id,
              customer_name: customerName,

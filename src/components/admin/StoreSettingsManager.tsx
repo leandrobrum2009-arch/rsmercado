@@ -891,7 +891,47 @@
                 <CardDescription className="text-zinc-400">Habilite avisos por SMS ou Ligação para o proprietário em novos pedidos</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                   {/* WhatsApp Settings */}
+                   <div className="space-y-6">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                         <div className="p-1.5 bg-green-500 rounded-lg">
+                           <MessageSquare className="h-4 w-4 text-white" />
+                         </div>
+                         <div>
+                           <p className="text-sm font-black uppercase italic tracking-tighter">WhatsApp Admin</p>
+                           <p className="text-[10px] font-bold text-zinc-400 uppercase">Avisar via WhatsApp</p>
+                         </div>
+                       </div>
+                       <Switch 
+                         checked={settings.notifications?.whatsapp_enabled} 
+                         onCheckedChange={(val) => setSettings({
+                           ...settings, 
+                           notifications: { ...settings.notifications, whatsapp_enabled: val }
+                         })} 
+                       />
+                     </div>
+
+                     {settings.notifications?.whatsapp_enabled && (
+                       <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase text-zinc-500">Número do Admin (DDI+DDD+NÚMERO)</label>
+                           <Input 
+                             value={settings.admin_whatsapp}
+                             onChange={(e) => setSettings({
+                               ...settings, 
+                               admin_whatsapp: e.target.value
+                             })}
+                             placeholder="Ex: 5511999999999"
+                             className="rounded-xl h-10 border-green-200"
+                           />
+                           <p className="text-[9px] text-zinc-400 italic">Configure a API de WhatsApp na aba específica para habilitar o envio automático.</p>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+
                   {/* SMS Settings */}
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
