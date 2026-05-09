@@ -1,4 +1,4 @@
- import { useState, useEffect } from 'react'
+  import { useState, useEffect, useMemo } from 'react'
  import { supabase } from '@/lib/supabase'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { toast } from '@/lib/toast'
@@ -8,14 +8,17 @@
    ShoppingBag, 
    Clock, 
    ArrowUpRight, 
-   ArrowDownRight, 
-   BarChart3, 
-   PieChart as PieChartIcon, 
-   Package, 
-   Calendar,
-   Filter,
-   Bell,
-   Download
+    ArrowDownRight, 
+    BarChart3, 
+    PieChart as PieChartIcon, 
+    Package, 
+    Calendar,
+    Filter,
+    Bell,
+    Download,
+    Sparkles,
+    Layout as LayoutIcon,
+    ClipboardList as ClipboardIcon
  } from 'lucide-react'
    const exportReport = async () => {
      try {
@@ -72,7 +75,42 @@
  import { Badge } from '@/components/ui/badge'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
  
+  import { useNavigate } from '@tanstack/react-router'
+
  export function AdminDashboard() {
+    const navigate = useNavigate()
+    const [userName, setUserName] = useState('')
+    const [questionIndex, setQuestionIndex] = useState(0)
+    const questions = [
+      "Vamos criar o encarte de hoje?",
+      "Vamos colocar algum produto em oferta?",
+      "Vamos enviar a oferta para os usuários?",
+      "Vamos criar o encarte de ofertas ou vamos criar um card das prateleiras de um produto?"
+    ]
+
+    useEffect(() => {
+      const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single()
+          
+          if (profile?.full_name) {
+            setUserName(profile.full_name.split(' ')[0])
+          }
+        }
+      }
+      fetchUser()
+
+      const interval = setInterval(() => {
+        setQuestionIndex(prev => (prev + 1) % questions.length)
+      }, 5000)
+      return () => clearInterval(interval)
+    }, [])
+
    const [stats, setStats] = useState<any>({
      revenue_today: 0,
      revenue_week: 0,
@@ -283,13 +321,50 @@
  
    const COLORS = ['#16a34a', '#facc15', '#f87171', '#60a5fa', '#a78bfa']
  
-   return (
-     <div className="space-y-6">
-       <div className="flex justify-between items-center">
-         <div>
-           <h2 className="text-3xl font-black uppercase italic tracking-tighter text-zinc-900">Dashboard Geral</h2>
-           <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest">Resumo de operações e audiência</p>
-         </div>
+    return (
+      <div className="space-y-8">
+        {/* Premium Greeting Section */}
+        <div className="relative overflow-hidden bg-zinc-900 rounded-[40px] p-8 md:p-12 text-white shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32 animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl -ml-32 -mb-32" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-widest">
+                <Sparkles size={12} className="text-primary" /> Painel de Controle Premium
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter leading-none">
+                Olá, <span className="text-primary">{userName || 'Comandante'}</span>!
+              </h1>
+              <p className="text-xl md:text-2xl font-bold text-zinc-400 max-w-xl transition-all duration-500 animate-in fade-in slide-in-from-left-4">
+                {questions[questionIndex]}
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-4">
+              <Button 
+                onClick={() => navigate({ to: '/admin', search: (prev: any) => ({ ...prev, tab: 'orders' }) })}
+                className="h-16 px-8 rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 font-black uppercase tracking-wider text-sm flex gap-3 shadow-xl hover:scale-105 transition-all group"
+              >
+                <ClipboardIcon className="group-hover:rotate-12 transition-transform" />
+                Verificar Pedidos
+              </Button>
+              <Button 
+                onClick={() => navigate({ to: '/admin', search: (prev: any) => ({ ...prev, tab: 'flyers' }) })}
+                className="h-16 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 font-black uppercase tracking-wider text-sm flex gap-3 shadow-xl shadow-primary/20 hover:scale-105 transition-all group"
+              >
+                <LayoutIcon className="group-hover:scale-110 transition-transform" />
+                Criar Encarte
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900">Resumo do Dia</h2>
+            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Acompanhamento em tempo real</p>
+          </div>
          <div className="flex gap-2">
            <Select value={timeRange} onValueChange={setTimeRange}>
              <SelectTrigger className="w-36 h-10 border-zinc-200 bg-white font-bold uppercase text-[10px]">
