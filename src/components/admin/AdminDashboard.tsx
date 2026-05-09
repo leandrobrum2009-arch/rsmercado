@@ -297,18 +297,28 @@
         setStats((prev: any) => ({ ...prev, customers_count: count || 0 }))
  
         // 5. Get low stock products
+        // Get panel config for stock threshold
+        const { data: configData } = await supabase
+          .from('store_settings')
+          .select('value')
+          .eq('key', 'panel_alert_config')
+          .maybeSingle()
+        
+        const panelConfig = configData?.value || { low_stock_alerts: true, low_stock_threshold: 5 }
+        const threshold = panelConfig.low_stock_threshold || 5
+
         const { data: lowStock, error: stockError } = await supabase
           .from('products')
           .select('name, stock')
-          .lt('stock', 5)
+          .lt('stock', threshold)
           .order('stock', { ascending: true })
           .limit(3)
 
          setLowStockProducts(lowStock || [])
  
-         if (lowStock && lowStock.length > 0) {
+         if (lowStock && lowStock.length > 0 && panelConfig.low_stock_alerts !== false) {
            toast.warning(`Atenção: ${lowStock.length} produtos estão com estoque baixo!`, {
-             description: 'Verifique os detalhes no painel de insights.'
+             description: `Limite crítico atingido (${threshold} un). Verifique no painel.`
            })
          }
   
