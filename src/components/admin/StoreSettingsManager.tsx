@@ -949,8 +949,10 @@
                     </div>
                   </div>
               </CardContent>
+               </CardContent>
              </Card>
-           </div>
+           </TabsContent>
+         </Tabs>
          </TabsContent>
  
          <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
