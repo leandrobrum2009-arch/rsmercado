@@ -95,12 +95,12 @@
          .select('*, profiles(full_name, email)')
          .eq('role', 'admin')
        
-       if (error) {
-         if (error.message.includes('column "permissions" does not exist')) {
-           setIsColumnMissing(true)
-         }
-         throw error
-       }
+        if (error) {
+          if (error.message.includes('column "permissions" does not exist') || error.message.includes('column "email" does not exist')) {
+            setIsColumnMissing(true)
+          }
+          throw error
+        }
         setAdmins(data || [])
      } catch (err: any) {
        console.error('Error fetching admins:', err)
