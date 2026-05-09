@@ -13,9 +13,23 @@
   export function SocialProofNotifications() {
     const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
     const [queue, setQueue] = useState<Notification[]>([]);
-    const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+    const [shownIds, setShownIds] = useState<Set<string>>(() => {
+      const saved = sessionStorage.getItem('social_proof_shown_ids');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    });
     const [lastType, setLastType] = useState<string | null>(null);
-    const [typeUsage, setTypeUsage] = useState<Record<string, number>>({});
+    const [typeUsage, setTypeUsage] = useState<Record<string, number>>(() => {
+      const saved = sessionStorage.getItem('social_proof_type_usage');
+      return saved ? JSON.parse(saved) : {};
+    });
+    useEffect(() => {
+      sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
+    }, [shownIds]);
+
+    useEffect(() => {
+      sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
+    }, [typeUsage]);
+
     const [isEnabled, setIsEnabled] = useState(false);
     const [config, setConfig] = useState<any>(null);
   
