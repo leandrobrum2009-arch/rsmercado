@@ -11,16 +11,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function LoyaltyManager() {
   const [loading, setLoading] = useState(false)
-    const [settings, setSettings] = useState<any>({ 
+    const DEFAULT_SETTINGS = {
       points_per_real: 1,
       signup_bonus: 100,
       min_points_redemption: 500,
       tiers: [
-        { name: 'Bronze', min_points: 0, color: '#cd7f32' },
-        { name: 'Ouro', min_points: 500, color: '#ffd700' },
-        { name: 'Platinum', min_points: 1000, color: '#e5e4e2' }
+        { name: 'Bronze', min_points: 0, color: '#cd7f32', benefits: 'Ganhe pontos em todas as compras' },
+        { name: 'Ouro', min_points: 500, color: '#ffd700', benefits: 'Descontos exclusivos e prioridade' },
+        { name: 'Platinum', min_points: 1000, color: '#e5e4e2', benefits: 'Frete grátis e brindes especiais' }
       ]
-    })
+    }
+    const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS)
   const [neighborhoods, setNeighborhoods] = useState<any[]>([])
    const [newNeighborhood, setNewNeighborhood] = useState({ name: '', fee: '', active: true })
    const [rewards, setRewards] = useState<any[]>([])
@@ -63,13 +64,17 @@ export function LoyaltyManager() {
     setLoading(true)
     try {
       // Fetch Settings
-      const { data: settingsData, error: sErr } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
+      const { data: settingsData, error: sErr } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle()
       if (!sErr && settingsData) {
-        const val = settingsData.value;
+        const val = settingsData.value
         if (typeof val === 'object' && val !== null) {
-          setSettings(val);
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...val,
+            tiers: val.tiers || DEFAULT_SETTINGS.tiers
+          })
         } else {
-          setSettings({ points_per_real: parseFloat(val) || 0.5 });
+          setSettings({ ...DEFAULT_SETTINGS, points_per_real: parseFloat(val) || 0.5 })
         }
       }
 
