@@ -97,19 +97,27 @@
        }
  
        const details = await getRecipeDetails(link)
-       if (details && details.title && details.instructions) {
-         const { error } = await supabase.from('recipes').insert({
-           ...details,
-           category: category.name,
-           difficulty: 'Média'
-         })
+       if (!details) {
+         console.log(`Failed to get details for: ${link}`)
+         continue
+       }
+       
+       if (!details.title || !details.instructions) {
+         console.log(`Recipe missing title or instructions: ${link}`)
+         continue
+       }
  
-         if (error) {
-           console.error(`Error inserting ${details.title}:`, error.message)
-         } else {
-           console.log(`Successfully added: ${details.title}`)
-           count++
-         }
+       const { error } = await supabase.from('recipes').insert({
+         ...details,
+         category: category.name,
+         difficulty: 'Média'
+       })
+ 
+       if (error) {
+         console.error(`Error inserting ${details.title}:`, error.message)
+       } else {
+         console.log(`Successfully added: ${details.title}`)
+         count++
        }
        
        // Small delay to be polite
