@@ -261,9 +261,10 @@
                 'Sucesso! {count} clientes estão comprando agora',
                 '{count} pessoas de Petrópolis estão no site'
               ];
-              const template = templates[Math.floor(Math.random() * templates.length)];
+              const templateIndex = Math.floor(Math.random() * templates.length);
+              const template = templates[templateIndex];
               addToQueue({
-                id: `sim-view-${Math.random()}`,
+                id: `sim-view-${viewersCount}-${templateIndex}`,
                 type: 'viewers',
                 message: formatMessage(template, { count: viewersCount }),
                 icon: Users
@@ -295,13 +296,13 @@
               const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
               const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante', 'Platina', 'Safira', 'Esmeralda'];
               const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-             const level = levels[Math.floor(Math.random() * levels.length)];
-             const template = config.level_template || '{name} subiu para o nível {level}!';
-             addToQueue({
-               id: `sim-${selectedType}-${Math.floor(Date.now() / 1000)}`,
-               type: 'level',
-               message: formatMessage(template, { name, level }),
-               icon: TrendingUp
+              const level = levels[Math.floor(Math.random() * levels.length)];
+              const template = config.level_template || '{name} subiu para o nível {level}!';
+              addToQueue({
+                id: `sim-level-${name}-${level}`,
+                type: 'level',
+                message: formatMessage(template, { name, level }),
+                icon: TrendingUp
               });
               break;
             }
