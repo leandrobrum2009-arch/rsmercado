@@ -22,6 +22,10 @@
       const saved = sessionStorage.getItem('social_proof_type_usage');
       return saved ? JSON.parse(saved) : {};
     });
+    const [usedParams, setUsedParams] = useState<Record<string, string[]>>(() => {
+      const saved = sessionStorage.getItem('social_proof_used_params');
+      return saved ? JSON.parse(saved) : { names: [], neighborhoods: [], products: [] };
+    });
     useEffect(() => {
       sessionStorage.setItem('social_proof_shown_ids', JSON.stringify(Array.from(shownIds)));
     }, [shownIds]);
@@ -29,6 +33,26 @@
     useEffect(() => {
       sessionStorage.setItem('social_proof_type_usage', JSON.stringify(typeUsage));
     }, [typeUsage]);
+
+    useEffect(() => {
+      sessionStorage.setItem('social_proof_used_params', JSON.stringify(usedParams));
+    }, [usedParams]);
+
+    const getUniqueItem = (list: string[], key: string, maxHistory = 40) => {
+      const used = usedParams[key] || [];
+      const available = list.filter(item => !used.includes(item));
+      const selection = available.length > 0 
+        ? available[Math.floor(Math.random() * available.length)]
+        : list[Math.floor(Math.random() * list.length)];
+      
+      setUsedParams(prev => {
+        const current = prev[key] || [];
+        const next = [selection, ...current].slice(0, maxHistory);
+        return { ...prev, [key]: next };
+      });
+      
+      return selection;
+    };
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [config, setConfig] = useState<any>(null);
@@ -267,10 +291,10 @@
                 'Caxambu', 'Fazenda Inglesa', 'Mosela', 'Duarte da Silveira', 'Capela', 'Secretário', 'Pedro do Rio'
               ];
               
-              const first = firstNames[Math.floor(Math.random() * firstNames.length)];
-              const last = lastNames[Math.floor(Math.random() * lastNames.length)];
-              const name = `${first} ${last[0]}.`;
-              const neighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+               const first = getUniqueItem(firstNames, 'firstNames');
+               const last = getUniqueItem(lastNames, 'lastNames');
+               const name = `${first} ${last[0]}.`;
+               const neighborhood = getUniqueItem(neighborhoods, 'neighborhoods');
               const templates = [
                 '{name} acabou de fazer uma compra no bairro {neighborhood}',
                 '{name} garantiu suas compras em {neighborhood}',
@@ -327,11 +351,13 @@
              break;
            }
             case 'level': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const firstNamesList = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNamesList = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
               const levels = ['Bronze', 'Prata', 'Ouro', 'Diamante', 'Platina', 'Safira', 'Esmeralda'];
-              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-              const level = levels[Math.floor(Math.random() * levels.length)];
+              const first = getUniqueItem(firstNamesList, 'firstNames');
+              const last = getUniqueItem(lastNamesList, 'lastNames');
+              const name = `${first} ${last[0]}.`;
+              const level = getUniqueItem(levels, 'levels');
               const template = config.level_template || '{name} subiu para o nível {level}!';
               addToQueue({
                 id: `sim-level-${name}-${level}`,
@@ -342,9 +368,11 @@
               break;
             }
             case 'payment': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
-              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const firstNamesList = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNamesList = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const first = getUniqueItem(firstNamesList, 'firstNames');
+              const last = getUniqueItem(lastNamesList, 'lastNames');
+              const name = `${first} ${last[0]}.`;
               const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
               addToQueue({
                 id: `sim-pay-${name}`,
@@ -355,9 +383,11 @@
               break;
             }
             case 'delivered': {
-              const firstNames = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
-              const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
-              const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+              const firstNamesList = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria', 'Nicolas', 'Olivia', 'Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius'];
+              const lastNamesList = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes'];
+              const first = getUniqueItem(firstNamesList, 'firstNames');
+              const last = getUniqueItem(lastNamesList, 'lastNames');
+              const name = `${first} ${last[0]}.`;
               const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
               addToQueue({
                 id: `sim-deliv-${name}`,
@@ -369,9 +399,9 @@
             }
             case 'cart': {
               const names = ['Ana', 'Beatriz', 'Carlos', 'Daniel', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kelly', 'Lucas', 'Maria'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Arroz Integral', 'Feijão Preto', 'Café Gourmet', 'Leite Integral', 'Azeite Extra Virgem', 'Pão de Forma', 'Detergente', 'Sabonete Líquido', 'Papel Higiênico', 'Frutas da Estação', 'Refrigerante 2L', 'Pão de Queijo', 'Frango Inteiro', 'Ovos Caipira', 'Manteiga'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} adicionou ${product} ao carrinho!`,
                 `${name} está levando ${product} agora mesmo.`,
@@ -389,9 +419,9 @@
             }
             case 'wishlist': {
               const names = ['Paulo', 'Rafael', 'Sandra', 'Tiago', 'Vinicius', 'Wagner', 'Alice', 'Bruno', 'Camila', 'Diego'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Vinho Tinto', 'Chocolate Amargo', 'Queijo Brie', 'Cerveja Artesanal', 'Suco Natural', 'Iogurte Grego', 'Sorvete de Baunilha', 'Castanha de Caju', 'Camarão Congelado'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} salvou ${product} nos favoritos!`,
                 `${name} amou o produto: ${product}`,
@@ -409,7 +439,7 @@
             }
             case 'registration': {
               const names = ['Leticia', 'Marcelo', 'Natália', 'Otávio', 'Patrícia', 'Ruan', 'Sabrina', 'Thais', 'Vitor', 'Yasmin'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const phrases = [
                 `${name} acabou de se cadastrar no site!`,
                 `Boas-vindas para ${name}, novo cliente do Supermercado.`,
@@ -427,7 +457,7 @@
             }
             case 'coupon': {
               const names = ['Bernardo', 'Catarina', 'Davi', 'Emanuel', 'Flávia', 'Gustavo', 'Hilda', 'Isaac', 'Janaina'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const phrases = [
                 `${name} economizou usando um cupom de desconto!`,
                 `${name} aplicou o cupom PRIMEIRACOMPRA.`,
@@ -445,9 +475,9 @@
             }
             case 'share': {
               const names = ['Kevin', 'Lorena', 'Murilo', 'Nayara', 'Osvaldo', 'Priscila', 'Raul', 'Sueli', 'Túlio'];
-              const name = names[Math.floor(Math.random() * names.length)];
+              const name = getUniqueItem(names, 'firstNames');
               const products = ['Picanha Maturata', 'Cerveja Especial', 'Nutella 350g', 'Papel Higiênico (Leve 12 Pague 11)'];
-              const product = products[Math.floor(Math.random() * products.length)];
+              const product = getUniqueItem(products, 'products');
               const phrases = [
                 `${name} compartilhou a oferta de ${product}!`,
                 `${name} enviou o link de ${product} para um amigo.`,
