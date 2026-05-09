@@ -192,7 +192,8 @@ export function LoyaltyManager() {
 
       <Tabs defaultValue="settings" className="w-full">
          <TabsList className="bg-zinc-100 p-1 rounded-xl mb-6 flex overflow-x-auto no-scrollbar">
-           <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Configurações</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg font-bold uppercase text-[10px] flex-1">Configurações Gerais</TabsTrigger>
+            <TabsTrigger value="levels" className="rounded-lg font-bold uppercase text-[10px] flex-1">Níveis de Fidelidade</TabsTrigger>
            <TabsTrigger value="rewards" className="rounded-lg font-bold uppercase text-[10px] flex-1">Recompensas</TabsTrigger>
            <TabsTrigger value="challenges" className="rounded-lg font-bold uppercase text-[10px] flex-1">Desafios Semanais</TabsTrigger>
            <TabsTrigger value="neighborhoods" className="rounded-lg font-bold uppercase text-[10px] flex-1">Bairros & Taxas</TabsTrigger>
@@ -391,57 +392,135 @@ export function LoyaltyManager() {
                 </div>
 
                 <div className="space-y-4 col-span-1 md:col-span-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase text-zinc-500">Níveis de Fidelidade</label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {settings.tiers?.map((tier: any, i: number) => (
-                      <div key={i} className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: tier.color }} />
-                          <Input 
-                            className="h-7 text-[10px] font-black uppercase bg-transparent border-none p-0 focus-visible:ring-0" 
-                            value={tier.name}
-                            onChange={e => {
-                              const newTiers = [...settings.tiers];
-                              newTiers[i].name = e.target.value;
-                              setSettings({...settings, tiers: newTiers});
-                            }}
-                          />
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-zinc-400">Pontos Mínimos</label>
-                          <Input 
-                            type="number" 
-                            className="h-8 text-[10px] font-bold" 
-                            value={tier.min_points}
-                            onChange={e => {
-                              const newTiers = [...settings.tiers];
-                              newTiers[i].min_points = parseInt(e.target.value) || 0;
-                              setSettings({...settings, tiers: newTiers});
-                            }}
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-zinc-400">Benefícios (exibidos p/ cliente)</label>
-                          <textarea 
-                            className="w-full text-[10px] font-medium p-2 rounded-lg border border-zinc-200 bg-white min-h-[60px]"
-                            placeholder="Ex: Frete grátis e brindes"
-                            value={tier.benefits || ''}
-                            onChange={e => {
-                              const newTiers = [...settings.tiers];
-                              newTiers[i].benefits = e.target.value;
-                              setSettings({...settings, tiers: newTiers});
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
+
+         <TabsContent value="levels">
+           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
+             <CardHeader className="bg-zinc-900 text-white">
+               <div className="flex justify-between items-center">
+                 <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                   <Trophy size={16} /> Níveis e Categorias de Clientes
+                 </CardTitle>
+                 <Button 
+                   onClick={() => {
+                     const newTiers = [...(settings.tiers || [])];
+                     newTiers.push({ name: 'Novo Nível', min_points: 0, color: '#94a3b8', benefits: '' });
+                     setSettings({...settings, tiers: newTiers});
+                   }} 
+                   variant="outline" 
+                   size="sm" 
+                   className="h-8 text-[10px] font-black uppercase border-zinc-200"
+                 >
+                   <Plus size={14} className="mr-2" /> Adicionar Nível
+                 </Button>
+               </div>
+             </CardHeader>
+             <CardContent className="p-6 space-y-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {(settings.tiers || []).sort((a: any, b: any) => a.min_points - b.min_points).map((tier: any, i: number) => (
+                   <div key={i} className="p-6 bg-white border border-zinc-100 rounded-[32px] shadow-sm space-y-4 relative group transition-all hover:shadow-md">
+                     <button 
+                       onClick={() => {
+                         const newTiers = settings.tiers.filter((_: any, index: number) => index !== i);
+                         setSettings({...settings, tiers: newTiers});
+                       }}
+                       className="absolute top-4 right-4 text-zinc-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                     >
+                       <Trash2 size={16} />
+                     </button>
+
+                     <div className="flex items-center gap-3">
+                       <div className="relative">
+                         <div 
+                           className="w-10 h-10 rounded-2xl shadow-inner flex items-center justify-center text-white" 
+                           style={{ backgroundColor: tier.color }}
+                         >
+                           <Trophy size={20} />
+                         </div>
+                         <input 
+                           type="color" 
+                           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                           value={tier.color}
+                           onChange={e => {
+                             const newTiers = [...settings.tiers];
+                             const actualIndex = settings.tiers.indexOf(tier);
+                             newTiers[actualIndex].color = e.target.value;
+                             setSettings({...settings, tiers: newTiers});
+                           }}
+                         />
+                       </div>
+                       <div className="flex-1">
+                         <Input 
+                           className="h-8 text-xs font-black uppercase border-none bg-zinc-50 rounded-xl px-3 focus-visible:ring-primary/20" 
+                           value={tier.name}
+                           onChange={e => {
+                             const newTiers = [...settings.tiers];
+                             const actualIndex = settings.tiers.indexOf(tier);
+                             newTiers[actualIndex].name = e.target.value;
+                             setSettings({...settings, tiers: newTiers});
+                           }}
+                         />
+                       </div>
+                     </div>
+                     
+                     <div className="space-y-1.5">
+                       <label className="text-[10px] font-black uppercase text-zinc-400 flex items-center gap-1">
+                         <Coins size={12} /> Pontos Mínimos
+                       </label>
+                       <Input 
+                         type="number" 
+                         className="h-10 text-sm font-bold rounded-xl border-zinc-100" 
+                         value={tier.min_points}
+                         onChange={e => {
+                           const newTiers = [...settings.tiers];
+                           const actualIndex = settings.tiers.indexOf(tier);
+                           newTiers[actualIndex].min_points = parseInt(e.target.value) || 0;
+                           setSettings({...settings, tiers: newTiers});
+                         }}
+                       />
+                     </div>
+
+                     <div className="space-y-1.5">
+                       <label className="text-[10px] font-black uppercase text-zinc-400">Benefícios e Vantagens</label>
+                       <textarea 
+                         className="w-full text-xs font-medium p-3 rounded-xl border border-zinc-100 bg-zinc-50 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/20"
+                         placeholder="Liste as vantagens deste nível..."
+                         value={tier.benefits || ''}
+                         onChange={e => {
+                           const newTiers = [...settings.tiers];
+                           const actualIndex = settings.tiers.indexOf(tier);
+                           newTiers[actualIndex].benefits = e.target.value;
+                           setSettings({...settings, tiers: newTiers});
+                         }}
+                       />
+                     </div>
+                   </div>
+                 ))}
+
+                 {(!settings.tiers || settings.tiers.length === 0) && (
+                    <div className="col-span-full py-12 text-center text-zinc-400">
+                      <Trophy size={48} className="mx-auto mb-4 opacity-10" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Nenhum nível configurado</p>
+                      <Button 
+                        variant="link" 
+                        className="text-primary text-[10px] font-black uppercase mt-2"
+                        onClick={() => setSettings({...settings, tiers: DEFAULT_SETTINGS.tiers})}
+                      >
+                        Carregar Padrões
+                      </Button>
+                    </div>
+                 )}
+               </div>
+
+               <div className="pt-6 border-t flex justify-end">
+                 <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-10 rounded-2xl shadow-xl shadow-zinc-200" disabled={loading}>
+                   {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Todos os Níveis
+                 </Button>
+               </div>
+             </CardContent>
+           </Card>
+         </TabsContent>
               <Button onClick={saveSettings} className="bg-zinc-900 text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />} Salvar Configurações
               </Button>
