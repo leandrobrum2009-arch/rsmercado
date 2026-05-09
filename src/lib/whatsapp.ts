@@ -16,8 +16,10 @@
    apiUrl: string;
    enabled: boolean;
    notify_order_status?: boolean; // Default true
-   notify_new_order_admin?: boolean; // Default true
-   prevent_duplicates?: boolean; // Prevent sending same message twice
+    notify_new_order_admin?: boolean; // Default true
+    notify_points_earned?: boolean; // Default true
+    notify_loyalty_redeem?: boolean; // Default true
+    prevent_duplicates?: boolean; // Prevent sending same message twice
    duplicate_cooldown_hours?: number; // Hours to wait before allowed to resend
  }
  export const generateMessageHash = (message: string) => {
