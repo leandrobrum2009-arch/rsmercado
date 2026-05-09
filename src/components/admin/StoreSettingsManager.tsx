@@ -462,36 +462,36 @@
            </Card>
    
             {/* Cores e Fidelidade */}
-           <Card className="border-zinc-200 shadow-sm">
-             <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-               <CardTitle className="flex items-center gap-2 text-zinc-800">
-                 <Palette className="h-5 w-5 text-purple-500" />
+            <Card className="border-zinc-200 shadow-sm">
+              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                <CardTitle className="flex items-center gap-2 text-zinc-800">
+                  <Palette className="h-5 w-5 text-purple-500" />
                   Visual e Fidelidade
-               </CardTitle>
+                </CardTitle>
                 <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
-             </CardHeader>
-                <div className="space-y-2 pt-2 border-t">
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2 pb-4 border-b">
                   <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
-                   <div className="flex flex-col gap-1">
-                     <div className="flex items-center gap-3">
-                       <Input 
-                         type="number" 
-                         step="0.1"
-                         value={settings.points_ratio}
-                         onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
-                         placeholder="Ex: 0.5"
-                         className="rounded-xl border-zinc-200 w-24 font-bold"
-                       />
-                       <p className="text-[10px] text-zinc-500 font-bold italic">
-                         Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
-                       </p>
-                     </div>
-                     <p className="text-[9px] text-zinc-400 font-medium">
-                       Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
-                     </p>
-                   </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <Input 
+                        type="number" 
+                        step="0.1"
+                        value={settings.points_ratio}
+                        onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
+                        placeholder="Ex: 0.5"
+                        className="rounded-xl border-zinc-200 w-24 font-bold"
+                      />
+                      <p className="text-[10px] text-zinc-500 font-bold italic">
+                        Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                      </p>
+                    </div>
+                    <p className="text-[9px] text-zinc-400 font-medium">
+                      Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
+                    </p>
+                  </div>
                 </div>
-             <CardContent className="space-y-4 pt-6">
                <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
                    <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
