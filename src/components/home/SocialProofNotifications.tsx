@@ -18,6 +18,9 @@
       return saved ? new Set(JSON.parse(saved)) : new Set();
     });
     const [lastType, setLastType] = useState<string | null>(null);
+    const [sessionCount, setSessionCount] = useState(0);
+    const [minuteCount, setMinuteCount] = useState(0);
+
     const [typeUsage, setTypeUsage] = useState<Record<string, number>>(() => {
       const saved = sessionStorage.getItem('social_proof_type_usage');
       return saved ? JSON.parse(saved) : {};
@@ -68,6 +71,8 @@
     const defaultConfig: any = {
       enabled: true,
       interval: 15000,
+      max_per_minute: 4,
+      max_per_session: 20,
       show_purchases: true,
       show_viewers: true,
       show_stock: true,
@@ -113,11 +118,20 @@
     const addToQueue = (notification: Notification) => {
       if (shownIds.has(notification.id)) return;
       
+      // Check limits
+      if (config) {
+        if (minuteCount >= (config.max_per_minute || 4)) return;
+        if (sessionCount >= (config.max_per_session || 20)) return;
+      }
+
       setQueue(prev => {
         if (prev.length >= 5) return prev;
         return [...prev, notification];
       });
       
+      setMinuteCount(prev => prev + 1);
+      setSessionCount(prev => prev + 1);
+
       setShownIds(prev => {
         const next = new Set(prev);
         next.add(notification.id);
@@ -144,9 +158,17 @@
       }
     }, [queue, visibleNotifications]);
  
+    // Reset minute counter every 60s
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setMinuteCount(0);
+      }, 60000);
+      return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
       if (!isEnabled || !config) return;
-  
+
       // 0. Manual Trigger Listener
       const manualChannel = supabase
         .channel('social-proof-manual')
