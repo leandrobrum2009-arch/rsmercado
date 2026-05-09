@@ -294,7 +294,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
                    <Link 
                      to="/search" 
                      search={{ tag: 'OFERTA' }} 
-                     className="p-2 text-white bg-red-600 rounded-full animate-bounce shadow-lg shadow-red-200 ring-2 ring-red-400 ring-offset-2 flex items-center justify-center"
+                     className="p-2 text-white bg-red-600 rounded-full animate-bounce animate-glow shadow-lg shadow-red-200 ring-2 ring-red-400 ring-offset-2 flex items-center justify-center"
                    >
                      <ShoppingBag size={18} />
                    </Link>
@@ -334,7 +334,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
                      // @ts-ignore
                      search={item.search}
                      className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
-                       isActive ? "text-green-600" : isOferta ? "text-white bg-red-600 animate-pulse font-black px-4 py-2 rounded-full shadow-lg shadow-red-100 hover:bg-red-700 transition-all hover:scale-105 ring-2 ring-red-400 ring-offset-1" : "text-gray-600"
+                       isActive ? "text-green-600" : isOferta ? "text-white bg-red-600 animate-pulse animate-glow font-black px-4 py-2 rounded-full shadow-lg shadow-red-100 hover:bg-red-700 transition-all hover:scale-105 ring-2 ring-red-400 ring-offset-1" : "text-gray-600"
                      }`}
                    >
                     <item.icon size={20} />
