@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List } from 'lucide-react'
+   import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
@@ -68,7 +68,10 @@
             share: 2,
             cart: 2,
             wishlist: 2
-          }
+          },
+          schedule: [
+            { day: 'todos', start: '08:00', end: '22:00', intensity: 1 }
+          ]
        },
       notifications: {
         sms_enabled: false,
@@ -459,36 +462,36 @@
            </Card>
    
             {/* Cores e Fidelidade */}
-           <Card className="border-zinc-200 shadow-sm">
-             <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-               <CardTitle className="flex items-center gap-2 text-zinc-800">
-                 <Palette className="h-5 w-5 text-purple-500" />
+            <Card className="border-zinc-200 shadow-sm">
+              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                <CardTitle className="flex items-center gap-2 text-zinc-800">
+                  <Palette className="h-5 w-5 text-purple-500" />
                   Visual e Fidelidade
-               </CardTitle>
+                </CardTitle>
                 <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
-             </CardHeader>
-                <div className="space-y-2 pt-2 border-t">
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2 pb-4 border-b">
                   <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
-                   <div className="flex flex-col gap-1">
-                     <div className="flex items-center gap-3">
-                       <Input 
-                         type="number" 
-                         step="0.1"
-                         value={settings.points_ratio}
-                         onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
-                         placeholder="Ex: 0.5"
-                         className="rounded-xl border-zinc-200 w-24 font-bold"
-                       />
-                       <p className="text-[10px] text-zinc-500 font-bold italic">
-                         Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
-                       </p>
-                     </div>
-                     <p className="text-[9px] text-zinc-400 font-medium">
-                       Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
-                     </p>
-                   </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <Input 
+                        type="number" 
+                        step="0.1"
+                        value={settings.points_ratio}
+                        onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
+                        placeholder="Ex: 0.5"
+                        className="rounded-xl border-zinc-200 w-24 font-bold"
+                      />
+                      <p className="text-[10px] text-zinc-500 font-bold italic">
+                        Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                      </p>
+                    </div>
+                    <p className="text-[9px] text-zinc-400 font-medium">
+                      Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
+                    </p>
+                  </div>
                 </div>
-             <CardContent className="space-y-4 pt-6">
                <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
                    <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
@@ -681,9 +684,114 @@
                     </div>
                   </div>
 
-                   <div className="space-y-4">
-                     <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
-                     <div className="space-y-3">
+                   <div className="space-y-6">
+                     <div className="space-y-4">
+                       <div className="flex items-center justify-between">
+                         <label className="text-xs font-black uppercase text-zinc-500 flex items-center gap-2">
+                           <Clock className="h-4 w-4 text-primary" /> Agendamento Recorrente
+                         </label>
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           className="h-7 text-[9px] font-black uppercase rounded-lg"
+                           onClick={() => {
+                             const newSchedule = [...(settings.social_proof?.schedule || []), { day: 'todos', start: '08:00', end: '22:00', intensity: 1 }];
+                             setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                           }}
+                         >
+                           <Plus className="h-3 w-3 mr-1" /> Adicionar Horário
+                         </Button>
+                       </div>
+                       
+                       <div className="space-y-3">
+                         {(settings.social_proof?.schedule || []).map((s: any, idx: number) => (
+                           <div key={idx} className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 space-y-3 relative group">
+                             <button 
+                               onClick={() => {
+                                 const newSchedule = settings.social_proof.schedule.filter((_: any, i: number) => i !== idx);
+                                 setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                               }}
+                               className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                             >
+                               <Trash2 size={12} />
+                             </button>
+                             <div className="grid grid-cols-2 gap-3">
+                               <div className="space-y-1">
+                                 <label className="text-[8px] font-black uppercase text-zinc-400">Dia</label>
+                                 <Select 
+                                   value={s.day} 
+                                   onValueChange={(val) => {
+                                     const newSchedule = [...settings.social_proof.schedule];
+                                     newSchedule[idx].day = val;
+                                     setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                                   }}
+                                 >
+                                   <SelectTrigger className="h-8 text-[10px] font-bold rounded-lg bg-white">
+                                     <SelectValue />
+                                   </SelectTrigger>
+                                   <SelectContent>
+                                     <SelectItem value="todos">Todos os Dias</SelectItem>
+                                     <SelectItem value="semana">Segunda a Sexta</SelectItem>
+                                     <SelectItem value="fds">Final de Semana</SelectItem>
+                                   </SelectContent>
+                                 </Select>
+                               </div>
+                               <div className="space-y-1">
+                                 <label className="text-[8px] font-black uppercase text-zinc-400">Intensidade (0 a 2x)</label>
+                                 <Input 
+                                   type="number" 
+                                   step="0.1" 
+                                   min="0" 
+                                   max="2"
+                                   value={s.intensity}
+                                   onChange={(e) => {
+                                     const newSchedule = [...settings.social_proof.schedule];
+                                     newSchedule[idx].intensity = parseFloat(e.target.value);
+                                     setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                                   }}
+                                   className="h-8 text-[10px] font-bold bg-white"
+                                 />
+                               </div>
+                             </div>
+                             <div className="grid grid-cols-2 gap-3">
+                               <div className="space-y-1">
+                                 <label className="text-[8px] font-black uppercase text-zinc-400">Início</label>
+                                 <Input 
+                                   type="time" 
+                                   value={s.start}
+                                   onChange={(e) => {
+                                     const newSchedule = [...settings.social_proof.schedule];
+                                     newSchedule[idx].start = e.target.value;
+                                     setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                                   }}
+                                   className="h-8 text-[10px] font-bold bg-white"
+                                 />
+                               </div>
+                               <div className="space-y-1">
+                                 <label className="text-[8px] font-black uppercase text-zinc-400">Fim</label>
+                                 <Input 
+                                   type="time" 
+                                   value={s.end}
+                                   onChange={(e) => {
+                                     const newSchedule = [...settings.social_proof.schedule];
+                                     newSchedule[idx].end = e.target.value;
+                                     setSettings({ ...settings, social_proof: { ...settings.social_proof, schedule: newSchedule } });
+                                   }}
+                                   className="h-8 text-[10px] font-bold bg-white"
+                                 />
+                               </div>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                       <p className="text-[9px] text-zinc-400 font-bold italic uppercase">
+                         * Use intensidade 0 para desativar a prova social em horários específicos (ex: madrugada).
+                       </p>
+                     </div>
+
+                     <div className="space-y-4">
+                       <label className="text-xs font-black uppercase text-zinc-500 block mb-2">Personalizar Mensagens</label>
+                       <div className="space-y-3">
                         {[
                           { id: 'purchase_template', label: 'Compra Realizada', placeholder: '{name} comprou em {neighborhood}' },
                           { id: 'viewers_template', label: 'Pessoas Online', placeholder: '{count} pessoas vendo agora' },
@@ -710,21 +818,21 @@
                             </div>
                           );
                         })}
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
-                          <Input 
-                            value={settings.social_proof?.time_template}
-                            onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, time_template: e.target.value } })}
-                            placeholder="agora mesmo"
-                            className="rounded-xl border-zinc-200 h-9 text-xs"
-                          />
-                        </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase">Texto do Tempo (ex: agora mesmo)</label>
+                            <Input 
+                              value={settings.social_proof?.time_template}
+                              onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, time_template: e.target.value } })}
+                              placeholder="agora mesmo"
+                              className="rounded-xl border-zinc-200 h-9 text-xs"
+                            />
+                          </div>
+                         </div>
+                       </div>
                      </div>
-                   </div>
-                 </div>
-                 
-                 <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    </div>
+                    <div className="mt-8 p-6 bg-zinc-900 rounded-3xl text-white shadow-2xl">
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                      <div>
                        <div className="flex items-center gap-2 mb-4">
                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -768,13 +876,13 @@
                            </p>
                            <p className="text-[9px] text-zinc-400 mt-1 font-medium">agora mesmo</p>
                          </div>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </CardContent>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
-
              {/* Contato e Endereço */}
              <Card className="border-zinc-200 shadow-sm md:col-span-2">
                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">

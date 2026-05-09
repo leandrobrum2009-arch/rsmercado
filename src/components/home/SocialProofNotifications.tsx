@@ -477,9 +477,43 @@
       };
 
       // 2. Fallback / Periodic simulated events
+      const isWithinSchedule = () => {
+        if (!config.schedule || config.schedule.length === 0) return { active: true, intensity: 1 };
+        
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        const currentDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+        for (const s of config.schedule) {
+          // Check day
+          let dayMatch = false;
+          if (s.day === 'todos') dayMatch = true;
+          else if (s.day === 'semana' && currentDay >= 1 && currentDay <= 5) dayMatch = true;
+          else if (s.day === 'fds' && (currentDay === 0 || currentDay === 6)) dayMatch = true;
+
+          if (dayMatch) {
+            const [startH, startM] = s.start.split(':').map(Number);
+            const [endH, endM] = s.end.split(':').map(Number);
+            const startTime = startH * 60 + startM;
+            const endTime = endH * 60 + endM;
+
+            if (currentTime >= startTime && currentTime <= endTime) {
+              return { active: s.intensity > 0, intensity: s.intensity };
+            }
+          }
+        }
+        return { active: false, intensity: 0 };
+      };
+
       const fetchRandomNotification = async () => {
-        // Don't show random if many are already showing (to prioritize real events)
+        // Don't show random if many are already showing
         if (queue.length > 0 || visibleNotifications.length > 0) return;
+
+        const { active, intensity } = isWithinSchedule();
+        if (!active) return;
+
+        // Apply intensity: if intensity is 0.5, skip 50% of random events
+        if (Math.random() > intensity) return;
   
         const types = [];
         if (config.show_purchases) types.push('purchase');
