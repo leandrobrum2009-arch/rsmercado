@@ -478,8 +478,8 @@
 
       // 2. Fallback / Periodic simulated events
       const fetchRandomNotification = async () => {
-        // Don't show random if one is already showing (to prioritize real events)
-        if (queue.length > 0 || currentNotification) return;
+        // Don't show random if many are already showing (to prioritize real events)
+        if (queue.length > 0 || visibleNotifications.length > 0) return;
   
         const types = [];
         if (config.show_purchases) types.push('purchase');
