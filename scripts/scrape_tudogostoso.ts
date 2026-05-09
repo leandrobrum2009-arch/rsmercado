@@ -1,3 +1,62 @@
+ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+ 
+ async function getRecipeDetails(url: string) {
+   try {
+     const response = await fetch(url, {
+       headers: { 'User-Agent': USER_AGENT }
+     })
+     const html = await response.text()
+     const $ = cheerio.load(html)
+ 
+     const title = $('h1').text().trim() || $('.recipe-title').text().trim() || $('header span').first().text().trim()
+     const image_url = $('.recipe-media img').attr('src') || $('.recipe-media meta[itemprop="image"]').attr('content') || ''
+     const description = $('.recipe-description').text().trim() || 'Uma deliciosa receita do TudoGostoso.'
+     
+     const ingredients: any[] = []
+     $('.p-ingredient').each((_, el) => {
+       const text = $(el).text().trim().replace(/\s+/g, ' ')
+       if (text) {
+         ingredients.push({ name: text, quantity: '' })
+       }
+     })
+ 
+     let instructions = ''
+     // Try different selectors for instructions
+     const stepSelectors = [
+       '.instructions ol li p',
+       '.instructions ol li span',
+       '.instructions ol li div',
+       '.instructions ol li'
+     ]
+ 
+     for (const selector of stepSelectors) {
+       const steps = $(selector).map((i, el) => $(el).text().trim()).get()
+       if (steps.length > 0) {
+         instructions = steps.map((s, i) => `${i + 1}. ${s}`).join('\n')
+         break
+       }
+     }
+ 
+     return {
+       title,
+       description,
+       instructions,
+       image_url,
+       ingredients,
+       source_url: url
+     }
+   } catch (error) {
+     console.error(`Error fetching recipe at ${url}:`, error)
+     return null
+   }
+ }
+ 
+ async function crawlCategory(category: { name: string, url: string }, maxRecipes: number = 20) {
+   console.log(`Crawling category: ${category.name}...`)
+   try {
+     const response = await fetch(`${BASE_URL}${category.url}`, {
+       headers: { 'User-Agent': USER_AGENT }
+     })
  import { createClient } from '@supabase/supabase-js'
  import * as cheerio from 'cheerio'
  import dotenv from 'dotenv'
