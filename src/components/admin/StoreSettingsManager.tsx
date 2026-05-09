@@ -880,7 +880,6 @@
                       </div>
                     </div>
                   </div>
-                </div>
               </CardContent>
             </Card>
              {/* Contato e Endereço */}
