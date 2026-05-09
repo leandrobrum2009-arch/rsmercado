@@ -5,7 +5,7 @@
  
  interface Notification {
    id: string;
-   type: 'purchase' | 'viewers' | 'stock' | 'level' | 'delivered';
+    type: 'purchase' | 'viewers' | 'stock' | 'level' | 'delivered' | 'payment';
    message: string;
    icon: any;
  }
@@ -36,6 +36,8 @@
      stock_template: 'Este produto "{product}" está acabando! Restam apenas {stock} unidades.',
       level_template: '{name} subiu para o nível {level}!',
       delivered_template: '{name} já recebeu suas compras em casa!',
+      payment_template: 'Pagamento confirmado para o pedido de {name}!',
+      show_payments: true,
       time_template: 'agora mesmo'
    };
  
@@ -97,9 +99,21 @@
              type: 'delivered',
              message: formatMessage(template, { name }),
              icon: CheckCircle2
-           });
-         }
-       })
+            });
+          }
+          if (config.show_payments && payload.new.status === 'approved' && payload.old.status !== 'approved') {
+            const order = payload.new;
+            const name = order.customer_name || 'Alguém';
+            const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
+            
+            showNotification({
+              id: Math.random().toString(),
+              type: 'payment',
+              message: formatMessage(template, { name }),
+              icon: CheckCircle2
+            });
+          }
+        })
        .subscribe();
  
      const profileChannel = supabase
@@ -146,8 +160,9 @@
        if (config.show_purchases) types.push('purchase');
        if (config.show_viewers) types.push('viewers');
        if (config.show_stock) types.push('stock');
-       if (config.show_levels) types.push('level');
-       if (config.show_delivered) types.push('delivered');
+        if (config.show_levels) types.push('level');
+        if (config.show_delivered) types.push('delivered');
+        if (config.show_payments) types.push('payment');
  
        if (types.length === 0) return;
  
@@ -211,10 +226,22 @@
                type: 'level',
                message: formatMessage(template, { name, level }),
                icon: TrendingUp
-             });
-             break;
-           }
-           case 'delivered': {
+              });
+              break;
+            }
+            case 'payment': {
+              const names = ['Fernanda Lima', 'Jorge Libra', 'Marina Silva', 'Roberto Carlos', 'Ricardo Oliveira'];
+              const name = names[Math.floor(Math.random() * names.length)];
+              const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
+              showNotification({
+                id: Math.random().toString(),
+                type: 'payment',
+                message: formatMessage(template, { name }),
+                icon: CheckCircle2
+              });
+              break;
+            }
+            case 'delivered': {
              const names = ['Fernanda Lima', 'Ricardo Oliveira', 'Patrícia Souza', 'Marcos Santos'];
              const name = names[Math.floor(Math.random() * names.length)];
              const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
@@ -254,11 +281,12 @@
              className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[280px] pointer-events-auto flex items-start gap-3"
            >
              <div className={`p-2 rounded-xl shrink-0 ${
-               currentNotification.type === 'purchase' ? 'bg-green-100 text-green-600' :
-               currentNotification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
-               currentNotification.type === 'stock' ? 'bg-orange-100 text-orange-600' :
-               currentNotification.type === 'level' ? 'bg-purple-100 text-purple-600' :
-               'bg-teal-100 text-teal-600'
+                currentNotification.type === 'purchase' ? 'bg-green-100 text-green-600' :
+                currentNotification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
+                currentNotification.type === 'stock' ? 'bg-orange-100 text-orange-600' :
+                currentNotification.type === 'level' ? 'bg-purple-100 text-purple-600' :
+                currentNotification.type === 'payment' ? 'bg-blue-100 text-blue-600' :
+                'bg-teal-100 text-teal-600'
              }`}>
                <currentNotification.icon size={20} />
              </div>
