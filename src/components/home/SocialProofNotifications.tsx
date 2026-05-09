@@ -243,9 +243,10 @@
                 'Mais um cliente satisfeito: {name} de {neighborhood}',
                 '{name} aproveitou as ofertas e pediu entrega em {neighborhood}'
               ];
-              const template = templates[Math.floor(Math.random() * templates.length)];
+              const templateIndex = Math.floor(Math.random() * templates.length);
+              const template = templates[templateIndex];
               addToQueue({
-                id: `sim-purch-${Math.random()}`,
+                id: `sim-purch-${name}-${neighborhood}-${templateIndex}`,
                 type: 'purchase',
                 message: formatMessage(template, { name, neighborhood }),
                 icon: ShoppingBag
