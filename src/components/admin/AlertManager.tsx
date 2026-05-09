@@ -14,7 +14,8 @@
  import { Badge } from '@/components/ui/badge'
  
  export function AlertManager() {
-   const [alerts, setAlerts] = useState<any[]>([])
+    const [alerts, setAlerts] = useState<any[]>([])
+    const [alertLogs, setAlertLogs] = useState<any[]>([])
     const [message, setMessage] = useState('')
     const [targetUrl, setTargetUrl] = useState('')
     const [duration, setDuration] = useState('10')
@@ -64,41 +65,61 @@
       }
       setLoading(false)
     }
-   useEffect(() => {
-     fetchAlerts()
-   }, [])
- 
-   const fetchAlerts = async () => {
-     const { data } = await supabase
-       .from('store_alerts')
-       .select('*')
-       .order('created_at', { ascending: false })
-     setAlerts(data || [])
-   }
+    useEffect(() => {
+      fetchAlerts()
+      fetchAlertLogs()
+    }, [])
+  
+    const fetchAlerts = async () => {
+      const { data } = await supabase
+        .from('store_alerts')
+        .select('*')
+        .order('created_at', { ascending: false })
+      setAlerts(data || [])
+    }
+
+    const fetchAlertLogs = async () => {
+      const { data } = await supabase
+        .from('alert_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+      setAlertLogs(data || [])
+    }
  
     const createAlert = async () => {
       if (!message) return
       setLoading(true)
-       const { error } = await supabase
-         .from('store_alerts')
-         .insert({ 
-           message, 
-           type, 
-           is_active: true, 
-           target_url: targetUrl || null,
-           duration_seconds: parseInt(duration),
-           shimmer_speed_seconds: parseFloat(shimmerSpeed)
-         })
-      
-      if (error) {
-        console.error(error)
-        toast.error('Erro ao criar alerta. Tente executar o script de reparo.')
-      } else {
-        toast.success('Alerta enviado em tempo real!')
-        setMessage('')
-        setTargetUrl('')
-        fetchAlerts()
-      }
+        const alertData = { 
+          message, 
+          type, 
+          is_active: true, 
+          target_url: targetUrl || null,
+          duration_seconds: parseInt(duration),
+          shimmer_speed_seconds: parseFloat(shimmerSpeed)
+        }
+
+        const { error } = await supabase
+          .from('store_alerts')
+          .insert(alertData)
+       
+       if (error) {
+         console.error(error)
+         toast.error('Erro ao criar alerta. Tente executar o script de reparo.')
+       } else {
+         // Log the action
+         await supabase.from('alert_logs').insert({
+           message,
+           type,
+           target_url: targetUrl || null
+         }).catch(e => console.warn('History log failed:', e))
+
+         toast.success('Alerta enviado em tempo real!')
+         setMessage('')
+         setTargetUrl('')
+         fetchAlerts()
+         fetchAlertLogs()
+       }
       setLoading(false)
     }
  
