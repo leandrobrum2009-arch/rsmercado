@@ -110,8 +110,8 @@
          const neighborhood = order.delivery_address?.neighborhood || 'da região';
          const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
          
-         showNotification({
-           id: Math.random().toString(),
+          addToQueue({
+            id: `order-${order.id}`,
            type: 'purchase',
            message: formatMessage(template, { name, neighborhood }),
            icon: ShoppingBag
@@ -136,8 +136,8 @@
             const name = order.customer_name || 'Alguém';
             const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
             
-            showNotification({
-              id: Math.random().toString(),
+            addToQueue({
+              id: `delivered-${order.id}`,
               type: 'payment',
               message: formatMessage(template, { name }),
               icon: CheckCircle2
@@ -170,8 +170,8 @@
              const name = payload.new.full_name || 'Um cliente';
              const template = config.level_template || '{name} subiu para o nível {level}!';
              
-             showNotification({
-               id: Math.random().toString(),
+             addToQueue({
+               id: `payment-${order.id}`,
                type: 'level',
                message: formatMessage(template, { name, level: newTier.name }),
                icon: TrendingUp
