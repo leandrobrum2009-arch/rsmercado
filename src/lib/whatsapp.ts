@@ -1,3 +1,13 @@
+ export const getWhatsAppTemplates = async () => {
+   const { data } = await supabase
+     .from('store_settings')
+     .select('value')
+     .eq('key', 'whatsapp_templates')
+     .maybeSingle();
+   
+   return data?.value || {};
+ }
+ 
  import { supabase } from './supabase'
 
  export interface WhatsAppConfig {
