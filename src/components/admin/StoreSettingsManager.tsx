@@ -373,211 +373,208 @@
  
    if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
  
-   return (
-     <div className="space-y-6 pb-20">
-       <Tabs defaultValue="geral" className="w-full">
-         <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto p-1 bg-zinc-100 rounded-2xl mb-8">
-           <TabsTrigger value="geral" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-             <Settings className="w-4 h-4 mr-2" />
-             <span className="font-bold text-xs uppercase tracking-tighter">Geral</span>
-           </TabsTrigger>
-           <TabsTrigger value="pagamentos" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-             <CreditCard className="w-4 h-4 mr-2" />
-             <span className="font-bold text-xs uppercase tracking-tighter">Pagamentos</span>
-           </TabsTrigger>
-           <TabsTrigger value="social" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-             <Share2 className="w-4 h-4 mr-2" />
-             <span className="font-bold text-xs uppercase tracking-tighter">Social</span>
-           </TabsTrigger>
-           <TabsTrigger value="notificacoes" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
-             <Smartphone className="w-4 h-4 mr-2" />
-             <span className="font-bold text-xs uppercase tracking-tighter">Avisos</span>
-           </TabsTrigger>
-         </TabsList>
- 
-         <TabsContent value="geral" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {/* Identidade */}
-             <Card className="border-zinc-200 shadow-sm">
-             <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-               <CardTitle className="flex items-center gap-2 text-zinc-800">
-                 <Globe className="h-5 w-5 text-blue-500" />
-                 Identidade da Loja
-               </CardTitle>
-               <CardDescription>Configure o nome, descrição e marca da sua loja</CardDescription>
-             </CardHeader>
-             <CardContent className="space-y-4 pt-6">
-               <div className="space-y-2">
-                 <label className="text-xs font-black uppercase text-zinc-500">Nome do Site</label>
-                 <Input 
-                   value={settings.site_name}
-                   onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
-                   placeholder="Ex: Supermercado Central"
-                   className="rounded-xl border-zinc-200 focus:ring-primary"
-                 />
-               </div>
-               <div className="space-y-2">
-                 <label className="text-xs font-black uppercase text-zinc-500">Descrição Curta</label>
-                 <Input 
-                   value={settings.store_description}
-                   onChange={(e) => setSettings({ ...settings, store_description: e.target.value })}
-                   placeholder="Ex: O melhor preço da região"
-                   className="rounded-xl border-zinc-200 focus:ring-primary"
-                 />
-               </div>
-                <div className="space-y-4">
+    return (
+      <div className="space-y-6 pb-20">
+        <Tabs defaultValue="geral" className="w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto p-1 bg-zinc-100 rounded-2xl mb-8">
+            <TabsTrigger value="geral" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Settings className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="pagamentos" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <CreditCard className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Pagamentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Share2 className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Social</span>
+            </TabsTrigger>
+            <TabsTrigger value="notificacoes" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Smartphone className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Avisos</span>
+            </TabsTrigger>
+          </TabsList>
+  
+          <TabsContent value="geral" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Identidade */}
+              <Card className="border-zinc-200 shadow-sm">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                  <CardTitle className="flex items-center gap-2 text-zinc-800">
+                    <Globe className="h-5 w-5 text-blue-500" />
+                    Identidade da Loja
+                  </CardTitle>
+                  <CardDescription>Configure o nome, descrição e marca da sua loja</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
-                   <div className="space-y-4">
-                     <div className="relative group">
-                       <input
-                         type="file"
-                         accept="image/*"
-                         onChange={handleFileUpload}
-                         className="hidden"
-                         id="logo-upload"
-                          disabled={!!uploading}
-                       />
-                        <div className="flex flex-col md:flex-row gap-4 items-start">
-                          <label 
-                            htmlFor="logo-upload" 
-                            className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
-                          >
-                            {!!uploading ? (
-                              <Loader2 className="h-10 w-10 animate-spin text-green-600" />
-                            ) : settings.logo_url ? (
-                              <div className="flex flex-col items-center">
-                                <img src={settings.logo_url} className="h-16 object-contain mb-2" alt="Logo" />
-                                <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
-                                  <Upload className="h-3 w-3" /> Alterar Arquivo
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="bg-zinc-100 p-4 rounded-2xl shadow-inner group-hover:bg-green-100 transition-colors">
-                                  <Upload className="h-8 w-8 text-zinc-400 group-hover:text-green-600 transition-colors" />
-                                </div>
-                                <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-green-600">
-                                  Clique para Upload
-                                </span>
-                              </div>
-                            )}
-                            <p className="text-[10px] font-bold text-zinc-400 mt-1">PNG ou JPG (Máx 2MB)</p>
-                          </label>
-
-                          <div className="flex-1 w-full space-y-2">
-                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Ou Link Direto</label>
-                            <Input 
-                              value={settings.logo_url}
-                              onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                              placeholder="https://exemplo.com/logo.png"
-                              className="rounded-xl border-zinc-200 focus:ring-primary h-12 bg-white"
-                            />
-                            <p className="text-[9px] text-zinc-400 font-medium italic leading-tight">
-                              Se preferir, cole o link direto da sua logo hospedada em outro local.
-                            </p>
-                          </div>
-                        </div>
-                     </div>
-                     
-                     <div className="flex flex-col gap-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-400">Ou use uma URL externa</label>
-                       <Input 
-                         value={settings.logo_url}
-                         onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                         placeholder="https://exemplo.com/logo.png"
-                         className="rounded-xl border-zinc-200 focus:ring-primary h-12"
-                       />
-                     </div>
-                   </div>
+                    <label className="text-xs font-black uppercase text-zinc-500">Nome do Site</label>
+                    <Input 
+                      value={settings.site_name}
+                      onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
+                      placeholder="Ex: Supermercado Central"
+                      className="rounded-xl border-zinc-200 focus:ring-primary"
+                    />
                   </div>
-                 {settings.logo_url && (
-                   <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
-                     <img src={settings.logo_url} alt="Logo Preview" className="h-16 object-contain drop-shadow-md" />
-                   </div>
-                 )}
-                 </div>
-               </CardContent>
-             </Card>
- 
-            <Card className="border-zinc-200 shadow-sm">
-              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-zinc-800">
-                  <Palette className="h-5 w-5 text-purple-500" />
-                  Visual e Fidelidade
-                </CardTitle>
-                <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-                <div className="space-y-2 pb-4 border-b">
-                  <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-3">
-                      <Input 
-                        type="number" 
-                        step="0.1"
-                        value={settings.points_ratio}
-                        onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
-                        placeholder="Ex: 0.5"
-                        className="rounded-xl border-zinc-200 w-24 font-bold"
-                      />
-                      <p className="text-[10px] text-zinc-500 font-bold italic">
-                        Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase text-zinc-500">Descrição Curta</label>
+                    <Input 
+                      value={settings.store_description}
+                      onChange={(e) => setSettings({ ...settings, store_description: e.target.value })}
+                      placeholder="Ex: O melhor preço da região"
+                      className="rounded-xl border-zinc-200 focus:ring-primary"
+                    />
+                  </div>
+                   <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
+                      <div className="space-y-4">
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="logo-upload"
+                             disabled={!!uploading}
+                          />
+                           <div className="flex flex-col md:flex-row gap-4 items-start">
+                             <label 
+                               htmlFor="logo-upload" 
+                               className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
+                             >
+                               {!!uploading ? (
+                                 <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+                               ) : settings.logo_url ? (
+                                 <div className="flex flex-col items-center">
+                                   <img src={settings.logo_url} className="h-16 object-contain mb-2" alt="Logo" />
+                                   <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
+                                     <Upload className="h-3 w-3" /> Alterar Arquivo
+                                   </div>
+                                 </div>
+                               ) : (
+                                 <div className="flex flex-col items-center gap-2">
+                                   <div className="bg-zinc-100 p-4 rounded-2xl shadow-inner group-hover:bg-green-100 transition-colors">
+                                     <Upload className="h-8 w-8 text-zinc-400 group-hover:text-green-600 transition-colors" />
+                                   </div>
+                                   <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-green-600">
+                                     Clique para Upload
+                                   </span>
+                                 </div>
+                               )}
+                               <p className="text-[10px] font-bold text-zinc-400 mt-1">PNG ou JPG (Máx 2MB)</p>
+                             </label>
+   
+                             <div className="flex-1 w-full space-y-2">
+                               <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Ou Link Direto</label>
+                               <Input 
+                                 value={settings.logo_url}
+                                 onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                                 placeholder="https://exemplo.com/logo.png"
+                                 className="rounded-xl border-zinc-200 focus:ring-primary h-12 bg-white"
+                               />
+                               <p className="text-[9px] text-zinc-400 font-medium italic leading-tight">
+                                 Se preferir, cole o link direto da sua logo hospedada em outro local.
+                               </p>
+                             </div>
+                           </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-400">Ou use uma URL externa</label>
+                          <Input 
+                            value={settings.logo_url}
+                            onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                            placeholder="https://exemplo.com/logo.png"
+                            className="rounded-xl border-zinc-200 focus:ring-primary h-12"
+                          />
+                        </div>
+                      </div>
+                     </div>
+                    {settings.logo_url && (
+                      <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
+                        <img src={settings.logo_url} alt="Logo Preview" className="h-16 object-contain drop-shadow-md" />
+                      </div>
+                    )}
+                    </div>
+                </CardContent>
+              </Card>
+  
+              <Card className="border-zinc-200 shadow-sm">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                  <CardTitle className="flex items-center gap-2 text-zinc-800">
+                    <Palette className="h-5 w-5 text-purple-500" />
+                    Visual e Fidelidade
+                  </CardTitle>
+                  <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-6">
+                  <div className="space-y-2 pb-4 border-b">
+                    <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-3">
+                        <Input 
+                          type="number" 
+                          step="0.1"
+                          value={settings.points_ratio}
+                          onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
+                          placeholder="Ex: 0.5"
+                          className="rounded-xl border-zinc-200 w-24 font-bold"
+                        />
+                        <p className="text-[10px] text-zinc-500 font-bold italic">
+                          Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                        </p>
+                      </div>
+                      <p className="text-[9px] text-zinc-400 font-medium">
+                        Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
                       </p>
                     </div>
-                    <p className="text-[9px] text-zinc-400 font-medium">
-                      Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
-                    </p>
                   </div>
-                </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
-                   <div className="flex gap-2">
-                     <Input 
-                       type="color" 
-                       className="w-12 h-10 p-1 rounded-lg cursor-pointer"
-                       value={settings.colors.primary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
-                     />
-                     <Input 
-                       value={settings.colors.primary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
-                       className="rounded-xl border-zinc-200"
-                     />
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
+                     <div className="flex gap-2">
+                       <Input 
+                         type="color" 
+                         className="w-12 h-10 p-1 rounded-lg cursor-pointer"
+                         value={settings.colors.primary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
+                       />
+                       <Input 
+                         value={settings.colors.primary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
+                         className="rounded-xl border-zinc-200"
+                       />
+                     </div>
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-xs font-black uppercase text-zinc-500">Cor Secundária</label>
+                     <div className="flex gap-2">
+                       <Input 
+                         type="color" 
+                         className="w-12 h-10 p-1 rounded-lg cursor-pointer"
+                         value={settings.colors.secondary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
+                       />
+                       <Input 
+                         value={settings.colors.secondary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
+                         className="rounded-xl border-zinc-200"
+                       />
+                     </div>
                    </div>
                  </div>
-                 <div className="space-y-2">
-                   <label className="text-xs font-black uppercase text-zinc-500">Cor Secundária</label>
-                   <div className="flex gap-2">
-                     <Input 
-                       type="color" 
-                       className="w-12 h-10 p-1 rounded-lg cursor-pointer"
-                       value={settings.colors.secondary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
-                     />
-                     <Input 
-                       value={settings.colors.secondary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
-                       className="rounded-xl border-zinc-200"
-                     />
+                 <div className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50 space-y-3 shadow-inner">
+                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Preview de Componentes</p>
+                   <div className="flex flex-wrap gap-2">
+                     <div className="px-4 py-2 rounded-xl text-white text-xs font-black uppercase shadow-lg" style={{ backgroundColor: settings.colors.primary }}>Botão Principal</div>
+                     <div className="px-4 py-2 rounded-xl text-zinc-900 text-xs font-black uppercase shadow-sm border border-zinc-200" style={{ backgroundColor: settings.colors.secondary }}>Botão Secundário</div>
                    </div>
                  </div>
-               </div>
-               <div className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50 space-y-3 shadow-inner">
-                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Preview de Componentes</p>
-                 <div className="flex flex-wrap gap-2">
-                   <div className="px-4 py-2 rounded-xl text-white text-xs font-black uppercase shadow-lg" style={{ backgroundColor: settings.colors.primary }}>Botão Principal</div>
-                   <div className="px-4 py-2 rounded-xl text-zinc-900 text-xs font-black uppercase shadow-sm border border-zinc-200" style={{ backgroundColor: settings.colors.secondary }}>Botão Secundário</div>
-                 </div>
-               </div>
-               </CardContent>
-             </Card>
-           </div>
+                 </CardContent>
+              </Card>
+            </div>
           </TabsContent>
- 
-           {/* Efeitos e Prova Social - Moved later to Social Tab */}
-           {/* Wait, I'll just keep it here but wrap it in a temporary tab or just move it now */}
                 <CardTitle className="flex items-center gap-2 text-white">
                   <div className="p-2 bg-yellow-400 rounded-lg text-black">
                     <TrendingUp className="h-5 w-5" />
