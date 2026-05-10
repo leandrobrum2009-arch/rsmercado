@@ -4,12 +4,12 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-    import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard } from 'lucide-react'
+ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
     import { Switch } from '@/components/ui/switch'
-
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  
    const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
  
@@ -93,7 +93,13 @@
          security_key: '',
          enabled: false,
          environment: 'sandbox'
-       }
+        },
+        mercadopago: {
+          public_key: '',
+          access_token: '',
+          enabled: false,
+          environment: 'sandbox'
+        }
     })
    const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -166,6 +172,7 @@
                if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
                 if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
                 if (item.key === 'sipag_config') newSettings.sipag = { ...newSettings.sipag, ...item.value };
+                if (item.key === 'mercadopago_config') newSettings.mercadopago = { ...newSettings.mercadopago, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -344,7 +351,8 @@
             { key: 'admin_whatsapp', value: settings.admin_whatsapp },
              { key: 'social_proof_settings', value: settings.social_proof },
              { key: 'external_notification_config', value: settings.notifications },
-             { key: 'sipag_config', value: settings.sipag }
+             { key: 'sipag_config', value: settings.sipag },
+             { key: 'mercadopago_config', value: settings.mercadopago }
           ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
@@ -365,166 +373,259 @@
  
    if (isLoading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
  
-     return (
-       <div className="space-y-6 pb-20">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           {/* Identidade */}
-           <Card className="border-zinc-200 shadow-sm">
-             <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-               <CardTitle className="flex items-center gap-2 text-zinc-800">
-                 <Globe className="h-5 w-5 text-blue-500" />
-                 Identidade da Loja
-               </CardTitle>
-               <CardDescription>Configure o nome, descrição e marca da sua loja</CardDescription>
-             </CardHeader>
-             <CardContent className="space-y-4 pt-6">
-               <div className="space-y-2">
-                 <label className="text-xs font-black uppercase text-zinc-500">Nome do Site</label>
-                 <Input 
-                   value={settings.site_name}
-                   onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
-                   placeholder="Ex: Supermercado Central"
-                   className="rounded-xl border-zinc-200 focus:ring-primary"
-                 />
-               </div>
-               <div className="space-y-2">
-                 <label className="text-xs font-black uppercase text-zinc-500">Descrição Curta</label>
-                 <Input 
-                   value={settings.store_description}
-                   onChange={(e) => setSettings({ ...settings, store_description: e.target.value })}
-                   placeholder="Ex: O melhor preço da região"
-                   className="rounded-xl border-zinc-200 focus:ring-primary"
-                 />
-               </div>
-                <div className="space-y-4">
+    return (
+      <div className="space-y-6 pb-20">
+        <Tabs defaultValue="geral" className="w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto p-1 bg-zinc-100 rounded-2xl mb-8">
+            <TabsTrigger value="geral" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Settings className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="pagamentos" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <CreditCard className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Pagamentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Share2 className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Social</span>
+            </TabsTrigger>
+            <TabsTrigger value="notificacoes" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Smartphone className="w-4 h-4 mr-2" />
+              <span className="font-bold text-xs uppercase tracking-tighter">Avisos</span>
+            </TabsTrigger>
+          </TabsList>
+  
+          <TabsContent value="geral" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Identidade */}
+              <Card className="border-zinc-200 shadow-sm">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                  <CardTitle className="flex items-center gap-2 text-zinc-800">
+                    <Globe className="h-5 w-5 text-blue-500" />
+                    Identidade da Loja
+                  </CardTitle>
+                  <CardDescription>Configure o nome, descrição e marca da sua loja</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
-                   <div className="space-y-4">
-                     <div className="relative group">
-                       <input
-                         type="file"
-                         accept="image/*"
-                         onChange={handleFileUpload}
-                         className="hidden"
-                         id="logo-upload"
-                          disabled={!!uploading}
-                       />
-                        <div className="flex flex-col md:flex-row gap-4 items-start">
-                          <label 
-                            htmlFor="logo-upload" 
-                            className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
-                          >
-                            {!!uploading ? (
-                              <Loader2 className="h-10 w-10 animate-spin text-green-600" />
-                            ) : settings.logo_url ? (
-                              <div className="flex flex-col items-center">
-                                <img src={settings.logo_url} className="h-16 object-contain mb-2" alt="Logo" />
-                                <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
-                                  <Upload className="h-3 w-3" /> Alterar Arquivo
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="bg-zinc-100 p-4 rounded-2xl shadow-inner group-hover:bg-green-100 transition-colors">
-                                  <Upload className="h-8 w-8 text-zinc-400 group-hover:text-green-600 transition-colors" />
-                                </div>
-                                <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-green-600">
-                                  Clique para Upload
-                                </span>
-                              </div>
-                            )}
-                            <p className="text-[10px] font-bold text-zinc-400 mt-1">PNG ou JPG (Máx 2MB)</p>
-                          </label>
-
-                          <div className="flex-1 w-full space-y-2">
-                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Ou Link Direto</label>
-                            <Input 
-                              value={settings.logo_url}
-                              onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                              placeholder="https://exemplo.com/logo.png"
-                              className="rounded-xl border-zinc-200 focus:ring-primary h-12 bg-white"
-                            />
-                            <p className="text-[9px] text-zinc-400 font-medium italic leading-tight">
-                              Se preferir, cole o link direto da sua logo hospedada em outro local.
-                            </p>
-                          </div>
-                        </div>
-                     </div>
-                     
-                     <div className="flex flex-col gap-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-400">Ou use uma URL externa</label>
-                       <Input 
-                         value={settings.logo_url}
-                         onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                         placeholder="https://exemplo.com/logo.png"
-                         className="rounded-xl border-zinc-200 focus:ring-primary h-12"
-                       />
-                     </div>
-                   </div>
+                    <label className="text-xs font-black uppercase text-zinc-500">Nome do Site</label>
+                    <Input 
+                      value={settings.site_name}
+                      onChange={(e) => setSettings({ ...settings, site_name: e.target.value })}
+                      placeholder="Ex: Supermercado Central"
+                      className="rounded-xl border-zinc-200 focus:ring-primary"
+                    />
                   </div>
-                 {settings.logo_url && (
-                   <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
-                     <img src={settings.logo_url} alt="Logo Preview" className="h-16 object-contain drop-shadow-md" />
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase text-zinc-500">Descrição Curta</label>
+                    <Input 
+                      value={settings.store_description}
+                      onChange={(e) => setSettings({ ...settings, store_description: e.target.value })}
+                      placeholder="Ex: O melhor preço da região"
+                      className="rounded-xl border-zinc-200 focus:ring-primary"
+                    />
+                  </div>
+                   <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase text-zinc-500">Logomarca da Loja</label>
+                      <div className="space-y-4">
+                        <div className="relative group">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            id="logo-upload"
+                             disabled={!!uploading}
+                          />
+                           <div className="flex flex-col md:flex-row gap-4 items-start">
+                             <label 
+                               htmlFor="logo-upload" 
+                               className="flex-1 w-full flex flex-col items-center justify-center gap-2 p-6 border-4 border-dashed border-zinc-200 rounded-3xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all bg-white group"
+                             >
+                               {!!uploading ? (
+                                 <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+                               ) : settings.logo_url ? (
+                                 <div className="flex flex-col items-center">
+                                   <img src={settings.logo_url} className="h-16 object-contain mb-2" alt="Logo" />
+                                   <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase">
+                                     <Upload className="h-3 w-3" /> Alterar Arquivo
+                                   </div>
+                                 </div>
+                               ) : (
+                                 <div className="flex flex-col items-center gap-2">
+                                   <div className="bg-zinc-100 p-4 rounded-2xl shadow-inner group-hover:bg-green-100 transition-colors">
+                                     <Upload className="h-8 w-8 text-zinc-400 group-hover:text-green-600 transition-colors" />
+                                   </div>
+                                   <span className="text-sm font-black uppercase text-zinc-500 group-hover:text-green-600">
+                                     Clique para Upload
+                                   </span>
+                                 </div>
+                               )}
+                               <p className="text-[10px] font-bold text-zinc-400 mt-1">PNG ou JPG (Máx 2MB)</p>
+                             </label>
+   
+                             <div className="flex-1 w-full space-y-2">
+                               <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Ou Link Direto</label>
+                               <Input 
+                                 value={settings.logo_url}
+                                 onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                                 placeholder="https://exemplo.com/logo.png"
+                                 className="rounded-xl border-zinc-200 focus:ring-primary h-12 bg-white"
+                               />
+                               <p className="text-[9px] text-zinc-400 font-medium italic leading-tight">
+                                 Se preferir, cole o link direto da sua logo hospedada em outro local.
+                               </p>
+                             </div>
+                           </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-400">Ou use uma URL externa</label>
+                          <Input 
+                            value={settings.logo_url}
+                            onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                            placeholder="https://exemplo.com/logo.png"
+                            className="rounded-xl border-zinc-200 focus:ring-primary h-12"
+                          />
+                        </div>
+                      </div>
+                     </div>
+                    {settings.logo_url && (
+                      <div className="mt-2 p-4 border rounded-2xl bg-zinc-50 flex justify-center shadow-inner">
+                        <img src={settings.logo_url} alt="Logo Preview" className="h-16 object-contain drop-shadow-md" />
+                      </div>
+                    )}
+                    </div>
+                </CardContent>
+              </Card>
+  
+              <Card className="border-zinc-200 shadow-sm">
+                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
+                  <CardTitle className="flex items-center gap-2 text-zinc-800">
+                    <Palette className="h-5 w-5 text-purple-500" />
+                    Visual e Fidelidade
+                  </CardTitle>
+                  <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-6">
+                  <div className="space-y-2 pb-4 border-b">
+                    <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-3">
+                        <Input 
+                          type="number" 
+                          step="0.1"
+                          value={settings.points_ratio}
+                          onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
+                          placeholder="Ex: 0.5"
+                          className="rounded-xl border-zinc-200 w-24 font-bold"
+                        />
+                        <p className="text-[10px] text-zinc-500 font-bold italic">
+                          Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
+                        </p>
+                      </div>
+                      <p className="text-[9px] text-zinc-400 font-medium">
+                        Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
+                      </p>
+                    </div>
+                  </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
+                     <div className="flex gap-2">
+                       <Input 
+                         type="color" 
+                         className="w-12 h-10 p-1 rounded-lg cursor-pointer"
+                         value={settings.colors.primary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
+                       />
+                       <Input 
+                         value={settings.colors.primary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
+                         className="rounded-xl border-zinc-200"
+                       />
+                     </div>
                    </div>
-                 )}
+                   <div className="space-y-2">
+                     <label className="text-xs font-black uppercase text-zinc-500">Cor Secundária</label>
+                     <div className="flex gap-2">
+                       <Input 
+                         type="color" 
+                         className="w-12 h-10 p-1 rounded-lg cursor-pointer"
+                         value={settings.colors.secondary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
+                       />
+                       <Input 
+                         value={settings.colors.secondary}
+                         onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
+                         className="rounded-xl border-zinc-200"
+                       />
+                     </div>
+                   </div>
                  </div>
-               </CardContent>
-             </Card>
- 
+                 <div className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50 space-y-3 shadow-inner">
+                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Preview de Componentes</p>
+                   <div className="flex flex-wrap gap-2">
+                     <div className="px-4 py-2 rounded-xl text-white text-xs font-black uppercase shadow-lg" style={{ backgroundColor: settings.colors.primary }}>Botão Principal</div>
+                     <div className="px-4 py-2 rounded-xl text-zinc-900 text-xs font-black uppercase shadow-sm border border-zinc-200" style={{ backgroundColor: settings.colors.secondary }}>Botão Secundário</div>
+                   </div>
+                 </div>
+                 </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+         <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              {/* Integração SIPAG */}
-             <Card className="border-zinc-200 shadow-sm md:col-span-2">
+             <Card className="border-zinc-200 shadow-sm">
                <CardHeader className="bg-zinc-100 border-b border-zinc-200 rounded-t-xl">
                  <CardTitle className="flex items-center gap-2 text-zinc-800">
                    <CreditCard className="h-5 w-5 text-blue-600" />
                    Integração Sipag (Sicoob)
                  </CardTitle>
-                 <CardDescription>Configure as credenciais para recebimento via cartão de crédito e débito</CardDescription>
+                 <CardDescription>Configure as credenciais para recebimento via cartão</CardDescription>
                </CardHeader>
                <CardContent className="p-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-6">
-                     <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                         <div className="p-1.5 bg-blue-600 rounded-lg">
-                           <Zap className="h-4 w-4 text-white" />
-                         </div>
-                         <div>
-                           <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
-                           <p className="text-[10px] font-bold text-zinc-400 uppercase">Habilitar pagamentos via Sipag</p>
-                         </div>
+                 <div className="space-y-6">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                       <div className="p-1.5 bg-blue-600 rounded-lg">
+                         <Zap className="h-4 w-4 text-white" />
                        </div>
-                       <Switch 
-                         checked={settings.sipag?.enabled} 
-                         onCheckedChange={(val) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, enabled: val }
-                         })} 
-                       />
-                     </div>
- 
-                     <div className="space-y-4">
-                       <div className="space-y-2">
-                         <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
-                         <Select 
-                           value={settings.sipag?.environment} 
-                           onValueChange={(val) => setSettings({
-                             ...settings, 
-                             sipag: { ...settings.sipag, environment: val }
-                           })}
-                         >
-                           <SelectTrigger className="rounded-xl">
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
-                             <SelectItem value="production">Produção (Real)</SelectItem>
-                           </SelectContent>
-                         </Select>
+                       <div>
+                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
+                         <p className="text-[10px] font-bold text-zinc-400 uppercase">Habilitar Sipag</p>
                        </div>
                      </div>
+                     <Switch 
+                       checked={settings.sipag?.enabled} 
+                       onCheckedChange={(val) => setSettings({
+                         ...settings, 
+                         sipag: { ...settings.sipag, enabled: val }
+                       })} 
+                     />
                    </div>
  
                    <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
+                       <Select 
+                         value={settings.sipag?.environment} 
+                         onValueChange={(val) => setSettings({
+                           ...settings, 
+                           sipag: { ...settings.sipag, environment: val }
+                         })}
+                       >
+                         <SelectTrigger className="rounded-xl">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
+                           <SelectItem value="production">Produção (Real)</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
                      <div className="space-y-2">
                        <label className="text-[10px] font-black uppercase text-zinc-500">Merchant ID</label>
                        <Input 
@@ -538,7 +639,7 @@
                        />
                      </div>
                      <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Chave de Segurança (Client Secret)</label>
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Chave de Segurança</label>
                        <Input 
                          type="password"
                          value={settings.sipag?.security_key}
@@ -554,82 +655,90 @@
                  </div>
                </CardContent>
              </Card>
-   
-            {/* Cores e Fidelidade */}
-            <Card className="border-zinc-200 shadow-sm">
-              <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-zinc-800">
-                  <Palette className="h-5 w-5 text-purple-500" />
-                  Visual e Fidelidade
-                </CardTitle>
-                <CardDescription>Personalize o visual e as regras de pontos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-                <div className="space-y-2 pb-4 border-b">
-                  <label className="text-xs font-black uppercase text-zinc-500">Programa de Pontos (Pontos por R$ 1,00)</label>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-3">
-                      <Input 
-                        type="number" 
-                        step="0.1"
-                        value={settings.points_ratio}
-                        onChange={(e) => setSettings({ ...settings, points_ratio: e.target.value })}
-                        placeholder="Ex: 0.5"
-                        className="rounded-xl border-zinc-200 w-24 font-bold"
-                      />
-                      <p className="text-[10px] text-zinc-500 font-bold italic">
-                        Cada R$ 1,00 gasto gera {settings.points_ratio || 0} pontos.
-                      </p>
-                    </div>
-                    <p className="text-[9px] text-zinc-400 font-medium">
-                      Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
-                    </p>
-                  </div>
-                </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
-                   <div className="flex gap-2">
-                     <Input 
-                       type="color" 
-                       className="w-12 h-10 p-1 rounded-lg cursor-pointer"
-                       value={settings.colors.primary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
-                     />
-                     <Input 
-                       value={settings.colors.primary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, primary: e.target.value } })}
-                       className="rounded-xl border-zinc-200"
-                     />
-                   </div>
-                 </div>
-                 <div className="space-y-2">
-                   <label className="text-xs font-black uppercase text-zinc-500">Cor Secundária</label>
-                   <div className="flex gap-2">
-                     <Input 
-                       type="color" 
-                       className="w-12 h-10 p-1 rounded-lg cursor-pointer"
-                       value={settings.colors.secondary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
-                     />
-                     <Input 
-                       value={settings.colors.secondary}
-                       onChange={(e) => setSettings({ ...settings, colors: { ...settings.colors, secondary: e.target.value } })}
-                       className="rounded-xl border-zinc-200"
-                     />
-                   </div>
-                 </div>
-               </div>
-               <div className="p-4 rounded-2xl border border-zinc-100 bg-zinc-50 space-y-3 shadow-inner">
-                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Preview de Componentes</p>
-                 <div className="flex flex-wrap gap-2">
-                   <div className="px-4 py-2 rounded-xl text-white text-xs font-black uppercase shadow-lg" style={{ backgroundColor: settings.colors.primary }}>Botão Principal</div>
-                   <div className="px-4 py-2 rounded-xl text-zinc-900 text-xs font-black uppercase shadow-sm border border-zinc-200" style={{ backgroundColor: settings.colors.secondary }}>Botão Secundário</div>
-                 </div>
-               </div>
-             </CardContent>
-           </Card>
  
+             {/* Integração Mercado Pago */}
+             <Card className="border-zinc-200 shadow-sm">
+               <CardHeader className="bg-blue-600 text-white border-b border-blue-700 rounded-t-xl">
+                 <CardTitle className="flex items-center gap-2">
+                   <Wallet className="h-5 w-5" />
+                   Mercado Pago (Checkout Pro)
+                 </CardTitle>
+                 <CardDescription className="text-blue-100">Pix, Cartão e Boleto com baixa automática</CardDescription>
+               </CardHeader>
+               <CardContent className="p-6">
+                 <div className="space-y-6">
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                       <div className="p-1.5 bg-white/20 rounded-lg">
+                         <Zap className="h-4 w-4 text-white" />
+                       </div>
+                       <div>
+                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
+                         <p className="text-[10px] font-bold text-blue-100 uppercase">Habilitar Mercado Pago</p>
+                       </div>
+                     </div>
+                     <Switch 
+                       checked={settings.mercadopago?.enabled} 
+                       onCheckedChange={(val) => setSettings({
+                         ...settings, 
+                         mercadopago: { ...settings.mercadopago, enabled: val }
+                       })} 
+                     />
+                   </div>
+ 
+                   <div className="space-y-4">
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
+                       <Select 
+                         value={settings.mercadopago?.environment} 
+                         onValueChange={(val) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, environment: val }
+                         })}
+                       >
+                         <SelectTrigger className="rounded-xl">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
+                           <SelectItem value="production">Produção (Real)</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Public Key</label>
+                       <Input 
+                         value={settings.mercadopago?.public_key}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, public_key: e.target.value }
+                         })}
+                         placeholder="APP_USR-..."
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-500">Access Token</label>
+                       <Input 
+                         type="password"
+                         value={settings.mercadopago?.access_token}
+                         onChange={(e) => setSettings({
+                           ...settings, 
+                           mercadopago: { ...settings.mercadopago, access_token: e.target.value }
+                         })}
+                         placeholder="APP_USR-..."
+                         className="rounded-xl h-10"
+                       />
+                     </div>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
+           </div>
+         </TabsContent>
+ 
+        <TabsContent value="social" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+          <div className="space-y-6">
             {/* Efeitos e Prova Social */}
             <Card className="border-zinc-200 shadow-sm md:col-span-2 overflow-hidden">
               <CardHeader className="bg-zinc-900 border-b border-zinc-800">
@@ -1004,9 +1113,11 @@
                       </div>
                     </div>
                   </div>
-              </CardContent>
-            </Card>
-             {/* Contato e Endereço */}
+
+                </CardContent>
+              </Card>
+
+ 
              <Card className="border-zinc-200 shadow-sm md:col-span-2">
                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 rounded-t-xl">
                <CardTitle className="flex items-center gap-2 text-zinc-800">
@@ -1233,8 +1344,15 @@
               </CardContent>
             </Card>
 
-            {/* Notificações (SMS e Ligações) */}
-            <Card className="border-zinc-200 shadow-sm md:col-span-2">
+
+
+
+          </div>
+        <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-left-4 duration-300">
+        </TabsContent>
+
+
+             <Card className="border-zinc-200 shadow-sm">
               <CardHeader className="bg-zinc-900 text-white border-b border-zinc-100 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2">
                   <Smartphone className="h-5 w-5 text-primary" />
@@ -1402,8 +1520,9 @@
                 </div>
               </CardContent>
             </Card>
-          </div>
-   
+          </TabsContent>
+        </Tabs>
+
          <div className="flex justify-end sticky bottom-4 z-10">
            <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full md:w-auto rounded-2xl shadow-xl shadow-primary/20 font-black uppercase tracking-tighter">
              {isSaving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2 h-5 w-5" />}
