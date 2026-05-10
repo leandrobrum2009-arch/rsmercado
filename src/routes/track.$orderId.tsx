@@ -99,6 +99,7 @@ import { Badge } from '@/components/ui/badge'
     const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
     const [loadingQr, setLoadingQr] = useState(false)
     const [pixPayload, setPixPayload] = useState<string>('')
+    const [pixKey, setPixKey] = useState<string>('')
   
     useEffect(() => {
       const fetchPixConfig = async () => {
@@ -112,6 +113,7 @@ import { Badge } from '@/components/ui/badge'
               .maybeSingle()
             
             const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
+            setPixKey(config.key)
             
             const payload = generatePixPayload(
               config.key,
@@ -349,16 +351,42 @@ import { Badge } from '@/components/ui/badge'
                           <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
                         </div>
                         
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest block text-center">Ou use o Código Copia e Cola</label>
-                          <Button 
-                            variant="outline" 
-                            className={`w-full h-14 rounded-2xl border-2 border-dashed font-bold flex items-center justify-between px-6 transition-all ${copied ? 'border-green-500 bg-green-50 text-green-700' : 'border-zinc-200 hover:bg-zinc-50'}`}
-                            onClick={handleCopyKey}
-                          >
-                            <span className="text-xs truncate mr-4 font-mono">{pixPayload || 'Gerando código...'}</span>
-                            {copied ? <Check size={18} className="text-green-600 shrink-0" /> : <Copy size={18} className="text-zinc-400 shrink-0" />}
-                          </Button>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest block text-center">Código Copia e Cola</label>
+                            <Button 
+                              variant="outline" 
+                              className={`w-full h-14 rounded-2xl border-2 border-dashed font-bold flex items-center justify-between px-6 transition-all ${copied ? 'border-green-500 bg-green-50 text-green-700' : 'border-zinc-200 hover:bg-zinc-50'}`}
+                              onClick={handleCopyKey}
+                            >
+                              <span className="text-xs truncate mr-4 font-mono">{pixPayload || 'Gerando código...'}</span>
+                              {copied ? <Check size={18} className="text-green-600 shrink-0" /> : <Copy size={18} className="text-zinc-400 shrink-0" />}
+                            </Button>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                            <span className="text-[8px] font-black uppercase text-zinc-300">Ou use a Chave</span>
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                          </div>
+
+                          <div className="flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black uppercase text-zinc-400">Chave PIX</span>
+                              <span className="text-xs font-bold text-zinc-600">{pixKey}</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 text-[10px] font-black uppercase"
+                              onClick={() => {
+                                navigator.clipboard.writeText(pixKey)
+                                toast.success("Chave PIX copiada!")
+                              }}
+                            >
+                              Copiar
+                            </Button>
+                          </div>
                         </div>
 
                          <div className="mt-8 pt-8 border-t border-zinc-100 space-y-4">
