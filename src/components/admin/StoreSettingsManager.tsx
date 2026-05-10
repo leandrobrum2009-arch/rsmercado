@@ -1342,7 +1342,7 @@
               </CardContent>
             </Card>
 
-
+          </div>
 
 
         </TabsContent>
@@ -1516,8 +1516,8 @@
                 </div>
               </CardContent>
             </Card>
-           </TabsContent>
-         </Tabs>
+          </TabsContent>
+        </Tabs>
 
          <div className="flex justify-end sticky bottom-4 z-10">
            <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full md:w-auto rounded-2xl shadow-xl shadow-primary/20 font-black uppercase tracking-tighter">
