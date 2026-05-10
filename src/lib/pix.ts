@@ -57,7 +57,7 @@
          let bit = ((b >> (7 - j) & 1) === 1);
          let c15 = ((crc >> 15 & 1) === 1);
          crc <<= 1;
-         if (c15 ^ bit) crc ^= polynomial;
+         if (c15 !== bit) crc ^= polynomial;
        }
      }
  
