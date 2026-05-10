@@ -7,12 +7,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
-    // Mercado Pago sends the type and data.id in the query params or body
-    const url = new URL(req.url)
-    const type = url.searchParams.get('type') || (await req.json()).type
-    const id = url.searchParams.get('data.id') || (await req.json()).data?.id
-
-    if (type === 'payment' && id) {
+     // Mercado Pago sends the type and data.id in the query params or body
+     const url = new URL(req.url)
+     let type = url.searchParams.get('type')
+     let id = url.searchParams.get('data.id')
+ 
+     if (!type || !id) {
+       try {
+         const body = await req.json()
+         type = type || body.type || body.topic
+         id = id || body.data?.id || body.resource?.split('/').pop()
+       } catch (e) {
+         // Not JSON or empty body
+       }
+     }
+ 
+     console.log(`Webhook received: type=${type}, id=${id}`)
+ 
+     if ((type === 'payment' || type === 'payment.updated') && id) {
       // 1. Fetch payment details from MP
       const { data: configData } = await supabaseClient
         .from('store_settings')
