@@ -20,7 +20,8 @@
    };
  
  export function StoreSettingsManager() {
-   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercadopago-webhook`;
+    const mpWebhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercadopago-webhook`;
+    const sipagWebhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sipag-webhook`;
  
    const copyToClipboard = (text: string) => {
      navigator.clipboard.writeText(text);
@@ -582,202 +583,254 @@
               </Card>
             </div>
           </TabsContent>
-         <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {/* Integração SIPAG */}
-             <Card className="border-zinc-200 shadow-sm">
-               <CardHeader className="bg-zinc-100 border-b border-zinc-200 rounded-t-xl">
-                 <CardTitle className="flex items-center gap-2 text-zinc-800">
-                   <CreditCard className="h-5 w-5 text-blue-600" />
-                   Integração Sipag (Sicoob)
-                 </CardTitle>
-                 <CardDescription>Configure as credenciais para recebimento via cartão</CardDescription>
-               </CardHeader>
-               <CardContent className="p-6">
-                 <div className="space-y-6">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                       <div className="p-1.5 bg-blue-600 rounded-lg">
-                         <Zap className="h-4 w-4 text-white" />
-                       </div>
-                       <div>
-                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
-                         <p className="text-[10px] font-bold text-zinc-400 uppercase">Habilitar Sipag</p>
-                       </div>
-                     </div>
-                     <Switch 
-                       checked={settings.sipag?.enabled} 
-                       onCheckedChange={(val) => setSettings({
-                         ...settings, 
-                         sipag: { ...settings.sipag, enabled: val }
-                       })} 
-                     />
-                   </div>
- 
-                   <div className="space-y-4">
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
-                       <Select 
-                         value={settings.sipag?.environment} 
-                         onValueChange={(val) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, environment: val }
-                         })}
-                       >
-                         <SelectTrigger className="rounded-xl">
-                           <SelectValue />
-                         </SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
-                           <SelectItem value="production">Produção (Real)</SelectItem>
-                         </SelectContent>
-                       </Select>
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Merchant ID</label>
-                       <Input 
-                         value={settings.sipag?.merchant_id}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, merchant_id: e.target.value }
-                         })}
-                         placeholder="Fornecido pelo Sicoob"
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Chave de Segurança</label>
-                       <Input 
-                         type="password"
-                         value={settings.sipag?.security_key}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           sipag: { ...settings.sipag, security_key: e.target.value }
-                         })}
-                         placeholder="Sua chave secreta da Sipag"
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                   </div>
-                 </div>
-               </CardContent>
-             </Card>
- 
-             {/* Integração Mercado Pago */}
-             <Card className="border-zinc-200 shadow-sm">
-               <CardHeader className="bg-blue-600 text-white border-b border-blue-700 rounded-t-xl">
-                 <CardTitle className="flex items-center gap-2">
-                   <Wallet className="h-5 w-5" />
-                   Mercado Pago (Checkout Pro)
-                 </CardTitle>
-                 <CardDescription className="text-blue-100">Pix, Cartão e Boleto com baixa automática</CardDescription>
-               </CardHeader>
-               <CardContent className="p-6">
-                 <div className="space-y-6">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-2">
-                       <div className="p-1.5 bg-white/20 rounded-lg">
-                         <Zap className="h-4 w-4 text-white" />
-                       </div>
-                       <div>
-                         <p className="text-sm font-black uppercase italic tracking-tighter">Status do Módulo</p>
-                         <p className="text-[10px] font-bold text-blue-100 uppercase">Habilitar Mercado Pago</p>
-                       </div>
-                     </div>
-                     <Switch 
-                       checked={settings.mercadopago?.enabled} 
-                       onCheckedChange={(val) => setSettings({
-                         ...settings, 
-                         mercadopago: { ...settings.mercadopago, enabled: val }
-                       })} 
-                     />
-                   </div>
- 
-                   <div className="space-y-4">
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
-                       <Select 
-                         value={settings.mercadopago?.environment} 
-                         onValueChange={(val) => setSettings({
-                           ...settings, 
-                           mercadopago: { ...settings.mercadopago, environment: val }
-                         })}
-                       >
-                         <SelectTrigger className="rounded-xl">
-                           <SelectValue />
-                         </SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
-                           <SelectItem value="production">Produção (Real)</SelectItem>
-                         </SelectContent>
-                       </Select>
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Public Key</label>
-                       <Input 
-                         value={settings.mercadopago?.public_key}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           mercadopago: { ...settings.mercadopago, public_key: e.target.value }
-                         })}
-                         placeholder="APP_USR-..."
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-zinc-500">Access Token</label>
-                       <Input 
-                         type="password"
-                         value={settings.mercadopago?.access_token}
-                         onChange={(e) => setSettings({
-                           ...settings, 
-                           mercadopago: { ...settings.mercadopago, access_token: e.target.value }
-                         })}
-                         placeholder="APP_USR-..."
-                         className="rounded-xl h-10"
-                       />
-                     </div>
-                   </div>
- 
-                   <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-3">
-                     <div className="flex items-center gap-2 text-blue-800">
-                       <Info size={16} className="shrink-0" />
-                       <p className="text-xs font-bold uppercase tracking-tight">Ativar Baixa Automática (Webhook)</p>
-                     </div>
-                     <p className="text-[10px] text-blue-600 leading-relaxed">
-                       Para que os pedidos sejam aprovados automaticamente após o pagamento, configure o URL abaixo no painel do Mercado Pago (Notificações IPN/Webhook):
-                     </p>
-                     <div className="flex gap-2">
-                       <Input 
-                         readOnly 
-                         value={webhookUrl}
-                         className="h-8 text-[10px] bg-white/50 border-blue-200 font-mono"
-                       />
-                       <Button 
-                         variant="outline" 
-                         size="icon" 
-                         className="h-8 w-8 shrink-0 bg-white"
-                         onClick={() => copyToClipboard(webhookUrl)}
-                       >
-                         <Copy size={14} className="text-blue-600" />
-                       </Button>
-                     </div>
-                     <div className="flex items-center gap-2 pt-1">
-                       <a 
-                         href="https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/notifications/webhooks" 
-                         target="_blank" 
-                         rel="noopener noreferrer"
-                         className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1 hover:underline"
-                       >
-                         Ver tutorial no Mercado Pago <ExternalLink size={10} />
-                       </a>
-                     </div>
-                   </div>
-                 </div>
-               </CardContent>
-             </Card>
-           </div>
-         </TabsContent>
+          <TabsContent value="pagamentos" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+            <Tabs defaultValue="mercadopago" className="w-full">
+              <TabsList className="flex w-full md:w-auto h-auto p-1 bg-zinc-100 rounded-xl mb-6">
+                <TabsTrigger value="mercadopago" className="flex-1 md:flex-none rounded-lg py-2 text-[10px] font-black uppercase tracking-tighter data-[state=active]:bg-white">
+                  <Wallet className="w-3 h-3 mr-2" />
+                  Mercado Pago
+                </TabsTrigger>
+                <TabsTrigger value="sipag" className="flex-1 md:flex-none rounded-lg py-2 text-[10px] font-black uppercase tracking-tighter data-[state=active]:bg-white">
+                  <CreditCard className="w-3 h-3 mr-2" />
+                  Sipag (Sicoob)
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="sipag" className="space-y-6">
+                <Card className="border-zinc-200 shadow-sm">
+                  <CardHeader className="bg-zinc-100 border-b border-zinc-200 rounded-t-xl">
+                    <CardTitle className="flex items-center gap-2 text-zinc-800 text-base">
+                      <CreditCard className="h-5 w-5 text-blue-600" />
+                      Configuração Sipag (Sicoob)
+                    </CardTitle>
+                    <CardDescription>Receba pagamentos via cartão de crédito com baixa automática</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl ${settings.sipag?.enabled ? 'bg-blue-600 text-white' : 'bg-zinc-200 text-zinc-400'}`}>
+                              <Zap className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-tighter">Status do Módulo</p>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase">{settings.sipag?.enabled ? 'Ativo e Operante' : 'Módulo Desativado'}</p>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={settings.sipag?.enabled} 
+                            onCheckedChange={(val) => setSettings({
+                              ...settings, 
+                              sipag: { ...settings.sipag, enabled: val }
+                            })} 
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente de Operação</label>
+                            <Select 
+                              value={settings.sipag?.environment} 
+                              onValueChange={(val) => setSettings({
+                                ...settings, 
+                                sipag: { ...settings.sipag, environment: val }
+                              })}
+                            >
+                              <SelectTrigger className="rounded-xl border-zinc-200 h-11">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sandbox">Homologação (Teste)</SelectItem>
+                                <SelectItem value="production">Produção (Real)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Merchant ID</label>
+                            <Input 
+                              value={settings.sipag?.merchant_id}
+                              onChange={(e) => setSettings({
+                                ...settings, 
+                                sipag: { ...settings.sipag, merchant_id: e.target.value }
+                              })}
+                              placeholder="Ex: 00000000-0000-0000-0000-000000000000"
+                              className="rounded-xl h-11 border-zinc-200"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Merchant Key (Security Key)</label>
+                            <Input 
+                              type="password"
+                              value={settings.sipag?.security_key}
+                              onChange={(e) => setSettings({
+                                ...settings, 
+                                sipag: { ...settings.sipag, security_key: e.target.value }
+                              })}
+                              placeholder="Sua chave secreta"
+                              className="rounded-xl h-11 border-zinc-200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="p-5 bg-blue-50 border border-blue-100 rounded-2xl space-y-4">
+                          <div className="flex items-center gap-2 text-blue-800">
+                            <Zap size={18} className="shrink-0 fill-blue-800/20" />
+                            <p className="text-xs font-black uppercase tracking-tight">Baixa Automática (Webhook Sipag)</p>
+                          </div>
+                          <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
+                            Para que os pedidos pagos via Sipag sejam liberados automaticamente, configure a URL abaixo no seu painel do Sicoob/Sipag em <span className="font-bold">Configurações de Notificação</span>:
+                          </p>
+                          <div className="flex gap-2">
+                            <Input 
+                              readOnly 
+                              value={sipagWebhookUrl}
+                              className="h-10 text-[10px] bg-white border-blue-200 font-mono shadow-inner"
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-10 w-10 shrink-0 bg-white border-blue-200 hover:bg-blue-50"
+                              onClick={() => copyToClipboard(sipagWebhookUrl)}
+                            >
+                              <Copy size={16} className="text-blue-600" />
+                            </Button>
+                          </div>
+                          <div className="flex items-start gap-2 p-3 bg-white/50 rounded-xl border border-blue-100/50">
+                            <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-blue-600 italic">
+                              Este webhook processa notificações de alteração de status enviadas pelo Sicoob em tempo real.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="mercadopago" className="space-y-6">
+                <Card className="border-zinc-200 shadow-sm overflow-hidden">
+                  <CardHeader className="bg-[#009ee3] text-white border-b border-[#0081ba]">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Wallet className="h-5 w-5" />
+                      Mercado Pago (Checkout Pro)
+                    </CardTitle>
+                    <CardDescription className="text-blue-50">Pix, Cartão e Boleto com baixa automática</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl ${settings.mercadopago?.enabled ? 'bg-[#009ee3] text-white' : 'bg-zinc-200 text-zinc-400'}`}>
+                              <Zap className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black uppercase tracking-tighter">Status do Módulo</p>
+                              <p className="text-[10px] font-bold text-zinc-400 uppercase">{settings.mercadopago?.enabled ? 'Ativo e Operante' : 'Módulo Desativado'}</p>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={settings.mercadopago?.enabled} 
+                            onCheckedChange={(val) => setSettings({
+                              ...settings, 
+                              mercadopago: { ...settings.mercadopago, enabled: val }
+                            })} 
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Ambiente</label>
+                            <Select 
+                              value={settings.mercadopago?.environment} 
+                              onValueChange={(val) => setSettings({
+                                ...settings, 
+                                mercadopago: { ...settings.mercadopago, environment: val }
+                              })}
+                            >
+                              <SelectTrigger className="rounded-xl border-zinc-200 h-11">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
+                                <SelectItem value="production">Produção (Real)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Public Key</label>
+                            <Input 
+                              value={settings.mercadopago?.public_key}
+                              onChange={(e) => setSettings({
+                                ...settings, 
+                                mercadopago: { ...settings.mercadopago, public_key: e.target.value }
+                              })}
+                              placeholder="APP_USR-..."
+                              className="rounded-xl h-11 border-zinc-200"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Access Token</label>
+                            <Input 
+                              type="password"
+                              value={settings.mercadopago?.access_token}
+                              onChange={(e) => setSettings({
+                                ...settings, 
+                                mercadopago: { ...settings.mercadopago, access_token: e.target.value }
+                              })}
+                              placeholder="APP_USR-..."
+                              className="rounded-xl h-11 border-zinc-200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="p-5 bg-blue-50 border border-blue-100 rounded-2xl space-y-4">
+                          <div className="flex items-center gap-2 text-[#0070a1]">
+                            <Zap size={18} className="shrink-0 fill-[#0070a1]/20" />
+                            <p className="text-xs font-black uppercase tracking-tight">Configurar Notificações (Webhooks)</p>
+                          </div>
+                          <p className="text-[11px] text-blue-700 leading-relaxed font-medium">
+                            Para que os pedidos sejam aprovados automaticamente, configure o URL abaixo no painel do Mercado Pago em <span className="font-bold">Notificações Webhooks</span>:
+                          </p>
+                          <div className="flex gap-2">
+                            <Input 
+                              readOnly 
+                              value={mpWebhookUrl}
+                              className="h-10 text-[10px] bg-white border-blue-200 font-mono shadow-inner"
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-10 w-10 shrink-0 bg-white border-blue-200 hover:bg-blue-50"
+                              onClick={() => copyToClipboard(mpWebhookUrl)}
+                            >
+                              <Copy size={16} className="text-[#009ee3]" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2">
+                            <a 
+                              href="https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/notifications/webhooks" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-black uppercase text-[#009ee3] flex items-center gap-1.5 hover:underline bg-white px-3 py-2 rounded-lg border border-blue-100 shadow-sm"
+                            >
+                              Abrir documentação <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
  
         <TabsContent value="social" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
           <div className="space-y-6">
