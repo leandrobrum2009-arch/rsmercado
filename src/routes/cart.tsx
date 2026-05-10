@@ -65,7 +65,8 @@ function CartPage() {
     const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
    const [loyaltySettings, setLoyaltySettings] = useState<any>(null);
-   const [sipagEnabled, setSipagEnabled] = useState(false);
+    const [sipagEnabled, setSipagEnabled] = useState(false);
+    const [mercadoPagoEnabled, setMercadoPagoEnabled] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [isValidDeliveryArea, setIsValidDeliveryArea] = useState<boolean | null>(null);
   const navigate = useNavigate();
@@ -103,10 +104,14 @@ function CartPage() {
         if (pointsData && pointsData.value) {
           setLoyaltySettings(pointsData.value);
         }
-        const { data: sipagData } = await supabase.from('store_settings').select('value').eq('key', 'sipag_config').maybeSingle();
-        if (sipagData && sipagData.value) {
-          setSipagEnabled(sipagData.value.enabled);
-        }
+         const { data: sipagData } = await supabase.from('store_settings').select('value').eq('key', 'sipag_config').maybeSingle();
+         if (sipagData && sipagData.value) {
+           setSipagEnabled(sipagData.value.enabled);
+         }
+         const { data: mercadoPagoData } = await supabase.from('store_settings').select('value').eq('key', 'mercadopago_config').maybeSingle();
+         if (mercadoPagoData && mercadoPagoData.value) {
+           setMercadoPagoEnabled(mercadoPagoData.value.enabled);
+         }
       };
 
      const fetchData = async () => {
@@ -515,8 +520,9 @@ function CartPage() {
           <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider px-2">Forma de Pagamento</h3>
           <div className="grid grid-cols-1 gap-2">
             {[
-              { id: 'pix', label: 'PIX (Automático)', icon: QrCode },
-              ...(sipagEnabled ? [{ id: 'sipag', label: 'Cartão (SIPAG)', icon: CreditCard }] : []),
+               { id: 'pix', label: 'PIX (Automático)', icon: QrCode },
+               ...(sipagEnabled ? [{ id: 'sipag', label: 'Cartão (SIPAG)', icon: CreditCard }] : []),
+               ...(mercadoPagoEnabled ? [{ id: 'mercadopago', label: 'Mercado Pago (Cartão/PIX)', icon: Wallet }] : []),
               { id: 'money', label: 'Dinheiro na Entrega', icon: Banknote },
             ].map((method) => (
               <div key={method.id} className="space-y-2">
