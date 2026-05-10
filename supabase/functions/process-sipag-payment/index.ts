@@ -58,7 +58,10 @@ serve(async (req) => {
       ? 'https://apisandbox.sipag.com.br' 
       : 'https://api.sipag.com.br'
 
-    // 3. Prepare Sipag Payload
+    // 3. Prepare Webhook URL
+    const webhookUrl = `${supabaseUrl}/functions/v1/sipag-webhook`
+
+    // 4. Prepare Sipag Payload
     const amountInCents = Math.round(order.total_amount * 100)
     
     const cardNumber = cardData.number.replace(/\s/g, '')
@@ -75,6 +78,7 @@ serve(async (req) => {
         "Type": "CreditCard",
         "Amount": amountInCents,
         "Installments": 1,
+        "NotificationUrl": webhookUrl,
         "CreditCard": {
           "CardNumber": cardNumber,
           "Holder": cardData.name,
