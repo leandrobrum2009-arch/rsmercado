@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet } from 'lucide-react'
+ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet, Copy, ExternalLink, Info } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,13 @@
    };
  
  export function StoreSettingsManager() {
+   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mercadopago-webhook`;
+ 
+   const copyToClipboard = (text: string) => {
+     navigator.clipboard.writeText(text);
+     toast.success('Copiado para a área de transferência!');
+   };
+ 
     const [settings, setSettings] = useState<any>({
       site_name: '',
       logo_url: '',
@@ -729,6 +736,41 @@
                          placeholder="APP_USR-..."
                          className="rounded-xl h-10"
                        />
+                     </div>
+                   </div>
+ 
+                   <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl space-y-3">
+                     <div className="flex items-center gap-2 text-blue-800">
+                       <Info size={16} className="shrink-0" />
+                       <p className="text-xs font-bold uppercase tracking-tight">Ativar Baixa Automática (Webhook)</p>
+                     </div>
+                     <p className="text-[10px] text-blue-600 leading-relaxed">
+                       Para que os pedidos sejam aprovados automaticamente após o pagamento, configure o URL abaixo no painel do Mercado Pago (Notificações IPN/Webhook):
+                     </p>
+                     <div className="flex gap-2">
+                       <Input 
+                         readOnly 
+                         value={webhookUrl}
+                         className="h-8 text-[10px] bg-white/50 border-blue-200 font-mono"
+                       />
+                       <Button 
+                         variant="outline" 
+                         size="icon" 
+                         className="h-8 w-8 shrink-0 bg-white"
+                         onClick={() => copyToClipboard(webhookUrl)}
+                       >
+                         <Copy size={14} className="text-blue-600" />
+                       </Button>
+                     </div>
+                     <div className="flex items-center gap-2 pt-1">
+                       <a 
+                         href="https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/notifications/webhooks" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1 hover:underline"
+                       >
+                         Ver tutorial no Mercado Pago <ExternalLink size={10} />
+                       </a>
                      </div>
                    </div>
                  </div>
