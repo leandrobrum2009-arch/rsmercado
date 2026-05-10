@@ -4,7 +4,7 @@
  import { Input } from '@/components/ui/input'
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet, Copy, ExternalLink, Info } from 'lucide-react'
+ import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet, Copy, ExternalLink, Info, QrCode } from 'lucide-react'
  import { toast } from '@/lib/toast'
  
     import { Badge } from '@/components/ui/badge'
@@ -102,12 +102,18 @@
          enabled: false,
          environment: 'sandbox'
         },
-        mercadopago: {
-          public_key: '',
-          access_token: '',
-          enabled: false,
-          environment: 'sandbox'
-        }
+         mercadopago: {
+           public_key: '',
+           access_token: '',
+           enabled: false,
+           environment: 'sandbox'
+         },
+         pix: {
+           key: '',
+           merchant_name: '',
+           merchant_city: '',
+           enabled: false
+         }
     })
    const [isLoading, setIsLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
@@ -180,7 +186,8 @@
                if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
                 if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
                 if (item.key === 'sipag_config') newSettings.sipag = { ...newSettings.sipag, ...item.value };
-                if (item.key === 'mercadopago_config') newSettings.mercadopago = { ...newSettings.mercadopago, ...item.value };
+                 if (item.key === 'mercadopago_config') newSettings.mercadopago = { ...newSettings.mercadopago, ...item.value };
+                 if (item.key === 'pix_config') newSettings.pix = { ...newSettings.pix, ...item.value };
             });
          setSettings(newSettings);
        }
@@ -360,7 +367,8 @@
              { key: 'social_proof_settings', value: settings.social_proof },
              { key: 'external_notification_config', value: settings.notifications },
              { key: 'sipag_config', value: settings.sipag },
-             { key: 'mercadopago_config', value: settings.mercadopago }
+              { key: 'mercadopago_config', value: settings.mercadopago },
+              { key: 'pix_config', value: settings.pix }
           ];
        const { error } = await supabase.from('store_settings').upsert(updates, { onConflict: 'key' });
        
@@ -590,10 +598,103 @@
                   <Wallet className="w-3 h-3 mr-2" />
                   Mercado Pago
                 </TabsTrigger>
-                <TabsTrigger value="sipag" className="flex-1 md:flex-none rounded-lg py-2 text-[10px] font-black uppercase tracking-tighter data-[state=active]:bg-white">
-                  <CreditCard className="w-3 h-3 mr-2" />
-                  Sipag (Sicoob)
-                </TabsTrigger>
+               <TabsTrigger value="sipag" className="flex-1 md:flex-none rounded-lg py-2 text-[10px] font-black uppercase tracking-tighter data-[state=active]:bg-white">
+                 <CreditCard className="w-3 h-3 mr-2" />
+                 Sipag (Sicoob)
+               </TabsTrigger>
+               <TabsTrigger value="pix_manual" className="flex-1 md:flex-none rounded-lg py-2 text-[10px] font-black uppercase tracking-tighter data-[state=active]:bg-white">
+                 <QrCode className="w-3 h-3 mr-2" />
+                 PIX (Direto)
+               </TabsTrigger>
+               <TabsContent value="pix_manual" className="space-y-6">
+                 <Card className="border-zinc-200 shadow-sm overflow-hidden">
+                   <CardHeader className="bg-green-600 text-white border-b border-green-700">
+                     <CardTitle className="flex items-center gap-2 text-base">
+                       <QrCode className="h-5 w-5" />
+                       PIX Direto (Copia e Cola / QR Code)
+                     </CardTitle>
+                     <CardDescription className="text-green-50">Receba via PIX diretamente na sua conta (baixa manual necessária)</CardDescription>
+                   </CardHeader>
+                   <CardContent className="p-6">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="space-y-6">
+                         <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                           <div className="flex items-center gap-3">
+                             <div className={`p-2 rounded-xl ${settings.pix?.enabled ? 'bg-green-600 text-white' : 'bg-zinc-200 text-zinc-400'}`}>
+                               <Zap className="h-4 w-4" />
+                             </div>
+                             <div>
+                               <p className="text-xs font-black uppercase tracking-tighter">Status do PIX Direto</p>
+                               <p className="text-[10px] font-bold text-zinc-400 uppercase">{settings.pix?.enabled ? 'Ativo' : 'Desativado'}</p>
+                             </div>
+                           </div>
+                           <Switch 
+                             checked={settings.pix?.enabled} 
+                             onCheckedChange={(val) => setSettings({
+                               ...settings, 
+                               pix: { ...settings.pix, enabled: val }
+                             })} 
+                           />
+                         </div>
+ 
+                         <div className="space-y-4">
+                           <div className="space-y-2">
+                             <label className="text-[10px] font-black uppercase text-zinc-500">Chave PIX (CPF, CNPJ, E-mail ou Telefone)</label>
+                             <Input 
+                               value={settings.pix?.key}
+                               onChange={(e) => setSettings({
+                                 ...settings, 
+                                 pix: { ...settings.pix, key: e.target.value }
+                               })}
+                               placeholder="Sua chave PIX"
+                               className="rounded-xl h-11 border-zinc-200"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <label className="text-[10px] font-black uppercase text-zinc-500">Nome do Titular (Sem acentos)</label>
+                             <Input 
+                               value={settings.pix?.merchant_name}
+                               onChange={(e) => setSettings({
+                                 ...settings, 
+                                 pix: { ...settings.pix, merchant_name: e.target.value }
+                               })}
+                               placeholder="Ex: JOAO DA SILVA"
+                               className="rounded-xl h-11 border-zinc-200"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <label className="text-[10px] font-black uppercase text-zinc-500">Cidade (Sem acentos)</label>
+                             <Input 
+                               value={settings.pix?.merchant_city}
+                               onChange={(e) => setSettings({
+                                 ...settings, 
+                                 pix: { ...settings.pix, merchant_city: e.target.value }
+                               })}
+                               placeholder="Ex: SAO PAULO"
+                               className="rounded-xl h-11 border-zinc-200"
+                             />
+                           </div>
+                         </div>
+                       </div>
+ 
+                       <div className="space-y-4">
+                         <div className="p-5 bg-green-50 border border-green-100 rounded-2xl space-y-4">
+                           <div className="flex items-center gap-2 text-green-800">
+                             <Info size={18} className="shrink-0 fill-green-800/20" />
+                             <p className="text-xs font-black uppercase tracking-tight">Sobre o PIX Direto</p>
+                           </div>
+                           <p className="text-[11px] text-green-700 leading-relaxed font-medium">
+                             Esta opção permite que o cliente pague diretamente para sua conta sem intermediários. 
+                             <br /><br />
+                             <span className="font-bold">Atenção:</span> Como não há intermediário, o sistema não consegue confirmar o pagamento automaticamente. Você precisará conferir o saldo e alterar o status do pedido manualmente no painel.
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+                   </CardContent>
+                 </Card>
+               </TabsContent>
+ 
               </TabsList>
 
               <TabsContent value="sipag" className="space-y-6">

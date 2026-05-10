@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
-    import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle, Wallet, ExternalLink } from 'lucide-react'
+    import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle, Wallet, ExternalLink, Info } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@
  import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
+ import { generatePixPayload } from '@/lib/pix'
  
  export const Route = createFileRoute('/track/$orderId')({
    component: TrackingPage,
@@ -95,30 +96,51 @@ import { Badge } from '@/components/ui/badge'
    const [resendingProof, setResendingProof] = useState(false)
    const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
    const [pixExpired, setPixExpired] = useState(false)
-   const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
-   const [loadingQr, setLoadingQr] = useState(false)
- 
-   useEffect(() => {
-     const fetchBackendQr = async () => {
-       if (order?.status === 'pending' && order?.payment_method === 'pix') {
-         setLoadingQr(true)
-         try {
-           const payload = "00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1"
-           const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
-             body: { payload }
-           })
-           if (!error && data?.qr_code) {
-             setBackendQrCode(data.qr_code)
-           }
-         } catch (err) {
-           console.error('Error fetching backend QR:', err)
-         } finally {
-           setLoadingQr(false)
-         }
-       }
-     }
-     fetchBackendQr()
-   }, [order?.status, order?.payment_method])
+    const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
+    const [loadingQr, setLoadingQr] = useState(false)
+    const [pixPayload, setPixPayload] = useState<string>('')
+    const [pixKey, setPixKey] = useState<string>('')
+  
+    useEffect(() => {
+      const fetchPixConfig = async () => {
+        if (order?.status === 'pending' && order?.payment_method === 'pix') {
+          setLoadingQr(true)
+          try {
+            const { data: configData } = await supabase
+              .from('store_settings')
+              .select('value')
+              .eq('key', 'pix_config')
+              .maybeSingle()
+            
+            const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
+            setPixKey(config.key)
+            
+            const payload = generatePixPayload(
+              config.key,
+              config.merchant_name,
+              config.merchant_city,
+              Number(order.total_amount),
+              order.id
+            )
+            
+            setPixPayload(payload)
+
+            const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
+              body: { payload }
+            })
+            
+            if (!error && data?.qr_code) {
+              setBackendQrCode(data.qr_code)
+            }
+          } catch (err) {
+            console.error('Error setting up PIX:', err)
+          } finally {
+            setLoadingQr(false)
+          }
+        }
+      }
+      fetchPixConfig()
+    }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
  
    useEffect(() => {
      if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
@@ -194,12 +216,12 @@ import { Badge } from '@/components/ui/badge'
       cvv: ''
     })
  
-   const handleCopyKey = () => {
-     navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1")
-     setCopied(true)
-     setTimeout(() => setCopied(false), 2000)
-     toast.success("Chave PIX copiada!")
-   }
+    const handleCopyKey = () => {
+      navigator.clipboard.writeText(pixPayload)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+      toast.success("Copia e Cola copiado!")
+    }
  
     const handleMercadoPagoPayment = async () => {
       setPaying(true)
@@ -300,51 +322,94 @@ import { Badge } from '@/components/ui/badge'
                             <Clock size={14} className="text-amber-500 animate-pulse" />
                             <span className="text-xs font-black uppercase text-zinc-500">Expira em: <span className="text-amber-600">{formatTime(pixTimeLeft)}</span></span>
                           </div>
-                           <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 relative min-h-[160px] flex items-center justify-center">
+                           <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-primary/10 relative min-h-[200px] flex items-center justify-center overflow-hidden group">
                              {loadingQr ? (
-                               <Loader2 className="animate-spin text-zinc-300" size={32} />
+                               <div className="flex flex-col items-center gap-2">
+                                 <Loader2 className="animate-spin text-primary" size={40} />
+                                 <span className="text-[10px] font-black uppercase text-zinc-400">Gerando QR Code...</span>
+                               </div>
                              ) : backendQrCode ? (
-                               <img 
-                                 src={backendQrCode} 
-                                 alt="PIX QR Code" 
-                                 className="w-40 h-40 animate-in fade-in duration-500"
-                               />
+                               <div className="relative">
+                                 <img 
+                                   src={backendQrCode} 
+                                   alt="PIX QR Code" 
+                                   className="w-48 h-48 animate-in zoom-in duration-500"
+                                 />
+                                 <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                   <div className="bg-primary text-white p-3 rounded-2xl shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                                      <QrCode size={32} />
+                                   </div>
+                                 </div>
+                               </div>
                              ) : (
-                               <img 
-                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020126580014BR.GOV.BCB.PIX0136rs-supermercado-pix-key-test-1235204000053039865802BR5915RS SUPERMERCADO6009SAO PAULO62070503***6304E2B1`} 
-                                 alt="PIX QR Code" 
-                                 className="w-40 h-40 opacity-50 grayscale"
-                               />
+                               <div className="text-center p-4">
+                                 <AlertTriangle className="text-amber-500 mx-auto mb-2" size={32} />
+                                 <p className="text-[10px] font-black uppercase text-zinc-400">Erro ao carregar QR Code</p>
+                               </div>
                              )}
                            </div>
                           <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
                         </div>
                         
-                        <Button 
-                          variant="outline" 
-                          className="w-full h-14 rounded-2xl border-2 border-dashed border-zinc-200 font-bold flex items-center justify-between px-6 hover:bg-zinc-50"
-                          onClick={handleCopyKey}
-                        >
-                          <span className="text-xs truncate mr-4">rs-supermercado-pix-key...</span>
-                          {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-zinc-400" />}
-                        </Button>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest block text-center">Código Copia e Cola</label>
+                            <Button 
+                              variant="outline" 
+                              className={`w-full h-14 rounded-2xl border-2 border-dashed font-bold flex items-center justify-between px-6 transition-all ${copied ? 'border-green-500 bg-green-50 text-green-700' : 'border-zinc-200 hover:bg-zinc-50'}`}
+                              onClick={handleCopyKey}
+                            >
+                              <span className="text-xs truncate mr-4 font-mono">{pixPayload || 'Gerando código...'}</span>
+                              {copied ? <Check size={18} className="text-green-600 shrink-0" /> : <Copy size={18} className="text-zinc-400 shrink-0" />}
+                            </Button>
+                          </div>
 
-                        <div className="mt-8 space-y-3">
-                          <Button 
-                            className="w-full h-14 rounded-2xl font-black uppercase italic tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-green-100"
-                            onClick={handleSimulatePayment}
-                            disabled={paying}
-                          >
-                            {paying ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
-                            SIMULAR RECEBIMENTO PIX
-                          </Button>
-                          <button 
-                            onClick={() => setPixTimeLeft(5)}
-                            className="w-full text-[8px] font-black uppercase text-zinc-300 hover:text-zinc-400 transition-colors"
-                          >
-                            (Simular Expiração Rápida para Teste)
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                            <span className="text-[8px] font-black uppercase text-zinc-300">Ou use a Chave</span>
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                          </div>
+
+                          <div className="flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black uppercase text-zinc-400">Chave PIX</span>
+                              <span className="text-xs font-bold text-zinc-600">{pixKey}</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 text-[10px] font-black uppercase"
+                              onClick={() => {
+                                navigator.clipboard.writeText(pixKey)
+                                toast.success("Chave PIX copiada!")
+                              }}
+                            >
+                              Copiar
+                            </Button>
+                          </div>
                         </div>
+
+                         <div className="mt-8 pt-8 border-t border-zinc-100 space-y-4">
+                           <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex gap-3">
+                              <Info className="text-amber-500 shrink-0" size={18} />
+                              <p className="text-[10px] font-bold text-amber-700 uppercase leading-relaxed">
+                                Após realizar o pagamento, o sistema identificará o recebimento e seu pedido será aprovado automaticamente. 
+                                <span className="block mt-1 text-amber-600/60 font-medium italic">O processo costuma levar alguns segundos.</span>
+                              </p>
+                           </div>
+
+                           <div className="flex flex-col gap-2">
+                             <Button 
+                               variant="ghost"
+                               className="w-full h-12 rounded-xl text-zinc-400 font-black uppercase italic tracking-widest hover:text-primary transition-colors text-[10px]"
+                               onClick={handleSimulatePayment}
+                               disabled={paying}
+                             >
+                               {paying ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2" size={14} />}
+                               Já paguei, verificar agora
+                             </Button>
+                           </div>
+                         </div>
                       </>
                     ) : (
                       <div className="bg-red-50 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 border-2 border-red-100 animate-in fade-in zoom-in duration-300">
