@@ -45,8 +45,7 @@
             .update({ 
               status: orderStatus,
               payment_id: paymentId?.toString(),
-              payment_status: paymentStatus,
-              updated_at: new Date().toISOString()
+              payment_status: paymentStatus
             })
             .eq('id', orderId)
     

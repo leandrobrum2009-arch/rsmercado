@@ -98,8 +98,7 @@ serve(async (req) => {
           .update({ 
             status: orderStatus,
             payment_id: payment.id.toString(),
-            payment_status: paymentStatus,
-            updated_at: new Date().toISOString()
+            payment_status: paymentStatus
           })
           .eq('id', orderId)
 
