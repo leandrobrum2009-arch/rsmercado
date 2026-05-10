@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
- import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle } from 'lucide-react'
+    import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle, Wallet, ExternalLink } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
@@ -201,6 +201,30 @@ import { Badge } from '@/components/ui/badge'
      toast.success("Chave PIX copiada!")
    }
  
+    const handleMercadoPagoPayment = async () => {
+      setPaying(true)
+      try {
+        const { data, error } = await supabase.functions.invoke('process-mercadopago-payment', {
+          body: { orderId }
+        })
+
+        if (error || !data.success) {
+          throw new Error(data?.error || 'Erro ao iniciar pagamento com Mercado Pago')
+        }
+
+        // Try to get config to see if we use sandbox
+        const { data: configData } = await supabase.from('store_settings').select('value').eq('key', 'mercadopago_config').maybeSingle();
+        const config = configData?.value || {};
+        const url = config.environment === 'sandbox' ? (data.sandbox_init_point || data.init_point) : data.init_point;
+        
+        window.location.href = url;
+      } catch (err: any) {
+        toast.error(err.message || "Erro ao iniciar pagamento")
+      } finally {
+        setPaying(false)
+      }
+    }
+
     const handleSimulatePayment = async () => {
       setPaying(true)
       setPaymentStep('processing')
@@ -254,7 +278,7 @@ import { Badge } from '@/components/ui/badge'
  
    const info = getStatusInfo(order.status)
           {/* Payment Simulation Section */}
-          {order.status === 'pending' && (order.payment_method === 'pix' || order.payment_method === 'sipag') && (
+          {order.status === 'pending' && (order.payment_method === 'pix' || order.payment_method === 'sipag' || order.payment_method === 'mercadopago') && (
             <Card className="border-4 border-primary/20 shadow-2xl rounded-[40px] overflow-hidden bg-white animate-in zoom-in duration-500">
               <CardContent className="p-8">
                 <div className="flex items-center gap-4 mb-6">
@@ -267,7 +291,7 @@ import { Badge } from '@/components/ui/badge'
                   </div>
                 </div>
 
-                {order.payment_method === 'pix' ? (
+                  {order.payment_method === 'pix' ? (
                   <div className="space-y-6">
                     {!pixExpired ? (
                       <>
@@ -342,8 +366,30 @@ import { Badge } from '@/components/ui/badge'
                       </div>
                     )}
                   </div>
-                ) : (
-                   <div className="space-y-6">
+                  ) : order.payment_method === 'mercadopago' ? (
+                     <div className="space-y-6">
+                        <div className="bg-zinc-50 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 border-2 border-zinc-100 animate-in fade-in zoom-in duration-300">
+                          <div className="w-20 h-20 bg-blue-100 rounded-[30px] flex items-center justify-center text-blue-600">
+                            <Wallet size={40} />
+                          </div>
+                          <div className="space-y-2">
+                            <h4 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Mercado Pago</h4>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                              Finalize seu pagamento com segurança via Cartão, PIX ou Boleto através do Mercado Pago.
+                            </p>
+                          </div>
+                          <Button 
+                            onClick={handleMercadoPagoPayment}
+                            disabled={paying}
+                            className="w-full h-14 rounded-2xl bg-[#009EE3] hover:bg-[#008ED1] text-white font-black uppercase tracking-widest flex gap-2 shadow-xl shadow-blue-100"
+                          >
+                            {paying ? <Loader2 className="animate-spin" /> : <ExternalLink size={18} />}
+                            PAGAR COM MERCADO PAGO
+                          </Button>
+                        </div>
+                     </div>
+                  ) : (
+                     <div className="space-y-6">
                      {paymentStep === 'info' && (
                        <div className="space-y-6">
                          <div className="bg-gradient-to-br from-zinc-800 to-zinc-950 p-6 rounded-3xl text-white relative overflow-hidden aspect-[1.6/1] shadow-2xl">
