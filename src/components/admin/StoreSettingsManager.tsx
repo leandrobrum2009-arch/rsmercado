@@ -1113,7 +1113,7 @@
                       </div>
                     </div>
                   </div>
-                  </div>
+
                 </CardContent>
               </Card>
 
@@ -1344,7 +1344,7 @@
               </CardContent>
             </Card>
 
-          </div>
+
 
 
         </TabsContent>
