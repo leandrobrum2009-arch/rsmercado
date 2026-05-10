@@ -1,7 +1,7 @@
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
-    import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle, Wallet, ExternalLink } from 'lucide-react'
+    import { ShoppingBag, Truck, CheckCircle, Clock, Package, MapPin, ArrowLeft, Loader2, Map, QrCode, CreditCard, Copy, Check, Phone, RefreshCw, AlertTriangle, Wallet, ExternalLink, Info } from 'lucide-react'
  import { toast } from '@/lib/toast'
  import { logAttempt } from '@/lib/logs'
  import { Button } from '@/components/ui/button'
