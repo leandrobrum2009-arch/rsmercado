@@ -15,21 +15,44 @@
      const status = body.Payment?.Status
      const paymentId = body.Payment?.PaymentId
  
-     if (orderId && (status === 2 || status === 1)) {
-       // 2 = Confirmed, 1 = Authorized
-       console.log(`Updating order ${orderId} to approved (Sipag Status: ${status})`)
-       
-       const { error: updateError } = await supabaseClient
-         .from('orders')
-         .update({ 
-           status: 'approved',
-           payment_id: paymentId?.toString(),
-           payment_status: 'paid'
-         })
-         .eq('id', orderId)
- 
-       if (updateError) console.error('Error updating order:', updateError)
-     }
+      if (orderId) {
+        console.log(`Sipag Status for order ${orderId}: ${status}`)
+
+        let orderStatus = 'pending'
+        let paymentStatus = 'pending'
+
+        // Sipag / Cielo standard status codes
+        // 1: Authorized, 2: Confirmed/Captured, 3: Denied, 10: Voided, 11: Refunded, 12: Pending
+        if (status === 2 || status === 1) {
+          orderStatus = 'approved'
+          paymentStatus = 'paid'
+        } else if (status === 3 || status === 10) {
+          orderStatus = 'cancelled'
+          paymentStatus = 'failed'
+        } else if (status === 11) {
+          orderStatus = 'cancelled'
+          paymentStatus = 'refunded'
+        } else if (status === 12) {
+          orderStatus = 'pending'
+          paymentStatus = 'pending'
+        }
+
+        if (orderStatus !== 'pending' || status === 12) {
+          console.log(`Updating order ${orderId} to ${orderStatus} (Sipag Status: ${status})`)
+          
+          const { error: updateError } = await supabaseClient
+            .from('orders')
+            .update({ 
+              status: orderStatus,
+              payment_id: paymentId?.toString(),
+              payment_status: paymentStatus,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', orderId)
+    
+          if (updateError) console.error('Error updating order:', updateError)
+        }
+      }
  
      return new Response('OK', { status: 200 })
    } catch (error: any) {
