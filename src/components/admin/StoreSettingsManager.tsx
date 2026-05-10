@@ -1347,7 +1347,7 @@
 
 
 
-        </TabsContent>
+          </div>
            <TabsContent value="notificacoes" className="animate-in fade-in slide-in-from-left-4 duration-300">
              {/* Notificações (SMS e Ligações) */}
              <Card className="border-zinc-200 shadow-sm">
