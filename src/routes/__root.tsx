@@ -367,8 +367,30 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 <SocialProofNotifications />
               </>
             )}
-         </main>
- 
+          </main>
+
+          {!isAdminPage && (
+            <footer className="bg-white border-t border-zinc-100 py-8 px-4 mb-16 md:mb-0">
+              <div className="container mx-auto text-center space-y-3">
+                <p className="text-[10px] md:text-xs text-zinc-400 font-bold uppercase tracking-widest">
+                  Todos os direitos reservados para <span className="text-zinc-700 font-black">{storeSettings.site_name}</span>
+                </p>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 text-[9px] md:text-[11px] text-zinc-400 font-medium">
+                  <span className="opacity-80">Sistema desenvolvido para Supermercados NC.</span>
+                  <a 
+                    href="https://www.ncbrasil.com.br" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary/80 font-bold flex items-center gap-1 transition-colors"
+                  >
+                    www.ncbrasil.com.br
+                    <ExternalLink size={12} className="shrink-0" />
+                  </a>
+                </div>
+              </div>
+            </footer>
+          )}
+
        {/* Mobile Bottom Navigation */}
        {!isAdminPage && (
          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
