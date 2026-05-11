@@ -113,7 +113,7 @@ export const formatCurrency = (value: number) => {
    export const formatWhatsAppMessage = (type: WhatsAppMessageType, data: any, customTemplates?: any) => {
      const defaultTemplates: any = {
        loyalty_redeem: `🎉 *PARABÉNS PELO RESGATE!* 🎉\n\nOlá, *{customer_name}*! 🤩\n\nVocê acaba de resgatar:\n🎁 *{reward_title}*\n\n{coupon_info}\n\nContinue comprando e acumulando pontos para garantir mais prêmios! 🚀\n\n*RS SUPERMERCADO* 🛒`,
-       points_earned: `⭐ *VOCÊ GANHOU PONTOS!* ⭐\n\nOlá *{customer_name}*,\n\nSeu pedido #{order_id} foi entregue e você ganhou *{points} pontos* de fidelidade!\n\n💰 Saldo Atual: *{new_balance} pontos*\n\n📍 Confira seus prêmios aqui: {loyalty_url}\n\nObrigado por comprar conosco! 🛒`,
+       points_earned: `⭐ *VOCÊ GANHOU PONTOS!* ⭐\n\nOlá, *{customer_name}*! 👋\n\nSeu pedido *#{order_id}* foi entregue e você acaba de ganhar *{points} pontos* de fidelidade! 🥳\n\n💰 *Seu novo saldo:* {new_balance} pontos\n\n📍 *Veja o que você pode resgatar:*\n{loyalty_url}\n\nAgradecemos a preferência! 🛒`,
        status_update: `Olá *{customer_name}*!\n\n🚀 O status do seu pedido #{order_id} mudou para: *{status}*\n\n📍 *Acompanhe em tempo real:* {track_url}\n\nAgradecemos a preferência! 🛒`,
        promotion: `🚀 *OFERTA IMPERDÍVEL!* 🚀\n\n*{title}*\n\n{description}\n\n👉 Confira aqui: {product_url}\n\n*Aproveite enquanto durarem os estoques!* 🛒`,
        order: `✅ *PEDIDO RECEBIDO!* ✅\n\nOlá, seu pedido #{order_id} foi recebido com sucesso!\n\n💰 Total: R$ {total_amount}\n🚚 Status: {status}\n\n📍 *Rastreie seu pedido aqui:* {track_url}`,
