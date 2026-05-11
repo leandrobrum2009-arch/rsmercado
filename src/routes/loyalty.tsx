@@ -112,11 +112,14 @@
        if (error) throw error
  
         if (data.success) {
-          const successMsg = data.coupon_code 
-            ? `Resgate realizado! Seu cupom é: ${data.coupon_code}` 
-            : data.message;
-            
-          toast.success(successMsg, { duration: 10000 });
+           const successMsg = data.coupon_code 
+             ? `🎉 Resgate realizado com sucesso! Seu cupom é: ${data.coupon_code}` 
+             : `🎉 ${data.message || 'Resgate realizado com sucesso!'}`;
+             
+           toast.success(successMsg, { 
+             duration: 10000,
+             description: data.coupon_code ? 'O código do cupom também foi enviado para seu WhatsApp.' : undefined
+           });
           
            // WhatsApp Notification
            try {
