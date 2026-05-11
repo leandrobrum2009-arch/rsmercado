@@ -67,31 +67,7 @@ import { Badge } from '@/components/ui/badge'
      return map[status] || map.pending
    }
  
-   if (loading) {
-     return (
-       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-zinc-50">
-         <Loader2 className="animate-spin text-primary w-10 h-10" />
-         <p className="text-xs font-black uppercase text-zinc-400 tracking-widest">Localizando seu pedido...</p>
-       </div>
-     )
-   }
- 
-   if (!order) {
-     return (
-       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-zinc-50">
-         <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-300 mb-4">
-           <ShoppingBag size={40} />
-         </div>
-         <h1 className="text-xl font-black uppercase italic tracking-tighter">Pedido não encontrado</h1>
-         <p className="text-sm text-zinc-500 mt-2 mb-8">Verifique se o link está correto ou entre em contato com a loja.</p>
-         <Link to="/">
-           <Button className="rounded-2xl h-12 px-8 font-black uppercase italic tracking-widest">Voltar para a Loja</Button>
-         </Link>
-       </div>
-     )
-   }
- 
-    const [copied, setCopied] = useState(false)
+   const [copied, setCopied] = useState(false)
    const [paying, setPaying] = useState(false)
    const [resendingProof, setResendingProof] = useState(false)
    const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
@@ -99,63 +75,87 @@ import { Badge } from '@/components/ui/badge'
     const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
     const [loadingQr, setLoadingQr] = useState(false)
     const [pixPayload, setPixPayload] = useState<string>('')
-    const [pixKey, setPixKey] = useState<string>('')
-  
-    useEffect(() => {
-      const fetchPixConfig = async () => {
-        if (order?.status === 'pending' && order?.payment_method === 'pix') {
-          setLoadingQr(true)
-          try {
-            const { data: configData } = await supabase
-              .from('store_settings')
-              .select('value')
-              .eq('key', 'pix_config')
-              .maybeSingle()
-            
-            const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
-            setPixKey(config.key)
-            
-            const payload = generatePixPayload(
-              config.key,
-              config.merchant_name,
-              config.merchant_city,
-              Number(order.total_amount),
-              order.id
-            )
-            
-            setPixPayload(payload)
-
-            const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
-              body: { payload }
-            })
-            
-            if (!error && data?.qr_code) {
-              setBackendQrCode(data.qr_code)
-            }
-          } catch (err) {
-            console.error('Error setting up PIX:', err)
-          } finally {
-            setLoadingQr(false)
-          }
-        }
-      }
-      fetchPixConfig()
-    }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
+   const [pixKey, setPixKey] = useState<string>('')
  
    useEffect(() => {
-     if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
-       const timer = setInterval(() => {
-         setPixTimeLeft(prev => {
-           if (prev <= 1) {
-             setPixExpired(true)
-             return 0
+     const fetchPixConfig = async () => {
+       if (order?.status === 'pending' && order?.payment_method === 'pix') {
+         setLoadingQr(true)
+         try {
+           const { data: configData } = await supabase
+             .from('store_settings')
+             .select('value')
+             .eq('key', 'pix_config')
+             .maybeSingle()
+           
+           const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
+           setPixKey(config.key)
+           
+           const payload = generatePixPayload(
+             config.key,
+             config.merchant_name,
+             config.merchant_city,
+             Number(order.total_amount),
+             order.id
+           )
+           
+           setPixPayload(payload)
+
+           const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
+             body: { payload }
+           })
+           
+           if (!error && data?.qr_code) {
+             setBackendQrCode(data.qr_code)
            }
-           return prev - 1
-         })
-       }, 1000)
-       return () => clearInterval(timer)
+         } catch (err) {
+           console.error('Error setting up PIX:', err)
+         } finally {
+           setLoadingQr(false)
+         }
+       }
      }
-   }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+     fetchPixConfig()
+   }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
+
+  useEffect(() => {
+    if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
+      const timer = setInterval(() => {
+        setPixTimeLeft(prev => {
+          if (prev <= 1) {
+            setPixExpired(true)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-zinc-50">
+        <Loader2 className="animate-spin text-primary w-10 h-10" />
+        <p className="text-xs font-black uppercase text-zinc-400 tracking-widest">Localizando seu pedido...</p>
+      </div>
+    )
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-zinc-50">
+        <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-300 mb-4">
+          <ShoppingBag size={40} />
+        </div>
+        <h1 className="text-xl font-black uppercase italic tracking-tighter">Pedido não encontrado</h1>
+        <p className="text-sm text-zinc-500 mt-2 mb-8">Verifique se o link está correto ou entre em contato com a loja.</p>
+        <Link to="/">
+          <Button className="rounded-2xl h-12 px-8 font-black uppercase italic tracking-widest">Voltar para a Loja</Button>
+        </Link>
+      </div>
+    )
+  }
  
    const formatTime = (seconds: number) => {
      const mins = Math.floor(seconds / 60)
