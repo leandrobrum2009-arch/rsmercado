@@ -353,8 +353,262 @@ import { Badge } from '@/components/ui/badge'
                 </div>
               )}
            </CardContent>
-         </Card>
- 
+          </Card>
+
+          {/* Payment Simulation Section */}
+          {order.status === 'pending' && (order.payment_method === 'pix' || order.payment_method === 'sipag' || order.payment_method === 'mercadopago') && (
+            <Card className="border-4 border-primary/20 shadow-2xl rounded-[40px] overflow-hidden bg-white animate-in zoom-in duration-500">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    {order.payment_method === 'pix' ? <QrCode size={24} /> : <CreditCard size={24} />}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Finalizar Pagamento</h3>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Seu pedido aguarda a confirmação</p>
+                  </div>
+                </div>
+
+                  {order.payment_method === 'pix' ? (
+                  <div className="space-y-6">
+                    {!pixExpired ? (
+                      <>
+                        <div className="bg-zinc-50 p-6 rounded-3xl flex flex-col items-center gap-4 border border-zinc-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock size={14} className="text-amber-500 animate-pulse" />
+                            <span className="text-xs font-black uppercase text-zinc-500">Expira em: <span className="text-amber-600">{formatTime(pixTimeLeft)}</span></span>
+                          </div>
+                           <div className="bg-white p-4 rounded-3xl shadow-xl border-4 border-primary/10 relative min-h-[200px] flex items-center justify-center overflow-hidden group">
+                             {loadingQr ? (
+                               <div className="flex flex-col items-center gap-2">
+                                 <Loader2 className="animate-spin text-primary" size={40} />
+                                 <span className="text-[10px] font-black uppercase text-zinc-400">Gerando QR Code...</span>
+                               </div>
+                             ) : backendQrCode ? (
+                               <div className="relative">
+                                 <img 
+                                   src={backendQrCode} 
+                                   alt="PIX QR Code" 
+                                   className="w-48 h-48 animate-in zoom-in duration-500"
+                                 />
+                                 <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                   <div className="bg-primary text-white p-3 rounded-2xl shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                                      <QrCode size={32} />
+                                   </div>
+                                 </div>
+                               </div>
+                             ) : (
+                               <div className="text-center p-4">
+                                 <AlertTriangle className="text-amber-500 mx-auto mb-2" size={32} />
+                                 <p className="text-[10px] font-black uppercase text-zinc-400">Erro ao carregar QR Code</p>
+                               </div>
+                             )}
+                           </div>
+                          <p className="text-[10px] font-black uppercase text-zinc-400 text-center">Escaneie o código acima ou copie a chave abaixo</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest block text-center">Código Copia e Cola</label>
+                            <Button 
+                              variant="outline" 
+                              className={`w-full h-14 rounded-2xl border-2 border-dashed font-bold flex items-center justify-between px-6 transition-all ${copied ? 'border-green-500 bg-green-50 text-green-700' : 'border-zinc-200 hover:bg-zinc-50'}`}
+                              onClick={handleCopyKey}
+                            >
+                              <span className="text-xs truncate mr-4 font-mono">{pixPayload || 'Gerando código...'}</span>
+                              {copied ? <Check size={18} className="text-green-600 shrink-0" /> : <Copy size={18} className="text-zinc-400 shrink-0" />}
+                            </Button>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                            <span className="text-[8px] font-black uppercase text-zinc-300">Ou use a Chave</span>
+                            <div className="flex-1 h-px bg-zinc-100"></div>
+                          </div>
+
+                          <div className="flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black uppercase text-zinc-400">Chave PIX</span>
+                              <span className="text-xs font-bold text-zinc-600">{pixKey}</span>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 text-[10px] font-black uppercase"
+                              onClick={() => {
+                                navigator.clipboard.writeText(pixKey)
+                                toast.success("Chave PIX copiada!")
+                              }}
+                            >
+                              Copiar
+                            </Button>
+                          </div>
+                        </div>
+
+                         <div className="mt-8 pt-8 border-t border-zinc-100 space-y-4">
+                           <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex gap-3">
+                              <Info className="text-amber-500 shrink-0" size={18} />
+                              <p className="text-[10px] font-bold text-amber-700 uppercase leading-relaxed">
+                                Após realizar o pagamento, o sistema identificará o recebimento e seu pedido será aprovado automaticamente. 
+                                <span className="block mt-1 text-amber-600/60 font-medium italic">O processo costuma levar alguns segundos.</span>
+                              </p>
+                           </div>
+
+                           <div className="flex flex-col gap-2">
+                             <Button 
+                               variant="ghost"
+                               className="w-full h-12 rounded-xl text-zinc-400 font-black uppercase italic tracking-widest hover:text-primary transition-colors text-[10px]"
+                               onClick={handleSimulatePayment}
+                               disabled={paying}
+                             >
+                               {paying ? <Loader2 className="animate-spin mr-2" /> : <RefreshCw className="mr-2" size={14} />}
+                               Já paguei, verificar agora
+                             </Button>
+                           </div>
+                         </div>
+                      </>
+                    ) : (
+                      <div className="bg-red-50 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 border-2 border-red-100 animate-in fade-in zoom-in duration-300">
+                        <div className="w-20 h-20 bg-red-100 rounded-[30px] flex items-center justify-center text-red-600">
+                          <AlertTriangle size={40} />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-xl font-black uppercase italic tracking-tighter text-red-900">QR Code Expirado</h4>
+                          <p className="text-xs font-bold text-red-700/60 uppercase tracking-widest leading-relaxed">
+                            O tempo para pagamento via PIX acabou. Não se preocupe, você pode gerar um novo código abaixo.
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={handleRetryPix}
+                          className="w-full h-14 rounded-2xl bg-zinc-900 text-white font-black uppercase tracking-widest flex gap-2"
+                        >
+                          <RefreshCw size={18} /> GERAR NOVO QR CODE
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  ) : order.payment_method === 'mercadopago' ? (
+                     <div className="space-y-6">
+                        <div className="bg-zinc-50 p-8 rounded-[40px] flex flex-col items-center text-center gap-6 border-2 border-zinc-100 animate-in fade-in zoom-in duration-300">
+                          <div className="w-20 h-20 bg-blue-100 rounded-[30px] flex items-center justify-center text-blue-600">
+                            <Wallet size={40} />
+                          </div>
+                          <div className="space-y-2">
+                            <h4 className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Mercado Pago</h4>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                              Finalize seu pagamento com segurança via Cartão, PIX ou Boleto através do Mercado Pago.
+                            </p>
+                          </div>
+                          <Button 
+                            onClick={handleMercadoPagoPayment}
+                            disabled={paying}
+                            className="w-full h-14 rounded-2xl bg-[#009EE3] hover:bg-[#008ED1] text-white font-black uppercase tracking-widest flex gap-2 shadow-xl shadow-blue-100"
+                          >
+                            {paying ? <Loader2 className="animate-spin" /> : <ExternalLink size={18} />}
+                            PAGAR COM MERCADO PAGO
+                          </Button>
+                        </div>
+                     </div>
+                  ) : (
+                     <div className="space-y-6">
+                     {paymentStep === 'info' && (
+                       <div className="space-y-6">
+                         <div className="bg-gradient-to-br from-zinc-800 to-zinc-950 p-6 rounded-3xl text-white relative overflow-hidden aspect-[1.6/1] shadow-2xl">
+                           <div className="absolute top-0 right-0 opacity-10 -mr-8 -mt-8 rotate-12">
+                             <CreditCard size={150} strokeWidth={1} />
+                           </div>
+                           <div className="flex justify-between items-start">
+                             <div className="w-10 h-10 bg-amber-400/80 rounded-lg blur-[0.5px] shadow-inner"></div>
+                             <p className="font-black italic text-lg text-primary tracking-tighter">SIPAG</p>
+                           </div>
+                           <div className="mt-8">
+                             <p className="text-xl font-mono tracking-[4px] text-white">•••• •••• •••• ••••</p>
+                             <div className="flex justify-between mt-6">
+                               <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">{order.customer_name || 'TITULAR DO CARTÃO'}</p>
+                               <p className="text-[10px] font-black uppercase opacity-60">MM/AA</p>
+                             </div>
+                           </div>
+                         </div>
+                         <Button 
+                           className="w-full h-14 rounded-2xl font-black uppercase tracking-widest bg-zinc-900 text-white"
+                           onClick={() => setPaymentStep('form')}
+                         >
+                           INSERIR DADOS DO CARTÃO
+                         </Button>
+                       </div>
+                     )}
+
+                     {paymentStep === 'form' && (
+                       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                         <div className="space-y-2">
+                           <Label className="text-[10px] font-black uppercase text-zinc-400">Número do Cartão</Label>
+                           <Input 
+                             placeholder="0000 0000 0000 0000"
+                             value={cardData.number}
+                             onChange={e => setCardData({...cardData, number: e.target.value.replace(/\D/g, '').substring(0, 16).replace(/(\d{4})/g, '$1 ').trim()})}
+                             className="h-12 rounded-xl font-bold"
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <Label className="text-[10px] font-black uppercase text-zinc-400">Nome no Cartão</Label>
+                           <Input 
+                             placeholder="Como está no cartão"
+                             value={cardData.name}
+                             onChange={e => setCardData({...cardData, name: e.target.value.toUpperCase()})}
+                             className="h-12 rounded-xl font-bold"
+                           />
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                             <Label className="text-[10px] font-black uppercase text-zinc-400">Validade</Label>
+                             <Input 
+                               placeholder="MM/AA"
+                               value={cardData.expiry}
+                               onChange={e => setCardData({...cardData, expiry: e.target.value.replace(/\D/g, '').substring(0, 4).replace(/(\d{2})/, '$1/').trim()})}
+                               className="h-12 rounded-xl font-bold"
+                             />
+                           </div>
+                           <div className="space-y-2">
+                             <Label className="text-[10px] font-black uppercase text-zinc-400">CVV</Label>
+                             <Input 
+                               placeholder="123"
+                               type="password"
+                               value={cardData.cvv}
+                               onChange={e => setCardData({...cardData, cvv: e.target.value.replace(/\D/g, '').substring(0, 3)})}
+                               className="h-12 rounded-xl font-bold"
+                             />
+                           </div>
+                         </div>
+                         <div className="flex gap-2">
+                            <Button variant="outline" className="h-14 rounded-2xl font-bold" onClick={() => setPaymentStep('info')}>Voltar</Button>
+                            <Button 
+                              className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest bg-primary"
+                              onClick={handleSimulatePayment}
+                            >
+                              PAGAR AGORA
+                            </Button>
+                         </div>
+                       </div>
+                     )}
+
+                     {paymentStep === 'processing' && (
+                       <div className="py-12 flex flex-col items-center justify-center gap-6 animate-pulse">
+                         <div className="relative">
+                            <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                            <CreditCard size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
+                         </div>
+                         <div className="text-center space-y-2">
+                           <h4 className="text-lg font-black uppercase italic tracking-tighter">Processando Transação</h4>
+                           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Comunicando com a operadora SIPAG...</p>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                 )}
+              </CardContent>
+            </Card>
+          )}
+
          {/* Details */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-0 shadow-lg rounded-3xl bg-white overflow-hidden">
