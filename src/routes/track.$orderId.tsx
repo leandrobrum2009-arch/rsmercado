@@ -67,40 +67,23 @@ import { Badge } from '@/components/ui/badge'
      return map[status] || map.pending
    }
  
-   if (loading) {
-     return (
-       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-zinc-50">
-         <Loader2 className="animate-spin text-primary w-10 h-10" />
-         <p className="text-xs font-black uppercase text-zinc-400 tracking-widest">Localizando seu pedido...</p>
-       </div>
-     )
-   }
- 
-   if (!order) {
-     return (
-       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-zinc-50">
-         <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-300 mb-4">
-           <ShoppingBag size={40} />
-         </div>
-         <h1 className="text-xl font-black uppercase italic tracking-tighter">Pedido não encontrado</h1>
-         <p className="text-sm text-zinc-500 mt-2 mb-8">Verifique se o link está correto ou entre em contato com a loja.</p>
-         <Link to="/">
-           <Button className="rounded-2xl h-12 px-8 font-black uppercase italic tracking-widest">Voltar para a Loja</Button>
-         </Link>
-       </div>
-     )
-   }
- 
     const [copied, setCopied] = useState(false)
-   const [paying, setPaying] = useState(false)
-   const [resendingProof, setResendingProof] = useState(false)
-   const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
-   const [pixExpired, setPixExpired] = useState(false)
+    const [paying, setPaying] = useState(false)
+    const [resendingProof, setResendingProof] = useState(false)
+    const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
+    const [pixExpired, setPixExpired] = useState(false)
     const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
     const [loadingQr, setLoadingQr] = useState(false)
     const [pixPayload, setPixPayload] = useState<string>('')
     const [pixKey, setPixKey] = useState<string>('')
-  
+    const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
+    const [cardData, setCardData] = useState({
+      number: '',
+      name: '',
+      expiry: '',
+      cvv: ''
+    })
+
     useEffect(() => {
       const fetchPixConfig = async () => {
         if (order?.status === 'pending' && order?.payment_method === 'pix') {
@@ -141,21 +124,45 @@ import { Badge } from '@/components/ui/badge'
       }
       fetchPixConfig()
     }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
- 
-   useEffect(() => {
-     if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
-       const timer = setInterval(() => {
-         setPixTimeLeft(prev => {
-           if (prev <= 1) {
-             setPixExpired(true)
-             return 0
-           }
-           return prev - 1
-         })
-       }, 1000)
-       return () => clearInterval(timer)
-     }
-   }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+
+    useEffect(() => {
+      if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
+        const timer = setInterval(() => {
+          setPixTimeLeft(prev => {
+            if (prev <= 1) {
+              setPixExpired(true)
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+        return () => clearInterval(timer)
+      }
+    }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-zinc-50">
+        <Loader2 className="animate-spin text-primary w-10 h-10" />
+        <p className="text-xs font-black uppercase text-zinc-400 tracking-widest">Localizando seu pedido...</p>
+      </div>
+    )
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-zinc-50">
+        <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-300 mb-4">
+          <ShoppingBag size={40} />
+        </div>
+        <h1 className="text-xl font-black uppercase italic tracking-tighter">Pedido não encontrado</h1>
+        <p className="text-sm text-zinc-500 mt-2 mb-8">Verifique se o link está correto ou entre em contato com a loja.</p>
+        <Link to="/">
+          <Button className="rounded-2xl h-12 px-8 font-black uppercase italic tracking-widest">Voltar para a Loja</Button>
+        </Link>
+      </div>
+    )
+  }
  
    const formatTime = (seconds: number) => {
      const mins = Math.floor(seconds / 60)
@@ -208,13 +215,6 @@ import { Badge } from '@/components/ui/badge'
      }
    }
  
-    const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
-    const [cardData, setCardData] = useState({
-      number: '',
-      name: '',
-      expiry: '',
-      cvv: ''
-    })
  
     const handleCopyKey = () => {
       navigator.clipboard.writeText(pixPayload)
@@ -299,6 +299,62 @@ import { Badge } from '@/components/ui/badge'
     }
  
    const info = getStatusInfo(order.status)
+
+   return (
+     <div className="bg-zinc-50 min-h-screen pb-20">
+       <div className="bg-zinc-900 text-white p-8 pb-32 rounded-b-[60px] relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+         <div className="max-w-xl mx-auto relative z-10">
+            <Link to="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 font-bold uppercase text-[10px] tracking-widest">
+              <ArrowLeft size={16} /> Voltar para a Loja
+            </Link>
+            
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">Rastreamento ao Vivo</p>
+                <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">Status do <br /> <span className="text-primary">Pedido</span></h1>
+              </div>
+              <div className="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-right">
+                <p className="text-[8px] font-black uppercase opacity-50 mb-1">ID do Pedido</p>
+                <p className="font-mono text-sm font-bold">#{order.id.substring(0, 8).toUpperCase()}</p>
+              </div>
+            </div>
+         </div>
+       </div>
+ 
+       <div className="max-w-xl mx-auto px-4 -mt-16 space-y-6 relative z-20">
+         {/* Status Card */}
+         <Card className="border-0 shadow-2xl rounded-[40px] overflow-hidden bg-white">
+           <CardContent className="p-8">
+              <div className="flex items-center gap-6 mb-8">
+                <div className={`w-20 h-20 rounded-[30px] flex items-center justify-center bg-zinc-50 ${info.color}`}>
+                  <info.icon size={40} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-tight">{info.label}</h2>
+                  <p className="text-xs font-bold text-zinc-400 mt-1 uppercase tracking-widest">Atualizado agora em tempo real</p>
+                </div>
+              </div>
+ 
+              {order.status !== 'cancelled' && (
+                <div className="space-y-4">
+                  <div className="h-3 w-full bg-zinc-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(22,163,74,0.5)]"
+                      style={{ width: info.progress }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-black uppercase text-zinc-300 tracking-tighter">
+                    <span className={order.status === 'pending' ? 'text-primary' : ''}>Pedido</span>
+                    <span className={order.status === 'collecting' ? 'text-primary' : ''}>Preparando</span>
+                    <span className={order.status === 'out_for_delivery' ? 'text-primary' : ''}>Em Rota</span>
+                    <span className={order.status === 'delivered' ? 'text-primary' : ''}>Entregue</span>
+                  </div>
+                </div>
+              )}
+           </CardContent>
+          </Card>
+
           {/* Payment Simulation Section */}
           {order.status === 'pending' && (order.payment_method === 'pix' || order.payment_method === 'sipag' || order.payment_method === 'mercadopago') && (
             <Card className="border-4 border-primary/20 shadow-2xl rounded-[40px] overflow-hidden bg-white animate-in zoom-in duration-500">
@@ -553,62 +609,6 @@ import { Badge } from '@/components/ui/badge'
             </Card>
           )}
 
- 
-   return (
-     <div className="bg-zinc-50 min-h-screen pb-20">
-       <div className="bg-zinc-900 text-white p-8 pb-32 rounded-b-[60px] relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-         <div className="max-w-xl mx-auto relative z-10">
-            <Link to="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 font-bold uppercase text-[10px] tracking-widest">
-              <ArrowLeft size={16} /> Voltar para a Loja
-            </Link>
-            
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">Rastreamento ao Vivo</p>
-                <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none">Status do <br /> <span className="text-primary">Pedido</span></h1>
-              </div>
-              <div className="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-right">
-                <p className="text-[8px] font-black uppercase opacity-50 mb-1">ID do Pedido</p>
-                <p className="font-mono text-sm font-bold">#{order.id.substring(0, 8).toUpperCase()}</p>
-              </div>
-            </div>
-         </div>
-       </div>
- 
-       <div className="max-w-xl mx-auto px-4 -mt-16 space-y-6 relative z-20">
-         {/* Status Card */}
-         <Card className="border-0 shadow-2xl rounded-[40px] overflow-hidden bg-white">
-           <CardContent className="p-8">
-              <div className="flex items-center gap-6 mb-8">
-                <div className={`w-20 h-20 rounded-[30px] flex items-center justify-center bg-zinc-50 ${info.color}`}>
-                  <info.icon size={40} strokeWidth={2.5} />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-tight">{info.label}</h2>
-                  <p className="text-xs font-bold text-zinc-400 mt-1 uppercase tracking-widest">Atualizado agora em tempo real</p>
-                </div>
-              </div>
- 
-              {order.status !== 'cancelled' && (
-                <div className="space-y-4">
-                  <div className="h-3 w-full bg-zinc-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(22,163,74,0.5)]"
-                      style={{ width: info.progress }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] font-black uppercase text-zinc-300 tracking-tighter">
-                    <span className={order.status === 'pending' ? 'text-primary' : ''}>Pedido</span>
-                    <span className={order.status === 'collecting' ? 'text-primary' : ''}>Preparando</span>
-                    <span className={order.status === 'out_for_delivery' ? 'text-primary' : ''}>Em Rota</span>
-                    <span className={order.status === 'delivered' ? 'text-primary' : ''}>Entregue</span>
-                  </div>
-                </div>
-              )}
-           </CardContent>
-         </Card>
- 
          {/* Details */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="border-0 shadow-lg rounded-3xl bg-white overflow-hidden">
