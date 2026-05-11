@@ -962,15 +962,6 @@
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
-                    <div className="flex flex-col items-end gap-1 border-l border-zinc-200 pl-4">
-                      <span className="text-[9px] font-black uppercase text-zinc-400">Modo Realista IA</span>
-                      <button 
-                        onClick={() => setSettings({ ...settings, social_proof: { ...settings.social_proof, realistic_ai: !settings.social_proof.realistic_ai } })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settings.social_proof?.realistic_ai ? 'bg-blue-500' : 'bg-zinc-300'}`}
-                      >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.social_proof?.realistic_ai ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
                   </div>
                 </div>
 
@@ -984,7 +975,7 @@
                           onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, interval: parseInt(e.target.value) } })}
                           className="rounded-xl border-zinc-200"
                         />
-                        <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 15000 (15 segundos)</p>
+                         <p className="text-[10px] text-zinc-400 font-bold italic">Padrão: 40000 (40 segundos)</p>
                       </div>
 
                       <div className="space-y-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">

@@ -95,7 +95,7 @@
   
     const defaultConfig: any = {
       enabled: true,
-      interval: 15000,
+      interval: 40000,
       max_per_minute: 4,
       max_per_session: 20,
       show_purchases: true,
@@ -170,14 +170,14 @@
     };
 
     useEffect(() => {
-      if (queue.length > 0 && visibleNotifications.length < 3) {
+      if (queue.length > 0 && visibleNotifications.length < 1) {
         const next = queue[0];
         setVisibleNotifications(prev => [...prev, next]);
         setQueue(prev => prev.slice(1));
         
         const timer = setTimeout(() => {
           setVisibleNotifications(prev => prev.filter(n => n.id !== next.id));
-        }, 5000);
+        }, 3500);
         
         return () => clearTimeout(timer);
       }
@@ -648,9 +648,6 @@
               exit={{ opacity: 0, x: -20, scale: 0.8 }}
                className="bg-white/95 backdrop-blur-sm border border-zinc-100 shadow-2xl rounded-2xl p-4 max-w-[300px] pointer-events-auto flex items-start gap-3 relative overflow-hidden group"
              >
-               <div className="absolute top-0 right-0 p-1 opacity-20 group-hover:opacity-40 transition-opacity">
-                 <Sparkles size={12} className="text-primary" />
-               </div>
                <div className={`p-2 rounded-xl shrink-0 shadow-sm ${
                  notification.type === 'purchase' ? 'bg-green-100 text-green-600' :
                  notification.type === 'viewers' ? 'bg-blue-100 text-blue-600' :
@@ -671,12 +668,6 @@
                        ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
                        : config.time_template || 'agora mesmo'}
                    </p>
-                   {config.realistic_ai && (
-                     <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
-                       <Sparkles size={8} className="text-zinc-400" />
-                       Realtime IA
-                     </span>
-                   )}
                  </div>
               </div>
             </motion.div>
