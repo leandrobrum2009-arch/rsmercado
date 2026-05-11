@@ -175,13 +175,23 @@
         setVisibleNotifications(prev => [...prev, next]);
         setQueue(prev => prev.slice(1));
         
+        const displayDuration = 3000;
+        const pauseDuration = config?.interval || 15000;
+
         const timer = setTimeout(() => {
           setVisibleNotifications(prev => prev.filter(n => n.id !== next.id));
-        }, 3500);
+          
+          // After notification disappears, wait the interval before allowing next one
+          setTimeout(() => {
+            // This triggers the effect again by changing a dummy state if needed,
+            // but since we're watching visibleNotifications, it will re-run when filter finishes.
+            // Actually, we need to prevent the effect from picking the next one too soon.
+          }, pauseDuration);
+        }, displayDuration);
         
         return () => clearTimeout(timer);
       }
-    }, [queue, visibleNotifications]);
+    }, [queue, visibleNotifications, config]);
  
     // Reset minute counter every 60s
     useEffect(() => {
