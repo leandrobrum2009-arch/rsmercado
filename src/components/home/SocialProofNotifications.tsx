@@ -95,7 +95,7 @@
   
     const defaultConfig: any = {
       enabled: true,
-      interval: 15000,
+      interval: 35000,
       max_per_minute: 4,
       max_per_session: 20,
       show_purchases: true,
@@ -170,14 +170,14 @@
     };
 
     useEffect(() => {
-      if (queue.length > 0 && visibleNotifications.length < 3) {
+      if (queue.length > 0 && visibleNotifications.length < 1) {
         const next = queue[0];
         setVisibleNotifications(prev => [...prev, next]);
         setQueue(prev => prev.slice(1));
         
         const timer = setTimeout(() => {
           setVisibleNotifications(prev => prev.filter(n => n.id !== next.id));
-        }, 5000);
+        }, 4000);
         
         return () => clearTimeout(timer);
       }
@@ -671,12 +671,6 @@
                        ? ['agora mesmo', 'neste momento', 'há 1 minuto', 'há 2 minutos'][Math.floor(Math.random() * 4)]
                        : config.time_template || 'agora mesmo'}
                    </p>
-                   {config.realistic_ai && (
-                     <span className="text-[9px] px-1.5 py-0.5 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-full flex items-center gap-1">
-                       <Sparkles size={8} className="text-zinc-400" />
-                       Realtime IA
-                     </span>
-                   )}
                  </div>
               </div>
             </motion.div>
