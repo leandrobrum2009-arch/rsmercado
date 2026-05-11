@@ -11,7 +11,8 @@
  }
  
   export function SocialProofNotifications() {
-    const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
+     const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
+     const [isPaused, setIsPaused] = useState(false);
     const [queue, setQueue] = useState<Notification[]>([]);
     const [shownIds, setShownIds] = useState<Set<string>>(new Set());
     const [lastType, setLastType] = useState<string | null>(null);
@@ -170,18 +171,26 @@
     };
 
     useEffect(() => {
-      if (queue.length > 0 && visibleNotifications.length < 1) {
+      if (queue.length > 0 && visibleNotifications.length < 1 && !isPaused) {
         const next = queue[0];
         setVisibleNotifications(prev => [...prev, next]);
         setQueue(prev => prev.slice(1));
         
+        const displayDuration = 3000;
+        const pauseDuration = config?.interval || 15000;
+
         const timer = setTimeout(() => {
           setVisibleNotifications(prev => prev.filter(n => n.id !== next.id));
-        }, 3500);
+          setIsPaused(true);
+          
+          setTimeout(() => {
+            setIsPaused(false);
+          }, pauseDuration);
+        }, displayDuration);
         
         return () => clearTimeout(timer);
       }
-    }, [queue, visibleNotifications]);
+    }, [queue, visibleNotifications, config, isPaused]);
  
     // Reset minute counter every 60s
     useEffect(() => {

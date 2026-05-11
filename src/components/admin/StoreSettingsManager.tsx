@@ -982,7 +982,16 @@
                         <label className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
                           <Zap className="h-3 w-3 text-yellow-500" /> Limites por Janela de Tempo
                         </label>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 uppercase">Intervalo (ms)</label>
+                            <Input 
+                              type="number"
+                              value={settings.social_proof?.interval || 15000}
+                              onChange={(e) => setSettings({ ...settings, social_proof: { ...settings.social_proof, interval: parseInt(e.target.value) } })}
+                              className="h-9 rounded-xl text-xs"
+                            />
+                          </div>
                           <div className="space-y-1">
                             <label className="text-[9px] font-bold text-zinc-400 uppercase">Máx. por Minuto</label>
                             <Input 
