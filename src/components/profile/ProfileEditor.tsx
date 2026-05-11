@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/lib/toast'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Save, User, Phone, MapPin, Plus, Trash2, Camera, Calendar, Users } from 'lucide-react'
+ import { Loader2, Save, User, Phone, MapPin, Plus, Trash2, Camera, Calendar, Users, Cake } from 'lucide-react'
+ import { BirthDatePicker } from './BirthDatePicker'
 
 export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
   const [loading, setLoading] = useState(false)
@@ -17,7 +18,7 @@ export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: (
     full_name: profile.full_name || '',
     whatsapp: profile.whatsapp || '',
     avatar_url: profile.avatar_url || '',
-    birthday: profile.birthday || '',
+     birth_date: profile.birth_date || '',
     gender: profile.gender || '',
     family_status: profile.family_status || ''
   })
@@ -66,11 +67,20 @@ export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: (
     setLoading(true)
     const { error } = await supabase
       .from('profiles')
-      .update(formData)
+      .update({
+        full_name: formData.full_name,
+        whatsapp: formData.whatsapp,
+        avatar_url: formData.avatar_url,
+        birth_date: formData.birth_date,
+        gender: formData.gender,
+        household_status: formData.family_status
+      })
       .eq('id', profile.id)
 
-    if (error) toast.error('Erro ao atualizar perfil')
-    else {
+    if (error) {
+      console.error(error)
+      toast.error('Erro ao atualizar perfil')
+    } else {
       toast.success('Perfil atualizado!')
       onUpdate()
     }
@@ -132,12 +142,11 @@ export function ProfileEditor({ profile, onUpdate }: { profile: any, onUpdate: (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Data de Nascimento
+                <Cake className="w-4 h-4 text-primary" /> Data de Nascimento
               </Label>
-              <Input 
-                type="date"
-                value={formData.birthday} 
-                onChange={(e) => setFormData({...formData, birthday: e.target.value})} 
+              <BirthDatePicker 
+                value={formData.birth_date} 
+                onChange={val => setFormData({ ...formData, birth_date: val })}
               />
             </div>
             <div className="grid gap-2">

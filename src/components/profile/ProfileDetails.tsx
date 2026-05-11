@@ -5,7 +5,8 @@
 import { Checkbox } from '@/components/ui/checkbox'
  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle, Phone, MessageSquare } from 'lucide-react'
+ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle, Phone, MessageSquare, Cake } from 'lucide-react'
+ import { BirthDatePicker } from './BirthDatePicker'
  import { toast } from '@/lib/toast'
  
  export function ProfileDetails({ profile, onUpdate }: { profile: any, onUpdate: () => void }) {
@@ -197,15 +198,10 @@ import { Loader2, Save, User, Calendar, Users, Camera, CheckCircle, AlertCircle,
                   <span className="text-[10px] font-black text-primary uppercase">{age} Anos</span>
                 )}
               </div>
-             <div className="relative">
-               <Input 
-                 type="date"
-                 value={formData.birth_date} 
-                 onChange={e => setFormData({ ...formData, birth_date: e.target.value })}
-                 className="border-zinc-200 h-12 pl-10"
-               />
-               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-             </div>
+             <BirthDatePicker 
+               value={formData.birth_date} 
+               onChange={val => setFormData({ ...formData, birth_date: val })}
+             />
            </div>
  
            <div className="space-y-2">

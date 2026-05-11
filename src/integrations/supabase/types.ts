@@ -103,6 +103,102 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          change_for: number | null
+          coupon_code: string | null
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_address: Json | null
+          delivery_fee: number | null
+          discount_amount: number | null
+          id: string
+          payment_method: string | null
+          points_earned: number | null
+          status: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          change_for?: number | null
+          coupon_code?: string | null
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          discount_amount?: number | null
+          id?: string
+          payment_method?: string | null
+          points_earned?: number | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          change_for?: number | null
+          coupon_code?: string | null
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          discount_amount?: number | null
+          id?: string
+          payment_method?: string | null
+          points_earned?: number | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brand: string | null
@@ -170,6 +266,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          accept_marketing: boolean | null
+          avatar_url: string | null
+          birth_date: string | null
+          created_at: string
+          full_name: string | null
+          gender: string | null
+          household_status: string | null
+          id: string
+          points_balance: number | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          accept_marketing?: boolean | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          full_name?: string | null
+          gender?: string | null
+          household_status?: string | null
+          id: string
+          points_balance?: number | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          accept_marketing?: boolean | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string
+          full_name?: string | null
+          gender?: string | null
+          household_status?: string | null
+          id?: string
+          points_balance?: number | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
       recipes: {
         Row: {
@@ -282,6 +420,57 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          city: string
+          complement: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          label: string | null
+          neighborhood: string
+          number: string
+          recipient_name: string | null
+          reference_point: string | null
+          state: string
+          street: string
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          city: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          label?: string | null
+          neighborhood: string
+          number: string
+          recipient_name?: string | null
+          reference_point?: string | null
+          state: string
+          street: string
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          city?: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          label?: string | null
+          neighborhood?: string
+          number?: string
+          recipient_name?: string | null
+          reference_point?: string | null
+          state?: string
+          street?: string
+          user_id?: string
+          zip_code?: string | null
         }
         Relationships: []
       }
