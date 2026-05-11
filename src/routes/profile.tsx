@@ -223,12 +223,12 @@ export const Route = createFileRoute('/profile')({
                            <p className="font-black text-[10px] uppercase text-zinc-400">#{order.id.substring(0, 8)}</p>
                            <p className="font-bold text-xs text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
                          </div>
-                         <div className="text-right flex items-center gap-3">
-                           <span className="text-xs font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
-                           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-zinc-300 group-hover:bg-primary group-hover:text-white transition-all">
-                             <ArrowRight size={14} />
-                           </div>
-                         </div>
+                          <div className="text-right flex flex-col items-end gap-2">
+                            <span className="text-sm font-black text-green-600">R$ {parseFloat(order.total_amount).toFixed(2)}</span>
+                            <Button size="sm" className="h-8 px-3 rounded-xl font-black uppercase text-[9px] tracking-widest bg-zinc-900 group-hover:bg-primary transition-colors flex items-center gap-2 shadow-lg">
+                              VER PEDIDO <ArrowRight size={12} />
+                            </Button>
+                          </div>
                        </Link>
                      ))}
                    </div>
