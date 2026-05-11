@@ -76,13 +76,6 @@ import { Badge } from '@/components/ui/badge'
     const [loadingQr, setLoadingQr] = useState(false)
     const [pixPayload, setPixPayload] = useState<string>('')
     const [pixKey, setPixKey] = useState<string>('')
-    const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
-    const [cardData, setCardData] = useState({
-      number: '',
-      name: '',
-      expiry: '',
-      cvv: ''
-    })
 
     useEffect(() => {
       const fetchPixConfig = async () => {
