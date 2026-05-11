@@ -67,71 +67,78 @@ import { Badge } from '@/components/ui/badge'
      return map[status] || map.pending
    }
  
-   const [copied, setCopied] = useState(false)
-   const [paying, setPaying] = useState(false)
-   const [resendingProof, setResendingProof] = useState(false)
-   const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
-   const [pixExpired, setPixExpired] = useState(false)
+    const [copied, setCopied] = useState(false)
+    const [paying, setPaying] = useState(false)
+    const [resendingProof, setResendingProof] = useState(false)
+    const [pixTimeLeft, setPixTimeLeft] = useState(600) // 10 minutes
+    const [pixExpired, setPixExpired] = useState(false)
     const [backendQrCode, setBackendQrCode] = useState<string | null>(null)
     const [loadingQr, setLoadingQr] = useState(false)
     const [pixPayload, setPixPayload] = useState<string>('')
-   const [pixKey, setPixKey] = useState<string>('')
- 
-   useEffect(() => {
-     const fetchPixConfig = async () => {
-       if (order?.status === 'pending' && order?.payment_method === 'pix') {
-         setLoadingQr(true)
-         try {
-           const { data: configData } = await supabase
-             .from('store_settings')
-             .select('value')
-             .eq('key', 'pix_config')
-             .maybeSingle()
-           
-           const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
-           setPixKey(config.key)
-           
-           const payload = generatePixPayload(
-             config.key,
-             config.merchant_name,
-             config.merchant_city,
-             Number(order.total_amount),
-             order.id
-           )
-           
-           setPixPayload(payload)
+    const [pixKey, setPixKey] = useState<string>('')
+    const [paymentStep, setPaymentStep] = useState<'info' | 'form' | 'processing' | 'done'>('info')
+    const [cardData, setCardData] = useState({
+      number: '',
+      name: '',
+      expiry: '',
+      cvv: ''
+    })
 
-           const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
-             body: { payload }
-           })
-           
-           if (!error && data?.qr_code) {
-             setBackendQrCode(data.qr_code)
-           }
-         } catch (err) {
-           console.error('Error setting up PIX:', err)
-         } finally {
-           setLoadingQr(false)
-         }
-       }
-     }
-     fetchPixConfig()
-   }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
+    useEffect(() => {
+      const fetchPixConfig = async () => {
+        if (order?.status === 'pending' && order?.payment_method === 'pix') {
+          setLoadingQr(true)
+          try {
+            const { data: configData } = await supabase
+              .from('store_settings')
+              .select('value')
+              .eq('key', 'pix_config')
+              .maybeSingle()
+            
+            const config = configData?.value || { key: 'rs-supermercado-pix-key-test-123', merchant_name: 'RS SUPERMERCADO', merchant_city: 'SAO PAULO' }
+            setPixKey(config.key)
+            
+            const payload = generatePixPayload(
+              config.key,
+              config.merchant_name,
+              config.merchant_city,
+              Number(order.total_amount),
+              order.id
+            )
+            
+            setPixPayload(payload)
 
-  useEffect(() => {
-    if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
-      const timer = setInterval(() => {
-        setPixTimeLeft(prev => {
-          if (prev <= 1) {
-            setPixExpired(true)
-            return 0
+            const { data, error } = await supabase.functions.invoke('generate-pix-qr', {
+              body: { payload }
+            })
+            
+            if (!error && data?.qr_code) {
+              setBackendQrCode(data.qr_code)
+            }
+          } catch (err) {
+            console.error('Error setting up PIX:', err)
+          } finally {
+            setLoadingQr(false)
           }
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
+        }
+      }
+      fetchPixConfig()
+    }, [order?.status, order?.payment_method, order?.total_amount, order?.id])
+
+    useEffect(() => {
+      if (order?.status === 'pending' && order?.payment_method === 'pix' && pixTimeLeft > 0 && !pixExpired) {
+        const timer = setInterval(() => {
+          setPixTimeLeft(prev => {
+            if (prev <= 1) {
+              setPixExpired(true)
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+        return () => clearInterval(timer)
+      }
+    }, [order?.status, order?.payment_method, pixTimeLeft, pixExpired])
 
   if (loading) {
     return (
