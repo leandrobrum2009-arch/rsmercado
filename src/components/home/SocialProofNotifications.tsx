@@ -95,7 +95,7 @@
   
     const defaultConfig: any = {
       enabled: true,
-      interval: 35000,
+      interval: 40000,
       max_per_minute: 4,
       max_per_session: 20,
       show_purchases: true,
