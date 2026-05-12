@@ -409,7 +409,14 @@ function CartPage() {
               <img src={item.image_url} alt={item.name} className="w-20 h-20 object-cover rounded-lg bg-gray-50" />
               <div className="flex-1">
                 <h3 className="text-sm font-bold text-gray-800 line-clamp-1">{item.name}</h3>
-                <p className="text-green-600 font-bold text-sm">{formatCurrency(item.price)}</p>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-zinc-500 font-bold text-[10px] uppercase">
+                    {formatCurrency(item.price)} / {item.is_weight_based ? 'kg' : (item.unit || 'un')}
+                  </p>
+                  <p className="text-green-700 font-black text-sm">
+                    {formatCurrency(item.price * item.quantity)}
+                  </p>
+                </div>
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center bg-gray-100 rounded-lg p-1">
                      <button 
