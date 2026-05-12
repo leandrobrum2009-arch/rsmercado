@@ -49,7 +49,7 @@
    return !!data;
  }
  
-  export const logSentMessage = async (phone: string, message: string, campaignId?: string, status: string = 'sent', errorMessage?: string, method: string = 'api') => {
+   export const logSentMessage = async (phone: string, message: string, campaignId?: string, status: string = 'sent', errorMessage?: string, method: string = 'api', orderId?: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const hash = generateMessageHash(message);
     
@@ -59,6 +59,7 @@
         message_text: message,
         message_hash: hash,
         campaign_id: campaignId || null,
+         order_id: orderId || null,
         status,
         error_message: errorMessage || null,
         method
@@ -192,7 +193,7 @@ export const formatCurrency = (value: number) => {
      return message;
    }
 
- export const sendWhatsAppMessage = async (phone: string, message: string, campaignId?: string) => {
+  export const sendWhatsAppMessage = async (phone: string, message: string, campaignId?: string, orderId?: string) => {
    const config = await getWhatsAppConfig();
    
     if (!config || !config.enabled || !config.apiKey) {
@@ -207,7 +208,7 @@ export const formatCurrency = (value: number) => {
       if (typeof window !== 'undefined') {
         window.open(url, '_blank');
       }
-      await logSentMessage(phone, message, campaignId, 'manual', undefined, 'browser');
+      await logSentMessage(phone, message, campaignId, 'manual', undefined, 'browser', orderId);
       return { success: true, method: 'browser' };
     }
  
@@ -238,7 +239,7 @@ export const formatCurrency = (value: number) => {
       const status = response.ok ? 'sent' : 'error';
       const errorMsg = response.ok ? undefined : (result?.message || result?.error || `HTTP ${response.status}`);
       
-      await logSentMessage(phone, message, campaignId, status, errorMsg, 'api');
+       await logSentMessage(phone, message, campaignId, status, errorMsg, 'api', orderId);
       
       return { success: response.ok, result, status: response.status, method: 'api' };
    } catch (error) {

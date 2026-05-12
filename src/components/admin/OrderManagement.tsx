@@ -5,15 +5,17 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-   import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send } from 'lucide-react'
+    import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send, History } from 'lucide-react'
 import { toast } from '@/lib/toast'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
+import { useNavigate } from '@tanstack/react-router'
 
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
  import { ScrollArea } from '@/components/ui/scroll-area'
  
  export function OrderManagement() {
+  const navigate = useNavigate()
    const [orders, setOrders] = useState<any[]>([])
    const [loading, setLoading] = useState(true)
    const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -108,7 +110,7 @@ import { toast } from '@/lib/toast'
          total_amount: Number(order.total_amount)
        }, templates);
 
-      await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary);
+      await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary, undefined, order.id);
       toast.success('Resumo enviado com sucesso!');
     } catch (e: any) {
       toast.error('Erro ao enviar resumo: ' + e.message);
@@ -148,7 +150,7 @@ import { toast } from '@/lib/toast'
          status: status,
          customer_name: customerName || 'Cliente'
        }, templates);
-       await sendWhatsAppMessage(customerPhone, message);
+        await sendWhatsAppMessage(customerPhone, message, undefined, orderId);
 
        // If delivered, also send points earned notification if enabled
        if (isDelivered && config?.notify_points_earned !== false) {
@@ -165,7 +167,7 @@ import { toast } from '@/lib/toast'
           
           // Wait a bit before sending second message
           setTimeout(() => {
-            sendWhatsAppMessage(customerPhone, pointsMsg);
+            sendWhatsAppMessage(customerPhone, pointsMsg, undefined, orderId);
           }, 2000);
         }
       }
@@ -268,6 +270,18 @@ import { toast } from '@/lib/toast'
                           title="Enviar resumo completo WhatsApp"
                         >
                           <Phone size={14} />
+                        </Button>
+
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 text-zinc-600 border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
+                          onClick={() => {
+                            navigate({ to: '/admin', search: { tab: 'sending_logs', filter: order.id.substring(0, 8) } as any })
+                          }}
+                          title="Ver histórico de envios deste pedido"
+                        >
+                          <History size={14} />
                         </Button>
                       </div>
 

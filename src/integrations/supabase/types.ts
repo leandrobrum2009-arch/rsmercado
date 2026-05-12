@@ -747,6 +747,7 @@ export type Database = {
           message_hash: string | null
           message_text: string | null
           method: string | null
+          order_id: string | null
           phone: string
           sent_at: string | null
           status: string | null
@@ -758,6 +759,7 @@ export type Database = {
           message_hash?: string | null
           message_text?: string | null
           method?: string | null
+          order_id?: string | null
           phone: string
           sent_at?: string | null
           status?: string | null
@@ -769,11 +771,20 @@ export type Database = {
           message_hash?: string | null
           message_text?: string | null
           method?: string | null
+          order_id?: string | null
           phone?: string
           sent_at?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_templates: {
         Row: {

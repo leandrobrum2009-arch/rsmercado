@@ -1,4 +1,5 @@
  import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
+import { SendingLogViewer } from '@/components/admin/SendingLogViewer'
  import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
  import { FeedbackManager } from '@/components/admin/FeedbackManager'
  import { AlertManager } from '@/components/admin/AlertManager'
@@ -26,7 +27,8 @@
     Percent,
     Lock,
     LayoutGrid,
-    Trophy
+    Trophy,
+    Send
   } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
@@ -75,13 +77,15 @@ export const Route = createFileRoute('/admin')({
   },
    component: RouteComponent,
    errorComponent: (props: ErrorComponentProps) => <AdminErrorComponent {...props} />,
-  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
+  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string; filter?: string } => {
     const tab = Array.isArray(search.tab) ? search.tab[0] : search.tab;
     const edit = Array.isArray(search.edit) ? search.edit[0] : search.edit;
+    const filter = Array.isArray(search.filter) ? search.filter[0] : search.filter;
     
     return {
       tab: (tab as string) || 'dashboard',
       edit: edit as string,
+      filter: filter as string,
     }
   },
 })
@@ -218,7 +222,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "activity_logs", "feedback"
+                "admin_roles", "activity_logs", "sending_logs", "feedback"
               ])
             }
          }
@@ -311,6 +315,7 @@ export const Route = createFileRoute('/admin')({
           items: [
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
+              { id: 'sending_logs', label: 'Log de Envios', icon: Send },
               { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
            ]
         }
@@ -496,6 +501,9 @@ export const Route = createFileRoute('/admin')({
                    </TabsContent>
                     <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
                       <SecurityLogViewer />
+                    </TabsContent>
+                    <TabsContent value="sending_logs" className="mt-0 focus-visible:ring-0">
+                      <SendingLogViewer />
                     </TabsContent>
                     <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
                       <FeedbackManager />
