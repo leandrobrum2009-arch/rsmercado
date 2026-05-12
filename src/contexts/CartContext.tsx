@@ -10,6 +10,7 @@
    points_value: number;
    unit?: string;
    is_weight_based?: boolean;
+   stock?: number;
  }
  
  interface CartContextType {
@@ -73,13 +74,23 @@
      setItems(prev => prev.filter(i => i.id !== productId));
    };
  
-   const updateQuantity = (productId: string, quantity: number) => {
-     if (quantity <= 0) {
-       removeFromCart(productId);
-       return;
-     }
-     setItems(prev => prev.map(i => i.id === productId ? { ...i, quantity } : i));
-   };
+    const updateQuantity = (productId: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeFromCart(productId);
+        return;
+      }
+ 
+      setItems(prev => prev.map(i => {
+        if (i.id === productId) {
+          if (i.stock !== undefined && quantity > i.stock) {
+            toast.error(`Desculpe, só temos ${i.stock} ${i.is_weight_based ? 'kg' : (i.unit || 'un')} em estoque.`);
+            return i;
+          }
+          return { ...i, quantity };
+        }
+        return i;
+      }));
+    };
  
    const clearCart = () => setItems([]);
  
