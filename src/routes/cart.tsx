@@ -308,11 +308,24 @@ function CartPage() {
         unit_price: item.price
       }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
+       const { error: itemsError } = await supabase
+         .from('order_items')
+         .insert(orderItems);
+ 
+       if (itemsError) throw itemsError;
+ 
+       // 2.1 Update Stock
+       for (const item of items) {
+         const { error: stockError } = await supabase.rpc('reduce_stock', {
+           p_product_id: item.id,
+           p_quantity: item.quantity
+         });
+         if (stockError) {
+           console.error(`Error reducing stock for ${item.id}:`, stockError);
+           // We don't throw here to avoid failing the whole order if stock update fails
+           // But we could if we wanted strict stock control
+         }
+       }
 
          // 3. Send WhatsApp Notifications
          const addressStr = `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`;
