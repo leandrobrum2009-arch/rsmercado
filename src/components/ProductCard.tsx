@@ -130,24 +130,28 @@
            <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 h-10 mb-1 leading-[1.1] tracking-tight">{product.name}</h3>
          
          <div className="mt-auto">
-           <div className="flex items-baseline gap-2">
-               <div className="flex flex-col">
-                 <span className="text-lg font-bold text-green-700 leading-none">
-                   R$ {Number(product.price || 0).toFixed(2)}
-                   {product.is_weight_based && <span className="text-[10px] ml-1 opacity-60">/kg</span>}
-                 </span>
-                  {product.unit && (
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase mt-0.5 bg-zinc-100 px-1.5 py-0.5 rounded w-fit">
-                      {product.is_weight_based ? 'Venda p/ Peso' : `Unidade: ${product.unit}`}
-                    </span>
-                  )}
-               </div>
-              {product.old_price && (
-                <span className="text-xs text-gray-400 line-through">
-                  R$ {Number(product.old_price).toFixed(2)}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-black text-green-700 leading-none">
+                  R$ {Number(product.price || 0).toFixed(2)}
+                </span>
+                {product.unit && (
+                  <span className="text-[10px] font-black text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                    {product.unit}
+                  </span>
+                )}
+                {product.old_price && (
+                  <span className="text-[10px] text-zinc-400 line-through ml-auto">
+                    R$ {Number(product.old_price).toFixed(2)}
+                  </span>
+                )}
+              </div>
+              {product.is_weight_based && (
+                <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit uppercase tracking-tighter border border-amber-100">
+                  Venda Fracionada
                 </span>
               )}
-           </div>
+            </div>
  
             <div className="mt-3 space-y-2">
                {product.is_weight_based && !cartItem && (
