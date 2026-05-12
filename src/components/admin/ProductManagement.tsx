@@ -597,10 +597,16 @@ export function ProductManagement() {
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
                     <Input type="number" step="0.01" placeholder="0.00" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
                   </div>
-                  <div className="space-y-2 col-span-2 md:col-span-1">
-                    <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
-                    <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                  </div>
+                   <div className="grid grid-cols-2 gap-4 col-span-2 md:col-span-1">
+                     <div className="space-y-2">
+                       <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
+                       <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="text-[10px] uppercase font-bold text-blue-600">Estoque Inicial</Label>
+                       <Input type="number" step="1" placeholder="0" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
+                     </div>
+                   </div>
                   <div className="space-y-2 col-span-2">
                     <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
