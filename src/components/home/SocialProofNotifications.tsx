@@ -215,54 +215,61 @@
         .subscribe();
 
       // 1. Real-time Listeners
-     const orderChannel = supabase
-       .channel('social-proof-orders')
-       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-         if (!config.show_purchases) return;
-         const order = payload.new;
-         const name = order.customer_name || 'Alguém';
-         const neighborhood = order.delivery_address?.neighborhood || 'da região';
-         const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
-         
-          addToQueue({
-            id: `order-${order.id}`,
-           type: 'purchase',
-           message: formatMessage(template, { name, neighborhood }),
-           icon: ShoppingBag
-         });
-       })
-       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
-         if (!config.show_delivered) return;
-         if (payload.new.status === 'delivered' && payload.old.status !== 'delivered') {
-           const order = payload.new;
-           const name = order.customer_name || 'Alguém';
-           const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
-           
+      const orderChannel = supabase
+        .channel('social-proof-orders')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+          console.log('Realtime Social Proof: Nova compra detectada', payload.new)
+          if (!config.show_purchases) return;
+          const order = payload.new;
+          const name = order.customer_name || 'Alguém';
+          const neighborhood = order.delivery_address?.neighborhood || 'da região';
+          const template = config.purchase_template || '{name} acabou de fazer uma compra no bairro {neighborhood}';
+          
            addToQueue({
-             id: `delivered-${order.id}`,
-             type: 'delivered',
-             message: formatMessage(template, { name }),
-             icon: CheckCircle2
-            });
-          }
-          if (config.show_payments && payload.new.status === 'approved' && payload.old.status !== 'approved') {
+             id: `order-${order.id}`,
+            type: 'purchase',
+            message: formatMessage(template, { name, neighborhood }),
+            icon: ShoppingBag
+          });
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+          console.log('Realtime Social Proof: Status de pedido alterado', payload.new)
+          if (!config.show_delivered) return;
+          if (payload.new.status === 'delivered' && payload.old.status !== 'delivered') {
             const order = payload.new;
             const name = order.customer_name || 'Alguém';
-            const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
+            const template = config.delivered_template || '{name} já recebeu suas compras em casa!';
             
             addToQueue({
-              id: `payment-${order.id}`,
-              type: 'payment',
+              id: `delivered-${order.id}`,
+              type: 'delivered',
               message: formatMessage(template, { name }),
               icon: CheckCircle2
-            });
+             });
+           }
+           if (config.show_payments && payload.new.status === 'approved' && payload.old.status !== 'approved') {
+             const order = payload.new;
+             const name = order.customer_name || 'Alguém';
+             const template = config.payment_template || 'Pagamento confirmado para o pedido de {name}!';
+             
+             addToQueue({
+               id: `payment-${order.id}`,
+               type: 'payment',
+               message: formatMessage(template, { name }),
+               icon: CheckCircle2
+             });
+           }
+         })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Realtime Social Proof: Inscrito no canal de pedidos')
           }
-        })
-       .subscribe();
- 
-     const profileChannel = supabase
-       .channel('social-proof-profiles')
-       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, async (payload) => {
+        });
+
+      const profileChannel = supabase
+        .channel('social-proof-profiles')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, async (payload) => {
+          console.log('Realtime Social Proof: Perfil atualizado', payload.new)
          if (!config.show_levels) return;
          
          const newPoints = payload.new.points_balance || 0;
