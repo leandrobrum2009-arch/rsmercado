@@ -1,4 +1,5 @@
-    import { Plus, Minus, ShoppingCart, Tag, ShoppingBag, Zap } from "lucide-react";
+     import { Plus, Minus, ShoppingCart, Tag, ShoppingBag, Zap } from "lucide-react";
+     import { Button } from "@/components/ui/button";
     import * as LucideIcons from "lucide-react";
     const getCategoryIcon = (category: any) => {
       if (!category) return ShoppingBag;
