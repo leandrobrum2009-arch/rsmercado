@@ -381,6 +381,33 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_logs: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          event_type: string | null
+          id: string
+          severity: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          severity?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          severity?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lots: {
         Row: {
           auction_id: string | null
@@ -874,6 +901,57 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      sales_notes: {
+        Row: {
+          amount: number
+          auction_id: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          lot_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          auction_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          auction_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_notes_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_notes_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_visits: {
         Row: {
