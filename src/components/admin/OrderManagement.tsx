@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote } from 'lucide-react'
+   import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send } from 'lucide-react'
 import { toast } from '@/lib/toast'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 
