@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-  import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote } from 'lucide-react'
+   import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send } from 'lucide-react'
 import { toast } from '@/lib/toast'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 
@@ -103,7 +103,7 @@ import { toast } from '@/lib/toast'
     }
   };
 
-  const updateOrderStatus = async (orderId: string, status: string, customerPhone: string, customerName: string) => {
+   const updateOrderStatus = async (orderId: string, status: string, customerPhone: string, customerName: string, autoNotify: boolean = true) => {
     const { error } = await supabase
       .from('orders')
       .update({ status })
@@ -122,7 +122,7 @@ import { toast } from '@/lib/toast'
 
     // Notify via WhatsApp if enabled
     const config = await getWhatsAppConfig();
-     if (customerPhone && config?.notify_order_status !== false) {
+     if (customerPhone && autoNotify && config?.notify_order_status !== false) {
        const templates = await getWhatsAppTemplates();
        // Status Update Notification
         const statusKey = `status_${status}` as any;
@@ -209,35 +209,53 @@ import { toast } from '@/lib/toast'
                       {order.status}
                     </Badge>
                   </TableCell>
-                   <TableCell className="flex items-center gap-2">
-                     <Select 
-                       value={order.status} 
-                        onValueChange={(val) => updateOrderStatus(order.id, val, order.profiles?.whatsapp || order.customer_phone, order.profiles?.full_name || order.customer_name)}
-                     >
-                       <SelectTrigger className="w-[140px] h-8 text-xs">
-                         <SelectValue />
-                       </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pendente</SelectItem>
-                          <SelectItem value="approved">Aprovado</SelectItem>
-                          <SelectItem value="collecting">Em Coleta</SelectItem>
-                          <SelectItem value="collected">Coletado</SelectItem>
-                          <SelectItem value="waiting_courier">Aguardando Entregador</SelectItem>
-                          <SelectItem value="out_for_delivery">Saiu para Entrega</SelectItem>
-                          <SelectItem value="delivered">Entregue</SelectItem>
-                          <SelectItem value="cancelled">Cancelado</SelectItem>
-                        </SelectContent>
-                     </Select>
- 
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-8 w-8 text-green-600 border-green-200 bg-green-50 hover:bg-green-100"
-                        onClick={() => sendManualOrderSummary(order)}
-                        title="Enviar resumo WhatsApp"
-                      >
-                        <Phone size={14} />
-                      </Button>
+                   <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(val) => updateOrderStatus(order.id, val, order.profiles?.whatsapp || order.customer_phone, order.profiles?.full_name || order.customer_name, false)}
+                          >
+                            <SelectTrigger className="w-[120px] h-8 text-[10px] font-bold uppercase">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pendente</SelectItem>
+                              <SelectItem value="approved">Aprovado</SelectItem>
+                              <SelectItem value="collecting">Separando</SelectItem>
+                              <SelectItem value="collected">Pronto</SelectItem>
+                              <SelectItem value="waiting_courier">Entregador</SelectItem>
+                              <SelectItem value="out_for_delivery">Em Rota</SelectItem>
+                              <SelectItem value="delivered">Entregue</SelectItem>
+                              <SelectItem value="cancelled">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-primary hover:bg-primary/10"
+                            onClick={() => {
+                              const phone = order.profiles?.whatsapp || order.customer_phone;
+                              const name = order.profiles?.full_name || order.customer_name;
+                              updateOrderStatus(order.id, order.status, phone, name, true);
+                            }}
+                            title="Enviar atualização de status por WhatsApp"
+                          >
+                            <Send size={14} />
+                          </Button>
+                        </div>
+
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 text-green-600 border-green-200 bg-green-50 hover:bg-green-100"
+                          onClick={() => sendManualOrderSummary(order)}
+                          title="Enviar resumo completo WhatsApp"
+                        >
+                          <Phone size={14} />
+                        </Button>
+                      </div>
 
                      <Dialog>
                        <DialogTrigger asChild>
