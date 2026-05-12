@@ -183,7 +183,8 @@ function CartPage() {
        return;
      }
      
-     if (coupon.toUpperCase() === 'PRIMEIRA') {
+      const normalizedCoupon = coupon.trim().toUpperCase();
+      if (normalizedCoupon === 'PRIMEIRA') {
        setIsCheckingCoupon(true);
        try {
          const { count, error } = await supabase

@@ -239,6 +239,15 @@
     pointer-events: none !important;
   }
  
+  @keyframes flash {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+
+  .animate-flash {
+    animation: flash 0.8s ease-in-out infinite;
+  }
+
   @keyframes wiggle {
     0%, 100% { transform: rotate(-3deg); }
     50% { transform: rotate(3deg); }

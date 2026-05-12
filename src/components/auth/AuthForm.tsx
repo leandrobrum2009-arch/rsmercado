@@ -108,9 +108,12 @@ export function AuthForm() {
                label: 'Principal'
              })
          }
-        alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Por favor, verifique sua caixa de entrada (e pasta de spam) para ativar sua conta antes de tentar entrar.')
-        alert('CADASTRO REALIZADO!\n\nUm e-mail de confirmação foi enviado. Se não chegar em 2 minutos, use a opção "Esqueci minha senha" para ativar seu acesso.')
-        setIsSignUp(false)
+         toast.success('CADASTRO REALIZADO COM SUCESSO!')
+         // Com auto-confirm habilitado, o usuário já está logado. 
+         // Recarregamos para atualizar o estado global da aplicação.
+         setTimeout(() => {
+           window.location.reload()
+         }, 1500)
       } else {
          const { error } = await supabase.auth.signInWithPassword({ email, password })
          if (error) {

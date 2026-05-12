@@ -300,7 +300,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
                      <ShoppingBag size={18} />
                    </Link>
                    <Link to="/cart" className={`relative p-2 transition-all duration-300 ${cartCount > 0 ? 'text-green-600 scale-110' : 'text-gray-600'}`}>
-                     <ShoppingCart size={20} className={cartCount > 0 ? 'animate-wiggle' : ''} />
+                     <ShoppingCart size={20} className={cartCount > 0 ? 'animate-flash text-green-600' : ''} />
                      {cartCount > 0 && (
                       <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
                         {cartCount}
