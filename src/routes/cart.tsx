@@ -174,23 +174,6 @@ function CartPage() {
       }
     }, [total, activeCoupon]);
 
-  if (items.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
-        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
-          <ShoppingCart size={40} />
-        </div>
-        <h2 className="text-xl font-bold text-gray-800">Seu carrinho está vazio</h2>
-        <p className="text-gray-500 text-center mt-2 max-w-[250px]">
-           Adicione produtos para começar suas compras no RS SUPERMERCADO.
-        </p>
-        <Link to="/" className="mt-8 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg">
-          Ir para as compras
-        </Link>
-      </div>
-    );
-  }
-
     const handleApplyCoupon = async () => {
       const normalizedCoupon = coupon.trim().toUpperCase();
       if (!normalizedCoupon) return;
@@ -402,6 +385,21 @@ function CartPage() {
       </div>
 
       <div className="container mx-auto p-4 space-y-6">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[50vh] px-4">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
+              <ShoppingCart size={40} />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Seu carrinho está vazio</h2>
+            <p className="text-gray-500 text-center mt-2 max-w-[250px]">
+               Adicione produtos para começar suas compras no RS SUPERMERCADO.
+            </p>
+            <Link to="/" className="mt-8 bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg">
+              Ir para as compras
+            </Link>
+          </div>
+        ) : (
+          <>
         {/* Items List */}
         <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
           {items.map((item) => (
@@ -614,10 +612,10 @@ function CartPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Summary */}
-        <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
+          </div>
+          </>
+        )}
+      </div>
            <div className="flex justify-between text-gray-500 text-sm">
              <span>Subtotal</span>
              <span>{formatCurrency(total)}</span>
