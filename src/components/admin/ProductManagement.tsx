@@ -697,7 +697,14 @@ export function ProductManagement() {
                       <Label className="text-[10px] uppercase font-bold">Unidade de Medida</Label>
                       <Select 
                         value={newProduct.unit} 
-                        onValueChange={(val) => setNewProduct({...newProduct, unit: val, is_weight_based: val === 'kg'})}
+                        onValueChange={(val) => {
+                          const fractionalUnits = ['kg', 'g', 'lt', 'ml', 'm'];
+                          setNewProduct({
+                            ...newProduct, 
+                            unit: val, 
+                            is_weight_based: fractionalUnits.includes(val)
+                          });
+                        }}
                       >
                         <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                         <SelectContent>
