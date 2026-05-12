@@ -186,6 +186,7 @@ export function ProductManagement() {
         id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false
     })
     const [isEditing, setIsEditing] = useState(false)
+    const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
   const [imageSearchQuery, setImageSearchQuery] = useState('')
@@ -380,6 +381,7 @@ export function ProductManagement() {
      } else {
        toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
        resetForm()
+       setIsProductDialogOpen(false)
        fetchData()
      }
    }
@@ -389,25 +391,26 @@ export function ProductManagement() {
      setIsEditing(false)
    }
  
-   const handleEdit = (product: any) => {
-     setNewProduct({
-       id: product.id,
-       name: product.name,
-       description: product.description || '',
-       price: product.price.toString(),
-       old_price: product.old_price ? product.old_price.toString() : '',
-       category_id: product.category_id,
-       image_url: product.image_url || '',
-       stock: (product.stock || 0).toString(),
-       is_available: product.is_available,
-       points_value: (product.points_value || 0).toString(),
-        brand: product.brand || '',
-        tags: (product.tags || []).join(', '),
-        unit: product.unit || 'un',
-        is_weight_based: !!product.is_weight_based
-     })
-     setIsEditing(true)
-   }
+    const handleEdit = (product: any) => {
+      setNewProduct({
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        price: product.price.toString(),
+        old_price: product.old_price ? product.old_price.toString() : '',
+        category_id: product.category_id,
+        image_url: product.image_url || '',
+        stock: (product.stock || 0).toString(),
+        is_available: product.is_available,
+        points_value: (product.points_value || 0).toString(),
+         brand: product.brand || '',
+         tags: (product.tags || []).join(', '),
+         unit: product.unit || 'un',
+         is_weight_based: !!product.is_weight_based
+      })
+      setIsEditing(true)
+      setIsProductDialogOpen(true)
+    }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza?')) return
