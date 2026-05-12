@@ -319,19 +319,26 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
          RAISE EXCEPTION 'Acesso negado: apenas administradores podem enviar notificações para todos.';
        END IF;
 
-       INSERT INTO public.notifications (user_id, title, message, type, scheduled_at)
-       SELECT id, p_title, p_message, p_type, p_scheduled_at FROM auth.users;
+        INSERT INTO public.notifications (user_id, title, message, type, scheduled_at, created_at)
+        SELECT id, p_title, p_message, p_type, p_scheduled_at, NOW() FROM auth.users;
      END; $BODY$;
 
- CREATE TABLE IF NOT EXISTS public.notifications (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-     title TEXT NOT NULL,
-     message TEXT NOT NULL,
-     type TEXT DEFAULT 'info',
-     is_read BOOLEAN DEFAULT FALSE,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
- );
+  -- Garantir que a tabela de notificações tenha todas as colunas necessárias
+  CREATE TABLE IF NOT EXISTS public.notifications (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      type TEXT DEFAULT 'info',
+      related_id UUID,
+      scheduled_at TIMESTAMP WITH TIME ZONE,
+      is_read BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  
+  -- Adicionar colunas faltantes se a tabela já existir
+  ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS related_id UUID;
+  ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP WITH TIME ZONE;
  ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
   DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
   CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
