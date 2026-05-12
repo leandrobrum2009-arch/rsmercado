@@ -114,4 +114,19 @@
  
      expect(result.current.items[0].quantity).toBe(3); // Should remain 3
    });
+ 
+   it('should respect stock limits in updateQuantity', () => {
+     const { result } = renderHook(() => useCart(), { wrapper });
+     const product = { id: '1', name: 'Product 1', price: 10, points_value: 0, stock: 5 };
+ 
+     act(() => {
+       result.current.addToCart(product, 1);
+     });
+ 
+     act(() => {
+       result.current.updateQuantity('1', 10); // Attempting to set to 10 when stock is 5
+     });
+ 
+     expect(result.current.items[0].quantity).toBe(1); // Should remain 1
+   });
  });
