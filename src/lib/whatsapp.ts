@@ -196,9 +196,17 @@ export const formatCurrency = (value: number) => {
    const config = await getWhatsAppConfig();
    
     if (!config || !config.enabled || !config.apiKey) {
-      const cleanPhone = phone.replace(/\D/g, '');
-      const url = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
-      if (typeof window !== 'undefined') window.open(url, '_blank');
+      let cleanPhone = phone.replace(/\D/g, '');
+      // Ensure we don't double up on 55
+      if (cleanPhone.startsWith('55') && cleanPhone.length >= 12) {
+        // already has country code
+      } else {
+        cleanPhone = `55${cleanPhone}`;
+      }
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      if (typeof window !== 'undefined') {
+        window.open(url, '_blank');
+      }
       await logSentMessage(phone, message, campaignId, 'manual', undefined, 'browser');
       return { success: true, method: 'browser' };
     }
