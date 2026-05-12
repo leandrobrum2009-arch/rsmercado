@@ -136,9 +136,11 @@
                    R$ {Number(product.price || 0).toFixed(2)}
                    {product.is_weight_based && <span className="text-[10px] ml-1 opacity-60">/kg</span>}
                  </span>
-                 {product.unit && !product.is_weight_based && (
-                   <span className="text-[9px] text-zinc-400 font-bold uppercase mt-0.5">Un: {product.unit}</span>
-                 )}
+                  {product.unit && (
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase mt-0.5 bg-zinc-100 px-1.5 py-0.5 rounded w-fit">
+                      {product.is_weight_based ? 'Venda p/ Peso' : `Unidade: ${product.unit}`}
+                    </span>
+                  )}
                </div>
               {product.old_price && (
                 <span className="text-xs text-gray-400 line-through">
