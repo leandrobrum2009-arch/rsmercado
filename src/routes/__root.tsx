@@ -82,7 +82,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       logo_url: '',
       colors: { primary: '#16a34a', secondary: '#facc15' }
     });
-   const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
+   const cartCount = items.length;
  
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
