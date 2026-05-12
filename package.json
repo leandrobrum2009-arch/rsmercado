@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:hostinger": "vite build && node scripts/generate-static-index.mjs",
     "build:dev": "vite build --mode development",
     "type-check": "tsc --noEmit",
     "check-imports": "node scripts/check-imports.js",
