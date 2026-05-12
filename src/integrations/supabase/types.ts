@@ -217,6 +217,7 @@ export type Database = {
           is_read: boolean | null
           message: string
           related_id: string | null
+          scheduled_at: string | null
           title: string
           type: string | null
           user_id: string | null
@@ -227,6 +228,7 @@ export type Database = {
           is_read?: boolean | null
           message: string
           related_id?: string | null
+          scheduled_at?: string | null
           title: string
           type?: string | null
           user_id?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           is_read?: boolean | null
           message?: string
           related_id?: string | null
+          scheduled_at?: string | null
           title?: string
           type?: string | null
           user_id?: string | null
@@ -731,6 +734,15 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      notify_all_users: {
+        Args: {
+          p_message: string
+          p_scheduled_at?: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: undefined
+      }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
