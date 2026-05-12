@@ -290,9 +290,8 @@ function CartPage() {
       }));
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) throw itemsError;
-      for (const item of items) {
-        await supabase.rpc("reduce_stock", { p_product_id: item.id, p_quantity: item.quantity });
-      }
+
+      // Note: Stock reduction is now handled by a database trigger on the 'orders' table.
       const addressStr = `${selectedAddress?.street}, ${selectedAddress?.number} - ${selectedAddress?.neighborhood}`;
       const templates = await getWhatsAppTemplates();
       const userSummary = formatWhatsAppMessage(
