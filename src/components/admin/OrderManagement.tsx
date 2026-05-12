@@ -108,7 +108,7 @@ import { toast } from '@/lib/toast'
          total_amount: Number(order.total_amount)
        }, templates);
 
-      await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary);
+      await sendWhatsAppMessage(order.profiles?.whatsapp || '', summary, undefined, order.id);
       toast.success('Resumo enviado com sucesso!');
     } catch (e: any) {
       toast.error('Erro ao enviar resumo: ' + e.message);
@@ -148,7 +148,7 @@ import { toast } from '@/lib/toast'
          status: status,
          customer_name: customerName || 'Cliente'
        }, templates);
-       await sendWhatsAppMessage(customerPhone, message);
+        await sendWhatsAppMessage(customerPhone, message, undefined, orderId);
 
        // If delivered, also send points earned notification if enabled
        if (isDelivered && config?.notify_points_earned !== false) {
@@ -165,7 +165,7 @@ import { toast } from '@/lib/toast'
           
           // Wait a bit before sending second message
           setTimeout(() => {
-            sendWhatsAppMessage(customerPhone, pointsMsg);
+            sendWhatsAppMessage(customerPhone, pointsMsg, undefined, orderId);
           }, 2000);
         }
       }
