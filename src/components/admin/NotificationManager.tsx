@@ -56,12 +56,12 @@
          const scheduledDate = scheduledAt ? new Date(scheduledAt).toISOString() : null;
  
          if (target === 'all') {
-           const { error } = await supabase.rpc('notify_all_users', {
-             title,
-             message,
-             type,
-             scheduled_at: scheduledDate
-           })
+            const { error } = await supabase.rpc('notify_all_users', {
+              p_title: title,
+              p_message: message,
+              p_type: type,
+              p_scheduled_at: scheduledDate
+            })
            
            if (error) throw error
            toast.success(scheduledDate ? 'Notificação agendada para todos!' : 'Notificação enviada para todos!');
