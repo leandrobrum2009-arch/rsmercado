@@ -6,11 +6,13 @@ import { MessageSquare, Clock, Phone, Info, Search, RefreshCcw, AlertCircle, Che
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/lib/toast'
+import { useSearch } from '@tanstack/react-router'
 
 export function SendingLogViewer() {
+  const { filter: urlFilter } = useSearch({ from: '/admin' }) as any
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('')
+  const [filter, setFilter] = useState(urlFilter || '')
 
   const fetchLogs = async () => {
     setLoading(true)
