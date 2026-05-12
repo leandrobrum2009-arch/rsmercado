@@ -77,13 +77,15 @@ export const Route = createFileRoute('/admin')({
   },
    component: RouteComponent,
    errorComponent: (props: ErrorComponentProps) => <AdminErrorComponent {...props} />,
-  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string } => {
+  validateSearch: (search: Record<string, unknown>): { tab: string; edit?: string; filter?: string } => {
     const tab = Array.isArray(search.tab) ? search.tab[0] : search.tab;
     const edit = Array.isArray(search.edit) ? search.edit[0] : search.edit;
+    const filter = Array.isArray(search.filter) ? search.filter[0] : search.filter;
     
     return {
       tab: (tab as string) || 'dashboard',
       edit: edit as string,
+      filter: filter as string,
     }
   },
 })
