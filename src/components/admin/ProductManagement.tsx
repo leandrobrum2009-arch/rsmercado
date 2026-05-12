@@ -91,9 +91,9 @@ export function ProductManagement() {
       const padariaId = catData.find(c => c.slug === 'padaria')?.id
 
       const productsToSeed = [
-        { name: 'Banana Nanica 1kg', price: 5.99, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300' },
-        { name: 'Pão Francês Unidade', price: 0.95, category_id: padariaId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300' },
-        { name: 'Maçã Gala 1kg', price: 12.90, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300' }
+        { name: 'Banana Nanica', price: 5.99, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300', unit: 'kg', is_weight_based: true },
+        { name: 'Pão Francês', price: 0.95, category_id: padariaId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300', unit: 'un', is_weight_based: false },
+        { name: 'Maçã Gala', price: 12.90, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300', unit: 'kg', is_weight_based: true }
       ]
 
       const { error: prodError } = await supabase.from('products').insert(productsToSeed)
@@ -183,7 +183,7 @@ export function ProductManagement() {
  
   const [isSubmitting, setIsSubmitting] = useState(false)
     const [newProduct, setNewProduct] = useState({
-       id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: ''
+        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false
     })
     const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -353,7 +353,9 @@ export function ProductManagement() {
         stock: parseInt(newProduct.stock) || 0,
         points_value: parseInt(newProduct.points_value) || 0,
         brand: newProduct.brand,
-        tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : []
+        tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : [],
+        unit: newProduct.unit || 'un',
+        is_weight_based: newProduct.is_weight_based || false
       };
  
      let error;
@@ -383,7 +385,7 @@ export function ProductManagement() {
    }
  
    const resetForm = () => {
-     setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '' })
+    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false })
      setIsEditing(false)
    }
  
@@ -399,8 +401,10 @@ export function ProductManagement() {
        stock: (product.stock || 0).toString(),
        is_available: product.is_available,
        points_value: (product.points_value || 0).toString(),
-       brand: product.brand || '',
-       tags: (product.tags || []).join(', ')
+        brand: product.brand || '',
+        tags: (product.tags || []).join(', '),
+        unit: product.unit || 'un',
+        is_weight_based: !!product.is_weight_based
      })
      setIsEditing(true)
    }
@@ -681,9 +685,37 @@ export function ProductManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-2 col-span-2 py-2">
-                  <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
-                  <Label className="font-bold">Disponível para venda na loja</Label>
+                <div className="flex flex-col gap-4 col-span-2 py-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold">Unidade de Medida</Label>
+                      <Select 
+                        value={newProduct.unit} 
+                        onValueChange={(val) => setNewProduct({...newProduct, unit: val, is_weight_based: val === 'kg'})}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="un">Unidade (un)</SelectItem>
+                          <SelectItem value="kg">Quilo (kg)</SelectItem>
+                          <SelectItem value="pct">Pacote (pct)</SelectItem>
+                          <SelectItem value="cx">Caixa (cx)</SelectItem>
+                          <SelectItem value="lt">Litro (lt)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2 pt-6">
+                      <Switch 
+                        checked={newProduct.is_weight_based} 
+                        onCheckedChange={(checked) => setNewProduct({...newProduct, is_weight_based: checked})} 
+                      />
+                      <Label className="font-bold text-xs">Venda por Peso (Grama)</Label>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                    <Label className="font-bold">Disponível para venda na loja</Label>
+                  </div>
                 </div>
                  <Button onClick={handleSaveProduct} disabled={isSubmitting} className="w-full col-span-2 bg-zinc-900 font-black uppercase">
                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : (isEditing ? 'Atualizar Produto' : 'Salvar Produto')}
@@ -741,11 +773,11 @@ export function ProductManagement() {
                      ))}
                    </div>
                  </TableCell>
-                 <TableCell className="text-center">
-                   <div className={`inline-flex items-center px-2 py-1 rounded-full font-black text-[10px] ${p.stock <= 5 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-green-100 text-green-700'}`}>
-                     {p.stock || 0} un
-                   </div>
-                 </TableCell>
+                  <TableCell className="text-center">
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full font-black text-[10px] ${p.stock <= 5 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-green-100 text-green-700'}`}>
+                      {p.stock || 0} {p.unit || 'un'}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-center font-black">R$ {Number(p.price).toFixed(2)}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[150px]">

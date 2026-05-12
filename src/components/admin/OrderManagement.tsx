@@ -24,7 +24,7 @@ import { toast } from '@/lib/toast'
      setLoadingItems(true)
      const { data, error } = await supabase
        .from('order_items')
-       .select('*, products(name, image_url)')
+        .select('*, products(name, image_url, unit, is_weight_based)')
        .eq('order_id', order.id)
      
      if (error) {
@@ -342,7 +342,9 @@ import { toast } from '@/lib/toast'
                                              <p className="text-[11px] font-bold text-zinc-800 line-clamp-1">{item.products?.name}</p>
                                            </div>
                                          </TableCell>
-                                         <TableCell className="text-center font-black text-[11px]">x{item.quantity}</TableCell>
+                                          <TableCell className="text-center font-black text-[11px]">
+                                            {item.products?.is_weight_based ? `${item.quantity.toFixed(3)}kg` : `x${item.quantity}${item.products?.unit || 'un'}`}
+                                          </TableCell>
                                          <TableCell className="text-right font-black text-[11px] text-zinc-900">R$ {(item.quantity * item.unit_price).toFixed(2)}</TableCell>
                                        </TableRow>
                                      ))}

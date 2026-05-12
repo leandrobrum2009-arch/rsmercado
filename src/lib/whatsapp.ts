@@ -167,7 +167,12 @@ export const formatCurrency = (value: number) => {
        delivery_fee: data.delivery_fee?.toFixed(2) || '0.00',
        address: data.address || '',
        payment_method: data.payment_method?.toUpperCase() || '',
-       items: (data.items || []).map((item: any) => `• ${item.quantity}x ${item.name || item.products?.name} - R$ ${(item.quantity * (item.unit_price || item.price)).toFixed(2)}`).join('\n'),
+        items: (data.items || []).map((item: any) => {
+          const isWeight = item.is_weight_based || (item.unit === 'kg');
+          const qtyStr = isWeight ? item.quantity.toFixed(3) : item.quantity;
+          const unitStr = isWeight ? 'kg' : (item.unit || 'un');
+          return `• ${qtyStr}${unitStr} ${item.name || item.products?.name} - R$ ${(item.quantity * (item.unit_price || item.price)).toFixed(2)}`;
+        }).join('\n'),
        site_name: data.site_name || '',
        site_url: window.location.origin,
        product_list: data.product_list || ''

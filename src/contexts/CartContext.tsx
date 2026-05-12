@@ -1,18 +1,20 @@
   import React, { createContext, useContext, useState, useEffect } from 'react';
   import { toast } from '@/lib/toast'
  
- interface CartItem {
+ export interface CartItem {
    id: string;
    name: string;
    price: number;
    image_url: string;
    quantity: number;
    points_value: number;
+   unit?: string;
+   is_weight_based?: boolean;
  }
  
  interface CartContextType {
    items: CartItem[];
-   addToCart: (product: any) => void;
+   addToCart: (product: any, quantity?: number) => void;
    removeFromCart: (productId: string) => void;
    updateQuantity: (productId: string, quantity: number) => void;
    clearCart: () => void;
@@ -44,22 +46,26 @@
       }
     }, [items]);
  
-    const addToCart = (product: any) => {
+    const addToCart = (product: any, requestedQuantity?: number) => {
       if (product.stock !== undefined && product.stock <= 0) {
         toast.error('Produto sem estoque no momento!')
         return
       }
 
+      const quantityToAdd = requestedQuantity !== undefined ? requestedQuantity : 1;
+
       setItems(prev => {
         const existing = prev.find(i => i.id === product.id);
         if (existing) {
-          if (product.stock !== undefined && existing.quantity >= product.stock) {
+          const newQuantity = existing.quantity + quantityToAdd;
+          
+          if (product.stock !== undefined && newQuantity > product.stock) {
             toast.error(`Desculpe, só temos ${product.stock} unidades em estoque.`)
             return prev
           }
-          return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+          return prev.map(i => i.id === product.id ? { ...i, quantity: newQuantity } : i);
         }
-        return [...prev, { ...product, quantity: 1 }];
+        return [...prev, { ...product, quantity: quantityToAdd }];
       });
     };
  

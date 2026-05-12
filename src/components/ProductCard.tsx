@@ -12,22 +12,27 @@
 
  import { useCart } from "../contexts/CartContext";
  import { toast } from "@/lib/toast";
-import { SmartImage } from "./ui/SmartImage";
+ import { SmartImage } from "./ui/SmartImage";
+ import { useState } from "react";
+ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
  
   interface ProductProps {
      product: any;
      multiplier?: number;
   }
  
-   export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
-    const { addToCart, items, updateQuantity } = useCart();
-    const cartItem = items.find(i => i.id === product.id);
+    export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
+     const { addToCart, items, updateQuantity } = useCart();
+     const cartItem = items.find(i => i.id === product.id);
+     const [selectedWeight, setSelectedWeight] = useState(product.is_weight_based ? "0.100" : "1");
     const isOutOfStock = product.stock !== undefined && product.stock <= 0;
  
-   const handleAdd = () => {
-     addToCart(product);
-     toast.success(`${product.name} adicionado ao carrinho!`);
-   };
+    const handleAdd = () => {
+      const qty = parseFloat(selectedWeight);
+      addToCart(product, qty);
+      const weightLabel = qty >= 1 ? `${qty}kg` : `${qty * 1000}g`;
+      toast.success(`${product.name} (${product.is_weight_based ? weightLabel : qty + ' un'}) adicionado!`);
+    };
  
    return (
      <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col group">
@@ -111,9 +116,15 @@ import { SmartImage } from "./ui/SmartImage";
          
          <div className="mt-auto">
            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-green-700">
-                R$ {Number(product.price || 0).toFixed(2)}
-              </span>
+               <div className="flex flex-col">
+                 <span className="text-lg font-bold text-green-700 leading-none">
+                   R$ {Number(product.price || 0).toFixed(2)}
+                   {product.is_weight_based && <span className="text-[10px] ml-1 opacity-60">/kg</span>}
+                 </span>
+                 {product.unit && !product.is_weight_based && (
+                   <span className="text-[9px] text-zinc-400 font-bold uppercase mt-0.5">Un: {product.unit}</span>
+                 )}
+               </div>
               {product.old_price && (
                 <span className="text-xs text-gray-400 line-through">
                   R$ {Number(product.old_price).toFixed(2)}
@@ -121,34 +132,54 @@ import { SmartImage } from "./ui/SmartImage";
               )}
            </div>
  
-           <div className="mt-3">
-             {cartItem ? (
-               <div className="flex items-center justify-between bg-gray-100 rounded-lg p-1">
-                 <button 
-                   onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
-                   className="p-1 text-green-600 hover:bg-white rounded-md transition-colors"
-                 >
-                   <Minus size={16} />
-                 </button>
-                 <span className="text-sm font-semibold">{cartItem.quantity}</span>
-                 <button 
-                   onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
-                   className="p-1 text-green-600 hover:bg-white rounded-md transition-colors"
-                 >
-                   <Plus size={16} />
-                 </button>
-               </div>
-             ) : (
-                 <button 
-                   onClick={handleAdd}
-                   disabled={isOutOfStock}
-                   className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${isOutOfStock ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none' : 'bg-zinc-900 text-white hover:bg-black'}`}
-                 >
-                   <Plus size={14} className={isOutOfStock ? 'text-zinc-300' : 'text-green-400'} />
-                   {isOutOfStock ? 'Indisponível' : 'Adicionar'}
-                 </button>
-             )}
-           </div>
+            <div className="mt-3 space-y-2">
+              {product.is_weight_based && !cartItem && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Peso:</label>
+                  <Select value={selectedWeight} onValueChange={setSelectedWeight}>
+                    <SelectTrigger className="h-8 text-[10px] font-bold border-zinc-200 bg-zinc-50">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.100" className="text-[10px]">100g</SelectItem>
+                      <SelectItem value="0.250" className="text-[10px]">250g</SelectItem>
+                      <SelectItem value="0.500" className="text-[10px]">500g</SelectItem>
+                      <SelectItem value="1.000" className="text-[10px]">1kg</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {cartItem ? (
+                <div className="flex items-center justify-between bg-zinc-100 rounded-lg p-1 border border-zinc-200">
+                  <button 
+                    onClick={() => updateQuantity(product.id, cartItem.quantity - (product.is_weight_based ? 0.1 : 1))}
+                    className="p-1 text-zinc-600 hover:bg-white rounded-md transition-all shadow-sm"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <div className="flex flex-col items-center leading-none">
+                    <span className="text-[11px] font-black italic">{product.is_weight_based ? cartItem.quantity.toFixed(3) : cartItem.quantity}</span>
+                    <span className="text-[7px] font-bold uppercase opacity-50">{product.is_weight_based ? 'kg' : (product.unit || 'un')}</span>
+                  </div>
+                  <button 
+                    onClick={() => updateQuantity(product.id, cartItem.quantity + (product.is_weight_based ? 0.1 : 1))}
+                    className="p-1 text-green-600 hover:bg-white rounded-md transition-all shadow-sm"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              ) : (
+                  <button 
+                    onClick={handleAdd}
+                    disabled={isOutOfStock}
+                    className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${isOutOfStock ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none' : 'bg-zinc-900 text-white hover:bg-black'}`}
+                  >
+                    <Plus size={14} className={isOutOfStock ? 'text-zinc-300' : 'text-green-400'} />
+                    {isOutOfStock ? 'Indisponível' : 'Adicionar'}
+                  </button>
+              )}
+            </div>
          </div>
        </div>
      </div>

@@ -353,6 +353,7 @@ export type Database = {
           is_approved: boolean
           is_available: boolean
           is_featured: boolean
+          is_weight_based: boolean | null
           name: string
           old_price: number | null
           points_value: number
@@ -360,6 +361,7 @@ export type Database = {
           size: string | null
           stock: number
           tags: string[]
+          unit: string | null
         }
         Insert: {
           brand?: string | null
@@ -372,6 +374,7 @@ export type Database = {
           is_approved?: boolean
           is_available?: boolean
           is_featured?: boolean
+          is_weight_based?: boolean | null
           name: string
           old_price?: number | null
           points_value?: number
@@ -379,6 +382,7 @@ export type Database = {
           size?: string | null
           stock?: number
           tags?: string[]
+          unit?: string | null
         }
         Update: {
           brand?: string | null
@@ -391,6 +395,7 @@ export type Database = {
           is_approved?: boolean
           is_available?: boolean
           is_featured?: boolean
+          is_weight_based?: boolean | null
           name?: string
           old_price?: number | null
           points_value?: number
@@ -398,6 +403,7 @@ export type Database = {
           size?: string | null
           stock?: number
           tags?: string[]
+          unit?: string | null
         }
         Relationships: [
           {
