@@ -94,6 +94,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           category_id: string | null
@@ -345,6 +378,33 @@ export type Database = {
           secondary_color?: string | null
           template_name?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      fraud_logs: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          event_type: string | null
+          id: string
+          severity: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          severity?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          severity?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -842,6 +902,57 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_notes: {
+        Row: {
+          amount: number
+          auction_id: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          lot_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          auction_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          auction_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_notes_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_notes_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_visits: {
         Row: {
           created_at: string
@@ -1071,6 +1182,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_expired_auctions: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1101,6 +1213,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      place_bid: { Args: { p_amount: number; p_lot_id: string }; Returns: Json }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
