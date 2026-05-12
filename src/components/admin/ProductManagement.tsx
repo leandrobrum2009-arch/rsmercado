@@ -91,9 +91,9 @@ export function ProductManagement() {
       const padariaId = catData.find(c => c.slug === 'padaria')?.id
 
       const productsToSeed = [
-        { name: 'Banana Nanica 1kg', price: 5.99, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300' },
-        { name: 'Pão Francês Unidade', price: 0.95, category_id: padariaId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300' },
-        { name: 'Maçã Gala 1kg', price: 12.90, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300' }
+        { name: 'Banana Nanica', price: 5.99, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1571771894821-ad9902510f57?q=80&w=300', unit: 'kg', is_weight_based: true },
+        { name: 'Pão Francês', price: 0.95, category_id: padariaId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=300', unit: 'un', is_weight_based: false },
+        { name: 'Maçã Gala', price: 12.90, category_id: hortiId, is_approved: true, is_available: true, image_url: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=300', unit: 'kg', is_weight_based: true }
       ]
 
       const { error: prodError } = await supabase.from('products').insert(productsToSeed)
