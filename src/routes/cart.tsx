@@ -161,6 +161,19 @@ function CartPage() {
      return () => subscription.unsubscribe();
   }, []);
 
+    useEffect(() => {
+      if (!activeCoupon) {
+        setDiscount(0);
+        return;
+      }
+      const couponCode = activeCoupon.toUpperCase();
+      if (couponCode === 'PRIMEIRA' || couponCode === 'BEMVINDO') {
+        setDiscount(total * 0.10);
+      } else {
+        setDiscount(0);
+      }
+    }, [total, activeCoupon]);
+
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
@@ -177,19 +190,6 @@ function CartPage() {
       </div>
     );
   }
-
-    useEffect(() => {
-      if (!activeCoupon) {
-        setDiscount(0);
-        return;
-      }
-      const couponCode = activeCoupon.toUpperCase();
-      if (couponCode === 'PRIMEIRA' || couponCode === 'BEMVINDO') {
-        setDiscount(total * 0.10);
-      } else {
-        setDiscount(0);
-      }
-    }, [total, activeCoupon]);
 
     const handleApplyCoupon = async () => {
       const normalizedCoupon = coupon.trim().toUpperCase();
