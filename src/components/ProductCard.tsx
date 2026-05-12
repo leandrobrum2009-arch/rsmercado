@@ -136,8 +136,8 @@
                   R$ {Number(product.price || 0).toFixed(2)}
                 </span>
                 {product.unit && (
-                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-tighter">
-                    / {product.unit}
+                  <span className="text-[10px] font-black text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                    {product.unit}
                   </span>
                 )}
                 {product.old_price && (
