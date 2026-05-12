@@ -19,6 +19,7 @@ function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
    const [coupon, setCoupon] = useState("");
    const [discount, setDiscount] = useState(0);
+   const [activeCoupon, setActiveCoupon] = useState<string | null>(null);
    const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("pix");
    const [isProcessing, setIsProcessing] = useState(false);
@@ -177,40 +178,55 @@ function CartPage() {
     );
   }
 
-   const handleApplyCoupon = async () => {
-     if (!session) {
-       toast.error("Faça login para aplicar o cupom.");
-       return;
-     }
-     
-     if (coupon.toUpperCase() === 'PRIMEIRA') {
-       setIsCheckingCoupon(true);
-       try {
-         const { count, error } = await supabase
-           .from('orders')
-           .select('*', { count: 'exact', head: true })
-           .eq('user_id', session.user.id);
-           
-         if (error) throw error;
-         
-         if (count && count > 0) {
-           toast.error("O cupom PRIMEIRA é válido apenas para a primeira compra.");
-           setDiscount(0);
-         } else {
-           const discountValue = total * 0.10;
-           setDiscount(discountValue);
-           toast.success(`Cupom PRIMEIRA aplicado! Desconto de ${formatCurrency(discountValue)}`);
-         }
-       } catch (err) {
-         toast.error("Erro ao validar cupom.");
-       } finally {
-         setIsCheckingCoupon(false);
-       }
-     } else if (coupon) {
-       toast.error("Cupom inválido.");
-       setDiscount(0);
-     }
-   };
+    useEffect(() => {
+      if (!activeCoupon) {
+        setDiscount(0);
+        return;
+      }
+      const couponCode = activeCoupon.toUpperCase();
+      if (couponCode === 'PRIMEIRA' || couponCode === 'BEMVINDO') {
+        setDiscount(total * 0.10);
+      } else {
+        setDiscount(0);
+      }
+    }, [total, activeCoupon]);
+
+    const handleApplyCoupon = async () => {
+      const normalizedCoupon = coupon.trim().toUpperCase();
+      if (!normalizedCoupon) return;
+
+      if (normalizedCoupon === 'PRIMEIRA') {
+        if (!session) {
+          toast.error("Faça login para aplicar o cupom PRIMEIRA.");
+          return;
+        }
+        setIsCheckingCoupon(true);
+        try {
+          const { count, error } = await supabase
+            .from('orders')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', session.user.id);
+          if (error) throw error;
+          if (count && count > 0) {
+            toast.error("O cupom PRIMEIRA é válido apenas para a primeira compra.");
+            setActiveCoupon(null);
+          } else {
+            setActiveCoupon('PRIMEIRA');
+            toast.success(`Cupom PRIMEIRA aplicado! 10% de desconto.`);
+          }
+        } catch (err) {
+          toast.error("Erro ao validar cupom.");
+        } finally {
+          setIsCheckingCoupon(false);
+        }
+      } else if (normalizedCoupon === 'BEMVINDO') {
+        setActiveCoupon('BEMVINDO');
+        toast.success(`Cupom BEMVINDO aplicado! 10% de desconto.`);
+      } else {
+        toast.error("Cupom inválido.");
+        setActiveCoupon(null);
+      }
+    };
  
      const handleCheckout = async () => {
        if (!session || !profile) {
