@@ -1,4 +1,5 @@
  import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
+import { SendingLogViewer } from '@/components/admin/SendingLogViewer'
  import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
  import { FeedbackManager } from '@/components/admin/FeedbackManager'
  import { AlertManager } from '@/components/admin/AlertManager'
@@ -218,7 +219,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "activity_logs", "feedback"
+                "admin_roles", "activity_logs", "sending_logs", "feedback"
               ])
             }
          }
@@ -311,6 +312,7 @@ export const Route = createFileRoute('/admin')({
           items: [
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
+              { id: 'sending_logs', label: 'Log de Envios', icon: Send },
               { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
            ]
         }
@@ -496,6 +498,9 @@ export const Route = createFileRoute('/admin')({
                    </TabsContent>
                     <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
                       <SecurityLogViewer />
+                    </TabsContent>
+                    <TabsContent value="sending_logs" className="mt-0 focus-visible:ring-0">
+                      <SendingLogViewer />
                     </TabsContent>
                     <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
                       <FeedbackManager />
