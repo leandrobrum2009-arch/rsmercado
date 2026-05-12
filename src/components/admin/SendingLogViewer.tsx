@@ -127,6 +127,11 @@ export function SendingLogViewer() {
 
                         <div className="flex items-center gap-3 text-[9px] font-black uppercase text-zinc-400 tracking-tighter">
                           <span>Método: {log.method?.toUpperCase() || 'N/A'}</span>
+                          {log.order_id && (
+                            <span className="flex items-center gap-1 text-primary">
+                              - Pedido: #{log.order_id.substring(0, 8)}
+                            </span>
+                          )}
                           {log.campaign_id && <span>Campanha: {log.campaign_id.substring(0, 8)}</span>}
                           <span>Hash: {log.message_hash}</span>
                         </div>
