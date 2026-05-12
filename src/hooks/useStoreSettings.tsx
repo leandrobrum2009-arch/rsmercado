@@ -6,7 +6,8 @@
    logo_url: string
    colors: { primary: string; secondary: string }
    address: string
-   whatsapp: string
+    whatsapp: string
+    admin_whatsapp: string
    opening_hours: string
    instagram_url: string
    facebook_url: string
@@ -20,7 +21,8 @@
    logo_url: '',
    colors: { primary: '#ef4444', secondary: '#facc15' },
    address: '',
-   whatsapp: '',
+    whatsapp: '',
+    admin_whatsapp: '',
    opening_hours: '',
    instagram_url: '',
    facebook_url: '',
