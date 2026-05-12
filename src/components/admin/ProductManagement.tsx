@@ -581,10 +581,10 @@ export function ProductManagement() {
               <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
             </Button>
           </div>
-           <Dialog onOpenChange={(open) => !open && resetForm()}>
-             <DialogTrigger asChild onClick={() => resetForm()}>
-              <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
-            </DialogTrigger>
+            <Dialog open={isProductDialogOpen} onOpenChange={(open) => { setIsProductDialogOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild onClick={() => { resetForm(); setIsProductDialogOpen(true); }}>
+                <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
                <DialogHeader><DialogTitle className="font-black uppercase">{isEditing ? 'Editar Produto' : 'Cadastrar Produto'}</DialogTitle></DialogHeader>
                <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -721,6 +721,10 @@ export function ProductManagement() {
                            <SelectItem value="band">Bandeja (band)</SelectItem>
                            <SelectItem value="duz">Dúzia (duz)</SelectItem>
                            <SelectItem value="m">Metro (m)</SelectItem>
+                           <SelectItem value="rol">Rolo (rol)</SelectItem>
+                           <SelectItem value="fardo">Fardo (fardo)</SelectItem>
+                           <SelectItem value="lata">Lata (lata)</SelectItem>
+                           <SelectItem value="garrafa">Garrafa (garrafa)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
