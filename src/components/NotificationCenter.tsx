@@ -42,19 +42,29 @@
        const { data: { user } } = await supabase.auth.getUser()
        if (!user) return
  
-       const { data, error } = await supabase
-         .from('notifications')
-         .select('*')
-         .eq('user_id', user.id)
-         .order('created_at', { ascending: false })
-         .limit(20)
- 
-       if (error) {
-         console.error('Error fetching notifications:', error)
-       } else {
-         setNotifications(data || [])
-         setUnreadCount(data?.filter(n => !n.is_read).length || 0)
-       }
+        const [notifsResult, countResult] = await Promise.all([
+          supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(20),
+          supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false)
+        ]);
+
+        if (notifsResult.error) {
+          console.error('Error fetching notifications:', notifsResult.error)
+        } else {
+          setNotifications(notifsResult.data || [])
+        }
+
+        if (!countResult.error) {
+          setUnreadCount(countResult.count || 0)
+        }
      }
  
      fetchNotifications()

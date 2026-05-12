@@ -103,6 +103,42 @@ export type Database = {
         }
         Relationships: []
       }
+      flyers: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_template: boolean | null
+          pdf_url: string | null
+          template_name: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_template?: boolean | null
+          pdf_url?: string | null
+          template_name?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_template?: boolean | null
+          pdf_url?: string | null
+          template_name?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       loyalty_redemptions: {
         Row: {
           created_at: string | null
