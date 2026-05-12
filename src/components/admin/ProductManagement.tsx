@@ -908,24 +908,67 @@ export function ProductManagement() {
                               </Label>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold">Categoria</Label>
-                            <Select 
-                              value={newProduct.category_id} 
-                              onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
-                            >
-                              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                              <SelectContent className="max-h-[300px]">
-                                {categories.map(c => (
-                                  <SelectItem key={c.id} value={c.id}>
-                                    <div className="flex items-center gap-2">
-                                      <CategoryIcon category={c} size={14} />
-                                      <span>{c.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <div className="grid grid-cols-2 gap-4 col-span-2">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold">Categoria</Label>
+                              <Select 
+                                value={newProduct.category_id} 
+                                onValueChange={(val) => setNewProduct({...newProduct, category_id: val})}
+                              >
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                  {categories.map(c => (
+                                    <SelectItem key={c.id} value={c.id}>
+                                      <div className="flex items-center gap-2">
+                                        <CategoryIcon category={c} size={14} />
+                                        <span>{c.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] uppercase font-bold">Unidade de Medida</Label>
+                              <Select 
+                                value={newProduct.unit} 
+                                onValueChange={(val) => {
+                                  const fractionalUnits = ['kg', 'g', 'lt', 'ml', 'm'];
+                                  setNewProduct({
+                                    ...newProduct, 
+                                    unit: val, 
+                                    is_weight_based: fractionalUnits.includes(val)
+                                  });
+                                }}
+                              >
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <SelectContent>
+                                   <SelectItem value="un">Unidade (un)</SelectItem>
+                                   <SelectItem value="kg">Quilo (kg)</SelectItem>
+                                   <SelectItem value="g">Grama (g)</SelectItem>
+                                   <SelectItem value="lt">Litro (lt)</SelectItem>
+                                   <SelectItem value="ml">Mililitro (ml)</SelectItem>
+                                   <SelectItem value="pct">Pacote (pct)</SelectItem>
+                                   <SelectItem value="cx">Caixa (cx)</SelectItem>
+                                   <SelectItem value="band">Bandeja (band)</SelectItem>
+                                   <SelectItem value="duz">Dúzia (duz)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 col-span-2 py-2">
+                            <div className="flex items-center gap-2">
+                              <Switch 
+                                checked={newProduct.is_weight_based} 
+                                onCheckedChange={(checked) => setNewProduct({...newProduct, is_weight_based: checked})} 
+                              />
+                               <Label className="font-bold text-xs text-green-700">Venda Fracionada</Label>
+                            </div>
+                            <div className="flex items-center gap-2 border-l pl-4">
+                              <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
+                              <Label className="font-bold text-xs">Ativo</Label>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 col-span-2 py-2">
                             <Switch checked={newProduct.is_available} onCheckedChange={(checked) => setNewProduct({...newProduct, is_available: checked})} />
