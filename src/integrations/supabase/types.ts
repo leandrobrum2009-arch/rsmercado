@@ -464,6 +464,7 @@ export type Database = {
           gender: string | null
           household_status: string | null
           id: string
+          is_admin: boolean | null
           points_balance: number | null
           updated_at: string
           whatsapp: string | null
@@ -477,6 +478,7 @@ export type Database = {
           gender?: string | null
           household_status?: string | null
           id: string
+          is_admin?: boolean | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
@@ -490,6 +492,7 @@ export type Database = {
           gender?: string | null
           household_status?: string | null
           id?: string
+          is_admin?: boolean | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
@@ -721,6 +724,63 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_logs: {
+        Row: {
+          campaign_id: string | null
+          error_message: string | null
+          id: string
+          message_hash: string | null
+          message_text: string | null
+          method: string | null
+          phone: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          error_message?: string | null
+          id?: string
+          message_hash?: string | null
+          message_text?: string | null
+          method?: string | null
+          phone: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          error_message?: string | null
+          id?: string
+          message_hash?: string | null
+          message_text?: string | null
+          method?: string | null
+          phone?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -734,15 +794,28 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
-      notify_all_users: {
-        Args: {
-          p_message: string
-          p_scheduled_at?: string
-          p_title: string
-          p_type?: string
-        }
-        Returns: undefined
-      }
+      notify_all_users:
+        | {
+            Args: {
+              message?: string
+              p_message?: string
+              p_scheduled_at?: string
+              p_title?: string
+              p_type?: string
+              title?: string
+              type?: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_message: string
+              p_scheduled_at?: string
+              p_title: string
+              p_type?: string
+            }
+            Returns: undefined
+          }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
