@@ -105,35 +105,50 @@ export type Database = {
       }
       flyers: {
         Row: {
+          config: Json | null
           created_at: string | null
           expires_at: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           is_template: boolean | null
+          layout_type: string | null
           pdf_url: string | null
+          primary_color: string | null
+          products_data: Json | null
+          secondary_color: string | null
           template_name: string | null
           title: string
         }
         Insert: {
+          config?: Json | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
+          layout_type?: string | null
           pdf_url?: string | null
+          primary_color?: string | null
+          products_data?: Json | null
+          secondary_color?: string | null
           template_name?: string | null
           title: string
         }
         Update: {
+          config?: Json | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_template?: boolean | null
+          layout_type?: string | null
           pdf_url?: string | null
+          primary_color?: string | null
+          products_data?: Json | null
+          secondary_color?: string | null
           template_name?: string | null
           title?: string
         }
