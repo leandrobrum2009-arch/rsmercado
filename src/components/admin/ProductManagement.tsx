@@ -695,11 +695,16 @@ export function ProductManagement() {
                       >
                         <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="un">Unidade (un)</SelectItem>
-                          <SelectItem value="kg">Quilo (kg)</SelectItem>
-                          <SelectItem value="pct">Pacote (pct)</SelectItem>
-                          <SelectItem value="cx">Caixa (cx)</SelectItem>
-                          <SelectItem value="lt">Litro (lt)</SelectItem>
+                           <SelectItem value="un">Unidade (un)</SelectItem>
+                           <SelectItem value="kg">Quilo (kg)</SelectItem>
+                           <SelectItem value="g">Grama (g)</SelectItem>
+                           <SelectItem value="lt">Litro (lt)</SelectItem>
+                           <SelectItem value="ml">Mililitro (ml)</SelectItem>
+                           <SelectItem value="pct">Pacote (pct)</SelectItem>
+                           <SelectItem value="cx">Caixa (cx)</SelectItem>
+                           <SelectItem value="band">Bandeja (band)</SelectItem>
+                           <SelectItem value="duz">Dúzia (duz)</SelectItem>
+                           <SelectItem value="m">Metro (m)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -708,7 +713,7 @@ export function ProductManagement() {
                         checked={newProduct.is_weight_based} 
                         onCheckedChange={(checked) => setNewProduct({...newProduct, is_weight_based: checked})} 
                       />
-                      <Label className="font-bold text-xs">Venda por Peso (Grama)</Label>
+                       <Label className="font-bold text-xs text-green-700">Permitir Venda Fracionada (ex: 50g, 0.5L)</Label>
                     </div>
                   </div>
 

@@ -1,4 +1,5 @@
-    import { Plus, Minus, ShoppingCart, Tag, ShoppingBag, Zap } from "lucide-react";
+     import { Plus, Minus, ShoppingCart, Tag, ShoppingBag, Zap } from "lucide-react";
+     import { Button } from "@/components/ui/button";
     import * as LucideIcons from "lucide-react";
     const getCategoryIcon = (category: any) => {
       if (!category) return ShoppingBag;
@@ -13,8 +14,9 @@
  import { useCart } from "../contexts/CartContext";
  import { toast } from "@/lib/toast";
  import { SmartImage } from "./ui/SmartImage";
- import { useState } from "react";
- import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+   import { useState, useRef } from "react";
+   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+   import { Input } from "@/components/ui/input";
  
   interface ProductProps {
      product: any;
@@ -25,14 +27,27 @@
      const { addToCart, items, updateQuantity } = useCart();
      const cartItem = items.find(i => i.id === product.id);
      const [selectedWeight, setSelectedWeight] = useState(product.is_weight_based ? "0.100" : "1");
+     const [isCustomWeight, setIsCustomWeight] = useState(false);
+     const customWeightRef = useRef<HTMLInputElement>(null);
     const isOutOfStock = product.stock !== undefined && product.stock <= 0;
  
-    const handleAdd = () => {
-      const qty = parseFloat(selectedWeight);
-      addToCart(product, qty);
-      const weightLabel = qty >= 1 ? `${qty}kg` : `${qty * 1000}g`;
-      toast.success(`${product.name} (${product.is_weight_based ? weightLabel : qty + ' un'}) adicionado!`);
-    };
+     const handleAdd = () => {
+       let qty = parseFloat(selectedWeight);
+       if (isCustomWeight && customWeightRef.current) {
+         const val = parseFloat(customWeightRef.current.value.replace(',', '.'));
+         if (isNaN(val) || val <= 0) {
+           toast.error("Por favor, insira um peso válido.");
+           return;
+         }
+         // If they typed in grams but the unit is kg, we need to convert if they expect 500 to be 500g
+         // But let's assume they type in KG format (e.g. 0.050 for 50g) or let's make it smarter.
+         qty = val;
+       }
+       
+       addToCart(product, qty);
+       const weightLabel = qty >= 1 ? `${qty.toFixed(2)}kg` : `${(qty * 1000).toFixed(0)}g`;
+       toast.success(`${product.name} (${product.is_weight_based ? weightLabel : qty + ' ' + (product.unit || 'un')}) adicionado!`);
+     };
  
    return (
      <div className="bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col group">
@@ -121,9 +136,11 @@
                    R$ {Number(product.price || 0).toFixed(2)}
                    {product.is_weight_based && <span className="text-[10px] ml-1 opacity-60">/kg</span>}
                  </span>
-                 {product.unit && !product.is_weight_based && (
-                   <span className="text-[9px] text-zinc-400 font-bold uppercase mt-0.5">Un: {product.unit}</span>
-                 )}
+                  {product.unit && (
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase mt-0.5 bg-zinc-100 px-1.5 py-0.5 rounded w-fit">
+                      {product.is_weight_based ? 'Venda p/ Peso' : `Unidade: ${product.unit}`}
+                    </span>
+                  )}
                </div>
               {product.old_price && (
                 <span className="text-xs text-gray-400 line-through">
@@ -133,22 +150,52 @@
            </div>
  
             <div className="mt-3 space-y-2">
-              {product.is_weight_based && !cartItem && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Peso:</label>
-                  <Select value={selectedWeight} onValueChange={setSelectedWeight}>
-                    <SelectTrigger className="h-8 text-[10px] font-bold border-zinc-200 bg-zinc-50">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0.100" className="text-[10px]">100g</SelectItem>
-                      <SelectItem value="0.250" className="text-[10px]">250g</SelectItem>
-                      <SelectItem value="0.500" className="text-[10px]">500g</SelectItem>
-                      <SelectItem value="1.000" className="text-[10px]">1kg</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+               {product.is_weight_based && !cartItem && (
+                 <div className="flex flex-col gap-1.5">
+                   <label className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter">Peso / Quantidade:</label>
+                   {isCustomWeight ? (
+                     <div className="flex gap-1">
+                       <Input 
+                         ref={customWeightRef}
+                         type="text" 
+                         placeholder="0.050 (ex: 50g)" 
+                         className="h-8 text-[10px] font-bold border-zinc-200 bg-zinc-50 flex-1" 
+                         defaultValue={selectedWeight}
+                       />
+                       <Button 
+                         variant="ghost" 
+                         size="sm" 
+                         className="h-8 px-2 text-[8px] font-black"
+                         onClick={() => setIsCustomWeight(false)}
+                       >
+                         Voltar
+                       </Button>
+                     </div>
+                   ) : (
+                     <Select value={selectedWeight} onValueChange={(val) => {
+                       if (val === "custom") {
+                         setIsCustomWeight(true);
+                       } else {
+                         setSelectedWeight(val);
+                       }
+                     }}>
+                       <SelectTrigger className="h-8 text-[10px] font-bold border-zinc-200 bg-zinc-50">
+                         <SelectValue placeholder="Selecione" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="0.050" className="text-[10px]">50g</SelectItem>
+                         <SelectItem value="0.100" className="text-[10px]">100g</SelectItem>
+                         <SelectItem value="0.200" className="text-[10px]">200g</SelectItem>
+                         <SelectItem value="0.250" className="text-[10px]">250g</SelectItem>
+                         <SelectItem value="0.500" className="text-[10px]">500g</SelectItem>
+                         <SelectItem value="1.000" className="text-[10px]">1kg</SelectItem>
+                         <SelectItem value="2.000" className="text-[10px]">2kg</SelectItem>
+                         <SelectItem value="custom" className="text-[10px] font-black italic">Outro peso...</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   )}
+                 </div>
+               )}
 
               {cartItem ? (
                 <div className="flex items-center justify-between bg-zinc-100 rounded-lg p-1 border border-zinc-200">
