@@ -82,7 +82,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       logo_url: '',
       colors: { primary: '#16a34a', secondary: '#facc15' }
     });
-   const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
+   const cartCount = items.length;
  
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
@@ -299,8 +299,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
                    >
                      <ShoppingBag size={18} />
                    </Link>
-                   <Link to="/cart" className={`relative p-2 transition-all duration-300 ${cartCount > 0 ? 'text-green-600 scale-110' : 'text-gray-600'}`}>
-                     <ShoppingCart size={20} className={cartCount > 0 ? 'animate-flash text-green-600' : ''} />
+                    <Link 
+                      to="/cart" 
+                      className={`relative p-2 transition-all duration-300 ${cartCount > 0 ? 'text-green-600 scale-125 animate-flash' : 'text-gray-600'}`}
+                    >
+                      <ShoppingCart size={20} className={cartCount > 0 ? 'text-green-600' : ''} />
                      {cartCount > 0 && (
                       <span className="absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
                         {cartCount}
@@ -329,23 +332,26 @@ function RootShell({ children }: { children: React.ReactNode }) {
                 const isOferta = item.name === 'Ofertas';
                 
                 return (
-                   <Link
-                     key={item.path + (isOferta ? 'oferta' : '')}
-                     to={item.path}
-                     // @ts-ignore
-                     search={item.search}
-                     className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
-                       isActive ? "text-green-600" : isOferta ? "text-white bg-red-600 animate-pulse animate-glow font-black px-4 py-2 rounded-full shadow-lg shadow-red-100 hover:bg-red-700 transition-all hover:scale-105 ring-2 ring-red-400 ring-offset-1" : "text-gray-600"
-                     }`}
-                   >
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
-                    {item.badge ? (
-                      <span className="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                        {item.badge}
-                      </span>
-                    ) : null}
-                  </Link>
+                    <Link
+                      key={item.path + (isOferta ? 'oferta' : '')}
+                      to={item.path}
+                      // @ts-ignore
+                      search={item.search}
+                      className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-green-600 ${
+                        isActive ? "text-green-600" : 
+                        isOferta ? "text-white bg-red-600 animate-pulse animate-glow font-black px-4 py-2 rounded-full shadow-lg shadow-red-100 hover:bg-red-700 transition-all hover:scale-105 ring-2 ring-red-400 ring-offset-1" : 
+                        item.name === 'Carrinho' && cartCount > 0 ? "text-green-600 font-black animate-flash" :
+                        "text-gray-600"
+                      }`}
+                    >
+                     <item.icon size={20} className={item.name === 'Carrinho' && cartCount > 0 ? "animate-wiggle" : ""} />
+                     <span>{item.name}</span>
+                     {item.badge ? (
+                       <span className={`flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full ${item.name === 'Carrinho' ? 'animate-bounce' : ''}`}>
+                         {item.badge}
+                       </span>
+                     ) : null}
+                   </Link>
                 );
               })}
              {isAdmin && (
