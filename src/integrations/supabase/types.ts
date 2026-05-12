@@ -94,6 +94,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           category_id: string | null
@@ -1071,6 +1104,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_expired_auctions: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1101,6 +1135,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      place_bid: { Args: { p_amount: number; p_lot_id: string }; Returns: Json }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
