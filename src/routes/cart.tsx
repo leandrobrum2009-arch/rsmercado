@@ -399,13 +399,26 @@ function CartPage() {
                 <p className="text-green-600 font-bold text-sm">{formatCurrency(item.price)}</p>
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 text-green-600">
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 text-green-600">
-                      <Plus size={16} />
-                    </button>
+                     <button 
+                       onClick={() => updateQuantity(item.id, item.quantity - (item.is_weight_based ? 0.1 : 1))} 
+                       className="p-1 text-green-600 hover:bg-white rounded-md transition-colors"
+                     >
+                       <Minus size={16} />
+                     </button>
+                     <div className="flex flex-col items-center px-2 min-w-[40px]">
+                       <span className="text-xs font-bold leading-none">
+                         {item.is_weight_based ? item.quantity.toFixed(3) : item.quantity}
+                       </span>
+                       <span className="text-[7px] font-black uppercase opacity-40 leading-none mt-0.5">
+                         {item.is_weight_based ? 'kg' : (item.unit || 'un')}
+                       </span>
+                     </div>
+                     <button 
+                       onClick={() => updateQuantity(item.id, item.quantity + (item.is_weight_based ? 0.1 : 1))} 
+                       className="p-1 text-green-600 hover:bg-white rounded-md transition-colors"
+                     >
+                       <Plus size={16} />
+                     </button>
                   </div>
                   <button onClick={() => removeFromCart(item.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                     <Trash2 size={18} />
