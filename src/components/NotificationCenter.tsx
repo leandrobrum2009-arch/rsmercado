@@ -78,51 +78,61 @@
         // Use a unique channel name to avoid "already subscribed" errors when mounted twice
         const channelName = `user-notifications-${user.id}-${Math.random().toString(36).substr(2, 9)}`
         
-       channel = supabase
-         .channel(channelName)
-         .on('postgres_changes', { 
-           event: 'INSERT', 
-           schema: 'public', 
-           table: 'notifications',
-           filter: `user_id=eq.${user.id}`
-         }, (payload) => {
-           setNotifications(prev => [payload.new, ...prev].slice(0, 20))
-           setUnreadCount(prev => prev + 1)
-           toast.info(payload.new.title, {
-             description: payload.new.message
-           })
-         })
-         .on('postgres_changes', { 
-           event: 'UPDATE', 
-           schema: 'public', 
-           table: 'notifications',
-           filter: `user_id=eq.${user.id}`
-         }, (payload) => {
-           setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new : n))
-           // Recalculate unread count if needed or just handle it locally
-           if (payload.old.is_read === false && payload.new.is_read === true) {
-             setUnreadCount(prev => Math.max(0, prev - 1))
-           } else if (payload.old.is_read === true && payload.new.is_read === false) {
-             setUnreadCount(prev => prev + 1)
-           }
-         })
-         .on('postgres_changes', { 
-           event: 'DELETE', 
-           schema: 'public', 
-           table: 'notifications'
-         }, (payload) => {
-           // We can't filter DELETE by user_id in the filter string easily for all cases, 
-           // but we can check if it's in our local state
-           setNotifications(prev => {
-             const filtered = prev.filter(n => n.id !== payload.old.id)
-             if (filtered.length !== prev.length) {
-               const wasUnread = prev.find(n => n.id === payload.old.id && !n.is_read)
-               if (wasUnread) setUnreadCount(c => Math.max(0, c - 1))
-             }
-             return filtered
-           })
-         })
-         .subscribe()
+        channel = supabase
+          .channel(channelName)
+          .on('postgres_changes', { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          }, (payload) => {
+            console.log('Realtime: Nova notificação recebida', payload.new)
+            setNotifications(prev => [payload.new, ...prev].slice(0, 20))
+            setUnreadCount(prev => prev + 1)
+            toast.info(payload.new.title, {
+              description: payload.new.message
+            })
+          })
+          .on('postgres_changes', { 
+            event: 'UPDATE', 
+            schema: 'public', 
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          }, (payload) => {
+            console.log('Realtime: Notificação atualizada', payload.new)
+            setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new : n))
+            // Recalculate unread count if needed or just handle it locally
+            if (payload.old.is_read === false && payload.new.is_read === true) {
+              setUnreadCount(prev => Math.max(0, prev - 1))
+            } else if (payload.old.is_read === true && payload.new.is_read === false) {
+              setUnreadCount(prev => prev + 1)
+            }
+          })
+          .on('postgres_changes', { 
+            event: 'DELETE', 
+            schema: 'public', 
+            table: 'notifications'
+          }, (payload) => {
+            console.log('Realtime: Notificação removida', payload.old)
+            // We can't filter DELETE by user_id in the filter string easily for all cases, 
+            // but we can check if it's in our local state
+            setNotifications(prev => {
+              const filtered = prev.filter(n => n.id !== payload.old.id)
+              if (filtered.length !== prev.length) {
+                const wasUnread = prev.find(n => n.id === payload.old.id && !n.is_read)
+                if (wasUnread) setUnreadCount(c => Math.max(0, c - 1))
+              }
+              return filtered
+            })
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Realtime: Inscrito no canal de notificações com sucesso')
+            }
+            if (status === 'CHANNEL_ERROR') {
+              console.error('Realtime: Erro no canal de notificações')
+            }
+          })
       }
 
       setupSubscription()

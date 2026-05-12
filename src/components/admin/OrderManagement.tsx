@@ -42,28 +42,49 @@ import { useNavigate } from '@tanstack/react-router'
   useEffect(() => {
     fetchOrders()
     
-     // Subscribe to orders changes with a unique channel name
-     const channelName = `orders-channel-${Math.random().toString(36).substr(2, 9)}`
-     const channel = supabase
-       .channel(channelName)
-       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-         fetchOrders()
-         toast.info('Novo Pedido Recebido!', {
-           description: `Pedido de ${payload.new.customer_name || 'Cliente'} no valor de ${formatCurrency(payload.new.total_amount)}`
-         })
-         // Play notification sound if possible
-         try {
-           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
-           audio.play().catch(e => console.log('Audio play blocked by browser'))
-         } catch (e) {}
-       })
-       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => {
-         fetchOrders()
-       })
-       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' }, () => {
-         fetchOrders()
-       })
-       .subscribe()
+      let channel: any;
+
+      const setupSubscription = () => {
+        // Subscribe to orders changes with a unique channel name
+        const channelName = `orders-channel-${Math.random().toString(36).substr(2, 9)}`
+        channel = supabase
+          .channel(channelName)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+            console.log('Realtime: Novo pedido recebido', payload.new)
+            fetchOrders()
+            toast.info('Novo Pedido Recebido!', {
+              description: `Pedido de ${payload.new.customer_name || 'Cliente'} no valor de ${formatCurrency(payload.new.total_amount)}`
+            })
+            // Play notification sound if possible
+            try {
+              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+              audio.play().catch(e => console.log('Audio play blocked by browser'))
+            } catch (e) {}
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+            console.log('Realtime: Pedido atualizado', payload.new)
+            fetchOrders()
+          })
+          .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' }, (payload) => {
+            console.log('Realtime: Pedido removido', payload.old)
+            fetchOrders()
+          })
+          .subscribe((status, err) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Realtime: Inscrito no canal de pedidos com sucesso')
+            }
+            if (status === 'CHANNEL_ERROR') {
+              console.error('Realtime: Erro no canal de pedidos', err)
+              // Try to reconnect after 5 seconds
+              setTimeout(setupSubscription, 5000)
+            }
+            if (status === 'CLOSED') {
+              console.log('Realtime: Canal de pedidos fechado')
+            }
+          })
+      }
+
+      setupSubscription()
 
     return () => {
       supabase.removeChannel(channel)
