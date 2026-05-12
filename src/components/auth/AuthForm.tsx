@@ -128,11 +128,11 @@ export function AuthForm() {
       console.error('Auth Error:', error)
       let msg = error.message || 'Erro na autenticação'
       if (msg === 'email rate limit exceeded' || msg.includes('rate limit')) {
-        msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O sistema bloqueou novas tentativas por 10 minutos por segurança. \n\nSE VOCÊ JÁ SE CADASTROU: Não tente cadastrar de novo! Vá direto em "ATIVAR MINHA CONTA AGORA" abaixo para liberar seu acesso sem precisar do e-mail.'
+        msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O sistema bloqueou novas tentativas temporariamente por segurança. Tente novamente em alguns minutos.'
        } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
-          msg = 'ERRO: SEU E-MAIL AINDA NÃO FOI ATIVADO.'
+          msg = 'ERRO: Sua conta ainda não foi ativada. Tente entrar novamente.'
        } else if (msg.includes('Invalid login credentials')) {
-        msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados ou confirme se já ativou sua conta pelo e-mail.'
+        msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados e tente novamente.'
       } else if (msg.toLowerCase().includes('apikey') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api inválida') || msg.toLowerCase().includes('failed to fetch')) {
         msg = 'ERRO DE CONFIGURAÇÃO (API INVÁLIDA): As chaves de conexão com o banco de dados (Supabase) não foram encontradas ou são inválidas. Por favor, verifique as "Configurações do Projeto" no Lovable.'
       }
