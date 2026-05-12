@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge'
     import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send, History } from 'lucide-react'
 import { toast } from '@/lib/toast'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
+import { useNavigate } from '@tanstack/react-router'
 
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
  import { ScrollArea } from '@/components/ui/scroll-area'
  
  export function OrderManagement() {
+  const navigate = useNavigate()
    const [orders, setOrders] = useState<any[]>([])
    const [loading, setLoading] = useState(true)
    const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -275,8 +277,7 @@ import { toast } from '@/lib/toast'
                           size="icon" 
                           className="h-8 w-8 text-zinc-600 border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
                           onClick={() => {
-                            const navigate = window.history.pushState(null, '', `/admin?tab=sending_logs&filter=${order.id.substring(0, 8)}`);
-                            window.location.reload(); // Quick way to force tab change if not using router properly here
+                            navigate({ to: '/admin', search: { tab: 'sending_logs', filter: order.id.substring(0, 8) } as any })
                           }}
                           title="Ver histórico de envios deste pedido"
                         >
