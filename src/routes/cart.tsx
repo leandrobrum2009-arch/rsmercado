@@ -669,15 +669,19 @@ function CartPage() {
                     ({selectedAddress?.neighborhood || "Escolha o bairro"})
                   </span>
                 </span>
-                {isValidDeliveryArea === false ? (
-                  <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>
-                ) : deliveryFee > 0 ? (
-                  <span className="text-zinc-900 font-bold">{formatCurrency(deliveryFee)}</span>
-                ) : (
-                  <span className="text-green-600 font-bold uppercase text-xs tracking-tighter">
-                    Grátis
-                  </span>
-                )}
+                {(function () {
+                  if (isValidDeliveryArea === false) {
+                    return <span className="text-red-600 font-bold uppercase text-xs">Indisponível</span>;
+                  }
+                  if (deliveryFee > 0) {
+                    return <span className="text-zinc-900 font-bold">{formatCurrency(deliveryFee)}</span>;
+                  }
+                  return (
+                    <span className="text-green-600 font-bold uppercase text-xs tracking-tighter">
+                      Grátis
+                    </span>
+                  );
+                })()}
               </div>
               <div className="border-t pt-4 flex justify-between items-center">
                 <span className="text-xl font-bold text-gray-800">Total</span>
