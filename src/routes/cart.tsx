@@ -146,6 +146,7 @@ function CartPage() {
      };
  
      fetchData();
+    fetchSettings();
  
      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
        setSession(session);
