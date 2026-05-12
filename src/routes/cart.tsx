@@ -12,13 +12,9 @@ import {
   QrCode,
   ShoppingCart,
   Loader2,
-  ChefHat,
   MapPin,
   Info,
   AlertCircle,
-  Phone,
-  Search,
-  ShoppingBag,
   User,
   Wallet,
 } from "lucide-react";
