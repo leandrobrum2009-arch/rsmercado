@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-   import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send } from 'lucide-react'
+    import { Loader2, ShoppingBag, Eye, MapPin, CreditCard, Phone, User, Package, ListChecks, Banknote, Send, History } from 'lucide-react'
 import { toast } from '@/lib/toast'
  import { formatCurrency, sendWhatsAppMessage, getWhatsAppConfig, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 
@@ -268,6 +268,19 @@ import { toast } from '@/lib/toast'
                           title="Enviar resumo completo WhatsApp"
                         >
                           <Phone size={14} />
+                        </Button>
+
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 text-zinc-600 border-zinc-200 bg-zinc-50 hover:bg-zinc-100"
+                          onClick={() => {
+                            const navigate = window.history.pushState(null, '', `/admin?tab=sending_logs&filter=${order.id.substring(0, 8)}`);
+                            window.location.reload(); // Quick way to force tab change if not using router properly here
+                          }}
+                          title="Ver histórico de envios deste pedido"
+                        >
+                          <History size={14} />
                         </Button>
                       </div>
 
