@@ -767,16 +767,26 @@ export function ProductManagement() {
                 <TableCell>
                   <SmartImage src={p.image_url} tableName="products" itemId={p.id} className="w-10 h-10 object-cover rounded shadow-sm" />
                 </TableCell>
-                 <TableCell className="font-bold text-xs uppercase">
-                   <div className="flex flex-col">
-                     <span>{p.name}</span>
-                     <div className="flex items-center gap-1 text-[9px] text-zinc-400 font-normal italic">
-                       <span>{p.brand ? `Marca: ${p.brand}` : 'Sem marca'} |</span>
-                       <CategoryIcon category={p.categories} size={10} className="inline-block" />
-                       <span>{p.categories?.name || 'Sem categoria'}</span>
-                     </div>
-                   </div>
-                 </TableCell>
+                  <TableCell className="font-bold text-xs uppercase">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span>{p.name}</span>
+                        {p.unit && (
+                          <span className="text-[9px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">
+                            {p.unit}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px] text-zinc-400 font-normal italic">
+                        <span>{p.brand ? `Marca: ${p.brand}` : 'Sem marca'} |</span>
+                        <CategoryIcon category={p.categories} size={10} className="inline-block" />
+                        <span>{p.categories?.name || 'Sem categoria'}</span>
+                        {p.is_weight_based && (
+                          <span className="text-amber-600 font-black ml-1"> (Fracionado)</span>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
                  <TableCell>
                    <div className="flex flex-wrap gap-1">
                      {p.tags && p.tags.map((tag: string) => (
@@ -832,10 +842,16 @@ export function ProductManagement() {
                             <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
                             <Input type="number" step="0.01" placeholder="0.00" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />
                           </div>
-                          <div className="space-y-2 col-span-2 md:col-span-1">
-                            <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
-                            <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
-                          </div>
+                           <div className="grid grid-cols-2 gap-4 col-span-2 md:col-span-1">
+                             <div className="space-y-2">
+                               <Label className="text-[10px] uppercase font-bold text-amber-600">Preço Atual (Por)</Label>
+                               <Input type="number" step="0.01" placeholder="0.00" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} />
+                             </div>
+                             <div className="space-y-2">
+                               <Label className="text-[10px] uppercase font-bold text-blue-600">Estoque Inicial</Label>
+                               <Input type="number" step="1" placeholder="0" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
+                             </div>
+                           </div>
                           <div className="space-y-2 col-span-2">
                             <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
                             <div className="flex flex-wrap gap-2 mt-1">
