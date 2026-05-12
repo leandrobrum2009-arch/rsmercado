@@ -40,14 +40,28 @@ import { toast } from '@/lib/toast'
   useEffect(() => {
     fetchOrders()
     
-    // Subscribe to new orders with a unique channel name
-    const channelName = `orders-channel-${Math.random().toString(36).substr(2, 9)}`
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, () => {
-        fetchOrders()
-      })
-      .subscribe()
+     // Subscribe to orders changes with a unique channel name
+     const channelName = `orders-channel-${Math.random().toString(36).substr(2, 9)}`
+     const channel = supabase
+       .channel(channelName)
+       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+         fetchOrders()
+         toast.info('Novo Pedido Recebido!', {
+           description: `Pedido de ${payload.new.customer_name || 'Cliente'} no valor de ${formatCurrency(payload.new.total_amount)}`
+         })
+         // Play notification sound if possible
+         try {
+           const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+           audio.play().catch(e => console.log('Audio play blocked by browser'))
+         } catch (e) {}
+       })
+       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, () => {
+         fetchOrders()
+       })
+       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' }, () => {
+         fetchOrders()
+       })
+       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
