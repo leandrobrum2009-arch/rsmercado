@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      auction_registrations: {
+        Row: {
+          auction_id: string | null
+          caucao_amount: number | null
+          caucao_paid: boolean | null
+          created_at: string | null
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          auction_id?: string | null
+          caucao_amount?: number | null
+          caucao_paid?: boolean | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          auction_id?: string | null
+          caucao_amount?: number | null
+          caucao_paid?: boolean | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_registrations_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auctions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          location: string | null
+          main_image_url: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["auction_status"]
+          title: string
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          main_image_url?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["auction_status"]
+          title: string
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          main_image_url?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["auction_status"]
+          title?: string
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           category_id: string | null
@@ -49,6 +129,41 @@ export type Database = {
           },
         ]
       }
+      bids: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          is_automatic: boolean | null
+          lot_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+          lot_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+          lot_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           banner_url: string | null
@@ -78,6 +193,85 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      caucao_payments: {
+        Row: {
+          amount: number
+          auction_id: string | null
+          created_at: string | null
+          id: string
+          payment_method: string | null
+          receipt_url: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          auction_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          auction_id?: string | null
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caucao_payments_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          lot_id: string | null
+          signed_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          signed_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          lot_id?: string | null
+          signed_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_neighborhoods: {
         Row: {
@@ -153,6 +347,71 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      lots: {
+        Row: {
+          auction_id: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          increment_value: number
+          is_highlighted: boolean | null
+          lot_number: number
+          minimum_bid: number
+          sold_price: number | null
+          start_price: number
+          status: Database["public"]["Enums"]["lot_status"]
+          title: string
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          auction_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          increment_value?: number
+          is_highlighted?: boolean | null
+          lot_number: number
+          minimum_bid?: number
+          sold_price?: number | null
+          start_price?: number
+          status?: Database["public"]["Enums"]["lot_status"]
+          title: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          auction_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          increment_value?: number
+          is_highlighted?: boolean | null
+          lot_number?: number
+          minimum_bid?: number
+          sold_price?: number | null
+          start_price?: number
+          status?: Database["public"]["Enums"]["lot_status"]
+          title?: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lots_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loyalty_redemptions: {
         Row: {
@@ -849,6 +1108,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      auction_status: "draft" | "scheduled" | "live" | "completed" | "cancelled"
+      lot_status: "pending" | "active" | "sold" | "unsold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -977,6 +1238,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      auction_status: ["draft", "scheduled", "live", "completed", "cancelled"],
+      lot_status: ["pending", "active", "sold", "unsold"],
     },
   },
 } as const
