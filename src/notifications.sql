@@ -35,7 +35,8 @@
      title TEXT NOT NULL,
      message TEXT NOT NULL,
      type TEXT DEFAULT 'info', -- 'order_status', 'promo', 'loyalty', 'admin_msg'
-     related_id UUID, -- order_id, product_id, etc.
+      related_id UUID, -- order_id, product_id, etc.
+      scheduled_at TIMESTAMP WITH TIME ZONE,
      is_read BOOLEAN DEFAULT FALSE,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
  );
