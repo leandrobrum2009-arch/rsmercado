@@ -598,18 +598,14 @@ function CartPage() {
                 Forma de Pagamento
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                {[
-                  ...(pixEnabled ? [{ id: "pix", label: "PIX (Direto)", icon: QrCode }] : []),
-                  ...(sipagEnabled
-                    ? [{ id: "sipag", label: "Cartão de Crédito", icon: CreditCard }]
-                    : []),
-                  ...(mercadoPagoEnabled
-                    ? [{ id: "mercadopago", label: "Cartão/PIX (Mercado Pago)", icon: Wallet }]
-                    : []),
-                  { id: "money", label: "Dinheiro na Entrega", icon: Banknote },
-                ]
-                  .filter(Boolean)
-                  .map((method) => (
+                {(function () {
+                  const methods = [];
+                  if (pixEnabled) methods.push({ id: "pix", label: "PIX (Direto)", icon: QrCode });
+                  if (sipagEnabled) methods.push({ id: "sipag", label: "Cartão de Crédito", icon: CreditCard });
+                  if (mercadoPagoEnabled) methods.push({ id: "mercadopago", label: "Cartão/PIX (Mercado Pago)", icon: Wallet });
+                  methods.push({ id: "money", label: "Dinheiro na Entrega", icon: Banknote });
+
+                  return methods.map((method) => (
                     <div key={method.id} className="space-y-2">
                       <button
                         onClick={() => setPaymentMethod(method.id)}
@@ -649,7 +645,8 @@ function CartPage() {
                         </div>
                       )}
                     </div>
-                  ))}
+                  ));
+                })()}
               </div>
             </div>
             <div className="bg-white rounded-3xl shadow-sm border p-6 space-y-4">
