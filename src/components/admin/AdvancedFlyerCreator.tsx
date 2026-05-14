@@ -28,6 +28,46 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
  
  type LayoutType = 'grid' | 'featured-side' | 'featured-top' | 'single'
  type BackgroundType = 'image' | 'gradient' | 'color'
+
+ const LAST_FLYER_PRODUCTS_KEY = 'last_flyer_products'
+ const MAX_CACHED_FLYER_PRODUCTS = 60
+ const MAX_CACHED_IMAGE_URL_LENGTH = 2048
+
+ const isStorageQuotaError = (error: unknown) =>
+   error instanceof DOMException && (
+     error.name === 'QuotaExceededError' ||
+     error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+     error.code === 22 ||
+     error.code === 1014
+   )
+
+ const safeSetLocalStorage = (key: string, value: string) => {
+   try {
+     localStorage.setItem(key, value)
+   } catch (error) {
+     if (isStorageQuotaError(error)) {
+       localStorage.removeItem(key)
+       console.warn(`Storage quota exceeded while saving ${key}. Cache was cleared.`)
+       return
+     }
+
+     throw error
+   }
+ }
+
+ const compactFlyerProduct = (product: FlyerProduct): FlyerProduct => {
+   const imageUrl = typeof product.image_url === 'string' ? product.image_url : ''
+
+   return {
+     id: product.id,
+     name: product.name,
+     price: Number(product.price || 0),
+     original_price: product.original_price,
+     image_url: imageUrl.startsWith('data:') || imageUrl.length > MAX_CACHED_IMAGE_URL_LENGTH ? '' : imageUrl,
+     unit: product.unit,
+     removeBg: product.removeBg,
+   }
+ }
  
   const hexToRgba = (hex: string, opacity: number) => {
     if (!hex || hex.length < 7) return `rgba(255, 255, 255, ${opacity / 100})`;
@@ -181,12 +221,16 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           }
         }
         
-        const lastProducts = localStorage.getItem('last_flyer_products')
+        const lastProducts = localStorage.getItem(LAST_FLYER_PRODUCTS_KEY)
         if (lastProducts) {
           try {
-            setSelectedProducts(JSON.parse(lastProducts))
+            const parsedProducts = JSON.parse(lastProducts)
+            if (Array.isArray(parsedProducts)) {
+              setSelectedProducts(parsedProducts.map(compactFlyerProduct))
+            }
           } catch (e) {
             console.error('Error loading last flyer products:', e)
+            localStorage.removeItem(LAST_FLYER_PRODUCTS_KEY)
           }
         }
       }
@@ -207,7 +251,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
         showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
       }
-      localStorage.setItem('last_flyer_config', JSON.stringify(config))
+      safeSetLocalStorage('last_flyer_config', JSON.stringify(config))
     }, [
       layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
       columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
@@ -221,7 +265,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('last_flyer_products', JSON.stringify(selectedProducts))
+        const cachedProducts = selectedProducts
+          .slice(0, MAX_CACHED_FLYER_PRODUCTS)
+          .map(compactFlyerProduct)
+
+        safeSetLocalStorage(LAST_FLYER_PRODUCTS_KEY, JSON.stringify(cachedProducts))
       }
     }, [selectedProducts])
       useEffect(() => {
@@ -872,7 +920,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           config: config
         }
         const updated = [newTemplate, ...templates]
-        localStorage.setItem('flyer_templates', JSON.stringify(updated))
+        safeSetLocalStorage('flyer_templates', JSON.stringify(updated))
         setTemplates(updated)
       } catch (error: any) {
         console.error('Error saving template:', error)
@@ -938,7 +986,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
 
     const deleteTemplate = (idx: number) => {
       const updated = templates.filter((_, i) => i !== idx)
-      localStorage.setItem('flyer_templates', JSON.stringify(updated))
+      safeSetLocalStorage('flyer_templates', JSON.stringify(updated))
       setTemplates(updated)
     }
 
