@@ -103,8 +103,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [footerFontSize, setFooterFontSize] = useState(10)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
-    const [allProducts, setAllProducts] = useState<any[]>([])
-    const [productSearchTerm, setProductSearchTerm] = useState('')
+     const [allProducts, setAllProducts] = useState<any[]>([])
+     const [categories, setCategories] = useState<any[]>([])
+     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+     const [productSearchTerm, setProductSearchTerm] = useState('')
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
@@ -161,14 +163,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
     const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
 
-    const filteredProducts = useMemo(() => {
-      const term = productSearchTerm.toLowerCase();
-      return allProducts.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        (p.description && p.description.toLowerCase().includes(term)) ||
-        (p.brand && p.brand.toLowerCase().includes(term))
-      )
-    }, [allProducts, productSearchTerm])
+     const filteredProducts = useMemo(() => {
+       const term = productSearchTerm.toLowerCase();
+       return allProducts.filter(p => {
+         const matchesSearch = p.name.toLowerCase().includes(term) ||
+           (p.description && p.description.toLowerCase().includes(term)) ||
+           (p.brand && p.brand.toLowerCase().includes(term));
+         
+         const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
+         
+         return matchesSearch && matchesCategory;
+       })
+     }, [allProducts, productSearchTerm, selectedCategory])
 
     // Auto-load last configuration
     useEffect(() => {
@@ -1040,10 +1046,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }, [storeSettings])
  
-   const fetchProducts = async () => {
-     const { data } = await supabase.from('products').select('*').limit(500).order('name', { ascending: true })
-     setAllProducts(data || [])
-   }
+    const fetchProducts = async () => {
+      const [productsRes, categoriesRes] = await Promise.all([
+        supabase.from('products').select('*').limit(500).order('name', { ascending: true }),
+        supabase.from('categories').select('*').order('name', { ascending: true })
+      ])
+      
+      setAllProducts(productsRes.data || [])
+      setCategories(categoriesRes.data || [])
+    }
  
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0]
