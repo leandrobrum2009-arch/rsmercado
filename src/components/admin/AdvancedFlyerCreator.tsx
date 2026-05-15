@@ -162,8 +162,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
 
     const filteredProducts = useMemo(() => {
+      const term = productSearchTerm.toLowerCase();
       return allProducts.filter(p => 
-        p.name.toLowerCase().includes(productSearchTerm.toLowerCase())
+        p.name.toLowerCase().includes(term) ||
+        (p.description && p.description.toLowerCase().includes(term)) ||
+        (p.brand && p.brand.toLowerCase().includes(term))
       )
     }, [allProducts, productSearchTerm])
 
