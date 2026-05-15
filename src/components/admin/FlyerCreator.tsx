@@ -62,14 +62,20 @@ export function FlyerCreator() {
    }, [storeSettings])
  
   const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
-  const [allProducts, setAllProducts] = useState<any[]>([])
+   const [allProducts, setAllProducts] = useState<any[]>([])
+   const [productSearchTerm, setProductSearchTerm] = useState('')
+
+   const filteredProducts = allProducts.filter(p => 
+     p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+     (p.description && p.description.toLowerCase().includes(productSearchTerm.toLowerCase()))
+   )
 
   useEffect(() => {
     fetchProducts()
   }, [])
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('*').limit(50)
+    const { data } = await supabase.from('products').select('*').limit(500).order('name', { ascending: true })
     setAllProducts(data || [])
   }
 
@@ -312,12 +318,22 @@ export function FlyerCreator() {
                   <DialogTrigger asChild>
                     <Button size="sm" variant="outline"><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-3xl">
                     <DialogHeader>
-                      <DialogTitle>Selecionar Produtos</DialogTitle>
+                      <DialogTitle className="flex items-center justify-between">
+                        <span>Selecionar Produtos</span>
+                        <div className="relative w-64 mr-8">
+                          <Input 
+                            placeholder="Buscar produto..." 
+                            value={productSearchTerm}
+                            onChange={(e) => setProductSearchTerm(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </DialogTitle>
                     </DialogHeader>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto p-4">
-                      {allProducts.map(p => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
+                      {filteredProducts.map(p => (
                         <div key={p.id} className="border rounded p-2 text-center space-y-2">
                           <img src={p.image_url} className="w-20 h-20 object-cover mx-auto rounded" />
                           <p className="text-xs font-bold line-clamp-1">{p.name}</p>
