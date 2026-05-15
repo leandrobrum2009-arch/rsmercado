@@ -107,6 +107,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const [categories, setCategories] = useState<any[]>([])
       const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
       const [onlyOffers, setOnlyOffers] = useState(false)
+      const [onlyInStock, setOnlyInStock] = useState(false)
      const [productSearchTerm, setProductSearchTerm] = useState('')
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
@@ -173,8 +174,9 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          
           const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
           const matchesOffers = !onlyOffers || (p.tags && p.tags.includes('OFERTA'));
+          const matchesStock = !onlyInStock || (p.stock > 0);
           
-          return matchesSearch && matchesCategory && matchesOffers;
+          return matchesSearch && matchesCategory && matchesOffers && matchesStock;
         })
      }, [allProducts, productSearchTerm, selectedCategory])
 
@@ -2823,7 +2825,18 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                )}
                                onClick={() => setOnlyOffers(!onlyOffers)}
                              >
-                               <Clock className="w-3 h-3" /> Ofertas
+                               Ofertas
+                             </Button>
+                             <Button 
+                               variant={onlyInStock ? "default" : "outline"} 
+                               size="sm" 
+                               className={cn(
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 onlyInStock ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "text-green-600 border-green-200 hover:bg-green-50"
+                               )}
+                               onClick={() => setOnlyInStock(!onlyInStock)}
+                             >
+                               Em Estoque
                              </Button>
                              <div className="w-px h-4 bg-zinc-200 mx-1 flex-shrink-0" />
                              <Button 
