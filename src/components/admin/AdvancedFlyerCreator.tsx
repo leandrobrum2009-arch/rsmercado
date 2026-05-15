@@ -105,7 +105,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
      const [allProducts, setAllProducts] = useState<any[]>([])
      const [categories, setCategories] = useState<any[]>([])
-     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+      const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+      const [onlyOffers, setOnlyOffers] = useState(false)
      const [productSearchTerm, setProductSearchTerm] = useState('')
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
@@ -170,10 +171,11 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
            (p.description && p.description.toLowerCase().includes(term)) ||
            (p.brand && p.brand.toLowerCase().includes(term));
          
-         const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
-         
-         return matchesSearch && matchesCategory;
-       })
+          const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
+          const matchesOffers = !onlyOffers || (p.tags && p.tags.includes('OFERTA'));
+          
+          return matchesSearch && matchesCategory && matchesOffers;
+        })
      }, [allProducts, productSearchTerm, selectedCategory])
 
     // Auto-load last configuration
@@ -2811,7 +2813,19 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                              </div>
                            </div>
                            
-                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2">
+                             <Button 
+                               variant={onlyOffers ? "default" : "outline"} 
+                               size="sm" 
+                               className={cn(
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 onlyOffers ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "text-red-500 border-red-200 hover:bg-red-50"
+                               )}
+                               onClick={() => setOnlyOffers(!onlyOffers)}
+                             >
+                               <Clock className="w-3 h-3" /> Ofertas
+                             </Button>
+                             <div className="w-px h-4 bg-zinc-200 mx-1 flex-shrink-0" />
                              <Button 
                                variant={selectedCategory === null ? "default" : "outline"} 
                                size="sm" 
