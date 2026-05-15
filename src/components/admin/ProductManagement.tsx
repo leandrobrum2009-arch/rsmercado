@@ -161,8 +161,9 @@ export function ProductManagement() {
  
    const filteredProducts = products
      .filter(p => {
-       const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
        const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand
        const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
        return matchesSearch && matchesBrand && matchesCategory
@@ -179,6 +180,26 @@ export function ProductManagement() {
        return 0
      })
  
+    useEffect(() => {
+      const saved = sessionStorage.getItem('product_mgmt_filters');
+      if (saved) {
+        try {
+          const { query, brand, cat } = JSON.parse(saved);
+          if (query !== undefined) setSearchQuery(query);
+          if (brand !== undefined) setSelectedBrand(brand);
+          if (cat !== undefined) setSelectedCategory(cat);
+        } catch (e) {}
+      }
+    }, []);
+
+    useEffect(() => {
+      sessionStorage.setItem('product_mgmt_filters', JSON.stringify({
+        query: searchQuery,
+        brand: selectedBrand,
+        cat: selectedCategory
+      }));
+    }, [searchQuery, selectedBrand, selectedCategory]);
+
    const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort()
  
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -466,15 +487,15 @@ export function ProductManagement() {
  
        <div className="bg-white p-4 border-2 border-zinc-100 rounded-xl shadow-sm space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-           <div className="space-y-1">
-             <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
-             <Input 
-               placeholder="Nome ou marca..." 
-               value={searchQuery} 
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="h-9 text-xs"
-             />
-           </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
+              <Input 
+                placeholder="Nome, marca ou código..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
            <div className="space-y-1">
              <Label className="text-[10px] uppercase font-black text-zinc-500">Marca</Label>
              <Select value={selectedBrand} onValueChange={setSelectedBrand}>

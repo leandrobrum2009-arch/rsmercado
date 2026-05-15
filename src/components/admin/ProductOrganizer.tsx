@@ -75,11 +75,13 @@
      }
    }
  
-   const filteredProducts = products.filter(p => {
-     const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
-     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
-     return matchesCategory && matchesSearch
-   })
+    const filteredProducts = products.filter(p => {
+      const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
+      const term = searchTerm.toLowerCase()
+      const matchesSearch = p.name.toLowerCase().includes(term) || 
+                            (p.sku && p.sku.toLowerCase().includes(term))
+      return matchesCategory && matchesSearch
+    })
  
    if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-primary" /></div>
  

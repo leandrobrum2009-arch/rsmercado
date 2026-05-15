@@ -168,9 +168,10 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
      const filteredProducts = useMemo(() => {
        const term = productSearchTerm.toLowerCase();
        return allProducts.filter(p => {
-         const matchesSearch = p.name.toLowerCase().includes(term) ||
-           (p.description && p.description.toLowerCase().includes(term)) ||
-           (p.brand && p.brand.toLowerCase().includes(term));
+          const matchesSearch = p.name.toLowerCase().includes(term) ||
+            (p.description && p.description.toLowerCase().includes(term)) ||
+            (p.brand && p.brand.toLowerCase().includes(term)) ||
+            (p.sku && p.sku.toLowerCase().includes(term));
          
           const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
           const matchesOffers = !onlyOffers || (p.tags && p.tags.includes('OFERTA'));
@@ -179,6 +180,33 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           return matchesSearch && matchesCategory && matchesOffers && matchesStock;
         })
      }, [allProducts, productSearchTerm, selectedCategory])
+
+    // Load filters from sessionStorage
+    useEffect(() => {
+      const savedFilters = sessionStorage.getItem('flyer_product_filters');
+      if (savedFilters) {
+        try {
+          const { term, cat, offers, stock } = JSON.parse(savedFilters);
+          if (term !== undefined) setProductSearchTerm(term);
+          if (cat !== undefined) setSelectedCategory(cat);
+          if (offers !== undefined) setOnlyOffers(offers);
+          if (stock !== undefined) setOnlyInStock(stock);
+        } catch (e) {
+          console.error('Error loading session filters:', e);
+        }
+      }
+    }, []);
+
+    // Save filters to sessionStorage
+    useEffect(() => {
+      const filters = {
+        term: productSearchTerm,
+        cat: selectedCategory,
+        offers: onlyOffers,
+        stock: onlyInStock
+      };
+      sessionStorage.setItem('flyer_product_filters', JSON.stringify(filters));
+    }, [productSearchTerm, selectedCategory, onlyOffers, onlyInStock]);
 
     // Auto-load last configuration
     useEffect(() => {

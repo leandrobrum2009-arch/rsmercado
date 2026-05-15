@@ -413,6 +413,7 @@ export type Database = {
           points_value: number
           price: number
           size: string | null
+          sku: string | null
           stock: number
           tags: string[]
           unit: string | null
@@ -434,6 +435,7 @@ export type Database = {
           points_value?: number
           price?: number
           size?: string | null
+          sku?: string | null
           stock?: number
           tags?: string[]
           unit?: string | null
@@ -455,6 +457,7 @@ export type Database = {
           points_value?: number
           price?: number
           size?: string | null
+          sku?: string | null
           stock?: number
           tags?: string[]
           unit?: string | null
