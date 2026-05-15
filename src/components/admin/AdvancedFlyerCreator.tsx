@@ -2787,29 +2787,53 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
                     <DialogContent className="max-w-3xl">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
-                          <span>Selecionar Produtos</span>
-                          <div className="relative w-64 mr-8">
-                            <Input 
-                              placeholder="Buscar produto..." 
-                              value={productSearchTerm}
-                              onChange={(e) => setProductSearchTerm(e.target.value)}
-                              className="h-8 text-xs pr-8"
-                            />
-                            {productSearchTerm && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
-                                onClick={() => setProductSearchTerm('')}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </DialogTitle>
-                      </DialogHeader>
+                       <DialogHeader className="pb-2">
+                         <DialogTitle className="flex flex-col gap-4">
+                           <div className="flex items-center justify-between">
+                             <span>Selecionar Produtos</span>
+                             <div className="relative w-64 mr-8">
+                               <Input 
+                                 placeholder="Buscar produto..." 
+                                 value={productSearchTerm}
+                                 onChange={(e) => setProductSearchTerm(e.target.value)}
+                                 className="h-8 text-xs pr-8"
+                               />
+                               {productSearchTerm && (
+                                 <Button 
+                                   variant="ghost" 
+                                   size="icon" 
+                                   className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                   onClick={() => setProductSearchTerm('')}
+                                 >
+                                   <X className="w-3 h-3" />
+                                 </Button>
+                               )}
+                             </div>
+                           </div>
+                           
+                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                             <Button 
+                               variant={selectedCategory === null ? "default" : "outline"} 
+                               size="sm" 
+                               className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                               onClick={() => setSelectedCategory(null)}
+                             >
+                               Todos
+                             </Button>
+                             {categories.map((cat) => (
+                               <Button 
+                                 key={cat.id}
+                                 variant={selectedCategory === cat.id ? "default" : "outline"} 
+                                 size="sm" 
+                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                                 onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+                               >
+                                 {cat.name}
+                               </Button>
+                             ))}
+                           </div>
+                         </DialogTitle>
+                       </DialogHeader>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
                         {filteredProducts.length > 0 ? (
                           filteredProducts.map(p => (
