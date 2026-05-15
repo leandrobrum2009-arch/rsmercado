@@ -103,8 +103,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [footerFontSize, setFooterFontSize] = useState(10)
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
-    const [allProducts, setAllProducts] = useState<any[]>([])
-    const [productSearchTerm, setProductSearchTerm] = useState('')
+     const [allProducts, setAllProducts] = useState<any[]>([])
+     const [categories, setCategories] = useState<any[]>([])
+      const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+      const [onlyOffers, setOnlyOffers] = useState(false)
+      const [onlyInStock, setOnlyInStock] = useState(false)
+     const [productSearchTerm, setProductSearchTerm] = useState('')
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
@@ -161,14 +165,20 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
     const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
 
-    const filteredProducts = useMemo(() => {
-      const term = productSearchTerm.toLowerCase();
-      return allProducts.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        (p.description && p.description.toLowerCase().includes(term)) ||
-        (p.brand && p.brand.toLowerCase().includes(term))
-      )
-    }, [allProducts, productSearchTerm])
+     const filteredProducts = useMemo(() => {
+       const term = productSearchTerm.toLowerCase();
+       return allProducts.filter(p => {
+         const matchesSearch = p.name.toLowerCase().includes(term) ||
+           (p.description && p.description.toLowerCase().includes(term)) ||
+           (p.brand && p.brand.toLowerCase().includes(term));
+         
+          const matchesCategory = !selectedCategory || p.category_id === selectedCategory;
+          const matchesOffers = !onlyOffers || (p.tags && p.tags.includes('OFERTA'));
+          const matchesStock = !onlyInStock || (p.stock > 0);
+          
+          return matchesSearch && matchesCategory && matchesOffers && matchesStock;
+        })
+     }, [allProducts, productSearchTerm, selectedCategory])
 
     // Auto-load last configuration
     useEffect(() => {
@@ -1040,10 +1050,15 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
       }
     }, [storeSettings])
  
-   const fetchProducts = async () => {
-     const { data } = await supabase.from('products').select('*').limit(500).order('name', { ascending: true })
-     setAllProducts(data || [])
-   }
+    const fetchProducts = async () => {
+      const [productsRes, categoriesRes] = await Promise.all([
+        supabase.from('products').select('*').limit(500).order('name', { ascending: true }),
+        supabase.from('categories').select('*').order('name', { ascending: true })
+      ])
+      
+      setAllProducts(productsRes.data || [])
+      setCategories(categoriesRes.data || [])
+    }
  
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0]
@@ -2776,29 +2791,81 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
                     <DialogContent className="max-w-3xl">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
-                          <span>Selecionar Produtos</span>
-                          <div className="relative w-64 mr-8">
-                            <Input 
-                              placeholder="Buscar produto..." 
-                              value={productSearchTerm}
-                              onChange={(e) => setProductSearchTerm(e.target.value)}
-                              className="h-8 text-xs pr-8"
-                            />
-                            {productSearchTerm && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
-                                onClick={() => setProductSearchTerm('')}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </DialogTitle>
-                      </DialogHeader>
+                       <DialogHeader className="pb-2">
+                         <DialogTitle className="flex flex-col gap-4">
+                           <div className="flex items-center justify-between gap-4">
+                             <div className="flex items-center gap-2">
+                               <span>Selecionar Produtos</span>
+                               <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                                 {filteredProducts.length} encontrados
+                               </span>
+                             </div>
+                             <div className="relative w-64 mr-8">
+                               <Input 
+                                 placeholder="Buscar produto..." 
+                                 value={productSearchTerm}
+                                 onChange={(e) => setProductSearchTerm(e.target.value)}
+                                 className="h-8 text-xs pr-8"
+                               />
+                               {productSearchTerm && (
+                                 <Button 
+                                   variant="ghost" 
+                                   size="icon" 
+                                   className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                   onClick={() => setProductSearchTerm('')}
+                                 >
+                                   <X className="w-3 h-3" />
+                                 </Button>
+                               )}
+                             </div>
+                           </div>
+                           
+                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2">
+                             <Button 
+                               variant={onlyOffers ? "default" : "outline"} 
+                               size="sm" 
+                               className={cn(
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 onlyOffers ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "text-red-500 border-red-200 hover:bg-red-50"
+                               )}
+                               onClick={() => setOnlyOffers(!onlyOffers)}
+                             >
+                               Ofertas
+                             </Button>
+                             <Button 
+                               variant={onlyInStock ? "default" : "outline"} 
+                               size="sm" 
+                               className={cn(
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 onlyInStock ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "text-green-600 border-green-200 hover:bg-green-50"
+                               )}
+                               onClick={() => setOnlyInStock(!onlyInStock)}
+                             >
+                               Em Estoque
+                             </Button>
+                             <div className="w-px h-4 bg-zinc-200 mx-1 flex-shrink-0" />
+                             <Button 
+                               variant={selectedCategory === null ? "default" : "outline"} 
+                               size="sm" 
+                               className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                               onClick={() => setSelectedCategory(null)}
+                             >
+                               Todos
+                             </Button>
+                             {categories.map((cat) => (
+                               <Button 
+                                 key={cat.id}
+                                 variant={selectedCategory === cat.id ? "default" : "outline"} 
+                                 size="sm" 
+                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                                 onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+                               >
+                                 {cat.name}
+                               </Button>
+                             ))}
+                           </div>
+                         </DialogTitle>
+                       </DialogHeader>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
                         {filteredProducts.length > 0 ? (
                           filteredProducts.map(p => (
