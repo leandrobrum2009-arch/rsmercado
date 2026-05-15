@@ -487,15 +487,15 @@ export function ProductManagement() {
  
        <div className="bg-white p-4 border-2 border-zinc-100 rounded-xl shadow-sm space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-           <div className="space-y-1">
-             <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
-             <Input 
-               placeholder="Nome ou marca..." 
-               value={searchQuery} 
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="h-9 text-xs"
-             />
-           </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
+              <Input 
+                placeholder="Nome, marca ou código..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
            <div className="space-y-1">
              <Label className="text-[10px] uppercase font-black text-zinc-500">Marca</Label>
              <Select value={selectedBrand} onValueChange={setSelectedBrand}>
