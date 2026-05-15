@@ -2793,8 +2793,13 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                     <DialogContent className="max-w-3xl">
                        <DialogHeader className="pb-2">
                          <DialogTitle className="flex flex-col gap-4">
-                           <div className="flex items-center justify-between">
-                             <span>Selecionar Produtos</span>
+                           <div className="flex items-center justify-between gap-4">
+                             <div className="flex items-center gap-2">
+                               <span>Selecionar Produtos</span>
+                               <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                                 {filteredProducts.length} encontrados
+                               </span>
+                             </div>
                              <div className="relative w-64 mr-8">
                                <Input 
                                  placeholder="Buscar produto..." 
