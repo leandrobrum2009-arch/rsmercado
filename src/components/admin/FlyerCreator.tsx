@@ -65,10 +65,20 @@ export function FlyerCreator() {
    const [allProducts, setAllProducts] = useState<any[]>([])
    const [productSearchTerm, setProductSearchTerm] = useState('')
 
-   const filteredProducts = allProducts.filter(p => 
-     p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-     (p.description && p.description.toLowerCase().includes(productSearchTerm.toLowerCase()))
-   )
+    const filteredProducts = allProducts.filter(p => 
+      p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(productSearchTerm.toLowerCase())) ||
+      (p.sku && p.sku.toLowerCase().includes(productSearchTerm.toLowerCase()))
+    )
+
+    useEffect(() => {
+      const saved = sessionStorage.getItem('simple_flyer_search');
+      if (saved) setProductSearchTerm(saved);
+    }, []);
+
+    useEffect(() => {
+      sessionStorage.setItem('simple_flyer_search', productSearchTerm);
+    }, [productSearchTerm]);
 
   useEffect(() => {
     fetchProducts()
