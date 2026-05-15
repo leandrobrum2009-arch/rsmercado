@@ -104,6 +104,7 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
    const [uploading, setUploading] = useState(false)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
     const [allProducts, setAllProducts] = useState<any[]>([])
+    const [productSearchTerm, setProductSearchTerm] = useState('')
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
@@ -159,6 +160,12 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
          const [useHtmlMode, setUseHtmlMode] = useState(true)
     const [bgRemovalThreshold, setBgRemovalThreshold] = useState(240)
     const [bgRemovalSmoothing, setBgRemovalSmoothing] = useState(10)
+
+    const filteredProducts = useMemo(() => {
+      return allProducts.filter(p => 
+        p.name.toLowerCase().includes(productSearchTerm.toLowerCase())
+      )
+    }, [allProducts, productSearchTerm])
 
     // Auto-load last configuration
     useEffect(() => {
@@ -2765,19 +2772,45 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                   <DialogContent className="max-w-2xl">
-                     <DialogHeader>
-                       <DialogTitle>Selecionar Produtos</DialogTitle>
-                     </DialogHeader>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-4">
-                       {allProducts.map(p => (
-                         <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors" onClick={() => addProductToFlyer(p)}>
-                           <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
-                           <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
-                           <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
-                           <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
-                         </div>
-                       ))}
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center justify-between">
+                          <span>Selecionar Produtos</span>
+                          <div className="relative w-64 mr-8">
+                            <Input 
+                              placeholder="Buscar produto..." 
+                              value={productSearchTerm}
+                              onChange={(e) => setProductSearchTerm(e.target.value)}
+                              className="h-8 text-xs pr-8"
+                            />
+                            {productSearchTerm && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                onClick={() => setProductSearchTerm('')}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
+                        {filteredProducts.length > 0 ? (
+                          filteredProducts.map(p => (
+                            <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors" onClick={() => addProductToFlyer(p)}>
+                              <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
+                              <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
+                              <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
+                              <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-full py-12 text-center text-zinc-400">
+                            <p className="text-sm">Nenhum produto encontrado</p>
+                          </div>
+                        )}
                      </div>
                    </DialogContent>
                  </Dialog>
