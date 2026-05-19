@@ -1,3 +1,9 @@
+// Polyfill WebSocket for CI environments (Node.js 20 has no native WebSocket)
+import { WebSocket } from "undici";
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = WebSocket;
+}
+
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
