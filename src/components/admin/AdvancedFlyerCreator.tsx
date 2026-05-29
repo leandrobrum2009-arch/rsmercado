@@ -1996,35 +1996,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
     return (
       <>
-   {/* Global Progress Overlay for Print/Download */}
-   {(isPreparingPrint || uploading) && (
-    <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
-      <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
-        <CardContent className="p-8 flex flex-col items-center gap-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-          <div className="w-full space-y-4">
-            <div className="text-center">
-              <h3 className="font-black uppercase italic tracking-tighter text-lg">Processando Encarte</h3>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{generationStep}</p>
+    {/* Progress Overlay - reduced prominence as per user request */}
+    {(isPreparingPrint || uploading) && (
+     <div className="fixed bottom-8 right-8 z-[100000] w-72 animate-in slide-in-from-bottom-4 duration-300">
+      <Card className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-primary/20 overflow-hidden">
+        <CardContent className="p-4 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                <span>Progresso</span>
-                <span>{generationProgress}%</span>
-              </div>
-              <Progress value={generationProgress} className="h-3" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-black uppercase italic tracking-tighter text-sm truncate">Processando...</h3>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest truncate">{generationStep}</p>
             </div>
+            <div className="text-[10px] font-black text-primary">{generationProgress}%</div>
           </div>
-          <p className="text-[10px] text-zinc-400 font-bold uppercase text-center leading-relaxed">
-            Aguarde enquanto preparamos seu arquivo em alta resolução. 
-            <br />Não feche esta aba.
-          </p>
+          <Progress value={generationProgress} className="h-1.5" />
         </CardContent>
       </Card>
     </div>
   )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
