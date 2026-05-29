@@ -2954,8 +2954,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-5xl w-[98vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0 bg-white shadow-2xl">
-                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 max-w-full overflow-hidden">
+                    <DialogContent className="max-w-[95vw] w-full md:max-w-6xl overflow-hidden flex flex-col h-[90vh] p-0 gap-0 bg-white shadow-2xl border-none">
+                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                             <DialogTitle className="flex items-center gap-2">
                               <span>Selecionar Produtos</span>
