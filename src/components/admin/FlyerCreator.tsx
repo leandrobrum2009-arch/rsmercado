@@ -473,7 +473,14 @@ if (!element) return;
 setIsPreparingPrint(true);
 try {
 const restoreSrcs = await convertImagesToBase64(element);
-const canvas = await html2canvas(element, { useCORS: true, allowTaint: true, scale: 2 });
+const canvas = await html2canvas(element, { 
+  useCORS: true, 
+  allowTaint: true, 
+  scale: 2,
+  onclone: (clonedDoc) => {
+    sanitizeClonedDocColors(clonedDoc);
+  }
+});
 restoreSrcs();
 setPreviewImage(canvas.toDataURL('image/png'));
 } catch {
