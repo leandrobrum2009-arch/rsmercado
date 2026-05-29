@@ -3151,7 +3151,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                           disabled={uploading}
                         >
                           <Download className="w-4 h-4 mr-1" />
-                          Baixar JPG
+                          Baixar Imagem (JPG)
                         </Button>
                         <Button 
                           className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-zinc-800 hover:bg-zinc-900 text-white" 
@@ -3159,9 +3159,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                           disabled={uploading}
                         >
                           <ImageIcon className="w-4 h-4 mr-1" />
-                          Baixar PNG
+                          Baixar Imagem (PNG)
                         </Button>
                       </div>
+
                       <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
                         onClick={handleDirectPrint}
