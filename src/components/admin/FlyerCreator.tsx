@@ -335,13 +335,23 @@ export function FlyerCreator() {
                     <DialogHeader>
                       <DialogTitle className="flex items-center justify-between">
                         <span>Selecionar Produtos</span>
-                        <div className="relative w-64 mr-8">
-                          <Input 
-                            placeholder="Buscar produto..." 
-                            value={productSearchTerm}
-                            onChange={(e) => setProductSearchTerm(e.target.value)}
-                            className="h-8 text-xs"
-                          />
+                        <div className="flex items-center gap-2 mr-8">
+                          <div className="relative w-64">
+                            <Input 
+                              placeholder="Buscar produto..." 
+                              value={productSearchTerm}
+                              onChange={(e) => setProductSearchTerm(e.target.value)}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8 shrink-0 border-2"
+                            onClick={() => setBarcodeScannerOpen(true)}
+                          >
+                            <Camera size={14} />
+                          </Button>
                         </div>
                       </DialogTitle>
                     </DialogHeader>
