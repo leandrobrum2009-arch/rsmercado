@@ -3030,7 +3030,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                               </div>
                            </div>
                            
-                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2">
+                           <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2 w-full min-w-0">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
