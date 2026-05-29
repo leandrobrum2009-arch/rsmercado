@@ -1695,8 +1695,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         setGenerationProgress(60)
 
 
-        const generateImageCanvas = async (customScale = 2) => {
+        const generateImageCanvas = async (customScale = 1.5) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
+
           try {
             return await html2canvas(element, {
               useCORS: true,
