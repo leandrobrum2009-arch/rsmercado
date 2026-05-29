@@ -1823,8 +1823,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           duration: 15000 
         });
 
-        logStep(`ERRO FINAL: ${errorMessage} - ${description}`);
+        logStep(`BLOQUEIO FINAL: ${errorMessage}`, description, true);
         if (err.stack) logStep(`Stack: ${err.stack.substring(0, 200)}`);
+
 
 
 
