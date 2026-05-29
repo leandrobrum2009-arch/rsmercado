@@ -2992,50 +2992,52 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    </DialogTrigger>
                     <DialogContent className="max-w-3xl w-[95vw] md:w-full">
                        <DialogHeader className="pb-2">
-                         <DialogTitle className="flex flex-col gap-4">
-                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                             <div className="flex items-center gap-2">
-                               <span>Selecionar Produtos</span>
-                               <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
-                                 {filteredProducts.length} encontrados
-                               </span>
-                             </div>
-                              <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <div className="relative flex-1 sm:w-64">
-                                  <Input 
-                                    placeholder="Buscar produto..." 
-                                    value={productSearchTerm}
-                                    onChange={(e) => setProductSearchTerm(e.target.value)}
-                                    className="h-8 text-xs pr-8"
-                                  />
-                                  {productSearchTerm && (
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
-                                      onClick={() => setProductSearchTerm('')}
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="icon" 
-                                  className="h-8 w-8 shrink-0 border-2"
-                                  onClick={() => setBarcodeScannerOpen(true)}
-                                >
-                                  <Camera className="w-4 h-4" />
-                                </Button>
-                              </div>
-                           </div>
+                       <DialogHeader className="pb-2 space-y-4">
+                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                           <DialogTitle className="flex items-center gap-2">
+                             <span>Selecionar Produtos</span>
+                             <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                               {filteredProducts.length} encontrados
+                             </span>
+                           </DialogTitle>
                            
-                           <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 mb-2 w-full min-w-0">
+                           <div className="flex items-center gap-2 w-full sm:w-auto">
+                             <div className="relative flex-1 sm:w-64">
+                               <Input 
+                                 placeholder="Buscar produto..." 
+                                 value={productSearchTerm}
+                                 onChange={(e) => setProductSearchTerm(e.target.value)}
+                                 className="h-8 text-xs pr-8"
+                               />
+                               {productSearchTerm && (
+                                 <Button 
+                                   variant="ghost" 
+                                   size="icon" 
+                                   className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                   onClick={() => setProductSearchTerm('')}
+                                 >
+                                   <X className="w-3 h-3" />
+                                 </Button>
+                               )}
+                             </div>
+                             <Button 
+                               variant="outline" 
+                               size="icon" 
+                               className="h-8 w-8 shrink-0 border-2"
+                               onClick={() => setBarcodeScannerOpen(true)}
+                             >
+                               <Camera className="w-4 h-4" />
+                             </Button>
+                           </div>
+                         </div>
+                         
+                         <div className="w-full overflow-hidden">
+                           <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full no-scrollbar min-h-[40px]">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
                                className={cn(
-                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1 shrink-0",
                                  onlyOffers ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "text-red-500 border-red-200 hover:bg-red-50"
                                )}
                                onClick={() => setOnlyOffers(!onlyOffers)}
@@ -3046,7 +3048,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                variant={onlyInStock ? "default" : "outline"} 
                                size="sm" 
                                className={cn(
-                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1",
+                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1 shrink-0",
                                  onlyInStock ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "text-green-600 border-green-200 hover:bg-green-50"
                                )}
                                onClick={() => setOnlyInStock(!onlyInStock)}
@@ -3057,7 +3059,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                              <Button 
                                variant={selectedCategory === null ? "default" : "outline"} 
                                size="sm" 
-                               className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                               className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full shrink-0"
                                onClick={() => setSelectedCategory(null)}
                              >
                                Todos
@@ -3067,9 +3069,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                  key={cat.id}
                                  variant={selectedCategory === cat.id ? "default" : "outline"} 
                                  size="sm" 
-                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full"
+                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full shrink-0"
                                  onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
-                               >
+                                >
                                  {cat.name}
                                </Button>
                              ))}
@@ -3077,7 +3079,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full text-zinc-400 hover:text-zinc-600 flex items-center gap-1"
+                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full text-zinc-400 hover:text-zinc-600 flex items-center gap-1 shrink-0"
                                  onClick={() => {
                                    setProductSearchTerm('');
                                    setSelectedCategory(null);
@@ -3089,7 +3091,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                </Button>
                              )}
                            </div>
-                         </DialogTitle>
+                         </div>
+                       </DialogHeader>
                        </DialogHeader>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
                         {filteredProducts.length > 0 ? (
