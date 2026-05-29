@@ -1640,7 +1640,19 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
 
 
-        logStep('Passo 2: Renderizando html2canvas para download');
+        logStep('Passo 2: Tratando imagens para evitar bloqueio de segurança');
+        setGenerationStep('Processando imagens...');
+        
+        // Mapear imagens externas para Base64 para garantir que o canvas não seja "manchado"
+        const base64Map = new Map<string, string>();
+        await Promise.all(images.map(async (img) => {
+          if (img.src && !img.src.startsWith('data:')) {
+            const b64 = await toBase64(img);
+            if (b64) base64Map.set(img.src, b64);
+          }
+        }));
+
+        logStep(`Passo 3: Renderizando html2canvas (${format.toUpperCase()})`);
         setGenerationStep('Renderizando imagem A4...')
         setGenerationProgress(60)
 
@@ -1685,6 +1697,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.fontVariantNumeric = 'tabular-nums';
                     
                     if (el.tagName === 'IMG') {
+                      const originalSrc = el.getAttribute('src');
+                      if (originalSrc && base64Map.has(originalSrc)) {
+                        el.src = base64Map.get(originalSrc);
+                        logStep(`Imagem substituída por Base64: ${originalSrc.substring(0, 30)}...`);
+                      }
                       el.crossOrigin = 'anonymous';
                     }
 
@@ -1707,7 +1724,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           }
         };
 
-
         let canvas: HTMLCanvasElement;
         try {
           // Começamos com escala 2 que é estável e de boa qualidade para A4
@@ -1721,6 +1737,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             canvas = await generateImageCanvas(1);
           }
         }
+
 
         logStep('Passo 3: Finalizando arquivo de imagem');
         setGenerationProgress(90)
