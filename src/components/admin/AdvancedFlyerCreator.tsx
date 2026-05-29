@@ -2960,6 +2960,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
                       <Button 
+                        className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-indigo-600 hover:bg-indigo-700 text-white col-span-2 mt-2" 
+                        onClick={() => handleDownloadImage('jpg')}
+                        disabled={uploading}
+                      >
+                        <Download className="w-5 h-5 mr-2" />
+                        Baixar Imagem A4 (JPG)
+                      </Button>
+                      <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
                         onClick={handleDirectPrint}
                         disabled={isPreparingPrint}
@@ -2972,6 +2980,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         Imprimir Encarte (A4)
                       </Button>
                     </div>
+
              </CardContent>
           </Card>
 
