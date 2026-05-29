@@ -2903,6 +2903,21 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                  {cat.name}
                                </Button>
                              ))}
+                             {(productSearchTerm || selectedCategory !== null || onlyOffers || onlyInStock) && (
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full text-zinc-400 hover:text-zinc-600 flex items-center gap-1"
+                                 onClick={() => {
+                                   setProductSearchTerm('');
+                                   setSelectedCategory(null);
+                                   setOnlyOffers(false);
+                                   setOnlyInStock(false);
+                                 }}
+                               >
+                                 <X className="w-3 h-3" /> Limpar
+                               </Button>
+                             )}
                            </div>
                          </DialogTitle>
                        </DialogHeader>
