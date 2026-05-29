@@ -3393,18 +3393,40 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           <DialogHeader>
             <DialogTitle className="font-black uppercase italic tracking-tighter">Log de Sistema do Gerador</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1 mt-4">
-            {logHistory.length === 0 ? (
-              <p className="text-zinc-500 italic">Nenhum evento registrado ainda...</p>
-            ) : (
-              logHistory.map((log, i) => (
-                <div key={i} className="border-l border-zinc-800 pl-2">
-                  <span className="text-zinc-500 mr-2">[{i+1}]</span>
-                  {log}
+          <div className="flex-1 overflow-y-auto space-y-4 mt-4 no-scrollbar">
+            {logHistory.some(l => l.isBlocker) && (
+              <div className="p-4 bg-red-50 border-2 border-red-100 rounded-2xl">
+                <h4 className="text-red-600 font-black uppercase italic text-xs mb-2 flex items-center gap-2">
+                  <X className="w-4 h-4" /> Bloqueadores Encontrados
+                </h4>
+                <div className="space-y-1">
+                  {logHistory.filter(l => l.isBlocker).map((log, i) => (
+                    <p key={i} className="text-[10px] text-red-500 font-bold leading-tight">
+                      • {log.msg}
+                    </p>
+                  ))}
                 </div>
-              ))
+              </div>
             )}
+
+            <div className="p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1">
+              {logHistory.length === 0 ? (
+                <p className="text-zinc-500 italic text-center py-4">Nenhum evento registrado ainda...</p>
+              ) : (
+                logHistory.map((log, i) => (
+                  <div key={i} className={cn(
+                    "border-l pl-2 py-0.5",
+                    log.isBlocker ? "border-red-500 text-red-400 bg-red-500/10" : "border-zinc-800"
+                  )}>
+                    <span className="text-zinc-500 mr-2">[{log.time}]</span>
+                    {log.isBlocker && <span className="mr-1 font-bold">!!!</span>}
+                    {log.msg}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+
           <div className="mt-4 flex justify-end">
             <Button 
               variant="outline" 
