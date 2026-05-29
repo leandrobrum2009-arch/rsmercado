@@ -588,6 +588,14 @@ export function FlyerCreator() {
            }
          }
        `}</style>
-    </div>
-  )
-}
+       <BarcodeScanner 
+         isOpen={barcodeScannerOpen} 
+         onClose={() => setBarcodeScannerOpen(false)} 
+         onScan={(code) => {
+           setProductSearchTerm(code);
+           toast.success(`Buscando por: ${code}`);
+         }}
+       />
+     </div>
+   )
+ }
