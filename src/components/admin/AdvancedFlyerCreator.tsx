@@ -113,7 +113,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
-    const [templateName, setTemplateName] = useState('')
+     const [templateName, setTemplateName] = useState('')
+     const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
