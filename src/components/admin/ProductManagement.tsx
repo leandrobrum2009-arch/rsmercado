@@ -655,20 +655,20 @@ export function ProductManagement() {
               <CheckCircle className="mr-2 h-4 w-4" /> Publicar Tudo
             </Button>
           </div>
-            <div className="flex gap-2">
-              {diagnosticInfo && (
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsDiagnosticOpen(true)}
-                  className="border-red-200 text-red-600 hover:bg-red-50 font-black uppercase text-[10px]"
-                >
-                  <AlertTriangle className="mr-2 h-4 w-4" /> Diagnóstico de Erro
-                </Button>
-              )}
-              <Dialog open={isProductDialogOpen} onOpenChange={(open) => { setIsProductDialogOpen(open); if (!open) resetForm(); }}>
-                <DialogTrigger asChild onClick={() => { resetForm(); setIsProductDialogOpen(true); }}>
-                  <Button className="bg-zinc-900 font-black uppercase text-xs"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
-                </DialogTrigger>
+          <div className="flex gap-2 items-center">
+            {diagnosticInfo && (
+              <Button 
+                variant="outline"
+                onClick={() => setIsDiagnosticOpen(true)}
+                className="border-red-200 text-red-600 hover:bg-red-50 font-black uppercase text-[10px] h-9"
+              >
+                <AlertTriangle className="mr-2 h-4 w-4" /> Diagnóstico de Erro
+              </Button>
+            )}
+            <Dialog open={isProductDialogOpen} onOpenChange={(open) => { setIsProductDialogOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild onClick={() => { resetForm(); setIsProductDialogOpen(true); }}>
+                <Button className="bg-zinc-900 font-black uppercase text-xs h-9"><Plus className="mr-2 h-4 w-4" /> Novo Produto</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
                <DialogHeader><DialogTitle className="font-black uppercase">{isEditing ? 'Editar Produto' : 'Cadastrar Produto'}</DialogTitle></DialogHeader>
                <div className="grid grid-cols-2 gap-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
