@@ -1679,7 +1679,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Tentamos escala 3 para alta qualidade (aprox 300 DPI para A4)
+          // Tentamos escala 3 para alta qualidade
           canvas = await generateImageCanvas(3);
         } catch (firstErr) {
           logStep('Erro escala 3, tentando escala 2...', firstErr);
@@ -1687,7 +1687,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             canvas = await generateImageCanvas(2);
           } catch (secondErr) {
             logStep('Erro escala 2, tentando escala 1.5...', secondErr);
-            canvas = await generateImageCanvas(1.5);
+            try {
+              canvas = await generateImageCanvas(1.5);
+            } catch (thirdErr) {
+              logStep('Erro escala 1.5, tentando escala 1 (compatibilidade máxima)...', thirdErr);
+              canvas = await generateImageCanvas(1);
+            }
           }
         }
 
@@ -1701,9 +1706,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         
         let image = '';
         try {
+          // Tentar gerar a URL da imagem. Se houver erro de CORS, o navegador lança SecurityError aqui.
           image = canvas.toDataURL(mimeType, quality);
-        } catch (exportError) {
-          logStep('Erro ao exportar canvas (possível problema de CORS):', exportError);
+        } catch (exportError: any) {
+          logStep('Erro fatal ao exportar canvas (CORS/SecurityError):', exportError);
+          // Se falhou por CORS, tentamos uma última vez permitindo "taint" mas sem poder baixar se for o caso
+          // Na verdade, se falhou aqui, o canvas já está "sujo"
           throw new Error('CANVAS_TAINTED');
         }
         
@@ -1723,19 +1731,26 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         toast.dismiss(loadingToast)
         toast.success(`${format.toUpperCase()} baixado com sucesso!`)
       } catch (err: any) {
-        console.error('Error generating image:', err)
+        console.error('Error in handleDownloadImage:', err)
         toast.dismiss(loadingToast)
         
-        let errorMessage = 'Não foi possível gerar a imagem.';
-        let description = 'Verifique se há imagens de outros sites no encarte ou tente novamente.';
+        let errorMessage = 'Não foi possível gerar a imagem do encarte.';
+        let description = 'Tente atualizar a página e usar apenas imagens enviadas para o sistema.';
         
-        if (err.message === 'CANVAS_TAINTED') {
-          description = 'Algumas imagens impediram a geração do arquivo por segurança (CORS). Tente usar imagens enviadas pelo sistema.';
+        if (err.message === 'CANVAS_TAINTED' || (err.name === 'SecurityError')) {
+          errorMessage = 'Erro de Segurança (CORS)';
+          description = 'Alguma imagem externa impediu a criação do arquivo. Remova imagens de outros sites do seu encarte.';
         } else if (err.message === 'EMPTY_IMAGE') {
-          description = 'A imagem gerada está vazia. Tente atualizar a página.';
+          description = 'O arquivo gerado ficou vazio. Tente usar uma escala menor ou menos produtos.';
+        } else if (err.name === 'QuotaExceededError') {
+          description = 'Memória do navegador insuficiente para esta resolução. Tente um encarte menor.';
         }
         
-        toast.error(errorMessage, { description });
+        toast.error(errorMessage, { 
+          description,
+          duration: 10000 
+        });
+
 
       } finally {
         setUploading(false)
