@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import html2canvas from 'html2canvas'
+import html2canvas from 'html2canvas-pro'
 import { jsPDF } from 'jspdf'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
  import { supabase } from '@/lib/supabase'
