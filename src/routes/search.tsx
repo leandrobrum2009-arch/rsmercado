@@ -3,6 +3,7 @@
 import { supabase } from '@/lib/supabase'
 import { ProductCard } from '@/components/ProductCard'
 import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag, Camera } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
 
 export const Route = createFileRoute('/search')({
