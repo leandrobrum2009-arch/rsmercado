@@ -1745,10 +1745,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
                   const allElements = clonedElement.querySelectorAll('*');
                   
-                  // Função para converter oklch para rgb (aproximado/fallback)
-                  // Já que html2canvas falha ao ler oklch, vamos forçar cores seguras
                   allElements.forEach((el: any) => {
-                    // Limpar estilos problemáticos
+                    // 2. Limpar animações e filtros que quebram o canvas
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1758,33 +1756,35 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // Correção para cores oklch (Tailwind v4 default)
-                    // html2canvas falha miseravelmente ao encontrar 'oklch'
-                    // Vamos tentar forçar cores computadas para RGB
+                    // 3. Forçar cores computadas para evitar oklch()
                     try {
-                      const style = window.getComputedStyle(el);
+                      // Pegar o estilo real (já convertido em RGB pelo navegador)
+                      const computedStyle = window.getComputedStyle(el);
                       
-                      // Verificar propriedades comuns que podem ter oklch
-                      const colorProps = ['color', 'backgroundColor', 'borderColor', 'outlineColor'];
-                      colorProps.forEach(prop => {
-                        const val = el.style[prop] || style[prop as any];
-                        if (val && val.includes('oklch')) {
-                          // Fallback agressivo: se tiver oklch, tenta pegar a cor computada real do elemento original
-                          // Se não for possível, removemos para evitar o crash
-                          el.style[prop] = 'inherit'; 
-                        }
-                      });
+                      // Forçar RGB nas propriedades críticas
+                      if (computedStyle.color && computedStyle.color.includes('oklch')) el.style.color = '#000000';
+                      else if (computedStyle.color) el.style.color = computedStyle.color;
+
+                      if (computedStyle.backgroundColor && computedStyle.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
+                      else if (computedStyle.backgroundColor) el.style.backgroundColor = computedStyle.backgroundColor;
+
+                      if (computedStyle.borderColor && computedStyle.borderColor.includes('oklch')) el.style.borderColor = 'transparent';
+                      else if (computedStyle.borderColor) el.style.borderColor = computedStyle.borderColor;
+
                     } catch (e) {
-                      // Silencioso se getComputedStyle falhar
+                      // Se falhar, tenta apenas remover estilos inline com oklch
+                      const s = el.getAttribute('style');
+                      if (s && s.includes('oklch')) {
+                        el.setAttribute('style', s.replace(/oklch\([^)]+\)/g, 'inherit'));
+                      }
                     }
 
-
-                    
+                    // 4. Tratamento de Imagens
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
-                        logStep(`Imagem substituída por Base64: ${originalSrc.substring(0, 30)}...`);
+                        logStep(`Imagem OK: ${originalSrc.substring(0, 20)}...`);
                       }
                       el.crossOrigin = 'anonymous';
                     }
@@ -1798,13 +1798,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bslide-in\S*/g, '')
                         .replace(/\bdelay-\S+/g, '');
                     }
-
-                    // Limpeza final de qualquer oklch residual nos estilos inline
-                    const styleAttr = el.getAttribute('style');
-                    if (styleAttr && styleAttr.includes('oklch')) {
-                      el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, 'inherit'));
-                    }
                   });
+
                 }
               }
 
