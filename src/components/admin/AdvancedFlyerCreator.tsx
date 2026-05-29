@@ -3056,22 +3056,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                         </DialogHeader>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
-                        {filteredProducts.length > 0 ? (
-                          filteredProducts.map(p => (
-                            <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors" onClick={() => addProductToFlyer(p)}>
-                              <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
-                              <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
-                              <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
-                              <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
+                      <div className="flex-1 overflow-y-auto p-6 pt-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                          {filteredProducts.length > 0 ? (
+                            filteredProducts.map(p => (
+                              <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors group relative" onClick={() => addProductToFlyer(p)}>
+                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="bg-primary text-white p-1 rounded-full"><Plus className="w-3 h-3" /></div>
+                                </div>
+                                <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
+                                <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
+                                <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
+                                <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full py-12 text-center text-zinc-400">
+                              <p className="text-sm">Nenhum produto encontrado</p>
                             </div>
-                          ))
-                        ) : (
-                          <div className="col-span-full py-12 text-center text-zinc-400">
-                            <p className="text-sm">Nenhum produto encontrado</p>
-                          </div>
-                        )}
-                     </div>
+                          )}
+                        </div>
+                      </div>
                    </DialogContent>
                  </Dialog>
                </div>
