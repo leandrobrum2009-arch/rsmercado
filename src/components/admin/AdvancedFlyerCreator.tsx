@@ -1796,19 +1796,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         console.error('Error in handleDownloadImage:', err)
         toast.dismiss(loadingToast)
         
-        let errorMessage = 'Erro ao gerar imagem do encarte.';
-        let description = 'Algum elemento ou imagem impediu a criação do arquivo. Tente atualizar a página.';
+        let errorMessage = 'Falha técnica ao gerar arquivo.';
+        let description = 'O navegador encontrou um erro ao processar os elementos gráficos.';
         
-        // Se houver imagens que falharam no CORS, avisamos o usuário
-        if (err.name === 'SecurityError' || err.message?.includes('tainted')) {
+        if (err.name === 'SecurityError' || err.message?.includes('tainted') || err.message?.includes('SecurityError')) {
           errorMessage = 'Bloqueio de Segurança (CORS)';
-          description = 'Imagens de outros sites impediram a criação do arquivo. Remova imagens externas ou tente usar a "Impressão Direta".';
+          description = 'Imagens externas impediram a criação do arquivo. Tente remover imagens de outros sites ou use a Impressão Direta.';
         } else if (err.message === 'EMPTY_IMAGE') {
-          description = 'A imagem gerada está vazia. Tente usar uma escala menor ou menos produtos.';
-        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large')) {
-          description = 'O arquivo é muito grande para o seu navegador. Tente um encarte com menos produtos.';
+          description = 'O arquivo gerado ficou vazio. Tente com menos produtos.';
+        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large') || err.message?.includes('memory')) {
+          description = 'Encarte muito complexo para seu aparelho. Tente reduzir o número de produtos.';
         } else if (err.message) {
-          description = `Detalhe: ${err.message}`;
+          description = `Erro: ${err.message.substring(0, 100)}`;
         }
         
         toast.error(errorMessage, { 
@@ -1816,8 +1815,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           duration: 15000 
         });
 
-        logStep(`ERRO FINAL handleDownloadImage: ${errorMessage} - ${description}`);
-        if (err.stack) logStep(`Stack trace: ${err.stack.substring(0, 200)}...`);
+        logStep(`ERRO FINAL: ${errorMessage} - ${description}`);
+        if (err.stack) logStep(`Stack: ${err.stack.substring(0, 200)}`);
+
 
 
 
