@@ -16,6 +16,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
+ import { sanitizeClonedDocColors } from '@/lib/sanitizeColors'
  
  type FlyerProduct = {
    id: string
@@ -1256,6 +1257,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                 imageTimeout: 30000,
                 allowTaint: false,
                 onclone: (clonedDoc) => {
+                  sanitizeClonedDocColors(clonedDoc);
                   logStep('onclone: Ajustando estilos no clone');
                   const clonedFlyer = clonedDoc.getElementById('flyer-content');
                   if (clonedFlyer) {
@@ -1474,6 +1476,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             allowTaint: false,
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
+              sanitizeClonedDocColors(clonedDoc);
               logStep('onclone: Ajustando estilos no clone da prévia');
               const clonedFlyer = clonedDoc.getElementById('flyer-content');
               if (clonedFlyer) {
@@ -1711,20 +1714,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
 
               onclone: (clonedDoc) => {
-                logStep('onclone: Limpeza agressiva de cores e estilos incompatíveis');
+                logStep('onclone: Sanitizando cores e limpando estilos incompatíveis');
                 
-                // 1. Limpar TODAS as tags de estilo que usem funções modernas de cor
-                const styleTags = clonedDoc.getElementsByTagName('style');
-                for (let i = 0; i < styleTags.length; i++) {
-                  const css = styleTags[i].innerHTML;
-                  if (css.includes('oklch') || css.includes('color-mix') || css.includes('var(')) {
-                    // Substituir funções problemáticas por cores sólidas seguras
-                    styleTags[i].innerHTML = css
-                      .replace(/oklch\([^)]+\)/g, '#000000')
-                      .replace(/color-mix\([^)]+\)/g, '#888888');
-                  }
-                }
-
+                // Sanitizar cores modernas (oklch, color-mix) usando a lib dedicada
+                sanitizeClonedDocColors(clonedDoc);
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
@@ -1748,7 +1741,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   const allElements = clonedElement.querySelectorAll('*');
                   
                   allElements.forEach((el: any) => {
-                    // 2. Limpar animações e filtros que quebram o canvas
+                    // Limpar animações e filtros que quebram o canvas
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1758,41 +1751,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // 3. Forçar cores computadas para evitar oklch() e funções modernas
-                    try {
-                      const computedStyle = window.getComputedStyle(el);
-                      
-                      // html2canvas trava em oklch, color-mix, etc.
-                      // window.getComputedStyle() normalmente retorna RGB, o que é perfeito
-                      const forceRGB = (prop: string) => {
-                        const val = (computedStyle as any)[prop];
-                        if (val && (val.includes('oklch') || val.includes('color-mix'))) {
-                           // Fallback se o navegador ainda retornar oklch no computed
-                           el.style.setProperty(prop, '#000000', 'important');
-                        } else if (val) {
-                           el.style.setProperty(prop, val, 'important');
-                        }
-                      };
-
-                      forceRGB('color');
-                      forceRGB('backgroundColor');
-                      forceRGB('borderColor');
-                      forceRGB('outlineColor');
-
-                    } catch (e) {
-                      const s = el.getAttribute('style');
-                      if (s && s.includes('oklch')) {
-                        el.setAttribute('style', s.replace(/oklch\([^)]+\)/g, 'inherit'));
-                      }
-                    }
-
-
-                    // 4. Tratamento de Imagens
+                    // Tratamento de Imagens
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
-                        logStep(`Imagem OK: ${originalSrc.substring(0, 20)}...`);
                       }
                       el.crossOrigin = 'anonymous';
                     }
@@ -1807,7 +1770,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bdelay-\S+/g, '');
                     }
                   });
-
                 }
               }
 
@@ -1956,6 +1918,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
             imageTimeout: 30000,
             onclone: (clonedDoc) => {
+              sanitizeClonedDocColors(clonedDoc);
               const clonedElement = clonedDoc.getElementById('flyer-content');
               if (clonedElement) {
                 clonedElement.style.transform = 'none';
@@ -2990,16 +2953,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl w-[95vw] md:w-full">
-                       <DialogHeader className="pb-2">
-                       <DialogHeader className="pb-2 space-y-4">
-                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                           <DialogTitle className="flex items-center gap-2">
-                             <span>Selecionar Produtos</span>
-                             <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
-                               {filteredProducts.length} encontrados
-                             </span>
-                           </DialogTitle>
+                     <DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
+                        <DialogHeader className="pb-2 space-y-4 shrink-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <DialogTitle className="flex items-center gap-2">
+                              <span>Selecionar Produtos</span>
+                              <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                                {filteredProducts.length} encontrados
+                              </span>
+                            </DialogTitle>
                            
                            <div className="flex items-center gap-2 w-full sm:w-auto">
                              <div className="relative flex-1 sm:w-64">
@@ -3031,8 +2993,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                          
-                         <div className="w-full overflow-hidden">
-                           <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full no-scrollbar min-h-[40px]">
+                          <div className="w-full overflow-hidden shrink-0">
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full no-scrollbar min-h-[40px] px-1">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
@@ -3092,8 +3054,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                              )}
                            </div>
                          </div>
-                       </DialogHeader>
-                       </DialogHeader>
+                        </DialogHeader>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
                         {filteredProducts.length > 0 ? (
                           filteredProducts.map(p => (

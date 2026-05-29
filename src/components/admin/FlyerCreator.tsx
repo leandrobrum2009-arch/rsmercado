@@ -12,6 +12,7 @@ import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, I
 import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 import { toast } from '@/lib/toast'
+import { sanitizeClonedDocColors } from '@/lib/sanitizeColors'
 type FlyerProduct = {
 id: string
 name: string
@@ -192,7 +193,10 @@ scale: 4, // Higher scale for extreme detail
 backgroundColor: '#ffffff',
 logging: false,
 imageTimeout: 60000,
-allowTaint: true
+allowTaint: true,
+onclone: (clonedDoc) => {
+  sanitizeClonedDocColors(clonedDoc);
+}
 });
 
 // Restore everything
@@ -240,6 +244,9 @@ scale: 3,
 backgroundColor: '#ffffff',
 logging: false,
 imageTimeout: 60000,
+onclone: (clonedDoc) => {
+  sanitizeClonedDocColors(clonedDoc);
+}
 })
 
 // Restaura as srcs originais
@@ -374,7 +381,7 @@ Produtos ({selectedProducts.length}/12)
 <DialogTrigger asChild>
 <Button size="sm" variant="outline"><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
 </DialogTrigger>
-<DialogContent className="max-w-3xl">
+<DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
 <DialogHeader>
 <DialogTitle className="flex items-center justify-between">
 <span>Selecionar Produtos</span>
@@ -466,7 +473,14 @@ if (!element) return;
 setIsPreparingPrint(true);
 try {
 const restoreSrcs = await convertImagesToBase64(element);
-const canvas = await html2canvas(element, { useCORS: true, allowTaint: true, scale: 2 });
+const canvas = await html2canvas(element, { 
+  useCORS: true, 
+  allowTaint: true, 
+  scale: 2,
+  onclone: (clonedDoc) => {
+    sanitizeClonedDocColors(clonedDoc);
+  }
+});
 restoreSrcs();
 setPreviewImage(canvas.toDataURL('image/png'));
 } catch {
