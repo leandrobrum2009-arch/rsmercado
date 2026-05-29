@@ -204,7 +204,20 @@ export const Route = createFileRoute('/search')({
             </Link>
           </div>
         )}
-      </div>
     </div>
-  )
+
+    <BarcodeScanner 
+      isOpen={barcodeScannerOpen} 
+      onClose={() => setBarcodeScannerOpen(false)} 
+      onScan={(code) => {
+        setInputValue(code);
+        navigate({
+          to: '/search',
+          search: (prev) => ({ ...prev, q: code, category: undefined, tag: undefined })
+        });
+        toast.success(`Buscando por: ${code}`);
+      }}
+    />
+  </div>
+ )
 }
