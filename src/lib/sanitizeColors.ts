@@ -134,8 +134,9 @@ export function sanitizeClonedDocColors(clonedDoc: Document): void {
   all.forEach((el: any) => {
     // 3) Sanitize individual properties
     let cs: CSSStyleDeclaration | null = null
+    const win = clonedDoc.defaultView || window
     try {
-      cs = window.getComputedStyle(el)
+      cs = win.getComputedStyle(el)
     } catch {
       cs = null
     }
