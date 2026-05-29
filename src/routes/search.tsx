@@ -2,7 +2,8 @@
  import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ProductCard } from '@/components/ProductCard'
-import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag } from 'lucide-react'
+import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag, Camera } from 'lucide-react'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
 
 export const Route = createFileRoute('/search')({
    validateSearch: (search: Record<string, unknown>): { q?: string; category?: string; tag?: string } => {
