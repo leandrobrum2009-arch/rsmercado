@@ -528,13 +528,6 @@ className="bg-indigo-600 hover:bg-indigo-700 text-white"
 <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
 </Button>
-<Button
-variant="outline"
-onClick={handleDownloadImage}
-disabled={isPreparingPrint}
->
-<Instagram className="w-4 h-4 mr-2" /> Stories
-</Button>
 </div>
 </CardContent>
 </Card>
