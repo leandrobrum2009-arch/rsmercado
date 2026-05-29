@@ -166,7 +166,20 @@ export const Route = createFileRoute('/search')({
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-none">{activeCategory.name}</h1>
+              <div className="flex justify-between items-start">
+                <h1 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-none">{activeCategory.name}</h1>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[10px] font-black uppercase text-zinc-400 h-6 p-0"
+                  onClick={() => {
+                    setInputValue('');
+                    navigate({ to: '/search', search: {} });
+                  }}
+                >
+                  Limpar
+                </Button>
+              </div>
               <p className="text-xs font-bold uppercase text-zinc-400 mt-1 tracking-widest">{products.length} {products.length === 1 ? 'produto encontrado' : 'produtos encontrados'}</p>
             </div>
           </div>
