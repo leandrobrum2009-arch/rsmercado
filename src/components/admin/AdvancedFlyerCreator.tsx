@@ -1574,7 +1574,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
     const handleDownloadImage = async (format: 'png' | 'jpg' = 'jpg') => {
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Conteúdo do encarte não encontrado')
+        toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
         return
       }
 
@@ -1582,25 +1582,37 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       setUploading(true)
       setGenerationProgress(5)
       setGenerationStep('Iniciando...')
-      const loadingToast = toast.loading(`Gerando imagem ${format.toUpperCase()} de alta resolução...`)
+      const loadingToast = toast.loading(`Gerando imagem ${format.toUpperCase()}...`)
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
         logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
         setGenerationProgress(20)
+        
         const images = Array.from(element.getElementsByTagName('img'));
+        let failedImagesCount = 0;
+        
         await Promise.all([
           ...images.map((img, i) => {
-            if (img.complete) return Promise.resolve();
+            if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
-              const timer = setTimeout(() => resolve(null), 5000);
+              const timer = setTimeout(() => {
+                logStep(`Imagem download ${i+1} TIMEOUT`);
+                failedImagesCount++;
+                resolve(null);
+              }, 8000);
               img.onload = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} OK`); resolve(null); };
-              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
+              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); failedImagesCount++; resolve(null); };
             });
           }),
           document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
         ]);
+
+        if (failedImagesCount > 0) {
+          logStep(`${failedImagesCount} imagens falharam ao carregar, mas tentaremos gerar mesmo assim.`);
+        }
+
 
         logStep('Passo 2: Renderizando html2canvas para download');
         setGenerationStep('Renderizando imagem A4...')
