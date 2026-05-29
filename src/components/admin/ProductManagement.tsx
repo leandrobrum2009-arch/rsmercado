@@ -414,7 +414,19 @@ export function ProductManagement() {
      
      if (error) {
        console.error('Save product error:', error)
-       toast.error('Falha ao salvar produto.')
+       setDiagnosticInfo({
+         error,
+         data: productData,
+         timestamp: new Date().toLocaleTimeString(),
+         fields: Object.keys(productData).filter(key => productData[key] === undefined || productData[key] === null || productData[key] === '')
+       })
+       toast.error('Falha ao salvar produto.', {
+         description: 'Clique em "Diagnóstico" para ver detalhes.',
+         action: {
+           label: 'Diagnóstico',
+           onClick: () => setIsDiagnosticOpen(true)
+         }
+       })
      } else {
        toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
        resetForm()
