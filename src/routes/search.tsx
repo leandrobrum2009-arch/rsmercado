@@ -60,7 +60,7 @@ export const Route = createFileRoute('/search')({
           .eq('is_approved', true)
 
          if (q) {
-           query = query.ilike('name', `%${q}%`)
+           query = query.or(`name.ilike.%${q}%,sku.ilike.%${q}%,brand.ilike.%${q}%`)
          }
 
          if (tag) {

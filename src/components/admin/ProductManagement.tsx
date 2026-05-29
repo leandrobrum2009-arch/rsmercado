@@ -163,7 +163,8 @@ export function ProductManagement() {
      .filter(p => {
         const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+                            p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
        const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand
        const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
        return matchesSearch && matchesBrand && matchesCategory
@@ -204,7 +205,7 @@ export function ProductManagement() {
  
   const [isSubmitting, setIsSubmitting] = useState(false)
     const [newProduct, setNewProduct] = useState({
-        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false
+        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: ''
     })
     const [isEditing, setIsEditing] = useState(false)
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
@@ -377,7 +378,8 @@ export function ProductManagement() {
         brand: newProduct.brand,
         tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : [],
         unit: newProduct.unit || 'un',
-        is_weight_based: newProduct.is_weight_based || false
+        is_weight_based: newProduct.is_weight_based || false,
+        sku: newProduct.sku
       };
  
      let error;
@@ -408,7 +410,7 @@ export function ProductManagement() {
    }
  
    const resetForm = () => {
-    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false })
+    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '' })
      setIsEditing(false)
    }
  
@@ -424,10 +426,11 @@ export function ProductManagement() {
         stock: (product.stock || 0).toString(),
         is_available: product.is_available,
         points_value: (product.points_value || 0).toString(),
-         brand: product.brand || '',
-         tags: (product.tags || []).join(', '),
-         unit: product.unit || 'un',
-         is_weight_based: !!product.is_weight_based
+        brand: product.brand || '',
+        tags: (product.tags || []).join(', '),
+        unit: product.unit || 'un',
+        is_weight_based: !!product.is_weight_based,
+        sku: product.sku || ''
       })
       setIsEditing(true)
       setIsProductDialogOpen(true)
@@ -613,10 +616,14 @@ export function ProductManagement() {
                    <Label className="text-[10px] uppercase font-bold">Nome do Produto</Label>
                    <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                  </div>
-                 <div className="space-y-2 col-span-2 md:col-span-1">
-                   <Label className="text-[10px] uppercase font-bold">Marca</Label>
-                   <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
-                 </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold">Marca</Label>
+                    <Input value={newProduct.brand} onChange={(e) => setNewProduct({...newProduct, brand: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-zinc-400">Código (SKU/EAN)</Label>
+                    <Input placeholder="Código de barras..." value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} />
+                  </div>
                   <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
                     <Input type="number" step="0.01" placeholder="0.00" value={newProduct.old_price} onChange={(e) => setNewProduct({...newProduct, old_price: e.target.value})} />

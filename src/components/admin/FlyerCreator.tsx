@@ -67,6 +67,7 @@ export function FlyerCreator() {
 
     const filteredProducts = allProducts.filter(p => 
       p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      (p.brand && p.brand.toLowerCase().includes(productSearchTerm.toLowerCase())) ||
       (p.description && p.description.toLowerCase().includes(productSearchTerm.toLowerCase())) ||
       (p.sku && p.sku.toLowerCase().includes(productSearchTerm.toLowerCase()))
     )
