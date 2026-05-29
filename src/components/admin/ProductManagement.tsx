@@ -212,6 +212,7 @@ export function ProductManagement() {
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
   const [imageSearchQuery, setImageSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<string[]>([])
   const [searching, setSearching] = useState(false)
