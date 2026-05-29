@@ -36,7 +36,8 @@ export const Route = createFileRoute('/search')({
   const [loading, setLoading] = useState(true)
   const [multiplier, setMultiplier] = useState(1)
   const [categories, setCategories] = useState<any[]>([])
-  const [activeCategory, setActiveCategory] = useState<any>(null)
+   const [activeCategory, setActiveCategory] = useState<any>(null)
+   const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
 
   useEffect(() => {
     const fetchInitialData = async () => {
