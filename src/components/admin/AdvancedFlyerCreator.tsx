@@ -1604,11 +1604,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const toBase64 = async (img: HTMLImageElement): Promise<string | null> => {
           if (!img.src || img.src.startsWith('data:')) return img.src;
           
-          // Se for uma imagem do próprio domínio, não precisa de Base64 complexo
           if (img.src.includes(window.location.hostname)) return img.src;
 
           try {
-            logStep(`Tentando converter para Base64: ${img.src.substring(0, 40)}...`);
+            logStep(`Tentando carga direta: ${img.src.substring(0, 40)}...`);
             const response = await fetch(img.src, { 
               mode: 'cors',
               credentials: 'omit',
@@ -1620,14 +1619,30 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
+              reader.readAsDataURL(blob);
             });
           } catch (e: any) {
-            logStep(`Bloqueio CORS na imagem: ${img.src.substring(0, 40)}...`, e.message, true);
-            return null;
+            logStep(`Falha direta. Tentando via Servidor (Proxy): ${img.src.substring(0, 40)}...`);
+            try {
+              const { data, error } = await supabase.functions.invoke('cors-proxy', {
+                body: { url: img.src }
+              });
+              
+              if (error || !data) throw new Error(error?.message || 'Erro no proxy');
+              
+              return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(data); 
+              });
+            } catch (proxyErr: any) {
+              logStep(`Bloqueio total na imagem: ${img.src.substring(0, 40)}...`, proxyErr.message, true);
+              return null;
+            }
           }
-
         };
+
 
 
         logStep(`Processando ${images.length} imagens...`);
