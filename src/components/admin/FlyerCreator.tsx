@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import html2canvas from 'html2canvas'
+import html2canvas from 'html2canvas-pro'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
