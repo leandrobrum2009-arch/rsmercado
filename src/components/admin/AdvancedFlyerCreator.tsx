@@ -1612,7 +1612,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             useCORS: true,
             allowTaint: false,
             scale: customScale,
-            backgroundColor: removeFlyerBg ? null : '#ffffff',
+            backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+
             logging: false,
             imageTimeout: 30000,
             onclone: (clonedDoc) => {
