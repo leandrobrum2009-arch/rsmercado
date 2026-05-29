@@ -484,8 +484,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                   </>
                 ) : (
                   <>
-                    <Video className="h-5 w-5" />
-                    BAIXAR VÍDEO (GERAR MP4)
+                    <Video className="h-6 w-6" />
+                    BAIXAR VÍDEO MP4 COMPLETO
                   </>
                 )
                 }
