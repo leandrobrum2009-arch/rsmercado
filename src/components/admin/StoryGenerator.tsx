@@ -456,8 +456,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-zinc-900">
-              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Exportação</p>
+            <div className="space-y-4 pt-4 border-t border-zinc-900 bg-zinc-900/50 p-4 rounded-2xl border-2 border-purple-500/20 shadow-2xl">
+              <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <Video className="h-3 w-3" /> Exportar para WhatsApp/Instagram
+              </p>
               
               <Button 
                 variant="secondary"
