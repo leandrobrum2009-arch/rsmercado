@@ -2990,7 +2990,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="max-w-3xl w-[95vw] md:w-full">
                        <DialogHeader className="pb-2">
                          <DialogTitle className="flex flex-col gap-4">
                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
