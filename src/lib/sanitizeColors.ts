@@ -9,14 +9,22 @@ const MODERN_RE = /oklch|oklab|color-mix|\blab\(|\blch\(/i
 
 const COLOR_PROPS = [
   'color',
+  'background',
   'background-color',
   'background-image',
+  'border',
   'border-color',
+  'border-top',
   'border-top-color',
+  'border-right',
   'border-right-color',
+  'border-bottom',
   'border-bottom-color',
+  'border-left',
   'border-left-color',
+  'outline',
   'outline-color',
+  'text-decoration',
   'text-decoration-color',
   'text-shadow',
   'box-shadow',
@@ -24,7 +32,12 @@ const COLOR_PROPS = [
   'stroke',
   'stop-color',
   'flood-color',
-  'lighting-color'
+  'lighting-color',
+  'column-rule',
+  'column-rule-color',
+  'text-emphasis',
+  'text-emphasis-color',
+  'caret-color'
 ]
 
 function makeSanitizer(doc: Document) {
