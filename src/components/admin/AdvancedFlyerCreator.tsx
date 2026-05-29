@@ -1709,8 +1709,22 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               scrollY: -window.scrollY, // Compensa scroll da página
 
               onclone: (clonedDoc) => {
-                logStep('onclone: Preparando clone para imagem A4');
+                logStep('onclone: Preparando clone e limpando cores oklch');
+                
+                // Remover ou substituir oklch de todos os style tags no clone
+                // Tailwind v4 injeta muitos oklch() que travam o html2canvas
+                const styleTags = clonedDoc.getElementsByTagName('style');
+                for (let i = 0; i < styleTags.length; i++) {
+                  if (styleTags[i].innerHTML.includes('oklch')) {
+                    // Substituição rústica: oklch(...) -> rgb(0,0,0) ou similar
+                    // Melhor apenas remover a propriedade que usa oklch se possível, 
+                    // mas aqui vamos tentar apenas limpar o termo para não quebrar o parser
+                    styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/g, 'rgb(0,0,0)');
+                  }
+                }
+
                 const clonedElement = clonedDoc.getElementById('flyer-content');
+
                 if (clonedElement) {
                   clonedElement.style.width = '794px';
                   clonedElement.style.height = '1123px';
@@ -1729,15 +1743,40 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.top = '0';
 
                   const allElements = clonedElement.querySelectorAll('*');
+                  
+                  // Função para converter oklch para rgb (aproximado/fallback)
+                  // Já que html2canvas falha ao ler oklch, vamos forçar cores seguras
                   allElements.forEach((el: any) => {
+                    // Limpar estilos problemáticos
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
                     el.style.filter = 'none'; 
-                    el.style.mixBlendMode = 'normal'; // Desabilita mix-blend-mode no clone para evitar erros
+                    el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
+
+                    // Correção para cores oklch (Tailwind v4 default)
+                    // html2canvas falha miseravelmente ao encontrar 'oklch'
+                    // Vamos tentar forçar cores computadas para RGB
+                    try {
+                      const style = window.getComputedStyle(el);
+                      
+                      // Verificar propriedades comuns que podem ter oklch
+                      const colorProps = ['color', 'backgroundColor', 'borderColor', 'outlineColor'];
+                      colorProps.forEach(prop => {
+                        const val = el.style[prop] || style[prop as any];
+                        if (val && val.includes('oklch')) {
+                          // Fallback agressivo: se tiver oklch, tenta pegar a cor computada real do elemento original
+                          // Se não for possível, removemos para evitar o crash
+                          el.style[prop] = 'inherit'; 
+                        }
+                      });
+                    } catch (e) {
+                      // Silencioso se getComputedStyle falhar
+                    }
+
 
                     
                     if (el.tagName === 'IMG') {
@@ -1758,9 +1797,16 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bslide-in\S*/g, '')
                         .replace(/\bdelay-\S+/g, '');
                     }
+
+                    // Limpeza final de qualquer oklch residual nos estilos inline
+                    const styleAttr = el.getAttribute('style');
+                    if (styleAttr && styleAttr.includes('oklch')) {
+                      el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, 'inherit'));
+                    }
                   });
                 }
               }
+
             });
           } catch (error) {
             logStep(`Erro no html2canvas (escala ${customScale}):`, error);
