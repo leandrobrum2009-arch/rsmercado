@@ -2954,8 +2954,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                     <DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
-                        <DialogHeader className="pb-2 space-y-4 shrink-0">
+                    <DialogContent className="max-w-4xl w-[95vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0">
+                       <DialogHeader className="p-6 pb-2 space-y-4 shrink-0">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <DialogTitle className="flex items-center gap-2">
                               <span>Selecionar Produtos</span>
@@ -2995,7 +2995,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                          </div>
                          
                           <div className="w-full overflow-hidden shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full no-scrollbar min-h-[40px] px-1">
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full min-h-[40px] px-1 scrollbar-thin">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
@@ -3056,22 +3056,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                         </DialogHeader>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
-                        {filteredProducts.length > 0 ? (
-                          filteredProducts.map(p => (
-                            <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors" onClick={() => addProductToFlyer(p)}>
-                              <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
-                              <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
-                              <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
-                              <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
+                      <div className="flex-1 overflow-y-auto p-6 pt-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                          {filteredProducts.length > 0 ? (
+                            filteredProducts.map(p => (
+                              <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors group relative" onClick={() => addProductToFlyer(p)}>
+                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="bg-primary text-white p-1 rounded-full"><Plus className="w-3 h-3" /></div>
+                                </div>
+                                <img src={p.image_url} className="w-16 h-16 object-contain mx-auto" />
+                                <p className="text-[10px] font-bold line-clamp-2 leading-tight h-8">{p.name}</p>
+                                <p className="text-xs font-black text-primary">R$ {p.price.toFixed(2)}</p>
+                                <Button size="sm" variant="ghost" className="w-full text-[9px] uppercase font-black">Selecionar</Button>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full py-12 text-center text-zinc-400">
+                              <p className="text-sm">Nenhum produto encontrado</p>
                             </div>
-                          ))
-                        ) : (
-                          <div className="col-span-full py-12 text-center text-zinc-400">
-                            <p className="text-sm">Nenhum produto encontrado</p>
-                          </div>
-                        )}
-                     </div>
+                          )}
+                        </div>
+                      </div>
                    </DialogContent>
                  </Dialog>
                </div>

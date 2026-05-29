@@ -381,8 +381,8 @@ Produtos ({selectedProducts.length}/12)
 <DialogTrigger asChild>
 <Button size="sm" variant="outline"><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
 </DialogTrigger>
-<DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
-<DialogHeader>
+<DialogContent className="max-w-4xl w-[95vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0">
+<DialogHeader className="p-6 pb-2 space-y-4 shrink-0 border-b">
 <DialogTitle className="flex items-center justify-between">
 <span>Selecionar Produtos</span>
 <div className="flex items-center gap-2 mr-8">
@@ -413,7 +413,8 @@ Limpar
 </Button>
 </DialogTitle>
 </DialogHeader>
-<div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
+<div className="flex-1 overflow-y-auto p-6 pt-4">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 {filteredProducts.map(p => (
 <div key={p.id} className="border rounded p-2 text-center space-y-2">
 <img src={p.image_url} className="w-20 h-20 object-cover mx-auto rounded" />
@@ -421,6 +422,7 @@ Limpar
 <Button size="sm" className="w-full" onClick={() => addProductToFlyer(p)}>Add</Button>
 </div>
 ))}
+</div>
 </div>
 </DialogContent>
 </Dialog>
