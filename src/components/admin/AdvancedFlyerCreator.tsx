@@ -2954,8 +2954,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-5xl w-[98vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0 bg-white shadow-2xl">
-                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 max-w-full overflow-hidden">
+                    <DialogContent className="max-w-[95vw] w-full md:max-w-6xl overflow-hidden flex flex-col h-[90vh] p-0 gap-0 bg-white shadow-2xl border-none">
+                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 text-left">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                             <DialogTitle className="flex items-center gap-2">
                               <span>Selecionar Produtos</span>
@@ -2994,8 +2994,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                          
-                          <div className="w-full relative overflow-hidden shrink-0 mt-2">
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 w-full no-scrollbar px-1 flex-nowrap scroll-smooth">
+                          <div className="w-full shrink-0 mt-2">
+                            <div className="flex flex-wrap items-center gap-2 px-1 pb-2 w-full">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
@@ -3056,8 +3056,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                         </DialogHeader>
-                      <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-2 min-h-0">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-zinc-50/30 min-h-0">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3">
                           {filteredProducts.length > 0 ? (
                             filteredProducts.map(p => (
                               <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors group relative" onClick={() => addProductToFlyer(p)}>
