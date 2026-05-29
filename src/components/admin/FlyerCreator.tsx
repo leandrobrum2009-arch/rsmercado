@@ -64,7 +64,8 @@ export function FlyerCreator() {
  
   const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
-   const [productSearchTerm, setProductSearchTerm] = useState('')
+    const [productSearchTerm, setProductSearchTerm] = useState('')
+    const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
 
     const filteredProducts = allProducts.filter(p => 
       p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
