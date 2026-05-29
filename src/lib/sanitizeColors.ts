@@ -139,20 +139,31 @@ export function sanitizeClonedDocColors(clonedDoc: Document): void {
     } catch {
       cs = null
     }
-    if (!cs) return
     
-    for (let p = 0; p < COLOR_PROPS.length; p++) {
-      const prop = COLOR_PROPS[p]
-      const val = cs.getPropertyValue(prop)
-      if (val && MODERN_RE.test(val)) {
-        try {
-          el.style.setProperty(prop, sanitizeValue(val), 'important')
-        } catch { /* ignore */ }
+    if (cs) {
+      for (let p = 0; p < COLOR_PROPS.length; p++) {
+        const prop = COLOR_PROPS[p]
+        const val = cs.getPropertyValue(prop)
+        if (val && MODERN_RE.test(val)) {
+          try {
+            el.style.setProperty(prop, sanitizeValue(val), 'important')
+          } catch { /* ignore */ }
+        }
       }
     }
 
-    // 4) Sanitize CSS Variables (especially on root or elements that might have them)
-    // We can iterate through the element's style or known common variables
+    // 4) Sanitize Attributes (especially for SVG or specific data attributes)
+    const attrs = el.attributes;
+    if (attrs) {
+      for (let i = 0; i < attrs.length; i++) {
+        const attr = attrs[i];
+        if (MODERN_RE.test(attr.value)) {
+          attr.value = sanitizeValue(attr.value);
+        }
+      }
+    }
+
+    // 5) Sanitize CSS Variables in inline style
     const style = el.style;
     if (style && style.length > 0) {
       for (let i = 0; i < style.length; i++) {
@@ -166,12 +177,4 @@ export function sanitizeClonedDocColors(clonedDoc: Document): void {
       }
     }
   })
-
-  // 5) Special check for the root element variables if not caught above
-  const root = clonedDoc.documentElement;
-  if (root) {
-    const rootStyle = window.getComputedStyle(root);
-    // Since we can't easily iterate all computed variables, we look at the inline style at least
-    // or just rely on the fact that getComputedStyle for elements will resolve them.
-  }
 }
