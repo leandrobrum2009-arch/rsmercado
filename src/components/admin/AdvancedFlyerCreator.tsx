@@ -3210,6 +3210,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
                           <Button 
                             size="icon" 
                             variant="ghost" 
+                            className="h-7 w-7 text-purple-600" 
+                            title="Gerar Stories"
+                            onClick={() => {
+                              setSelectedFlyerForStory(f)
+                              setIsStoryGenOpen(true)
+                            }}
+                          >
+                            <Camera className="w-4 h-4" />
+                          </Button>
+                          <Button 
+
+                            size="icon" 
+                            variant="ghost" 
                             className="h-7 w-7 text-green-600" 
                             title="WhatsApp"
                              onClick={() => {
