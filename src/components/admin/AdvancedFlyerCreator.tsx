@@ -1583,7 +1583,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         return
       }
 
-
       logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
       setGenerationProgress(5)
@@ -1592,15 +1591,35 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
-        logStep('Passo 1: Carregando recursos para download');
-        setGenerationStep('Carregando imagens...')
+        logStep('Passo 1: Carregando recursos e tratando CORS');
+        setGenerationStep('Preparando imagens...')
         setGenerationProgress(20)
         
         const images = Array.from(element.getElementsByTagName('img'));
         let failedImagesCount = 0;
         
+        // Função auxiliar para converter imagem para base64 para evitar problemas de CORS no canvas
+        const toBase64 = async (img: HTMLImageElement): Promise<string | null> => {
+          if (img.src.startsWith('data:')) return img.src;
+          try {
+            const response = await fetch(img.src, { mode: 'cors' });
+            const blob = await response.blob();
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(blob);
+            });
+          } catch (e) {
+            logStep(`Falha ao converter imagem para base64 (CORS): ${img.src.substring(0, 50)}...`);
+            return null;
+          }
+        };
+
+        logStep(`Total de imagens para processar: ${images.length}`);
+
         await Promise.all([
-          ...images.map((img, i) => {
+          ...images.map(async (img, i) => {
             if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
               const timer = setTimeout(() => {
@@ -1618,6 +1637,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         if (failedImagesCount > 0) {
           logStep(`${failedImagesCount} imagens falharam ao carregar, mas tentaremos gerar mesmo assim.`);
         }
+
 
 
         logStep('Passo 2: Renderizando html2canvas para download');
