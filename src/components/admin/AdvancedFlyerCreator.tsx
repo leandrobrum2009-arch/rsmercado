@@ -153,7 +153,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
      const [loadingSaved, setLoadingSaved] = useState(false)
-     const [logHistory, setLogHistory] = useState<string[]>([])
+     const [logHistory, setLogHistory] = useState<{msg: string, isBlocker?: boolean, time: string}[]>([])
      const [showLogViewer, setShowLogViewer] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
          const [showPreviewModal, setShowPreviewModal] = useState(false)
@@ -1179,12 +1179,13 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       setSelectedProducts(updated)
     }
  
-      const logStep = (step: string, data?: any) => {
+      const logStep = (step: string, data?: any, isBlocker: boolean = false) => {
         const timestamp = new Date().toLocaleTimeString();
-        const logLine = `[${timestamp}] ${step}${data ? ' ' + JSON.stringify(data) : ''}`;
-        console.log(`[FlyerGen]${logLine}`);
-        setLogHistory(prev => [...prev.slice(-49), logLine]);
+        const logMsg = `${step}${data ? ' ' + (typeof data === 'string' ? data : JSON.stringify(data)) : ''}`;
+        console.log(`[FlyerGen] [${timestamp}] ${isBlocker ? '!!! ' : ''}${logMsg}`);
+        setLogHistory(prev => [...prev.slice(-49), { msg: logMsg, time: timestamp, isBlocker }]);
       };
+
 
       const handlePrint = async (shouldSave = true, silentSave = false) => {
       logStep('Iniciando handlePrint', { products: selectedProducts.length, shouldSave });
@@ -1619,12 +1620,13 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = () => resolve(null);
-              reader.readAsDataURL(blob);
+            reader.readAsDataURL(blob);
             });
           } catch (e: any) {
-            logStep(`Falha no Base64 (CORS provável): ${img.src.substring(0, 40)}... - ${e.message}`);
+            logStep(`Bloqueio CORS na imagem: ${img.src.substring(0, 40)}...`, e.message, true);
             return null;
           }
+
         };
 
 
@@ -1636,17 +1638,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
               const timer = setTimeout(() => {
-                logStep(`Timeout imagem ${i+1}`);
+                logStep(`Bloqueio: Timeout no carregamento da imagem ${i+1}`, img.src.substring(0, 40), true);
                 failedImagesCount++;
                 resolve(null);
               }, 10000);
               img.onload = () => { clearTimeout(timer); resolve(null); };
               img.onerror = () => { 
                 clearTimeout(timer); 
-                logStep(`Erro carga imagem ${i+1}`); 
+                logStep(`Bloqueio: Falha crítica na carga da imagem ${i+1}`, img.src.substring(0, 40), true); 
                 failedImagesCount++; 
                 resolve(null); 
               };
+
             });
           }),
           document.fonts?.ready || Promise.resolve()
@@ -1820,8 +1823,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           duration: 15000 
         });
 
-        logStep(`ERRO FINAL: ${errorMessage} - ${description}`);
+        logStep(`BLOQUEIO FINAL: ${errorMessage}`, description, true);
         if (err.stack) logStep(`Stack: ${err.stack.substring(0, 200)}`);
+
 
 
 
@@ -3392,18 +3396,40 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           <DialogHeader>
             <DialogTitle className="font-black uppercase italic tracking-tighter">Log de Sistema do Gerador</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1 mt-4">
-            {logHistory.length === 0 ? (
-              <p className="text-zinc-500 italic">Nenhum evento registrado ainda...</p>
-            ) : (
-              logHistory.map((log, i) => (
-                <div key={i} className="border-l border-zinc-800 pl-2">
-                  <span className="text-zinc-500 mr-2">[{i+1}]</span>
-                  {log}
+          <div className="flex-1 overflow-y-auto space-y-4 mt-4 no-scrollbar">
+            {logHistory.some(l => l.isBlocker) && (
+              <div className="p-4 bg-red-50 border-2 border-red-100 rounded-2xl">
+                <h4 className="text-red-600 font-black uppercase italic text-xs mb-2 flex items-center gap-2">
+                  <X className="w-4 h-4" /> Bloqueadores Encontrados
+                </h4>
+                <div className="space-y-1">
+                  {logHistory.filter(l => l.isBlocker).map((log, i) => (
+                    <p key={i} className="text-[10px] text-red-500 font-bold leading-tight">
+                      • {log.msg}
+                    </p>
+                  ))}
                 </div>
-              ))
+              </div>
             )}
+
+            <div className="p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1">
+              {logHistory.length === 0 ? (
+                <p className="text-zinc-500 italic text-center py-4">Nenhum evento registrado ainda...</p>
+              ) : (
+                logHistory.map((log, i) => (
+                  <div key={i} className={cn(
+                    "border-l pl-2 py-0.5",
+                    log.isBlocker ? "border-red-500 text-red-400 bg-red-500/10" : "border-zinc-800"
+                  )}>
+                    <span className="text-zinc-500 mr-2">[{log.time}]</span>
+                    {log.isBlocker && <span className="mr-1 font-bold">!!!</span>}
+                    {log.msg}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+
           <div className="mt-4 flex justify-end">
             <Button 
               variant="outline" 
