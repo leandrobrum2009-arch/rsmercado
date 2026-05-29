@@ -1638,17 +1638,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
               const timer = setTimeout(() => {
-                logStep(`Timeout imagem ${i+1}`);
+                logStep(`Bloqueio: Timeout no carregamento da imagem ${i+1}`, img.src.substring(0, 40), true);
                 failedImagesCount++;
                 resolve(null);
               }, 10000);
               img.onload = () => { clearTimeout(timer); resolve(null); };
               img.onerror = () => { 
                 clearTimeout(timer); 
-                logStep(`Erro carga imagem ${i+1}`); 
+                logStep(`Bloqueio: Falha crítica na carga da imagem ${i+1}`, img.src.substring(0, 40), true); 
                 failedImagesCount++; 
                 resolve(null); 
               };
+
             });
           }),
           document.fonts?.ready || Promise.resolve()
