@@ -3316,7 +3316,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           transition-delay: 0s !important;
         }
       `}</style>
-      <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
+      <Dialog open={showLogViewer} onOpenChange={setShowLogViewer}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="font-black uppercase italic tracking-tighter">Log de Sistema do Gerador</DialogTitle>
