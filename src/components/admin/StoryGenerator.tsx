@@ -56,27 +56,37 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
   ]
 
-  // Load voices
+  // Load voices with polling if needed
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices()
-      // Filter for Portuguese, prioritizing pt-BR
-      let ptVoices = availableVoices.filter(v => v.lang === 'pt-BR')
-      if (ptVoices.length === 0) {
-        ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
-      }
+      if (availableVoices.length === 0) return
+
+      // Filter for Portuguese
+      const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
       
       setVoices(ptVoices)
       if (ptVoices.length > 0 && !selectedVoice) {
         // Try to find Google or natural sounding voices first
-        const naturalVoice = ptVoices.find(v => v.name.includes('Google') || v.name.includes('Natural'))
+        const naturalVoice = ptVoices.find(v => 
+          v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft'))
+        )
         setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
       }
     }
 
     loadVoices()
     window.speechSynthesis.onvoiceschanged = loadVoices
-  }, [selectedVoice])
+    
+    // Polling as fallback for some browsers
+    const interval = setInterval(() => {
+      if (voices.length === 0) loadVoices()
+      else clearInterval(interval)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [selectedVoice, voices.length])
+
 
   useEffect(() => {
     if (isPlaying) {
