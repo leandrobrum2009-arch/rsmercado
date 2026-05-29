@@ -3148,14 +3148,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button 
                   size="sm" 
-                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200 transition-all active:scale-95" 
-                  onClick={async () => {
-                    await handleDownloadImage('jpg');
-                  }}
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white shadow-xl transition-all active:scale-95" 
+                  onClick={() => handleDownloadImage('jpg')}
                   disabled={uploading}
                 >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Gerar e Baixar JPG
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar JPG (A4)
                 </Button>
                 <Button 
                   size="sm" 
@@ -3165,8 +3163,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Baixar PNG
+                  Baixar PNG (Transparente)
                 </Button>
+
                 <Button 
                   size="sm" 
                   className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white shadow-lg shadow-black/20 transition-all active:scale-95" 
