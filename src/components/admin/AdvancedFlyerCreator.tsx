@@ -2959,19 +2959,30 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                       <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
-                      <Button 
-                        className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-indigo-600 hover:bg-indigo-700 text-white col-span-2 mt-2" 
-                        onClick={() => handleDownloadImage('jpg')}
-                        disabled={uploading}
-                      >
-                        <Download className="w-5 h-5 mr-2" />
-                        Baixar Imagem A4 (JPG)
-                      </Button>
+                      <div className="grid grid-cols-2 gap-2 col-span-2 mt-2">
+                        <Button 
+                          className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white" 
+                          onClick={() => handleDownloadImage('jpg')}
+                          disabled={uploading}
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Baixar JPG
+                        </Button>
+                        <Button 
+                          className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-zinc-800 hover:bg-zinc-900 text-white" 
+                          onClick={() => handleDownloadImage('png')}
+                          disabled={uploading}
+                        >
+                          <ImageIcon className="w-4 h-4 mr-1" />
+                          Baixar PNG
+                        </Button>
+                      </div>
                       <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
                         onClick={handleDirectPrint}
                         disabled={isPreparingPrint}
                       >
+
                         {isPreparingPrint ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
