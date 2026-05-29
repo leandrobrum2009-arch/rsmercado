@@ -1057,6 +1057,20 @@ export function ProductManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScanner 
+        isOpen={barcodeScannerOpen} 
+        onClose={() => setBarcodeScannerOpen(false)} 
+        onScan={(code) => {
+          if (isProductDialogOpen) {
+            setNewProduct(prev => ({ ...prev, sku: code }));
+            toast.success(`Código escaneado: ${code}`);
+          } else {
+            setSearchQuery(code);
+            toast.success(`Buscando por: ${code}`);
+          }
+        }}
+      />
     </div>
   )
 }
