@@ -5,6 +5,7 @@ import { ProductCard } from '@/components/ProductCard'
 import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
+import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/search')({
    validateSearch: (search: Record<string, unknown>): { q?: string; category?: string; tag?: string } => {
