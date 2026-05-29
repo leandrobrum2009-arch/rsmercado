@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, ChevronLeft, ChevronRight, Video, Settings2 } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, Video, Settings2 } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import * as htmlToImage from 'html-to-image'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
@@ -42,7 +41,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
   
-  const slideDuration = 4000 // 4 seconds per slide to allow full narration
+  const slideDuration = 7000 // 7 seconds per slide
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const slideRef = useRef<HTMLDivElement>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -55,27 +54,33 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
   ]
 
-  // Load voices
+  // Load voices with polling
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices()
-      // Filter for Portuguese, prioritizing pt-BR
-      let ptVoices = availableVoices.filter(v => v.lang === 'pt-BR')
-      if (ptVoices.length === 0) {
-        ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
-      }
+      if (availableVoices.length === 0) return
+
+      const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
       
       setVoices(ptVoices)
       if (ptVoices.length > 0 && !selectedVoice) {
-        // Try to find Google or natural sounding voices first
-        const naturalVoice = ptVoices.find(v => v.name.includes('Google') || v.name.includes('Natural'))
+        const naturalVoice = ptVoices.find(v => 
+          v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft'))
+        )
         setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
       }
     }
 
     loadVoices()
     window.speechSynthesis.onvoiceschanged = loadVoices
-  }, [selectedVoice])
+    
+    const interval = setInterval(() => {
+      if (voices.length === 0) loadVoices()
+      else clearInterval(interval)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [selectedVoice, voices.length])
 
   useEffect(() => {
     if (isPlaying) {
@@ -131,7 +136,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (voice) utterance.voice = voice
     }
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.0 // Natural speed
+    utterance.rate = 1.0
     window.speechSynthesis.speak(utterance)
   }
 
@@ -202,21 +207,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 1080
-    canvas.height = 1920
+    canvas.width = 720
+    canvas.height = 1280
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(30)
+    const stream = canvas.captureStream(24)
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4') 
       ? 'video/mp4' 
-      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=h264')
+        ? 'video/webm;codecs=h264'
         : 'video/webm'
         
     const recorder = new MediaRecorder(stream, {
       mimeType,
-      videoBitsPerSecond: 5000000
+      videoBitsPerSecond: 2500000
     })
     
     chunksRef.current = []
@@ -230,41 +235,45 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       const link = document.createElement('a')
       link.href = url
       link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
       setIsRecording(false)
+      setIsPlaying(false)
       toast.success('Vídeo gerado com sucesso!')
     }
     
     recorderRef.current = recorder
     recorder.start()
     
-    const captureFrame = async () => {
-      if (!isRecording || !recordingCanvasRef.current || !slideRef.current) return
+    const captureInterval = setInterval(async () => {
+      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current) {
+        clearInterval(captureInterval)
+        return
+      }
       
       try {
         const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1.5,
-          backgroundColor: flyer.config?.backgroundColor || '#ffffff'
+          pixelRatio: 1,
+          backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          style: {
+            borderRadius: '0px'
+          }
         })
         
         const img = new Image()
         img.src = dataUrl
         await new Promise(r => img.onload = r)
         
-        const ctx = recordingCanvasRef.current.getContext('2d')
+        const ctx = canvas.getContext('2d')
         if (ctx) {
-          ctx.drawImage(img, 0, 0, 1080, 1920)
+          ctx.drawImage(img, 0, 0, 720, 1280)
         }
       } catch (e) {
         console.error('Frame capture error:', e)
       }
-      
-      if (isRecording) {
-        requestAnimationFrame(captureFrame)
-      }
-    }
-    
-    captureFrame()
+    }, 1000 / 12)
   }
 
   const stopRecording = () => {
@@ -279,7 +288,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-none">
         <div className="flex h-[90vh] flex-col md:flex-row">
-          {/* Preview Area */}
           <div className="flex-1 relative flex items-center justify-center bg-zinc-900 p-4">
             <div 
               ref={slideRef}
@@ -288,7 +296,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 fontFamily: flyer.config?.fontFamily || 'sans-serif'
               }}
             >
-              {/* Background */}
               <div 
                 className="absolute inset-0 z-0"
                 style={{
@@ -301,7 +308,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 }}
               />
 
-              {/* Progress Bars */}
               <div className="absolute top-6 left-6 right-6 z-30 flex gap-1.5">
                 {slides.map((_, idx) => (
                   <div key={idx} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
@@ -315,50 +321,48 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 ))}
               </div>
 
-              {/* Logo - Increased Size and better position */}
               <div className="absolute top-16 left-0 right-0 z-30 flex justify-center px-8">
                 {storeSettings?.logo_url && (
                   <img src={storeSettings.logo_url} alt="Logo" className="h-28 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
-              {/* Content - Adjusted Position (MT-24 to move it down) */}
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-24">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-32">
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-6xl font-black italic tracking-tighter uppercase mb-4 leading-none drop-shadow-md"
+                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest bg-white/40 backdrop-blur-sm px-4 py-1 rounded-lg inline-block">
+                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10">
                       {currentSlideData.subtitle}
                     </p>
                   </div>
                 )}
 
                 {currentSlideData.type === 'product' && (
-                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-20">
-                    <div className="relative w-full aspect-square mb-8 p-4">
+                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-24">
+                    <div className="relative w-full aspect-square mb-10 p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-2xl scale-110"
+                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-110"
                       />
                     </div>
-                    <h3 className="text-3xl font-black uppercase tracking-tight mb-6 text-zinc-900 leading-tight drop-shadow-sm px-2">
+                    <h3 className="text-4xl font-[1000] uppercase tracking-tighter mb-8 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm">
                       {currentSlideData.product.name}
                     </h3>
                     <div 
-                      className="inline-block px-10 py-5 rounded-[40px] shadow-2xl transform -rotate-1 scale-125"
+                      className="inline-block px-12 py-6 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20"
                       style={{ background: flyer.config?.priceColor || '#ef4444' }}
                     >
-                      <span className="text-white text-6xl font-black italic tracking-tighter">
+                      <span className="text-white text-7xl font-[1000] italic tracking-tighter drop-shadow-md">
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
-                        <span className="text-white/90 text-xl font-black ml-2 uppercase">
+                        <span className="text-white/90 text-2xl font-[1000] ml-3 uppercase">
                           {currentSlideData.product.unit}
                         </span>
                       )}
@@ -369,22 +373,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-6xl font-black italic tracking-tighter uppercase mb-6 leading-none"
+                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-8 leading-[0.85]"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest mb-10 bg-white/30 backdrop-blur-sm px-4 py-1 rounded-lg">
+                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10">
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-10 py-5 rounded-full font-black text-2xl shadow-2xl flex items-center gap-4 animate-bounce">
+                    <div className="bg-green-600 text-white px-12 py-6 rounded-full font-[1000] text-3xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20">
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
               <div className="absolute bottom-12 left-0 right-0 z-30 flex flex-col items-center">
                 <p className="text-xs font-black uppercase tracking-[0.4em] text-zinc-800 bg-white/50 backdrop-blur-sm px-4 py-1 rounded-full">
                   {storeSettings?.site_name}
@@ -392,14 +395,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               </div>
             </div>
 
-            {/* Navigation Overlays (Transparent) */}
             <div className="absolute inset-0 z-20 flex">
               <div className="w-1/2 h-full cursor-pointer" onClick={handlePrev} />
               <div className="w-1/2 h-full cursor-pointer" onClick={handleNext} />
             </div>
           </div>
 
-          {/* Controls Area */}
           <div className="w-full md:w-80 bg-zinc-950 p-6 flex flex-col gap-6 overflow-y-auto">
             <div>
               <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
@@ -410,88 +411,89 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
             <div className="space-y-4">
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                <Settings2 className="h-3 w-3" /> Configurações de Voz
+                <Settings2 className="h-3 w-3" /> Narrador (Escolha abaixo)
               </p>
               <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-10 rounded-xl">
-                  <SelectValue placeholder="Escolha uma voz" />
+                <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl border-2 focus:ring-purple-500">
+                  <SelectValue placeholder="Selecione o narrador" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                   {voices.map(voice => (
-                    <SelectItem key={voice.name} value={voice.name} className="focus:bg-zinc-800">
-                      {voice.name}
+                    <SelectItem key={voice.name} value={voice.name} className="focus:bg-purple-900/50 focus:text-white">
+                      <div className="flex flex-col">
+                        <span className="font-bold">{voice.name}</span>
+                        <span className="text-[10px] opacity-50">{voice.lang}</span>
+                      </div>
                     </SelectItem>
                   ))}
+                  {voices.length === 0 && (
+                    <div className="p-2 text-xs text-zinc-500 text-center">
+                      Carregando vozes...
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                variant={isPlaying ? "destructive" : "default"}
-                className="flex-1 h-12 rounded-xl font-black uppercase text-xs"
-                onClick={handleTogglePlay}
-              >
-                {isPlaying ? <><Pause className="mr-2 h-4 w-4" /> Pausar</> : <><Play className="mr-2 h-4 w-4" /> Iniciar</>}
-              </Button>
-              <Button 
-                variant="outline"
-                className="w-12 h-12 rounded-xl border-zinc-800 text-white hover:bg-zinc-900"
-                onClick={() => setIsMuted(!isMuted)}
-              >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
+            <div className="flex flex-col gap-2">
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Controles</p>
+              <div className="flex gap-2">
+                <Button 
+                  variant={isPlaying ? "destructive" : "default"}
+                  className="flex-1 h-14 rounded-xl font-black uppercase text-sm shadow-lg shadow-purple-500/20"
+                  onClick={handleTogglePlay}
+                  disabled={isRecording}
+                >
+                  {isPlaying ? <><Pause className="mr-2 h-5 w-5" /> Pausar</> : <><Play className="mr-2 h-5 w-5" /> Reproduzir</>}
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-14 h-14 rounded-xl border-2 border-zinc-800 text-white hover:bg-zinc-900 hover:border-zinc-700"
+                  onClick={() => setIsMuted(!isMuted)}
+                >
+                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Exportação Profissional</p>
+            <div className="space-y-4 pt-4 border-t border-zinc-900">
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Exportação</p>
               
               <Button 
                 variant="secondary"
-                className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 border-2 border-zinc-800"
                 onClick={exportAsImage}
                 disabled={isExporting || isRecording}
               >
                 {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                Baixar Slide Atual
+                Baixar Imagem (Slide)
               </Button>
 
               <Button 
-                className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none"
-                onClick={startVideoRecording}
-                disabled={isRecording || isExporting}
+                variant="default"
+                className="w-full h-14 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 shadow-xl shadow-purple-900/20 border-0"
+                onClick={isRecording ? stopRecording : startVideoRecording}
+                disabled={isExporting}
               >
-                {isRecording ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                Gerar Vídeo MP4
+                {isRecording ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Finalizar & Baixar MP4
+                  </>
+                ) : (
+                  <>
+                    <Video className="h-5 w-5" />
+                    Gerar Vídeo MP4
+                  </>
+                )
+                }
               </Button>
-
-              <p className="text-zinc-600 text-[9px] font-medium leading-tight italic">
-                * A exportação de vídeo grava a tela enquanto as ofertas passam. Aguarde o final para baixar o arquivo.
-              </p>
+              {isRecording && (
+                <p className="text-[10px] text-purple-400 font-bold animate-pulse text-center">
+                  Gravando... Aguarde o final dos slides.
+                </p>
+              )}
             </div>
-
-            <div className="mt-auto">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-zinc-500 text-[10px] font-black uppercase">Slide {currentSlide + 1} de {slides.length}</p>
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-white" onClick={handlePrev} disabled={currentSlide === 0}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-white" onClick={handleNext} disabled={currentSlide === slides.length - 1}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <Progress value={((currentSlide + 1) / slides.length) * 100} className="h-1 bg-zinc-800 shadow-inner overflow-hidden" />
-            </div>
-
-            <Button 
-              variant="ghost" 
-              className="text-zinc-500 hover:text-white hover:bg-zinc-900 h-10 font-bold uppercase text-[10px] shadow-none border-none"
-              onClick={onClose}
-            >
-              <X className="mr-2 h-4 w-4" /> Fechar
-            </Button>
           </div>
         </div>
       </DialogContent>
