@@ -2953,16 +2953,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl w-[95vw] md:w-full">
-                       <DialogHeader className="pb-2">
-                       <DialogHeader className="pb-2 space-y-4">
-                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                           <DialogTitle className="flex items-center gap-2">
-                             <span>Selecionar Produtos</span>
-                             <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
-                               {filteredProducts.length} encontrados
-                             </span>
-                           </DialogTitle>
+                     <DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
+                        <DialogHeader className="pb-2 space-y-4 shrink-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <DialogTitle className="flex items-center gap-2">
+                              <span>Selecionar Produtos</span>
+                              <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                                {filteredProducts.length} encontrados
+                              </span>
+                            </DialogTitle>
                            
                            <div className="flex items-center gap-2 w-full sm:w-auto">
                              <div className="relative flex-1 sm:w-64">
