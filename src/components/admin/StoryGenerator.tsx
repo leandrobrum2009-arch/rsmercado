@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, ChevronLeft, ChevronRight, Video, Settings2 } from 'lucide-react'
 import { toast } from '@/lib/toast'
-import html2canvas from 'html2canvas-pro'
+import * as htmlToImage from 'html-to-image'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 interface Product {
@@ -37,16 +38,39 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [progress, setProgress] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [selectedVoice, setSelectedVoice] = useState<string>('')
+  
   const slideDuration = 2000 // 2 seconds per slide
   const timerRef = useRef<NodeJS.Timeout | null>(null)
-
   const slideRef = useRef<HTMLDivElement>(null)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const slides: SlideType[] = [
     { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
     ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
     { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
   ]
+
+  // Load voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices()
+      const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
+      setVoices(ptVoices)
+      if (ptVoices.length > 0 && !selectedVoice) {
+        // Try to find a good natural voice
+        const googleVoice = ptVoices.find(v => v.name.includes('Google'))
+        setSelectedVoice(googleVoice ? googleVoice.name : ptVoices[0].name)
+      }
+    }
+
+    loadVoices()
+    window.speechSynthesis.onvoiceschanged = loadVoices
+  }, [selectedVoice])
 
   useEffect(() => {
     if (isPlaying) {
@@ -68,6 +92,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           } else {
             setIsPlaying(false)
             setProgress(100)
+            if (isRecording) stopRecording()
           }
         }
       }, 50)
@@ -78,7 +103,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, currentSlide, progress, slides.length])
+  }, [isPlaying, currentSlide, progress, slides.length, isRecording])
 
   const speakSlide = (index: number) => {
     if (isMuted) return
@@ -96,6 +121,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
 
     const utterance = new SpeechSynthesisUtterance(text)
+    if (selectedVoice) {
+      const voice = voices.find(v => v.name === selectedVoice)
+      if (voice) utterance.voice = voice
+    }
     utterance.lang = 'pt-BR'
     utterance.rate = 1.1
     window.speechSynthesis.speak(utterance)
@@ -131,23 +160,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
-  const exportAsImages = async () => {
+  const exportAsImage = async () => {
     setIsExporting(true)
     setIsPlaying(false)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
       if (slideRef.current) {
-        const canvas = await html2canvas(slideRef.current, {
-          useCORS: true,
-          scale: 2,
+        const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
+          quality: 0.95,
+          pixelRatio: 2,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff'
         })
         
         const link = document.createElement('a')
         link.download = `story-${flyer.title.replace(/\s+/g, '-')}-slide-${currentSlide + 1}.jpg`
-        link.href = canvas.toDataURL('image/jpeg', 0.9)
+        link.href = dataUrl
         link.click()
         
         toast.success('Slide baixado com sucesso!')
@@ -157,6 +184,87 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       toast.error('Erro ao exportar story')
     } finally {
       setIsExporting(false)
+    }
+  }
+
+  const startVideoRecording = async () => {
+    if (!slideRef.current) return
+    
+    setIsRecording(true)
+    setCurrentSlide(0)
+    setProgress(0)
+    setIsPlaying(true)
+    speakSlide(0)
+    
+    const canvas = document.createElement('canvas')
+    canvas.width = 1080
+    canvas.height = 1920
+    recordingCanvasRef.current = canvas
+    
+    const stream = canvas.captureStream(30)
+    
+    const mimeType = MediaRecorder.isTypeSupported('video/mp4') 
+      ? 'video/mp4' 
+      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm'
+        
+    const recorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: 5000000
+    })
+    
+    chunksRef.current = []
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data)
+    }
+    
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+      link.click()
+      setIsRecording(false)
+      toast.success('Vídeo gerado com sucesso!')
+    }
+    
+    recorderRef.current = recorder
+    recorder.start()
+    
+    const captureFrame = async () => {
+      if (!isRecording || !recordingCanvasRef.current || !slideRef.current) return
+      
+      try {
+        const dataUrl = await htmlToImage.toPng(slideRef.current, {
+          pixelRatio: 1.5,
+          backgroundColor: flyer.config?.backgroundColor || '#ffffff'
+        })
+        
+        const img = new Image()
+        img.src = dataUrl
+        await new Promise(r => img.onload = r)
+        
+        const ctx = recordingCanvasRef.current.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, 1080, 1920)
+        }
+      } catch (e) {
+        console.error('Frame capture error:', e)
+      }
+      
+      if (isRecording) {
+        requestAnimationFrame(captureFrame)
+      }
+    }
+    
+    captureFrame()
+  }
+
+  const stopRecording = () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      recorderRef.current.stop()
     }
   }
 
@@ -202,50 +310,50 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 ))}
               </div>
 
-              {/* Logo */}
-              <div className="absolute top-12 left-0 right-0 z-30 flex justify-center">
+              {/* Logo - Increased Size and better position */}
+              <div className="absolute top-16 left-0 right-0 z-30 flex justify-center px-8">
                 {storeSettings?.logo_url && (
-                  <img src={storeSettings.logo_url} alt="Logo" className="h-16 object-contain drop-shadow-md" />
+                  <img src={storeSettings.logo_url} alt="Logo" className="h-28 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
-              {/* Content */}
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center">
+              {/* Content - Adjusted Position (MT-24 to move it down) */}
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-24">
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-5xl font-black italic tracking-tighter uppercase mb-4 leading-none"
+                      className="text-6xl font-black italic tracking-tighter uppercase mb-4 leading-none drop-shadow-md"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-xl font-bold uppercase text-zinc-600 tracking-widest">
+                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest bg-white/40 backdrop-blur-sm px-4 py-1 rounded-lg inline-block">
                       {currentSlideData.subtitle}
                     </p>
                   </div>
                 )}
 
                 {currentSlideData.type === 'product' && (
-                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500">
+                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-20">
                     <div className="relative w-full aspect-square mb-8 p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-2xl"
+                        className="w-full h-full object-contain drop-shadow-2xl scale-110"
                       />
                     </div>
-                    <h3 className="text-2xl font-black uppercase tracking-tight mb-4 text-zinc-800 leading-tight">
+                    <h3 className="text-3xl font-black uppercase tracking-tight mb-6 text-zinc-900 leading-tight drop-shadow-sm px-2">
                       {currentSlideData.product.name}
                     </h3>
                     <div 
-                      className="inline-block px-8 py-4 rounded-3xl shadow-xl transform -rotate-2 scale-110"
+                      className="inline-block px-10 py-5 rounded-[40px] shadow-2xl transform -rotate-1 scale-125"
                       style={{ background: flyer.config?.priceColor || '#ef4444' }}
                     >
-                      <span className="text-white text-5xl font-black italic">
+                      <span className="text-white text-6xl font-black italic tracking-tighter">
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
-                        <span className="text-white/80 text-lg font-bold ml-2">
+                        <span className="text-white/90 text-xl font-black ml-2 uppercase">
                           {currentSlideData.product.unit}
                         </span>
                       )}
@@ -256,15 +364,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-5xl font-black italic tracking-tighter uppercase mb-4 leading-none"
+                      className="text-6xl font-black italic tracking-tighter uppercase mb-6 leading-none"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-xl font-bold uppercase text-zinc-600 tracking-widest mb-8">
+                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest mb-10 bg-white/30 backdrop-blur-sm px-4 py-1 rounded-lg">
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-500 text-white px-8 py-4 rounded-full font-black text-xl shadow-lg flex items-center gap-3">
+                    <div className="bg-green-600 text-white px-10 py-5 rounded-full font-black text-2xl shadow-2xl flex items-center gap-4 animate-bounce">
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
@@ -272,8 +380,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               </div>
 
               {/* Footer */}
-              <div className="absolute bottom-8 left-0 right-0 z-30 flex flex-col items-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+              <div className="absolute bottom-12 left-0 right-0 z-30 flex flex-col items-center">
+                <p className="text-xs font-black uppercase tracking-[0.4em] text-zinc-800 bg-white/50 backdrop-blur-sm px-4 py-1 rounded-full">
                   {storeSettings?.site_name}
                 </p>
               </div>
@@ -287,12 +395,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           </div>
 
           {/* Controls Area */}
-          <div className="w-full md:w-80 bg-zinc-950 p-6 flex flex-col gap-6">
+          <div className="w-full md:w-80 bg-zinc-950 p-6 flex flex-col gap-6 overflow-y-auto">
             <div>
               <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
                 Gerador de Stories
               </h3>
-              <p className="text-zinc-500 text-xs font-bold uppercase">Aumente suas vendas</p>
+              <p className="text-zinc-500 text-xs font-bold uppercase">Melhorado & Potente</p>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <Settings2 className="h-3 w-3" /> Configurações de Voz
+              </p>
+              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-10 rounded-xl">
+                  <SelectValue placeholder="Escolha uma voz" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                  {voices.map(voice => (
+                    <SelectItem key={voice.name} value={voice.name} className="focus:bg-zinc-800">
+                      {voice.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -313,18 +439,29 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             </div>
 
             <div className="space-y-4">
-              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Exportação</p>
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Exportação Profissional</p>
+              
               <Button 
                 variant="secondary"
                 className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2"
-                onClick={exportAsImages}
-                disabled={isExporting}
+                onClick={exportAsImage}
+                disabled={isExporting || isRecording}
               >
                 {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                 Baixar Slide Atual
               </Button>
-              <p className="text-zinc-600 text-[9px] font-medium leading-tight">
-                * Use o botão acima para salvar o slide que está aparecendo como imagem para o Instagram.
+
+              <Button 
+                className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white border-none"
+                onClick={startVideoRecording}
+                disabled={isRecording || isExporting}
+              >
+                {isRecording ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                Gerar Vídeo MP4
+              </Button>
+
+              <p className="text-zinc-600 text-[9px] font-medium leading-tight italic">
+                * A exportação de vídeo grava a tela enquanto as ofertas passam. Aguarde o final para baixar o arquivo.
               </p>
             </div>
 
