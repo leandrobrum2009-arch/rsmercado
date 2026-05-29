@@ -11,18 +11,20 @@ const COLOR_PROPS = [
   'color',
   'background-color',
   'background-image',
+  'border-color',
   'border-top-color',
   'border-right-color',
   'border-bottom-color',
   'border-left-color',
   'outline-color',
   'text-decoration-color',
-  'column-rule-color',
-  'text-emphasis-color',
-  'caret-color',
+  'text-shadow',
+  'box-shadow',
   'fill',
   'stroke',
-  'box-shadow',
+  'stop-color',
+  'flood-color',
+  'lighting-color'
 ]
 
 function makeSanitizer(doc: Document) {
