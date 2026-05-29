@@ -2955,18 +2955,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] w-full md:max-w-6xl overflow-hidden flex flex-col h-[90vh] p-0 gap-0 bg-white shadow-2xl border-none">
-                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 text-left">
+                    <DialogContent className="max-w-[98vw] w-full md:max-w-6xl overflow-hidden flex flex-col h-[95vh] md:h-[90vh] p-0 gap-0 bg-white shadow-2xl border-none ring-0">
+                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/80 text-left">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-                            <DialogTitle className="flex items-center gap-2">
+                            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                               <span>Selecionar Produtos</span>
-                              <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+                              <span className="text-xs font-medium text-zinc-500 bg-zinc-200/50 px-2.5 py-0.5 rounded-full">
                                 {filteredProducts.length} encontrados
                               </span>
                             </DialogTitle>
                            
                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                             <div className="relative flex-1 sm:w-64">
+                             <div className="relative flex-1 sm:w-80 min-w-[200px]">
                                <Input 
                                  placeholder="Buscar produto..." 
                                  value={productSearchTerm}
@@ -2995,70 +2995,70 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                          
-                          <div className="w-full shrink-0 mt-2 border-b border-zinc-100 pb-2">
-                            <div className="flex flex-wrap items-center gap-2 px-1">
-                             <Button 
-                               variant={onlyOffers ? "default" : "outline"} 
-                               size="sm" 
-                               className={cn(
-                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1 shrink-0",
-                                 onlyOffers ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "text-red-500 border-red-200 hover:bg-red-50"
-                               )}
-                               onClick={() => setOnlyOffers(!onlyOffers)}
-                             >
-                               Ofertas
-                             </Button>
-                             <Button 
-                               variant={onlyInStock ? "default" : "outline"} 
-                               size="sm" 
-                               className={cn(
-                                 "h-7 text-[10px] whitespace-nowrap px-3 rounded-full flex items-center gap-1 shrink-0",
-                                 onlyInStock ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "text-green-600 border-green-200 hover:bg-green-50"
-                               )}
-                               onClick={() => setOnlyInStock(!onlyInStock)}
-                             >
-                               Em Estoque
-                             </Button>
-                             <div className="w-px h-4 bg-zinc-200 mx-1 flex-shrink-0" />
-                             <Button 
-                               variant={selectedCategory === null ? "default" : "outline"} 
-                               size="sm" 
-                               className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full shrink-0"
-                               onClick={() => setSelectedCategory(null)}
-                             >
-                               Todos
-                             </Button>
-                             {categories.map((cat) => (
-                               <Button 
-                                 key={cat.id}
-                                 variant={selectedCategory === cat.id ? "default" : "outline"} 
-                                 size="sm" 
-                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full shrink-0"
-                                 onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+                          <div className="w-full shrink-0 mt-3 border-t border-zinc-100 pt-3">
+                            <div className="flex flex-wrap items-center gap-2 px-1 max-w-full overflow-visible">
+                              <Button 
+                                variant={onlyOffers ? "default" : "outline"} 
+                                size="sm" 
+                                className={cn(
+                                  "h-8 text-[10px] whitespace-nowrap px-4 rounded-full flex items-center gap-1.5 transition-all shadow-sm",
+                                  onlyOffers ? "bg-red-600 hover:bg-red-700 text-white border-red-600 scale-105" : "text-red-600 border-red-200 hover:bg-red-50"
+                                )}
+                                onClick={() => setOnlyOffers(!onlyOffers)}
+                              >
+                                Ofertas
+                              </Button>
+                              <Button 
+                                variant={onlyInStock ? "default" : "outline"} 
+                                size="sm" 
+                                className={cn(
+                                  "h-8 text-[10px] whitespace-nowrap px-4 rounded-full flex items-center gap-1.5 transition-all shadow-sm",
+                                  onlyInStock ? "bg-green-600 hover:bg-green-700 text-white border-green-600 scale-105" : "text-green-600 border-green-200 hover:bg-green-50"
+                                )}
+                                onClick={() => setOnlyInStock(!onlyInStock)}
+                              >
+                                Em Estoque
+                              </Button>
+                              <div className="w-px h-5 bg-zinc-300 mx-1 shrink-0" />
+                              <Button 
+                                variant={selectedCategory === null ? "default" : "outline"} 
+                                size="sm" 
+                                className="h-8 text-[10px] whitespace-nowrap px-4 rounded-full shadow-sm"
+                                onClick={() => setSelectedCategory(null)}
+                              >
+                                Todos
+                              </Button>
+                              {categories.map((cat) => (
+                                <Button 
+                                  key={cat.id}
+                                  variant={selectedCategory === cat.id ? "default" : "outline"} 
+                                  size="sm" 
+                                  className="h-8 text-[10px] whitespace-nowrap px-4 rounded-full shadow-sm"
+                                  onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+                                 >
+                                  {cat.name}
+                                </Button>
+                              ))}
+                              {(productSearchTerm || selectedCategory !== null || onlyOffers || onlyInStock) && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 text-[10px] px-3 rounded-full text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 flex items-center gap-1.5"
+                                  onClick={() => {
+                                    setProductSearchTerm('');
+                                    setSelectedCategory(null);
+                                    setOnlyOffers(false);
+                                    setOnlyInStock(false);
+                                  }}
                                 >
-                                 {cat.name}
-                               </Button>
-                             ))}
-                             {(productSearchTerm || selectedCategory !== null || onlyOffers || onlyInStock) && (
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className="h-7 text-[10px] whitespace-nowrap px-3 rounded-full text-zinc-400 hover:text-zinc-600 flex items-center gap-1 shrink-0"
-                                 onClick={() => {
-                                   setProductSearchTerm('');
-                                   setSelectedCategory(null);
-                                   setOnlyOffers(false);
-                                   setOnlyInStock(false);
-                                 }}
-                               >
-                                 <X className="w-3 h-3" /> Limpar
-                               </Button>
-                             )}
-                           </div>
-                         </div>
+                                  <X className="w-3.5 h-3.5" /> Limpar Filtros
+                                </Button>
+                              )}
+                            </div>
+                          </div>
                         </DialogHeader>
-                      <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-zinc-50/30 min-h-0">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+                      <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-zinc-50/30 scrollbar-thin">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
                           {filteredProducts.length > 0 ? (
                             filteredProducts.map(p => (
                               <div key={p.id} className="border rounded-xl p-3 text-center space-y-2 hover:bg-zinc-50 cursor-pointer transition-colors group relative" onClick={() => addProductToFlyer(p)}>
