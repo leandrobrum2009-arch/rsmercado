@@ -478,12 +478,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {isRecording ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Finalizar & Baixar MP4
+                    GERANDO VÍDEO... AGUARDE
                   </>
                 ) : (
                   <>
                     <Video className="h-5 w-5" />
-                    Gerar Vídeo MP4
+                    BAIXAR VÍDEO (GERAR MP4)
                   </>
                 )
                 }
