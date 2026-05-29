@@ -1109,6 +1109,71 @@ export function ProductManagement() {
           }
         }}
       />
+
+      <Dialog open={isDiagnosticOpen} onOpenChange={setIsDiagnosticOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-black uppercase text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Diagnóstico de Falha no Cadastro
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase text-zinc-500">
+              Ocorreu um erro ao tentar salvar o produto no banco de dados.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {diagnosticInfo && (
+            <div className="space-y-4 pt-4">
+              <div className="bg-zinc-50 border-2 border-zinc-100 p-4 rounded-xl space-y-2">
+                <p className="text-[10px] font-black uppercase text-zinc-500">Horário da Falha: <span className="text-zinc-900">{diagnosticInfo.timestamp}</span></p>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-zinc-500">Erro Retornado:</p>
+                  <pre className="text-[10px] bg-red-50 text-red-700 p-2 rounded border border-red-100 overflow-x-auto font-mono">
+                    {JSON.stringify(diagnosticInfo.error, null, 2)}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase text-zinc-500">Campos Tentados:</p>
+                <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-2">
+                  {Object.entries(diagnosticInfo.data).map(([key, value]) => (
+                    <div key={key} className="p-2 border rounded-lg bg-white">
+                      <p className="text-[9px] font-black uppercase text-zinc-400">{key}</p>
+                      <p className="text-[10px] font-bold truncate">{String(value || '(vazio)')}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {diagnosticInfo.fields.length > 0 && (
+                <div className="bg-amber-50 border-2 border-amber-200 p-3 rounded-xl">
+                  <p className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2">
+                    <AlertTriangle className="h-3 w-3" /> Atenção: Campos Vazios
+                  </p>
+                  <p className="text-[9px] text-amber-700 mt-1 font-bold">
+                    Os seguintes campos estão vazios e podem ter causado a falha se forem obrigatórios:
+                    <span className="block mt-1 text-amber-900">{diagnosticInfo.fields.join(', ')}</span>
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" className="font-bold uppercase text-[10px]" onClick={() => {
+                  const text = `ERRO: ${JSON.stringify(diagnosticInfo.error)}\nDATA: ${JSON.stringify(diagnosticInfo.data)}`;
+                  navigator.clipboard.writeText(text);
+                  toast.success('Log copiado para a área de transferência');
+                }}>
+                  Copiar Log para Suporte
+                </Button>
+                <Button className="bg-zinc-900 font-bold uppercase text-[10px]" onClick={() => setIsDiagnosticOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
