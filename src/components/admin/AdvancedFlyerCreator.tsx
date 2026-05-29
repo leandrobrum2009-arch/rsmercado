@@ -1601,15 +1601,17 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         
         // Função auxiliar para converter imagem para base64
         const toBase64 = async (img: HTMLImageElement): Promise<string | null> => {
-          if (!img.src) return null;
-          if (img.src.startsWith('data:')) return img.src;
+          if (!img.src || img.src.startsWith('data:')) return img.src;
           
+          // Se for uma imagem do próprio domínio, não precisa de Base64 complexo
+          if (img.src.includes(window.location.hostname)) return img.src;
+
           try {
-            // Tenta fetch com cross-origin
+            logStep(`Tentando converter para Base64: ${img.src.substring(0, 40)}...`);
             const response = await fetch(img.src, { 
               mode: 'cors',
               credentials: 'omit',
-              cache: 'no-cache'
+              cache: 'force-cache'
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
@@ -1620,10 +1622,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               reader.readAsDataURL(blob);
             });
           } catch (e: any) {
-            logStep(`Erro CORS/Fetch na imagem: ${img.src.substring(0, 60)}... - Detalhe: ${e.message}`);
+            logStep(`Falha no Base64 (CORS provável): ${img.src.substring(0, 40)}... - ${e.message}`);
             return null;
           }
         };
+
 
         logStep(`Processando ${images.length} imagens...`);
 
