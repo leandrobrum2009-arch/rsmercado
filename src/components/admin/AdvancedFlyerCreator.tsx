@@ -2993,15 +2993,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     <DialogContent className="max-w-3xl">
                        <DialogHeader className="pb-2">
                          <DialogTitle className="flex flex-col gap-4">
-                           <div className="flex items-center justify-between gap-4">
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                              <div className="flex items-center gap-2">
                                <span>Selecionar Produtos</span>
                                <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
                                  {filteredProducts.length} encontrados
                                </span>
                              </div>
-                              <div className="flex items-center gap-2 mr-8">
-                                <div className="relative w-64">
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <div className="relative flex-1 sm:w-64">
                                   <Input 
                                     placeholder="Buscar produto..." 
                                     value={productSearchTerm}
