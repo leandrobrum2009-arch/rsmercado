@@ -153,7 +153,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
      const [blurAmount, setBlurAmount] = useState(2)
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
      const [loadingSaved, setLoadingSaved] = useState(false)
-     const [logHistory, setLogHistory] = useState<string[]>([])
+     const [logHistory, setLogHistory] = useState<{msg: string, isBlocker?: boolean, time: string}[]>([])
      const [showLogViewer, setShowLogViewer] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
          const [showPreviewModal, setShowPreviewModal] = useState(false)
