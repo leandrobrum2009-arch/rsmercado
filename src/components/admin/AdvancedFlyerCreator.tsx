@@ -3317,6 +3317,36 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           transition-delay: 0s !important;
         }
       `}</style>
+      <Dialog open={showLogViewer} onOpenChange={setShowLogHistory}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase italic tracking-tighter">Log de Sistema do Gerador</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1 mt-4">
+            {logHistory.length === 0 ? (
+              <p className="text-zinc-500 italic">Nenhum evento registrado ainda...</p>
+            ) : (
+              logHistory.map((log, i) => (
+                <div key={i} className="border-l border-zinc-800 pl-2">
+                  <span className="text-zinc-500 mr-2">[{i+1}]</span>
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setLogHistory([])}
+              className="text-[10px] font-black uppercase"
+            >
+              <Eraser className="w-3 h-3 mr-2" />
+              Limpar Logs
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <BarcodeScanner 
         isOpen={barcodeScannerOpen} 
         onClose={() => setBarcodeScannerOpen(false)} 
@@ -3328,3 +3358,4 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       </>
     )
   }
+
