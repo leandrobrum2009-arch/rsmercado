@@ -172,11 +172,22 @@ export const Route = createFileRoute('/search')({
           </div>
         )}
 
-        {!activeCategory && (q || category) && (
-          <div className="mb-4">
+        {!activeCategory && (q || category || tag) && (
+          <div className="mb-4 flex justify-between items-center">
             <p className="text-xs font-bold uppercase text-zinc-400 tracking-widest">
-              Resultado para: <span className="text-zinc-900">"{q || category}"</span>
+              Resultado para: <span className="text-zinc-900">"{q || category || tag}"</span>
             </p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-[10px] font-black uppercase text-zinc-400"
+              onClick={() => {
+                setInputValue('');
+                navigate({ to: '/search', search: {} });
+              }}
+            >
+              Limpar
+            </Button>
           </div>
         )}
 
