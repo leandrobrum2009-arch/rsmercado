@@ -1591,18 +1591,29 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
-        logStep('Passo 1: Carregando recursos e tratando CORS');
-        setGenerationStep('Preparando imagens...')
-        setGenerationProgress(20)
+        logStep('Passo 1: Verificando imagens e CORS');
+        setGenerationStep('Analisando imagens...')
+        setGenerationProgress(15)
         
         const images = Array.from(element.getElementsByTagName('img'));
         let failedImagesCount = 0;
+        let corsImagesCount = 0;
         
-        // Função auxiliar para converter imagem para base64 para evitar problemas de CORS no canvas
+        // Função auxiliar para converter imagem para base64
         const toBase64 = async (img: HTMLImageElement): Promise<string | null> => {
-          if (img.src.startsWith('data:')) return img.src;
+          if (!img.src || img.src.startsWith('data:')) return img.src;
+          
+          // Se for uma imagem do próprio domínio, não precisa de Base64 complexo
+          if (img.src.includes(window.location.hostname)) return img.src;
+
           try {
-            const response = await fetch(img.src, { mode: 'cors' });
+            logStep(`Tentando converter para Base64: ${img.src.substring(0, 40)}...`);
+            const response = await fetch(img.src, { 
+              mode: 'cors',
+              credentials: 'omit',
+              cache: 'force-cache'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
             return new Promise((resolve) => {
               const reader = new FileReader();
@@ -1610,51 +1621,61 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               reader.onerror = () => resolve(null);
               reader.readAsDataURL(blob);
             });
-          } catch (e) {
-            logStep(`Falha ao converter imagem para base64 (CORS): ${img.src.substring(0, 50)}...`);
+          } catch (e: any) {
+            logStep(`Falha no Base64 (CORS provável): ${img.src.substring(0, 40)}... - ${e.message}`);
             return null;
           }
         };
 
-        logStep(`Total de imagens para processar: ${images.length}`);
 
+        logStep(`Processando ${images.length} imagens...`);
+
+        // Carregar todas as imagens primeiro
         await Promise.all([
           ...images.map(async (img, i) => {
             if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
               const timer = setTimeout(() => {
-                logStep(`Imagem download ${i+1} TIMEOUT`);
+                logStep(`Timeout imagem ${i+1}`);
                 failedImagesCount++;
                 resolve(null);
-              }, 8000);
-              img.onload = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} OK`); resolve(null); };
-              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); failedImagesCount++; resolve(null); };
+              }, 10000);
+              img.onload = () => { clearTimeout(timer); resolve(null); };
+              img.onerror = () => { 
+                clearTimeout(timer); 
+                logStep(`Erro carga imagem ${i+1}`); 
+                failedImagesCount++; 
+                resolve(null); 
+              };
             });
           }),
-          document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
+          document.fonts?.ready || Promise.resolve()
         ]);
 
-        if (failedImagesCount > 0) {
-          logStep(`${failedImagesCount} imagens falharam ao carregar, mas tentaremos gerar mesmo assim.`);
-        }
-
-
-
-        logStep('Passo 2: Tratando imagens para evitar bloqueio de segurança');
+        logStep('Passo 2: Convertendo imagens externas para Base64 (Segurança)');
         setGenerationStep('Processando imagens...');
+        setGenerationProgress(30)
         
-        // Mapear imagens externas para Base64 para garantir que o canvas não seja "manchado"
         const base64Map = new Map<string, string>();
         await Promise.all(images.map(async (img) => {
           if (img.src && !img.src.startsWith('data:')) {
             const b64 = await toBase64(img);
-            if (b64) base64Map.set(img.src, b64);
+            if (b64) {
+              base64Map.set(img.src, b64);
+            } else {
+              corsImagesCount++;
+            }
           }
         }));
+
+        if (corsImagesCount > 0) {
+          logStep(`Atenção: ${corsImagesCount} imagens podem causar erro de segurança (CORS).`);
+        }
 
         logStep(`Passo 3: Renderizando html2canvas (${format.toUpperCase()})`);
         setGenerationStep('Renderizando imagem A4...')
         setGenerationProgress(60)
+
 
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
@@ -1664,8 +1685,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
-              logging: false,
+              logging: true, // Habilitar logs internos do html2canvas para depuração
               imageTimeout: 30000,
+              scrollX: 0,
+              scrollY: -window.scrollY, // Compensa scroll da página
+
               onclone: (clonedDoc) => {
                 logStep('onclone: Preparando clone para imagem A4');
                 const clonedElement = clonedDoc.getElementById('flyer-content');
@@ -1694,7 +1718,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
                     el.style.filter = 'none'; 
+                    el.style.mixBlendMode = 'normal'; // Desabilita mix-blend-mode no clone para evitar erros
                     el.style.fontVariantNumeric = 'tabular-nums';
+
                     
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
@@ -1775,21 +1801,30 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         console.error('Error in handleDownloadImage:', err)
         toast.dismiss(loadingToast)
         
-        let errorMessage = 'Erro ao gerar imagem do encarte.';
-        let description = 'Algum elemento ou imagem impediu a criação do arquivo. Tente atualizar a página.';
+        let errorMessage = 'Falha técnica ao gerar arquivo.';
+        let description = 'O navegador encontrou um erro ao processar os elementos gráficos.';
         
-        if (err.message === 'CANVAS_TAINTED' || (err.name === 'SecurityError')) {
-          description = 'Alguma imagem externa impediu a criação do arquivo por segurança (CORS). Remova imagens de sites externos.';
+        if (err.name === 'SecurityError' || err.message?.includes('tainted') || err.message?.includes('SecurityError')) {
+          errorMessage = 'Bloqueio de Segurança (CORS)';
+          description = 'Imagens externas impediram a criação do arquivo. Tente remover imagens de outros sites ou use a Impressão Direta.';
         } else if (err.message === 'EMPTY_IMAGE') {
-          description = 'A imagem gerada está vazia. Tente usar uma escala menor ou menos produtos.';
-        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large')) {
-          description = 'O arquivo é muito grande para o seu navegador. Tente um encarte com menos produtos.';
+          description = 'O arquivo gerado ficou vazio. Tente com menos produtos.';
+        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large') || err.message?.includes('memory')) {
+          description = 'Encarte muito complexo para seu aparelho. Tente reduzir o número de produtos.';
+        } else if (err.message) {
+          description = `Erro: ${err.message.substring(0, 100)}`;
         }
         
         toast.error(errorMessage, { 
           description,
-          duration: 10000 
+          duration: 15000 
         });
+
+        logStep(`ERRO FINAL: ${errorMessage} - ${description}`);
+        if (err.stack) logStep(`Stack: ${err.stack.substring(0, 200)}`);
+
+
+
 
 
 
