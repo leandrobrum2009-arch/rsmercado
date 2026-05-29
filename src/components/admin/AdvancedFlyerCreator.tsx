@@ -1574,7 +1574,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
     const handleDownloadImage = async (format: 'png' | 'jpg' = 'jpg') => {
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Conteúdo do encarte não encontrado')
+        toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
         return
       }
 
@@ -1582,25 +1582,37 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       setUploading(true)
       setGenerationProgress(5)
       setGenerationStep('Iniciando...')
-      const loadingToast = toast.loading(`Gerando imagem ${format.toUpperCase()} de alta resolução...`)
+      const loadingToast = toast.loading(`Gerando imagem ${format.toUpperCase()}...`)
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
         logStep('Passo 1: Carregando recursos para download');
         setGenerationStep('Carregando imagens...')
         setGenerationProgress(20)
+        
         const images = Array.from(element.getElementsByTagName('img'));
+        let failedImagesCount = 0;
+        
         await Promise.all([
           ...images.map((img, i) => {
-            if (img.complete) return Promise.resolve();
+            if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
-              const timer = setTimeout(() => resolve(null), 5000);
+              const timer = setTimeout(() => {
+                logStep(`Imagem download ${i+1} TIMEOUT`);
+                failedImagesCount++;
+                resolve(null);
+              }, 8000);
               img.onload = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} OK`); resolve(null); };
-              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
+              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); failedImagesCount++; resolve(null); };
             });
           }),
           document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
         ]);
+
+        if (failedImagesCount > 0) {
+          logStep(`${failedImagesCount} imagens falharam ao carregar, mas tentaremos gerar mesmo assim.`);
+        }
+
 
         logStep('Passo 2: Renderizando html2canvas para download');
         setGenerationStep('Renderizando imagem A4...')
@@ -1609,9 +1621,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
           try {
+            // Garante que o elemento original esteja visível e com dimensões estáveis
+            if (element) {
+              element.scrollIntoView({ block: 'center' });
+            }
+
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false,
+              allowTaint: false, // Importante para toDataURL funcionar
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: false,
@@ -1637,6 +1654,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
 
+                  // Desativar efeitos que html2canvas não suporta ou que causam bugs
                   const allElements = clonedElement.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.setProperty('transition', 'none', 'important');
@@ -1644,8 +1662,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
+                    el.style.filter = 'none'; // Desativar filtros complexos
                     el.style.fontVariantNumeric = 'tabular-nums';
                     
+                    // Se for imagem, tenta garantir que crossOrigin esteja lá (redundância)
+                    if (el.tagName === 'IMG') {
+                      el.crossOrigin = 'anonymous';
+                    }
+
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className
                         .replace(/\banimate-\S+/g, '')
@@ -1665,9 +1689,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           }
         };
 
+
         let canvas: HTMLCanvasElement;
         try {
-          // Tentamos escala 3 para alta qualidade (aprox 300 DPI para A4)
+          // Tentamos escala 3 para alta qualidade
           canvas = await generateImageCanvas(3);
         } catch (firstErr) {
           logStep('Erro escala 3, tentando escala 2...', firstErr);
@@ -1675,7 +1700,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             canvas = await generateImageCanvas(2);
           } catch (secondErr) {
             logStep('Erro escala 2, tentando escala 1.5...', secondErr);
-            canvas = await generateImageCanvas(1.5);
+            try {
+              canvas = await generateImageCanvas(1.5);
+            } catch (thirdErr) {
+              logStep('Erro escala 1.5, tentando escala 1 (compatibilidade máxima)...', thirdErr);
+              canvas = await generateImageCanvas(1);
+            }
           }
         }
 
@@ -1689,9 +1719,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         
         let image = '';
         try {
+          // Tentar gerar a URL da imagem. Se houver erro de CORS, o navegador lança SecurityError aqui.
           image = canvas.toDataURL(mimeType, quality);
-        } catch (exportError) {
-          logStep('Erro ao exportar canvas (possível problema de CORS):', exportError);
+        } catch (exportError: any) {
+          logStep('Erro fatal ao exportar canvas (CORS/SecurityError):', exportError);
+          // Se falhou por CORS, tentamos uma última vez permitindo "taint" mas sem poder baixar se for o caso
+          // Na verdade, se falhou aqui, o canvas já está "sujo"
           throw new Error('CANVAS_TAINTED');
         }
         
@@ -1711,19 +1744,26 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         toast.dismiss(loadingToast)
         toast.success(`${format.toUpperCase()} baixado com sucesso!`)
       } catch (err: any) {
-        console.error('Error generating image:', err)
+        console.error('Error in handleDownloadImage:', err)
         toast.dismiss(loadingToast)
         
-        let errorMessage = 'Não foi possível gerar a imagem.';
-        let description = 'Verifique se há imagens de outros sites no encarte ou tente novamente.';
+        let errorMessage = 'Erro ao gerar imagem do encarte.';
+        let description = 'Algum elemento ou imagem impediu a criação do arquivo. Tente atualizar a página.';
         
-        if (err.message === 'CANVAS_TAINTED') {
-          description = 'Algumas imagens impediram a geração do arquivo por segurança (CORS). Tente usar imagens enviadas pelo sistema.';
+        if (err.message === 'CANVAS_TAINTED' || (err.name === 'SecurityError')) {
+          description = 'Alguma imagem externa impediu a criação do arquivo por segurança (CORS). Remova imagens de sites externos.';
         } else if (err.message === 'EMPTY_IMAGE') {
-          description = 'A imagem gerada está vazia. Tente atualizar a página.';
+          description = 'A imagem gerada está vazia. Tente usar uma escala menor ou menos produtos.';
+        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large')) {
+          description = 'O arquivo é muito grande para o seu navegador. Tente um encarte com menos produtos.';
         }
         
-        toast.error(errorMessage, { description });
+        toast.error(errorMessage, { 
+          description,
+          duration: 10000 
+        });
+
+
 
       } finally {
         setUploading(false)
