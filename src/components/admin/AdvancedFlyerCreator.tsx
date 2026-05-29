@@ -1712,20 +1712,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
 
               onclone: (clonedDoc) => {
-                logStep('onclone: Limpeza agressiva de cores e estilos incompatíveis');
+                logStep('onclone: Sanitizando cores e limpando estilos incompatíveis');
                 
-                // 1. Limpar TODAS as tags de estilo que usem funções modernas de cor
-                const styleTags = clonedDoc.getElementsByTagName('style');
-                for (let i = 0; i < styleTags.length; i++) {
-                  const css = styleTags[i].innerHTML;
-                  if (css.includes('oklch') || css.includes('color-mix') || css.includes('var(')) {
-                    // Substituir funções problemáticas por cores sólidas seguras
-                    styleTags[i].innerHTML = css
-                      .replace(/oklch\([^)]+\)/g, '#000000')
-                      .replace(/color-mix\([^)]+\)/g, '#888888');
-                  }
-                }
-
+                // Sanitizar cores modernas (oklch, color-mix) usando a lib dedicada
+                sanitizeClonedDocColors(clonedDoc);
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
@@ -1749,7 +1739,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   const allElements = clonedElement.querySelectorAll('*');
                   
                   allElements.forEach((el: any) => {
-                    // 2. Limpar animações e filtros que quebram o canvas
+                    // Limpar animações e filtros que quebram o canvas
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1759,41 +1749,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // 3. Forçar cores computadas para evitar oklch() e funções modernas
-                    try {
-                      const computedStyle = window.getComputedStyle(el);
-                      
-                      // html2canvas trava em oklch, color-mix, etc.
-                      // window.getComputedStyle() normalmente retorna RGB, o que é perfeito
-                      const forceRGB = (prop: string) => {
-                        const val = (computedStyle as any)[prop];
-                        if (val && (val.includes('oklch') || val.includes('color-mix'))) {
-                           // Fallback se o navegador ainda retornar oklch no computed
-                           el.style.setProperty(prop, '#000000', 'important');
-                        } else if (val) {
-                           el.style.setProperty(prop, val, 'important');
-                        }
-                      };
-
-                      forceRGB('color');
-                      forceRGB('backgroundColor');
-                      forceRGB('borderColor');
-                      forceRGB('outlineColor');
-
-                    } catch (e) {
-                      const s = el.getAttribute('style');
-                      if (s && s.includes('oklch')) {
-                        el.setAttribute('style', s.replace(/oklch\([^)]+\)/g, 'inherit'));
-                      }
-                    }
-
-
-                    // 4. Tratamento de Imagens
+                    // Tratamento de Imagens
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
-                        logStep(`Imagem OK: ${originalSrc.substring(0, 20)}...`);
                       }
                       el.crossOrigin = 'anonymous';
                     }
@@ -1808,7 +1768,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bdelay-\S+/g, '');
                     }
                   });
-
                 }
               }
 
