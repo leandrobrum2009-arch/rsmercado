@@ -413,7 +413,8 @@ Limpar
 </Button>
 </DialogTitle>
 </DialogHeader>
-<div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
+<div className="flex-1 overflow-y-auto p-6 pt-4">
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 {filteredProducts.map(p => (
 <div key={p.id} className="border rounded p-2 text-center space-y-2">
 <img src={p.image_url} className="w-20 h-20 object-cover mx-auto rounded" />
