@@ -161,7 +161,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
          const [showPreviewModal, setShowPreviewModal] = useState(false)
          const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
        const [printImage, setPrintImage] = useState<string | null>(null)
-        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+    const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+    const [isStoryGenOpen, setIsStoryGenOpen] = useState(false)
+    const [selectedFlyerForStory, setSelectedFlyerForStory] = useState<any>(null)
+    
         const [generationProgress, setGenerationProgress] = useState(0)
         const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
