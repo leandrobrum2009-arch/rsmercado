@@ -193,7 +193,10 @@ scale: 4, // Higher scale for extreme detail
 backgroundColor: '#ffffff',
 logging: false,
 imageTimeout: 60000,
-allowTaint: true
+allowTaint: true,
+onclone: (clonedDoc) => {
+  sanitizeClonedDocColors(clonedDoc);
+}
 });
 
 // Restore everything
