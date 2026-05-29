@@ -12,6 +12,7 @@ import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, I
 import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
 import { toast } from '@/lib/toast'
+import { sanitizeClonedDocColors } from '@/lib/sanitizeColors'
 type FlyerProduct = {
 id: string
 name: string
