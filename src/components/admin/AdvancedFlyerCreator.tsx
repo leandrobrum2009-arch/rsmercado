@@ -3054,8 +3054,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                              )}
                            </div>
                          </div>
-                       </DialogHeader>
-                       </DialogHeader>
+                        </DialogHeader>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
                         {filteredProducts.length > 0 ? (
                           filteredProducts.map(p => (
