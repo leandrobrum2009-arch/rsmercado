@@ -1685,8 +1685,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
-              logging: false,
+              logging: true, // Habilitar logs internos do html2canvas para depuração
               imageTimeout: 30000,
+              scrollX: 0,
+              scrollY: -window.scrollY, // Compensa scroll da página
+
               onclone: (clonedDoc) => {
                 logStep('onclone: Preparando clone para imagem A4');
                 const clonedElement = clonedDoc.getElementById('flyer-content');
