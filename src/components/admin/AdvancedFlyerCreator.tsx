@@ -1729,15 +1729,40 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.top = '0';
 
                   const allElements = clonedElement.querySelectorAll('*');
+                  
+                  // Função para converter oklch para rgb (aproximado/fallback)
+                  // Já que html2canvas falha ao ler oklch, vamos forçar cores seguras
                   allElements.forEach((el: any) => {
+                    // Limpar estilos problemáticos
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
                     el.style.filter = 'none'; 
-                    el.style.mixBlendMode = 'normal'; // Desabilita mix-blend-mode no clone para evitar erros
+                    el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
+
+                    // Correção para cores oklch (Tailwind v4 default)
+                    // html2canvas falha miseravelmente ao encontrar 'oklch'
+                    // Vamos tentar forçar cores computadas para RGB
+                    try {
+                      const style = window.getComputedStyle(el);
+                      
+                      // Verificar propriedades comuns que podem ter oklch
+                      const colorProps = ['color', 'backgroundColor', 'borderColor', 'outlineColor'];
+                      colorProps.forEach(prop => {
+                        const val = el.style[prop] || style[prop as any];
+                        if (val && val.includes('oklch')) {
+                          // Fallback agressivo: se tiver oklch, tenta pegar a cor computada real do elemento original
+                          // Se não for possível, removemos para evitar o crash
+                          el.style[prop] = 'inherit'; 
+                        }
+                      });
+                    } catch (e) {
+                      // Silencioso se getComputedStyle falhar
+                    }
+
 
                     
                     if (el.tagName === 'IMG') {
