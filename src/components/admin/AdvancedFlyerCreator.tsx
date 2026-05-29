@@ -1709,19 +1709,20 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               scrollY: -window.scrollY, // Compensa scroll da página
 
               onclone: (clonedDoc) => {
-                logStep('onclone: Preparando clone e limpando cores oklch');
+                logStep('onclone: Limpeza agressiva de cores e estilos incompatíveis');
                 
-                // Remover ou substituir oklch de todos os style tags no clone
-                // Tailwind v4 injeta muitos oklch() que travam o html2canvas
+                // 1. Limpar TODAS as tags de estilo que usem funções modernas de cor
                 const styleTags = clonedDoc.getElementsByTagName('style');
                 for (let i = 0; i < styleTags.length; i++) {
-                  if (styleTags[i].innerHTML.includes('oklch')) {
-                    // Substituição rústica: oklch(...) -> rgb(0,0,0) ou similar
-                    // Melhor apenas remover a propriedade que usa oklch se possível, 
-                    // mas aqui vamos tentar apenas limpar o termo para não quebrar o parser
-                    styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/g, 'rgb(0,0,0)');
+                  const css = styleTags[i].innerHTML;
+                  if (css.includes('oklch') || css.includes('color-mix') || css.includes('var(')) {
+                    // Substituir funções problemáticas por cores sólidas seguras
+                    styleTags[i].innerHTML = css
+                      .replace(/oklch\([^)]+\)/g, '#000000')
+                      .replace(/color-mix\([^)]+\)/g, '#888888');
                   }
                 }
+
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
