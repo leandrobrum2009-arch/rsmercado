@@ -2954,9 +2954,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    <DialogTrigger asChild>
                      <Button size="sm" variant="outline" className="h-7 text-[10px] font-black uppercase"><Plus className="w-3 h-3 mr-1" /> Adicionar</Button>
                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl w-[95vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0">
-                       <DialogHeader className="p-6 pb-2 space-y-4 shrink-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <DialogContent className="max-w-5xl w-[98vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0 bg-white shadow-2xl">
+                       <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 max-w-full overflow-hidden">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                             <DialogTitle className="flex items-center gap-2">
                               <span>Selecionar Produtos</span>
                               <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
@@ -2994,8 +2994,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                          
-                          <div className="w-full overflow-hidden shrink-0">
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-zinc-100 w-full min-h-[40px] px-1 scrollbar-thin">
+                          <div className="w-full relative overflow-hidden shrink-0 mt-2">
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2 w-full no-scrollbar px-1 flex-nowrap scroll-smooth">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
@@ -3056,7 +3056,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                         </DialogHeader>
-                      <div className="flex-1 overflow-y-auto p-6 pt-2">
+                      <div className="flex-1 overflow-y-auto p-4 md:p-6 pt-2 min-h-0">
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           {filteredProducts.length > 0 ? (
                             filteredProducts.map(p => (
