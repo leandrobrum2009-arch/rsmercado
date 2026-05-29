@@ -564,12 +564,26 @@ export function ProductManagement() {
                  className="h-9 w-9"
                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                >
-                 {sortOrder === 'asc' ? '↑' : '↓'}
-               </Button>
-             </div>
-           </div>
-         </div>
-       </div>
+                  {sortOrder === 'asc' ? '↑' : '↓'}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-[10px] font-black uppercase text-zinc-400 hover:text-zinc-600 h-7"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedBrand('all');
+                setSelectedCategory('all');
+              }}
+            >
+              <LucideIcons.Eraser className="w-3 h-3 mr-1" /> Limpar Filtros
+            </Button>
+          </div>
+        </div>
          <div className="flex items-center gap-3">
            <h2 className="text-xl font-semibold uppercase font-black italic">Catálogo de Produtos</h2>
            <Button 
