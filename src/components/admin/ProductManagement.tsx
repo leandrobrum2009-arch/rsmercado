@@ -634,7 +634,18 @@ export function ProductManagement() {
                   </div>
                   <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Código (SKU/EAN)</Label>
-                    <Input placeholder="Código de barras..." value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} />
+                    <div className="flex gap-2">
+                      <Input placeholder="Código de barras..." value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-10 w-10 border-2"
+                        onClick={() => setBarcodeScannerOpen(true)}
+                      >
+                        <Camera size={18} />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
