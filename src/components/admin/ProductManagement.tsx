@@ -381,9 +381,13 @@ export function ProductManagement() {
         tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : [],
         unit: newProduct.unit || 'un',
         is_weight_based: newProduct.is_weight_based || false,
-        sku: newProduct.sku,
         is_available: newProduct.is_available ?? true
       };
+
+      // Only add SKU if it's provided to avoid issues with schema cache or empty strings
+      if (newProduct.sku && newProduct.sku.trim() !== '') {
+        productData.sku = newProduct.sku.trim();
+      }
  
      let error;
      if (isEditing) {
