@@ -381,8 +381,8 @@ Produtos ({selectedProducts.length}/12)
 <DialogTrigger asChild>
 <Button size="sm" variant="outline"><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
 </DialogTrigger>
-<DialogContent className="max-w-4xl w-[95vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0">
-<DialogHeader className="p-6 pb-2 space-y-4 shrink-0 border-b">
+<DialogContent className="max-w-5xl w-[98vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0 bg-white shadow-2xl">
+<DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50">
 <DialogTitle className="flex items-center justify-between">
 <span>Selecionar Produtos</span>
 <div className="flex items-center gap-2 mr-8">
