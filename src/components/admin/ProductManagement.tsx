@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram, Search, ExternalLink, Camera } from 'lucide-react'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
