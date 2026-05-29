@@ -847,6 +847,7 @@ export function ProductManagement() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
 
