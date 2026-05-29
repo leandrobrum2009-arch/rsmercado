@@ -131,7 +131,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (voice) utterance.voice = voice
     }
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.1
+    utterance.rate = 1.0 // Natural speed
     window.speechSynthesis.speak(utterance)
   }
 
