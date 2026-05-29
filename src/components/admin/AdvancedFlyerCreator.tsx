@@ -2995,7 +2995,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                          </div>
                          
                           <div className="w-full shrink-0 mt-2">
-                            <div className="flex flex-wrap items-center gap-2 px-1 pb-2">
+                            <div className="flex flex-wrap items-center gap-2 px-1 pb-2 w-full">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
