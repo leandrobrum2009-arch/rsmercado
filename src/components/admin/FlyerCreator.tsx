@@ -244,6 +244,9 @@ scale: 3,
 backgroundColor: '#ffffff',
 logging: false,
 imageTimeout: 60000,
+onclone: (clonedDoc) => {
+  sanitizeClonedDocColors(clonedDoc);
+}
 })
 
 // Restaura as srcs originais
