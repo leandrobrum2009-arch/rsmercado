@@ -2034,7 +2034,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
                   </CardTitle>
                   <button 
-                    onClick={() => setShowLogHistory(true)}
+                    onClick={() => setShowLogViewer(true)}
+
                     className="text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors text-left"
                   >
                     Ver Log de Sistema
