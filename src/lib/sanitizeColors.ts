@@ -119,6 +119,7 @@ export function sanitizeClonedDocColors(clonedDoc: Document): void {
   // 3) Estilos inline por elemento (longhands de cor)
   const all = clonedDoc.querySelectorAll('*')
   all.forEach((el: any) => {
+    // 3) Sanitize individual properties
     let cs: CSSStyleDeclaration | null = null
     try {
       cs = window.getComputedStyle(el)
@@ -126,16 +127,38 @@ export function sanitizeClonedDocColors(clonedDoc: Document): void {
       cs = null
     }
     if (!cs) return
+    
     for (let p = 0; p < COLOR_PROPS.length; p++) {
       const prop = COLOR_PROPS[p]
       const val = cs.getPropertyValue(prop)
       if (val && MODERN_RE.test(val)) {
         try {
           el.style.setProperty(prop, sanitizeValue(val), 'important')
-        } catch {
-          /* ignora propriedade individual */
+        } catch { /* ignore */ }
+      }
+    }
+
+    // 4) Sanitize CSS Variables (especially on root or elements that might have them)
+    // We can iterate through the element's style or known common variables
+    const style = el.style;
+    if (style && style.length > 0) {
+      for (let i = 0; i < style.length; i++) {
+        const name = style[i];
+        if (name.startsWith('--')) {
+          const val = style.getPropertyValue(name);
+          if (val && MODERN_RE.test(val)) {
+            style.setProperty(name, sanitizeValue(val), 'important');
+          }
         }
       }
     }
   })
+
+  // 5) Special check for the root element variables if not caught above
+  const root = clonedDoc.documentElement;
+  if (root) {
+    const rootStyle = window.getComputedStyle(root);
+    // Since we can't easily iterate all computed variables, we look at the inline style at least
+    // or just rely on the fact that getComputedStyle for elements will resolve them.
+  }
 }
