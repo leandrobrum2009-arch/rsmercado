@@ -381,7 +381,7 @@ Produtos ({selectedProducts.length}/12)
 <DialogTrigger asChild>
 <Button size="sm" variant="outline"><Plus className="w-4 h-4 mr-1" /> Adicionar</Button>
 </DialogTrigger>
-<DialogContent className="max-w-3xl">
+<DialogContent className="max-w-4xl w-[95vw] md:w-full overflow-hidden flex flex-col max-h-[90vh]">
 <DialogHeader>
 <DialogTitle className="flex items-center justify-between">
 <span>Selecionar Produtos</span>
