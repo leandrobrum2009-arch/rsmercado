@@ -163,7 +163,8 @@ export function ProductManagement() {
      .filter(p => {
         const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+                            p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
        const matchesBrand = selectedBrand === 'all' || p.brand === selectedBrand
        const matchesCategory = selectedCategory === 'all' || p.category_id === selectedCategory
        return matchesSearch && matchesBrand && matchesCategory
