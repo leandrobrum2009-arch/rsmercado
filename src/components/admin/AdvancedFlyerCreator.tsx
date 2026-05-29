@@ -1179,12 +1179,13 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       setSelectedProducts(updated)
     }
  
-      const logStep = (step: string, data?: any) => {
+      const logStep = (step: string, data?: any, isBlocker: boolean = false) => {
         const timestamp = new Date().toLocaleTimeString();
-        const logLine = `[${timestamp}] ${step}${data ? ' ' + JSON.stringify(data) : ''}`;
-        console.log(`[FlyerGen]${logLine}`);
-        setLogHistory(prev => [...prev.slice(-49), logLine]);
+        const logMsg = `${step}${data ? ' ' + (typeof data === 'string' ? data : JSON.stringify(data)) : ''}`;
+        console.log(`[FlyerGen] [${timestamp}] ${isBlocker ? '!!! ' : ''}${logMsg}`);
+        setLogHistory(prev => [...prev.slice(-49), { msg: logMsg, time: timestamp, isBlocker }]);
       };
+
 
       const handlePrint = async (shouldSave = true, silentSave = false) => {
       logStep('Iniciando handlePrint', { products: selectedProducts.length, shouldSave });
