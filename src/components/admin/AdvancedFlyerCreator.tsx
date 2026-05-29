@@ -1797,9 +1797,16 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bslide-in\S*/g, '')
                         .replace(/\bdelay-\S+/g, '');
                     }
+
+                    // Limpeza final de qualquer oklch residual nos estilos inline
+                    const styleAttr = el.getAttribute('style');
+                    if (styleAttr && styleAttr.includes('oklch')) {
+                      el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, 'inherit'));
+                    }
                   });
                 }
               }
+
             });
           } catch (error) {
             logStep(`Erro no html2canvas (escala ${customScale}):`, error);
