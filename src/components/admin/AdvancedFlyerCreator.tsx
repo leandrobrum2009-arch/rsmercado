@@ -1812,17 +1812,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Começamos com escala 2 que é estável e de boa qualidade para A4
-          canvas = await generateImageCanvas(2);
+          // Usar escala 1.5 por padrão para equilíbrio entre qualidade e memória
+          canvas = await generateImageCanvas(1.5);
         } catch (firstErr) {
-          logStep('Erro escala 2, tentando escala 1.5...', firstErr);
-          try {
-            canvas = await generateImageCanvas(1.5);
-          } catch (secondErr) {
-            logStep('Erro escala 1.5, tentando escala 1...', secondErr);
-            canvas = await generateImageCanvas(1);
-          }
+          logStep('Falha na escala 1.5, tentando escala 1...', firstErr);
+          canvas = await generateImageCanvas(1);
         }
+
+
+        logStep('Passo 4: Finalizando arquivo de imagem');
+        setGenerationStep('Gerando download...');
+        setGenerationProgress(90)
+
 
 
         logStep('Passo 3: Finalizando arquivo de imagem');
