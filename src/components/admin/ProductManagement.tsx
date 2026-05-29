@@ -381,7 +381,8 @@ export function ProductManagement() {
         tags: newProduct.tags ? (Array.isArray(newProduct.tags) ? newProduct.tags : newProduct.tags.split(',').map(t => t.trim())) : [],
         unit: newProduct.unit || 'un',
         is_weight_based: newProduct.is_weight_based || false,
-        sku: newProduct.sku
+        sku: newProduct.sku,
+        is_available: newProduct.is_available ?? true
       };
  
      let error;

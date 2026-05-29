@@ -845,6 +845,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      promote_to_admin: { Args: { secret_key: string }; Returns: Json }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
