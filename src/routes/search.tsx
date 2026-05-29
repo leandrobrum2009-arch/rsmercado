@@ -2,7 +2,10 @@
  import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ProductCard } from '@/components/ProductCard'
-import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag } from 'lucide-react'
+import { Loader2, Search as SearchIcon, ArrowLeft, Tag, ShoppingBag, Camera } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
+import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/search')({
    validateSearch: (search: Record<string, unknown>): { q?: string; category?: string; tag?: string } => {
@@ -35,7 +38,8 @@ export const Route = createFileRoute('/search')({
   const [loading, setLoading] = useState(true)
   const [multiplier, setMultiplier] = useState(1)
   const [categories, setCategories] = useState<any[]>([])
-  const [activeCategory, setActiveCategory] = useState<any>(null)
+   const [activeCategory, setActiveCategory] = useState<any>(null)
+   const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -110,13 +114,20 @@ export const Route = createFileRoute('/search')({
           </Link>
            <div className="flex-1 relative">
              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-             <form onSubmit={handleSearch}>
+             <form onSubmit={handleSearch} className="flex gap-2">
                <input 
                  value={inputValue}
                  onChange={(e) => setInputValue(e.target.value)}
                  placeholder="O que você procura?"
-                 className="w-full bg-white rounded-2xl py-3 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
+                 className="flex-1 bg-white rounded-2xl py-3 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
                />
+               <Button 
+                type="button"
+                onClick={() => setBarcodeScannerOpen(true)}
+                className="bg-white/20 hover:bg-white/30 text-white rounded-2xl px-3 border-none h-auto"
+               >
+                 <Camera size={20} />
+               </Button>
              </form>
            </div>
         </div>
@@ -194,7 +205,20 @@ export const Route = createFileRoute('/search')({
             </Link>
           </div>
         )}
-      </div>
     </div>
-  )
+
+    <BarcodeScanner 
+      isOpen={barcodeScannerOpen} 
+      onClose={() => setBarcodeScannerOpen(false)} 
+      onScan={(code) => {
+        setInputValue(code);
+        navigate({
+          to: '/search',
+          search: (prev) => ({ ...prev, q: code, category: undefined, tag: undefined })
+        });
+        toast.success(`Buscando por: ${code}`);
+      }}
+    />
+  </div>
+ )
 }

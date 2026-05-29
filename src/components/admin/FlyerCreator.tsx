@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
- import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare } from 'lucide-react'
+ import { Loader2, Plus, Trash2, Printer, Download, Instagram, Layout, Palette, Image as ImageIcon, MessageSquare, Camera } from 'lucide-react'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
   import { sendWhatsAppMessage, formatWhatsAppMessage, getWhatsAppTemplates } from '@/lib/whatsapp'
  import { toast } from '@/lib/toast'
 type FlyerProduct = {
@@ -63,7 +64,8 @@ export function FlyerCreator() {
  
   const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
    const [allProducts, setAllProducts] = useState<any[]>([])
-   const [productSearchTerm, setProductSearchTerm] = useState('')
+    const [productSearchTerm, setProductSearchTerm] = useState('')
+    const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
 
     const filteredProducts = allProducts.filter(p => 
       p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -333,13 +335,23 @@ export function FlyerCreator() {
                     <DialogHeader>
                       <DialogTitle className="flex items-center justify-between">
                         <span>Selecionar Produtos</span>
-                        <div className="relative w-64 mr-8">
-                          <Input 
-                            placeholder="Buscar produto..." 
-                            value={productSearchTerm}
-                            onChange={(e) => setProductSearchTerm(e.target.value)}
-                            className="h-8 text-xs"
-                          />
+                        <div className="flex items-center gap-2 mr-8">
+                          <div className="relative w-64">
+                            <Input 
+                              placeholder="Buscar produto..." 
+                              value={productSearchTerm}
+                              onChange={(e) => setProductSearchTerm(e.target.value)}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8 shrink-0 border-2"
+                            onClick={() => setBarcodeScannerOpen(true)}
+                          >
+                            <Camera size={14} />
+                          </Button>
                         </div>
                       </DialogTitle>
                     </DialogHeader>
@@ -576,6 +588,14 @@ export function FlyerCreator() {
            }
          }
        `}</style>
-    </div>
-  )
-}
+       <BarcodeScanner 
+         isOpen={barcodeScannerOpen} 
+         onClose={() => setBarcodeScannerOpen(false)} 
+         onScan={(code) => {
+           setProductSearchTerm(code);
+           toast.success(`Buscando por: ${code}`);
+         }}
+       />
+     </div>
+   )
+ }

@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram, Search, ExternalLink, Camera } from 'lucide-react'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { SmartImage } from '@/components/ui/SmartImage'
  import { Switch } from '@/components/ui/switch'
  import { toast } from '@/lib/toast'
@@ -211,6 +212,7 @@ export function ProductManagement() {
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [searchDialogOpen, setSearchDialogOpen] = useState(false)
+  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
   const [imageSearchQuery, setImageSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<string[]>([])
   const [searching, setSearching] = useState(false)
@@ -490,15 +492,25 @@ export function ProductManagement() {
  
        <div className="bg-white p-4 border-2 border-zinc-100 rounded-xl shadow-sm space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
-              <Input 
-                placeholder="Nome, marca ou código..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 text-xs"
-              />
-            </div>
+             <div className="space-y-1">
+               <Label className="text-[10px] uppercase font-black text-zinc-500">Buscar Produto</Label>
+               <div className="flex gap-2">
+                 <Input 
+                   placeholder="Nome, marca ou código..." 
+                   value={searchQuery} 
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="h-9 text-xs"
+                 />
+                 <Button 
+                   variant="outline" 
+                   size="icon" 
+                   className="h-9 w-9 shrink-0 border-2 border-zinc-100"
+                   onClick={() => setBarcodeScannerOpen(true)}
+                 >
+                   <Camera size={16} className="text-zinc-400" />
+                 </Button>
+               </div>
+             </div>
            <div className="space-y-1">
              <Label className="text-[10px] uppercase font-black text-zinc-500">Marca</Label>
              <Select value={selectedBrand} onValueChange={setSelectedBrand}>
@@ -622,7 +634,18 @@ export function ProductManagement() {
                   </div>
                   <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Código (SKU/EAN)</Label>
-                    <Input placeholder="Código de barras..." value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} />
+                    <div className="flex gap-2">
+                      <Input placeholder="Código de barras..." value={newProduct.sku} onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})} />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-10 w-10 border-2"
+                        onClick={() => setBarcodeScannerOpen(true)}
+                      >
+                        <Camera size={18} />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2 col-span-2 md:col-span-1">
                     <Label className="text-[10px] uppercase font-bold text-zinc-400">Preço Anterior (De)</Label>
@@ -1034,6 +1057,20 @@ export function ProductManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScanner 
+        isOpen={barcodeScannerOpen} 
+        onClose={() => setBarcodeScannerOpen(false)} 
+        onScan={(code) => {
+          if (isProductDialogOpen) {
+            setNewProduct(prev => ({ ...prev, sku: code }));
+            toast.success(`Código escaneado: ${code}`);
+          } else {
+            setSearchQuery(code);
+            toast.success(`Buscando por: ${code}`);
+          }
+        }}
+      />
     </div>
   )
 }

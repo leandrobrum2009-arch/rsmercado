@@ -11,7 +11,8 @@ import { jsPDF } from 'jspdf'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
  import { Progress } from '@/components/ui/progress'
-import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X, Camera } from 'lucide-react'
+import { BarcodeScanner } from '@/components/BarcodeScanner'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
@@ -112,7 +113,8 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
     const [templates, setTemplates] = useState<any[]>([]) // Local templates
     const [dbTemplates, setDbTemplates] = useState<any[]>([]) // Database templates
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
-    const [templateName, setTemplateName] = useState('')
+     const [templateName, setTemplateName] = useState('')
+     const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
@@ -2828,24 +2830,34 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
                                  {filteredProducts.length} encontrados
                                </span>
                              </div>
-                             <div className="relative w-64 mr-8">
-                               <Input 
-                                 placeholder="Buscar produto..." 
-                                 value={productSearchTerm}
-                                 onChange={(e) => setProductSearchTerm(e.target.value)}
-                                 className="h-8 text-xs pr-8"
-                               />
-                               {productSearchTerm && (
-                                 <Button 
-                                   variant="ghost" 
-                                   size="icon" 
-                                   className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
-                                   onClick={() => setProductSearchTerm('')}
-                                 >
-                                   <X className="w-3 h-3" />
-                                 </Button>
-                               )}
-                             </div>
+                              <div className="flex items-center gap-2 mr-8">
+                                <div className="relative w-64">
+                                  <Input 
+                                    placeholder="Buscar produto..." 
+                                    value={productSearchTerm}
+                                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                                    className="h-8 text-xs pr-8"
+                                  />
+                                  {productSearchTerm && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                      onClick={() => setProductSearchTerm('')}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-8 w-8 shrink-0 border-2"
+                                  onClick={() => setBarcodeScannerOpen(true)}
+                                >
+                                  <Camera className="w-4 h-4" />
+                                </Button>
+                              </div>
                            </div>
                            
                            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2">
@@ -3200,6 +3212,14 @@ import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Pale
           transition-delay: 0s !important;
         }
       `}</style>
+      <BarcodeScanner 
+        isOpen={barcodeScannerOpen} 
+        onClose={() => setBarcodeScannerOpen(false)} 
+        onScan={(code) => {
+          setProductSearchTerm(code);
+          toast.success(`Buscando por: ${code}`);
+        }}
+      />
       </>
     )
   }
