@@ -849,7 +849,6 @@ export function ProductManagement() {
           </Dialog>
           </div>
         </div>
-      </div>
 
       <div className="border-2 border-zinc-100 rounded-xl bg-white overflow-hidden shadow-sm">
         <Table>
