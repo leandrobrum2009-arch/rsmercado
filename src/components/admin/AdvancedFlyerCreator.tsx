@@ -2830,24 +2830,34 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                                  {filteredProducts.length} encontrados
                                </span>
                              </div>
-                             <div className="relative w-64 mr-8">
-                               <Input 
-                                 placeholder="Buscar produto..." 
-                                 value={productSearchTerm}
-                                 onChange={(e) => setProductSearchTerm(e.target.value)}
-                                 className="h-8 text-xs pr-8"
-                               />
-                               {productSearchTerm && (
-                                 <Button 
-                                   variant="ghost" 
-                                   size="icon" 
-                                   className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
-                                   onClick={() => setProductSearchTerm('')}
-                                 >
-                                   <X className="w-3 h-3" />
-                                 </Button>
-                               )}
-                             </div>
+                              <div className="flex items-center gap-2 mr-8">
+                                <div className="relative w-64">
+                                  <Input 
+                                    placeholder="Buscar produto..." 
+                                    value={productSearchTerm}
+                                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                                    className="h-8 text-xs pr-8"
+                                  />
+                                  {productSearchTerm && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="absolute right-0 top-0 h-8 w-8 text-zinc-400 hover:text-zinc-600"
+                                      onClick={() => setProductSearchTerm('')}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-8 w-8 shrink-0 border-2"
+                                  onClick={() => setBarcodeScannerOpen(true)}
+                                >
+                                  <Camera className="w-4 h-4" />
+                                </Button>
+                              </div>
                            </div>
                            
                            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-zinc-100 mb-2">
