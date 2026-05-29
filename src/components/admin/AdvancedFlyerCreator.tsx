@@ -1816,6 +1816,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           duration: 15000 
         });
 
+        logStep(`ERRO FINAL handleDownloadImage: ${errorMessage} - ${description}`);
+        if (err.stack) logStep(`Stack trace: ${err.stack.substring(0, 200)}...`);
+
+
 
 
 
