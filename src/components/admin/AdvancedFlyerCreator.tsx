@@ -1705,24 +1705,23 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           try {
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false, 
+              allowTaint: true, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: true, 
-              imageTimeout: 30000,
+              imageTimeout: 60000,
               width: 794,
               height: 1123,
-
-
               onclone: (clonedDoc) => {
-                logStep('onclone: Sanitizando cores e limpando estilos incompatíveis');
+                logStep('onclone: Aplicando fidelidade de impressão e removendo incompatibilidades');
                 
-                // Sanitizar cores modernas (oklch, color-mix) usando a lib dedicada
+                // Sanitização completa de cores modernas para evitar erro oklch()
                 sanitizeClonedDocColors(clonedDoc);
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
                 if (clonedElement) {
+                  // Forçar proporções A4 perfeitas
                   clonedElement.style.width = '794px';
                   clonedElement.style.height = '1123px';
                   clonedElement.style.transform = 'none';
@@ -1742,7 +1741,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   const allElements = clonedElement.querySelectorAll('*');
                   
                   allElements.forEach((el: any) => {
-                    // Limpar animações e filtros que quebram o canvas
+                    // Remover animações e filtros que causam lentidão ou travamentos
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1752,15 +1751,16 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // Tratamento de Imagens
+                    // Garantir que as imagens usem CORS
                     if (el.tagName === 'IMG') {
+                      el.crossOrigin = 'anonymous';
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
                       }
-                      el.crossOrigin = 'anonymous';
                     }
 
+                    // Limpar classes de animação do Tailwind
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className
                         .replace(/\banimate-\S+/g, '')
@@ -1773,7 +1773,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   });
                 }
               }
-
             });
           } catch (error) {
             logStep(`Erro no html2canvas (escala ${customScale}):`, error);
