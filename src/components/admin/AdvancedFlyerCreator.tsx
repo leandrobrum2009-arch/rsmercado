@@ -1703,10 +1703,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
-              logging: true, // Habilitar logs internos do html2canvas para depuração
+              logging: true, 
               imageTimeout: 30000,
-              scrollX: 0,
-              scrollY: -window.scrollY, // Compensa scroll da página
+              width: 794,
+              height: 1123,
+
 
               onclone: (clonedDoc) => {
                 logStep('onclone: Limpeza agressiva de cores e estilos incompatíveis');
