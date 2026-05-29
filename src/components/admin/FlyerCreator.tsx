@@ -518,11 +518,12 @@ disabled={isPreparingPrint}
 </Dialog>
 </div>
 <Button
-variant="outline"
+variant="default"
 onClick={handleDownloadImage}
 disabled={isPreparingPrint}
+className="bg-indigo-600 hover:bg-indigo-700 text-white"
 >
-<Download className="w-4 h-4 mr-2" /> Baixar Imagem
+<Download className="w-4 h-4 mr-2" /> Baixar Encarte (Alta Fidelidade)
 </Button>
 <Button variant="outline" onClick={handleWhatsAppShare} className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
