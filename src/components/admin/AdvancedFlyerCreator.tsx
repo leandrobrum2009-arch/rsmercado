@@ -1257,6 +1257,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                 imageTimeout: 30000,
                 allowTaint: false,
                 onclone: (clonedDoc) => {
+                  sanitizeClonedDocColors(clonedDoc);
                   logStep('onclone: Ajustando estilos no clone');
                   const clonedFlyer = clonedDoc.getElementById('flyer-content');
                   if (clonedFlyer) {
