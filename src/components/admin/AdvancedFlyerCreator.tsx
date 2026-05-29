@@ -13,7 +13,8 @@ import { jsPDF } from 'jspdf'
  import { Progress } from '@/components/ui/progress'
 import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X, Camera } from 'lucide-react'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { StoryGenerator } from './StoryGenerator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
  import { sanitizeClonedDocColors } from '@/lib/sanitizeColors'
@@ -160,7 +161,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
          const [showPreviewModal, setShowPreviewModal] = useState(false)
          const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
        const [printImage, setPrintImage] = useState<string | null>(null)
-        const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+    const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+    const [isStoryGenOpen, setIsStoryGenOpen] = useState(false)
+    const [selectedFlyerForStory, setSelectedFlyerForStory] = useState<any>(null)
+    
         const [generationProgress, setGenerationProgress] = useState(0)
         const [generationStep, setGenerationStep] = useState('')
         const [flyerScale, setFlyerScale] = useState(0.8)
@@ -3154,7 +3158,32 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         )}
                         Imprimir Encarte (A4)
                       </Button>
+
+                      <Button 
+                        className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-purple-600 hover:bg-purple-700 text-white col-span-2 mt-2" 
+                        onClick={() => {
+                          setSelectedFlyerForStory({
+                            title: `Encarte ${new Date().toLocaleDateString('pt-BR')}`,
+                            products_data: selectedProducts,
+                            config: {
+                              layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+                              columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+                              fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+                              productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+                              priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+                              nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
+                              bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+                              showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+                            }
+                          })
+                          setIsStoryGenOpen(true)
+                        }}
+                      >
+                        <Camera className="w-5 h-5 mr-2" />
+                        Gerar Stories para Instagram
+                      </Button>
                     </div>
+
 
              </CardContent>
           </Card>
@@ -3204,6 +3233,19 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                             <FolderOpen className="w-4 h-4" />
                           </Button>
                           <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-7 w-7 text-purple-600" 
+                            title="Gerar Stories"
+                            onClick={() => {
+                              setSelectedFlyerForStory(f)
+                              setIsStoryGenOpen(true)
+                            }}
+                          >
+                            <Camera className="w-4 h-4" />
+                          </Button>
+                          <Button 
+
                             size="icon" 
                             variant="ghost" 
                             className="h-7 w-7 text-green-600" 
@@ -3470,7 +3512,16 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         </DialogContent>
       </Dialog>
 
+      {selectedFlyerForStory && (
+        <StoryGenerator 
+          isOpen={isStoryGenOpen} 
+          onClose={() => setIsStoryGenOpen(false)} 
+          flyer={selectedFlyerForStory} 
+        />
+      )}
+
       <BarcodeScanner 
+
         isOpen={barcodeScannerOpen} 
         onClose={() => setBarcodeScannerOpen(false)} 
         onScan={(code) => {
