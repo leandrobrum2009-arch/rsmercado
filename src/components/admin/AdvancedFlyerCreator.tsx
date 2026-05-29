@@ -3288,7 +3288,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Baixar JPG (A4)
+                  Baixar JPG
                 </Button>
                 <Button 
                   size="sm" 
@@ -3298,8 +3298,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Baixar PNG (Transparente)
+                  Baixar PNG
                 </Button>
+
 
                 <Button 
                   size="sm" 
