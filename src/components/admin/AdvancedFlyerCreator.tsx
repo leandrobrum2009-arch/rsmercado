@@ -1522,6 +1522,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
               imageTimeout: 10000,
               onclone: (clonedDoc) => {
+                sanitizeClonedDocColors(clonedDoc);
                 const clonedFlyer = clonedDoc.getElementById('flyer-content');
                 if (clonedFlyer) {
                   clonedFlyer.style.width = '794px';
