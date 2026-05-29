@@ -16,6 +16,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
  import { toast } from '@/lib/toast'
  import { cn } from '@/lib/utils'
+ import { sanitizeClonedDocColors } from '@/lib/sanitizeColors'
  
  type FlyerProduct = {
    id: string
