@@ -3089,7 +3089,46 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
          {/* Preview Area */}
           <div className="lg:col-span-8 flex flex-col items-center bg-zinc-200/50 p-4 md:p-6 rounded-[32px] min-h-screen print:relative print:top-0 print:p-0 print:bg-white print:rounded-none transition-all duration-500 no-scrollbar">
 
+            {/* Botões de Ação Rápida no Topo da Prévia */}
+            <div className="w-full max-w-[794px] mb-6 flex flex-wrap items-center gap-3 justify-center bg-white/90 backdrop-blur-md p-4 rounded-3xl border-2 border-primary/10 shadow-xl sticky top-4 z-30 print:hidden transition-all hover:border-primary/30">
+              <div className="hidden sm:flex flex-col mr-auto">
+                <span className="text-[10px] font-black uppercase text-primary tracking-widest">Opções de Exportação</span>
+                <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">Baixe em tamanho real A4</span>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button 
+                  size="sm" 
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all active:scale-95" 
+                  onClick={() => handleDownloadImage('jpg')}
+                  disabled={uploading}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar JPG
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-white border-2 border-zinc-100 hover:border-zinc-900 transition-all active:scale-95" 
+                  onClick={() => handleDownloadImage('png')}
+                  disabled={uploading}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Baixar PNG
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white shadow-lg shadow-black/20 transition-all active:scale-95" 
+                  onClick={handleDirectPrint}
+                  disabled={isPreparingPrint}
+                >
+                  {isPreparingPrint ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
+                  Imprimir
+                </Button>
+              </div>
+            </div>
+
             <div className="w-full flex justify-center print:block p-0 md:p-2 flyer-print-wrapper">
+
               <div className="relative w-full flex justify-center no-scrollbar print:m-0 print:p-0">
                 <div
                   id="flyer-content"
