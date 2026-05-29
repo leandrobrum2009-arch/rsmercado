@@ -3487,7 +3487,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
         </DialogContent>
       </Dialog>
 
+      {selectedFlyerForStory && (
+        <StoryGenerator 
+          isOpen={isStoryGenOpen} 
+          onClose={() => setIsStoryGenOpen(false)} 
+          flyer={selectedFlyerForStory} 
+        />
+      )}
+
       <BarcodeScanner 
+
         isOpen={barcodeScannerOpen} 
         onClose={() => setBarcodeScannerOpen(false)} 
         onScan={(code) => {
