@@ -1695,34 +1695,35 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         }
 
         logStep(`Passo 3: Renderizando html2canvas (${format.toUpperCase()})`);
-        setGenerationStep('Renderizando imagem A4...')
+        setGenerationStep('Renderizando imagem A4 de alta fidelidade...')
         setGenerationProgress(60)
 
+        // Adicionar um pequeno delay para garantir que todos os estilos e fontes estejam aplicados
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        const generateImageCanvas = async (customScale = 1.5) => {
+        const generateImageCanvas = async (customScale = 3) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
 
           try {
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false, 
+              allowTaint: true, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: true, 
-              imageTimeout: 30000,
+              imageTimeout: 60000,
               width: 794,
               height: 1123,
-
-
               onclone: (clonedDoc) => {
-                logStep('onclone: Sanitizando cores e limpando estilos incompatíveis');
+                logStep('onclone: Aplicando fidelidade de impressão e removendo incompatibilidades');
                 
-                // Sanitizar cores modernas (oklch, color-mix) usando a lib dedicada
+                // Sanitização completa de cores modernas para evitar erro oklch()
                 sanitizeClonedDocColors(clonedDoc);
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
                 if (clonedElement) {
+                  // Forçar proporções A4 perfeitas
                   clonedElement.style.width = '794px';
                   clonedElement.style.height = '1123px';
                   clonedElement.style.transform = 'none';
@@ -1742,7 +1743,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   const allElements = clonedElement.querySelectorAll('*');
                   
                   allElements.forEach((el: any) => {
-                    // Limpar animações e filtros que quebram o canvas
+                    // Remover animações e filtros que causam lentidão ou travamentos
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1752,15 +1753,16 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // Tratamento de Imagens
+                    // Garantir que as imagens usem CORS
                     if (el.tagName === 'IMG') {
+                      el.crossOrigin = 'anonymous';
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
                       }
-                      el.crossOrigin = 'anonymous';
                     }
 
+                    // Limpar classes de animação do Tailwind
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className
                         .replace(/\banimate-\S+/g, '')
@@ -1773,7 +1775,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   });
                 }
               }
-
             });
           } catch (error) {
             logStep(`Erro no html2canvas (escala ${customScale}):`, error);
@@ -1783,11 +1784,11 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Usar escala 1.5 por padrão para equilíbrio entre qualidade e memória
-          canvas = await generateImageCanvas(1.5);
+          // Usar escala 3 por padrão para qualidade profissional (similar à impressão)
+          canvas = await generateImageCanvas(3);
         } catch (firstErr) {
-          logStep('Falha na escala 1.5, tentando escala 1...', firstErr);
-          canvas = await generateImageCanvas(1);
+          logStep('Falha na escala 3, tentando escala 1.5...', firstErr);
+          canvas = await generateImageCanvas(1.5);
         }
 
 
@@ -2994,8 +2995,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                            </div>
                          </div>
                          
-                          <div className="w-full shrink-0 mt-2">
-                            <div className="flex flex-wrap items-center gap-2 px-1 pb-2 w-full">
+                          <div className="w-full shrink-0 mt-2 border-b border-zinc-100 pb-2">
+                            <div className="flex flex-wrap items-center gap-2 px-1">
                              <Button 
                                variant={onlyOffers ? "default" : "outline"} 
                                size="sm" 
