@@ -3134,7 +3134,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                           ) : (
                             <Download className="w-5 h-5 mr-2" />
                           )}
-                          Baixar Encarte (Alta Qualidade JPG)
+                          Baixar Encarte (Alta Fidelidade)
                         </Button>
                         <p className="text-[9px] text-center mt-1 text-zinc-400 font-bold uppercase tracking-tighter">
                           Gera imagem com fidelidade de impressão (PDF para JPG)
