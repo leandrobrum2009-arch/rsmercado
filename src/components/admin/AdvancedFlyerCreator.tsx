@@ -1695,33 +1695,36 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         setGenerationProgress(60)
 
 
-        const generateImageCanvas = async (customScale = 2) => {
+        const generateImageCanvas = async (customScale = 1.5) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
+
           try {
             return await html2canvas(element, {
               useCORS: true,
               allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
-              logging: true, // Habilitar logs internos do html2canvas para depuração
+              logging: true, 
               imageTimeout: 30000,
-              scrollX: 0,
-              scrollY: -window.scrollY, // Compensa scroll da página
+              width: 794,
+              height: 1123,
+
 
               onclone: (clonedDoc) => {
-                logStep('onclone: Preparando clone e limpando cores oklch');
+                logStep('onclone: Limpeza agressiva de cores e estilos incompatíveis');
                 
-                // Remover ou substituir oklch de todos os style tags no clone
-                // Tailwind v4 injeta muitos oklch() que travam o html2canvas
+                // 1. Limpar TODAS as tags de estilo que usem funções modernas de cor
                 const styleTags = clonedDoc.getElementsByTagName('style');
                 for (let i = 0; i < styleTags.length; i++) {
-                  if (styleTags[i].innerHTML.includes('oklch')) {
-                    // Substituição rústica: oklch(...) -> rgb(0,0,0) ou similar
-                    // Melhor apenas remover a propriedade que usa oklch se possível, 
-                    // mas aqui vamos tentar apenas limpar o termo para não quebrar o parser
-                    styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/g, 'rgb(0,0,0)');
+                  const css = styleTags[i].innerHTML;
+                  if (css.includes('oklch') || css.includes('color-mix') || css.includes('var(')) {
+                    // Substituir funções problemáticas por cores sólidas seguras
+                    styleTags[i].innerHTML = css
+                      .replace(/oklch\([^)]+\)/g, '#000000')
+                      .replace(/color-mix\([^)]+\)/g, '#888888');
                   }
                 }
+
 
                 const clonedElement = clonedDoc.getElementById('flyer-content');
 
@@ -1744,10 +1747,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
                   const allElements = clonedElement.querySelectorAll('*');
                   
-                  // Função para converter oklch para rgb (aproximado/fallback)
-                  // Já que html2canvas falha ao ler oklch, vamos forçar cores seguras
                   allElements.forEach((el: any) => {
-                    // Limpar estilos problemáticos
+                    // 2. Limpar animações e filtros que quebram o canvas
                     el.style.setProperty('transition', 'none', 'important');
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('animation-duration', '0s', 'important');
@@ -1757,33 +1758,41 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // Correção para cores oklch (Tailwind v4 default)
-                    // html2canvas falha miseravelmente ao encontrar 'oklch'
-                    // Vamos tentar forçar cores computadas para RGB
+                    // 3. Forçar cores computadas para evitar oklch() e funções modernas
                     try {
-                      const style = window.getComputedStyle(el);
+                      const computedStyle = window.getComputedStyle(el);
                       
-                      // Verificar propriedades comuns que podem ter oklch
-                      const colorProps = ['color', 'backgroundColor', 'borderColor', 'outlineColor'];
-                      colorProps.forEach(prop => {
-                        const val = el.style[prop] || style[prop as any];
-                        if (val && val.includes('oklch')) {
-                          // Fallback agressivo: se tiver oklch, tenta pegar a cor computada real do elemento original
-                          // Se não for possível, removemos para evitar o crash
-                          el.style[prop] = 'inherit'; 
+                      // html2canvas trava em oklch, color-mix, etc.
+                      // window.getComputedStyle() normalmente retorna RGB, o que é perfeito
+                      const forceRGB = (prop: string) => {
+                        const val = (computedStyle as any)[prop];
+                        if (val && (val.includes('oklch') || val.includes('color-mix'))) {
+                           // Fallback se o navegador ainda retornar oklch no computed
+                           el.style.setProperty(prop, '#000000', 'important');
+                        } else if (val) {
+                           el.style.setProperty(prop, val, 'important');
                         }
-                      });
+                      };
+
+                      forceRGB('color');
+                      forceRGB('backgroundColor');
+                      forceRGB('borderColor');
+                      forceRGB('outlineColor');
+
                     } catch (e) {
-                      // Silencioso se getComputedStyle falhar
+                      const s = el.getAttribute('style');
+                      if (s && s.includes('oklch')) {
+                        el.setAttribute('style', s.replace(/oklch\([^)]+\)/g, 'inherit'));
+                      }
                     }
 
 
-                    
+                    // 4. Tratamento de Imagens
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
                       if (originalSrc && base64Map.has(originalSrc)) {
                         el.src = base64Map.get(originalSrc);
-                        logStep(`Imagem substituída por Base64: ${originalSrc.substring(0, 30)}...`);
+                        logStep(`Imagem OK: ${originalSrc.substring(0, 20)}...`);
                       }
                       el.crossOrigin = 'anonymous';
                     }
@@ -1797,13 +1806,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         .replace(/\bslide-in\S*/g, '')
                         .replace(/\bdelay-\S+/g, '');
                     }
-
-                    // Limpeza final de qualquer oklch residual nos estilos inline
-                    const styleAttr = el.getAttribute('style');
-                    if (styleAttr && styleAttr.includes('oklch')) {
-                      el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, 'inherit'));
-                    }
                   });
+
                 }
               }
 
@@ -1816,17 +1820,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Começamos com escala 2 que é estável e de boa qualidade para A4
-          canvas = await generateImageCanvas(2);
+          // Usar escala 1.5 por padrão para equilíbrio entre qualidade e memória
+          canvas = await generateImageCanvas(1.5);
         } catch (firstErr) {
-          logStep('Erro escala 2, tentando escala 1.5...', firstErr);
-          try {
-            canvas = await generateImageCanvas(1.5);
-          } catch (secondErr) {
-            logStep('Erro escala 1.5, tentando escala 1...', secondErr);
-            canvas = await generateImageCanvas(1);
-          }
+          logStep('Falha na escala 1.5, tentando escala 1...', firstErr);
+          canvas = await generateImageCanvas(1);
         }
+
+
+        logStep('Passo 4: Finalizando arquivo de imagem');
+        setGenerationStep('Gerando download...');
+        setGenerationProgress(90)
+
 
 
         logStep('Passo 3: Finalizando arquivo de imagem');
@@ -3154,7 +3159,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                           disabled={uploading}
                         >
                           <Download className="w-4 h-4 mr-1" />
-                          Baixar JPG
+                          Baixar Imagem (JPG)
                         </Button>
                         <Button 
                           className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-zinc-800 hover:bg-zinc-900 text-white" 
@@ -3162,9 +3167,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                           disabled={uploading}
                         >
                           <ImageIcon className="w-4 h-4 mr-1" />
-                          Baixar PNG
+                          Baixar Imagem (PNG)
                         </Button>
                       </div>
+
                       <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
                         onClick={handleDirectPrint}
@@ -3290,7 +3296,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Baixar JPG (A4)
+                  Baixar JPG
                 </Button>
                 <Button 
                   size="sm" 
@@ -3300,8 +3306,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Baixar PNG (Transparente)
+                  Baixar PNG
                 </Button>
+
 
                 <Button 
                   size="sm" 
