@@ -1620,12 +1620,13 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = () => resolve(null);
-              reader.readAsDataURL(blob);
+            reader.readAsDataURL(blob);
             });
           } catch (e: any) {
-            logStep(`Falha no Base64 (CORS provável): ${img.src.substring(0, 40)}... - ${e.message}`);
+            logStep(`Bloqueio CORS na imagem: ${img.src.substring(0, 40)}...`, e.message, true);
             return null;
           }
+
         };
 
 
