@@ -1571,18 +1571,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         }
       };
  
-     const handleDownloadImage = async () => {
+    const handleDownloadImage = async (format: 'png' | 'jpg' = 'jpg') => {
       const element = document.getElementById('flyer-content')
       if (!element) {
         toast.error('Conteúdo do encarte não encontrado')
         return
       }
 
-      logStep('Iniciando handleDownloadImage');
+      logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
       setGenerationProgress(5)
       setGenerationStep('Iniciando...')
-      const loadingToast = toast.loading('Gerando imagem de alta qualidade...')
+      const loadingToast = toast.loading(`Gerando imagem ${format.toUpperCase()} de alta resolução...`)
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -1594,22 +1594,17 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           ...images.map((img, i) => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
-              img.onload = () => { logStep(`Imagem download ${i+1} OK`); resolve(null); };
-              img.onerror = () => { logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
+              const timer = setTimeout(() => resolve(null), 5000);
+              img.onload = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} OK`); resolve(null); };
+              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); resolve(null); };
             });
           }),
           document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
         ]);
 
         logStep('Passo 2: Renderizando html2canvas para download');
-        setGenerationStep('Renderizando imagem...')
+        setGenerationStep('Renderizando imagem A4...')
         setGenerationProgress(60)
-
-        // Temporary styles for capture to ensure best result
-        const originalTransform = element.style.transform;
-        const originalTransition = element.style.transition;
-        element.style.transform = 'none';
-        element.style.transition = 'none';
 
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
@@ -1617,23 +1612,30 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             useCORS: true,
             allowTaint: false,
             scale: customScale,
-            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
-            logging: true,
+            backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+
+            logging: false,
             imageTimeout: 30000,
             onclone: (clonedDoc) => {
-              logStep('onclone: Clonando para Imagem');
+              logStep('onclone: Preparando clone para imagem A4');
               const clonedElement = clonedDoc.getElementById('flyer-content');
               if (clonedElement) {
+                // Forçar dimensões exatas A4 (210mm x 297mm em 96dpi aprox)
+                clonedElement.style.width = '794px';
+                clonedElement.style.height = '1123px';
                 clonedElement.style.transform = 'none';
                 clonedElement.style.transition = 'none';
                 clonedElement.style.animation = 'none';
                 clonedElement.style.margin = '0';
+                clonedElement.style.padding = '0';
                 clonedElement.style.boxShadow = 'none';
+                clonedElement.style.border = 'none'; // Sem bordas conforme pedido
                 clonedElement.style.display = 'flex';
                 clonedElement.style.flexDirection = 'column';
                 clonedElement.style.visibility = 'visible';
-                clonedElement.style.width = '794px';
-                clonedElement.style.height = '1123px';
+                clonedElement.style.position = 'relative';
+                clonedElement.style.left = '0';
+                clonedElement.style.top = '0';
 
                 const allElements = clonedElement.querySelectorAll('*');
                 allElements.forEach((el: any) => {
@@ -1643,6 +1645,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   el.style.setProperty('transition-duration', '0s', 'important');
                   el.style.backdropFilter = 'none';
                   el.style.fontVariantNumeric = 'tabular-nums';
+                  
+                  // Remover classes de animação
                   if (el.className && typeof el.className === 'string') {
                     el.className = el.className
                       .replace(/\banimate-\S+/g, '')
@@ -1652,10 +1656,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                       .replace(/\bslide-in\S*/g, '')
                       .replace(/\bdelay-\S+/g, '');
                   }
-                  if (el.classList.contains('price-container')) {
-                    el.style.overflow = 'visible';
-                    el.style.display = 'block';
-                  }
                 });
               }
             }
@@ -1664,63 +1664,40 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          canvas = await generateImageCanvas(2);
+          // Usamos escala 3 para alta qualidade (aprox 300 DPI para A4)
+          canvas = await generateImageCanvas(3);
         } catch (firstErr) {
-          logStep('Erro download imagem (escala 2). Tentando escala 1.2...', firstErr);
-          setGenerationStep('Otimizando imagem...');
-          try {
-            canvas = await generateImageCanvas(1.2);
-          } catch (secondErr) {
-            logStep('Erro download imagem (escala 1.2). Tentando escala básica (1.0)...', secondErr);
-            setGenerationStep('Otimizando imagem (Final)...');
-            canvas = await generateImageCanvas(1.0);
-          }
+          logStep('Erro escala 3, tentando escala 2...', firstErr);
+          canvas = await generateImageCanvas(2);
         }
-
-        element.style.transform = originalTransform;
-        element.style.transition = originalTransition;
 
         logStep('Passo 3: Finalizando arquivo de imagem');
         setGenerationProgress(90)
         setGenerationStep('Finalizando arquivo...')
-        let image = ''
-        try {
-          // Default to PNG for individual images as users expect transparency if background removed
-          image = canvas.toDataURL('image/png')
-          logStep(`Download imagem DataURL (PNG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
-        } catch (exportError: any) {
-          logStep('ERRO ao exportar PNG, tentando JPEG:', exportError);
-          try {
-            image = canvas.toDataURL('image/jpeg', 0.9);
-            logStep(`Download imagem DataURL (JPEG) gerado. Tamanho: ${Math.round(image.length / 1024)} KB`);
-          } catch (jpegErr: any) {
-            logStep('ERRO crítico ao exportar imagem:', jpegErr);
-            throw new Error('CANVAS_TAINTED');
-          }
-        }
+        
+        const fileName = `encarte-${new Date().toISOString().split('T')[0]}`
+        const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
+        const quality = format === 'jpg' ? 0.95 : undefined
+        
+        const image = canvas.toDataURL(mimeType, quality)
+        
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
+        
         const link = document.createElement('a')
         link.href = image
-        link.download = `encarte-${new Date().toISOString().split('T')[0]}.png`
+        link.download = `${fileName}.${format}`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         
         toast.dismiss(loadingToast)
-        toast.success('Imagem baixada com sucesso!')
+        toast.success(`${format.toUpperCase()} baixado com sucesso!`)
       } catch (err: any) {
         console.error('Error generating image:', err)
         toast.dismiss(loadingToast)
-        const isCORS = err.message === 'CANVAS_TAINTED';
-        
-        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar imagem.', {
-          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
-          duration: 10000,
-          action: {
-            label: 'Imprimir Direto',
-            onClick: () => handleDirectPrint()
-          }
+        toast.error('Erro ao gerar imagem.', {
+          description: 'Tente usar a Impressão Direta se o problema persistir.'
         });
       } finally {
         setUploading(false)
@@ -1730,6 +1707,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         }, 500)
       }
     }
+
 
     const handleDownloadPDF = async () => {
       const element = document.getElementById('flyer-content')
@@ -2982,11 +2960,30 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                       <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
+                      <div className="grid grid-cols-2 gap-2 col-span-2 mt-2">
+                        <Button 
+                          className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white" 
+                          onClick={() => handleDownloadImage('jpg')}
+                          disabled={uploading}
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Baixar JPG
+                        </Button>
+                        <Button 
+                          className="h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg bg-zinc-800 hover:bg-zinc-900 text-white" 
+                          onClick={() => handleDownloadImage('png')}
+                          disabled={uploading}
+                        >
+                          <ImageIcon className="w-4 h-4 mr-1" />
+                          Baixar PNG
+                        </Button>
+                      </div>
                       <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-zinc-900 hover:bg-black text-white col-span-2 mt-2" 
                         onClick={handleDirectPrint}
                         disabled={isPreparingPrint}
                       >
+
                         {isPreparingPrint ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
@@ -2995,6 +2992,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                         Imprimir Encarte (A4)
                       </Button>
                     </div>
+
              </CardContent>
           </Card>
 
