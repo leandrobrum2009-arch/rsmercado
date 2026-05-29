@@ -1695,11 +1695,13 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         }
 
         logStep(`Passo 3: Renderizando html2canvas (${format.toUpperCase()})`);
-        setGenerationStep('Renderizando imagem A4...')
+        setGenerationStep('Renderizando imagem A4 de alta fidelidade...')
         setGenerationProgress(60)
 
+        // Adicionar um pequeno delay para garantir que todos os estilos e fontes estejam aplicados
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        const generateImageCanvas = async (customScale = 1.5) => {
+        const generateImageCanvas = async (customScale = 3) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
 
           try {
