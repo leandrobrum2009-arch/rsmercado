@@ -1621,9 +1621,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
           try {
+            // Garante que o elemento original esteja visível e com dimensões estáveis
+            if (element) {
+              element.scrollIntoView({ block: 'center' });
+            }
+
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false,
+              allowTaint: false, // Importante para toDataURL funcionar
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: false,
@@ -1649,6 +1654,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
 
+                  // Desativar efeitos que html2canvas não suporta ou que causam bugs
                   const allElements = clonedElement.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.setProperty('transition', 'none', 'important');
@@ -1656,8 +1662,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
+                    el.style.filter = 'none'; // Desativar filtros complexos
                     el.style.fontVariantNumeric = 'tabular-nums';
                     
+                    // Se for imagem, tenta garantir que crossOrigin esteja lá (redundância)
+                    if (el.tagName === 'IMG') {
+                      el.crossOrigin = 'anonymous';
+                    }
+
                     if (el.className && typeof el.className === 'string') {
                       el.className = el.className
                         .replace(/\banimate-\S+/g, '')
@@ -1676,6 +1688,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
             throw error;
           }
         };
+
 
         let canvas: HTMLCanvasElement;
         try {
