@@ -42,7 +42,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
   
-  const slideDuration = 6000 // Increased to 6 seconds per slide
+  const slideDuration = 7000 // Increased to 7 seconds per slide
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const slideRef = useRef<HTMLDivElement>(null)
