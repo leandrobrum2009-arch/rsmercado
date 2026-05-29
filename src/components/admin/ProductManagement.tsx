@@ -216,6 +216,13 @@ export function ProductManagement() {
   const [imageSearchQuery, setImageSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<string[]>([])
   const [searching, setSearching] = useState(false)
+  const [diagnosticInfo, setDiagnosticInfo] = useState<{
+    error: any;
+    data: any;
+    timestamp: string;
+    fields: string[];
+  } | null>(null)
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false)
 
    const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
  
