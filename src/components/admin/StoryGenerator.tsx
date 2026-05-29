@@ -331,42 +331,42 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               </div>
 
               {/* Content - Adjusted Position (MT-24 to move it down) */}
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-24">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-32">
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-6xl font-black italic tracking-tighter uppercase mb-4 leading-none drop-shadow-md"
+                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest bg-white/40 backdrop-blur-sm px-4 py-1 rounded-lg inline-block">
+                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10">
                       {currentSlideData.subtitle}
                     </p>
                   </div>
                 )}
 
                 {currentSlideData.type === 'product' && (
-                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-20">
-                    <div className="relative w-full aspect-square mb-8 p-4">
+                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-24">
+                    <div className="relative w-full aspect-square mb-10 p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-2xl scale-110"
+                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-110"
                       />
                     </div>
-                    <h3 className="text-3xl font-black uppercase tracking-tight mb-6 text-zinc-900 leading-tight drop-shadow-sm px-2">
+                    <h3 className="text-4xl font-[1000] uppercase tracking-tighter mb-8 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm">
                       {currentSlideData.product.name}
                     </h3>
                     <div 
-                      className="inline-block px-10 py-5 rounded-[40px] shadow-2xl transform -rotate-1 scale-125"
+                      className="inline-block px-12 py-6 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20"
                       style={{ background: flyer.config?.priceColor || '#ef4444' }}
                     >
-                      <span className="text-white text-6xl font-black italic tracking-tighter">
+                      <span className="text-white text-7xl font-[1000] italic tracking-tighter drop-shadow-md">
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
-                        <span className="text-white/90 text-xl font-black ml-2 uppercase">
+                        <span className="text-white/90 text-2xl font-[1000] ml-3 uppercase">
                           {currentSlideData.product.unit}
                         </span>
                       )}
@@ -377,20 +377,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-6xl font-black italic tracking-tighter uppercase mb-6 leading-none"
+                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-8 leading-[0.85]"
                       style={{ color: flyer.config?.priceColor || '#ef4444' }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-2xl font-black uppercase text-zinc-800 tracking-widest mb-10 bg-white/30 backdrop-blur-sm px-4 py-1 rounded-lg">
+                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10">
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-10 py-5 rounded-full font-black text-2xl shadow-2xl flex items-center gap-4 animate-bounce">
+                    <div className="bg-green-600 text-white px-12 py-6 rounded-full font-[1000] text-3xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20">
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
                 )}
               </div>
+
 
               {/* Footer */}
               <div className="absolute bottom-12 left-0 right-0 z-30 flex flex-col items-center">
