@@ -2966,7 +2966,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                             </DialogTitle>
                            
                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                             <div className="relative flex-1 sm:w-64">
+                             <div className="relative flex-1 sm:w-80 min-w-[200px]">
                                <Input 
                                  placeholder="Buscar produto..." 
                                  value={productSearchTerm}
