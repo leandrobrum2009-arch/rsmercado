@@ -37,8 +37,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [progress, setProgress] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
-  const slideDuration = 3000 // 3 seconds per slide
+  const slideDuration = 2000 // 2 seconds per slide
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+
   const slideRef = useRef<HTMLDivElement>(null)
 
   const slides: SlideType[] = [
