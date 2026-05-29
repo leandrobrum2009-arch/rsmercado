@@ -1718,7 +1718,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
                     el.style.filter = 'none'; 
+                    el.style.mixBlendMode = 'normal'; // Desabilita mix-blend-mode no clone para evitar erros
                     el.style.fontVariantNumeric = 'tabular-nums';
+
                     
                     if (el.tagName === 'IMG') {
                       const originalSrc = el.getAttribute('src');
