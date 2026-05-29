@@ -1650,7 +1650,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         ]);
 
         logStep('Passo 2: Convertendo imagens externas para Base64 (Segurança)');
-        setGenerationStep('Convertendo imagens...');
+        setGenerationStep('Processando imagens...');
         setGenerationProgress(30)
         
         const base64Map = new Map<string, string>();
@@ -1669,17 +1669,10 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           logStep(`Atenção: ${corsImagesCount} imagens podem causar erro de segurança (CORS).`);
         }
 
-
-
-
-        logStep('Passo 2: Imagens carregadas. Iniciando conversão para download seguro.');
-        setGenerationStep('Preparando imagens...');
-        setGenerationProgress(30)
-
-
         logStep(`Passo 3: Renderizando html2canvas (${format.toUpperCase()})`);
         setGenerationStep('Renderizando imagem A4...')
         setGenerationProgress(60)
+
 
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
