@@ -41,7 +41,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
   
-  const slideDuration = 9500 // 9.5 seconds per slide (increased by 2.5s)
+  const slideDuration = 12000 // 12 seconds per slide (increased for better narration flow)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const slideRef = useRef<HTMLDivElement>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -484,8 +484,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                   </>
                 ) : (
                   <>
-                    <Video className="h-5 w-5" />
-                    BAIXAR VÍDEO (GERAR MP4)
+                    <Video className="h-6 w-6" />
+                    BAIXAR VÍDEO MP4 COMPLETO
                   </>
                 )
                 }
