@@ -154,7 +154,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
      const [loadingSaved, setLoadingSaved] = useState(false)
      const [logHistory, setLogHistory] = useState<string[]>([])
-     const [showLogViewer, setShowLogHistory] = useState(false)
+     const [showLogViewer, setShowLogViewer] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
          const [showPreviewModal, setShowPreviewModal] = useState(false)
          const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
@@ -1572,11 +1572,17 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       };
  
     const handleDownloadImage = async (format: 'png' | 'jpg' = 'jpg') => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro');
+        return;
+      }
+
       const element = document.getElementById('flyer-content')
       if (!element) {
         toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
         return
       }
+
 
       logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
@@ -1621,14 +1627,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
           try {
-            // Garante que o elemento original esteja visível e com dimensões estáveis
-            if (element) {
-              element.scrollIntoView({ block: 'center' });
-            }
-
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false, // Importante para toDataURL funcionar
+              allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: false,
@@ -1637,7 +1638,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                 logStep('onclone: Preparando clone para imagem A4');
                 const clonedElement = clonedDoc.getElementById('flyer-content');
                 if (clonedElement) {
-                  // Forçar dimensões exatas A4 (210mm x 297mm em 96dpi aprox)
                   clonedElement.style.width = '794px';
                   clonedElement.style.height = '1123px';
                   clonedElement.style.transform = 'none';
@@ -1654,7 +1654,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
 
-                  // Desativar efeitos que html2canvas não suporta ou que causam bugs
                   const allElements = clonedElement.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.setProperty('transition', 'none', 'important');
@@ -1662,10 +1661,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
-                    el.style.filter = 'none'; // Desativar filtros complexos
+                    el.style.filter = 'none'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
                     
-                    // Se for imagem, tenta garantir que crossOrigin esteja lá (redundância)
                     if (el.tagName === 'IMG') {
                       el.crossOrigin = 'anonymous';
                     }
@@ -1692,20 +1690,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Tentamos escala 3 para alta qualidade
-          canvas = await generateImageCanvas(3);
+          // Começamos com escala 2 que é estável e de boa qualidade para A4
+          canvas = await generateImageCanvas(2);
         } catch (firstErr) {
-          logStep('Erro escala 3, tentando escala 2...', firstErr);
+          logStep('Erro escala 2, tentando escala 1.5...', firstErr);
           try {
-            canvas = await generateImageCanvas(2);
+            canvas = await generateImageCanvas(1.5);
           } catch (secondErr) {
-            logStep('Erro escala 2, tentando escala 1.5...', secondErr);
-            try {
-              canvas = await generateImageCanvas(1.5);
-            } catch (thirdErr) {
-              logStep('Erro escala 1.5, tentando escala 1 (compatibilidade máxima)...', thirdErr);
-              canvas = await generateImageCanvas(1);
-            }
+            logStep('Erro escala 1.5, tentando escala 1...', secondErr);
+            canvas = await generateImageCanvas(1);
           }
         }
 
@@ -1717,29 +1710,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
         const quality = format === 'jpg' ? 0.95 : undefined
         
-        let image = '';
-        try {
-          // Tentar gerar a URL da imagem. Se houver erro de CORS, o navegador lança SecurityError aqui.
-          image = canvas.toDataURL(mimeType, quality);
-        } catch (exportError: any) {
-          logStep('Erro fatal ao exportar canvas (CORS/SecurityError):', exportError);
-          // Se falhou por CORS, tentamos uma última vez permitindo "taint" mas sem poder baixar se for o caso
-          // Na verdade, se falhou aqui, o canvas já está "sujo"
-          throw new Error('CANVAS_TAINTED');
-        }
-        
-        if (!image || image === 'data:,') {
+        logStep('Convertendo canvas para blob para download seguro');
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((b) => resolve(b), mimeType, quality);
+        });
+
+        if (!blob) {
           throw new Error('EMPTY_IMAGE');
         }
+
         
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         
+        const url = URL.createObjectURL(blob);
         const link = document.body.appendChild(document.createElement('a'));
-        link.href = image
+        link.href = url
         link.download = `${fileName}.${format}`
         link.click()
         document.body.removeChild(link)
+        URL.revokeObjectURL(url);
+
         
         toast.dismiss(loadingToast)
         toast.success(`${format.toUpperCase()} baixado com sucesso!`)
@@ -2011,35 +2002,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
     return (
       <>
-   {/* Global Progress Overlay for Print/Download */}
-   {(isPreparingPrint || uploading) && (
-    <div className="fixed inset-0 z-[100000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-300">
-      <Card className="w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border-none">
-        <CardContent className="p-8 flex flex-col items-center gap-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-          <div className="w-full space-y-4">
-            <div className="text-center">
-              <h3 className="font-black uppercase italic tracking-tighter text-lg">Processando Encarte</h3>
-              <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{generationStep}</p>
+    {/* Progress Overlay - reduced prominence as per user request */}
+    {(isPreparingPrint || uploading) && (
+     <div className="fixed bottom-8 right-8 z-[100000] w-72 animate-in slide-in-from-bottom-4 duration-300">
+      <Card className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-primary/20 overflow-hidden">
+        <CardContent className="p-4 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                <span>Progresso</span>
-                <span>{generationProgress}%</span>
-              </div>
-              <Progress value={generationProgress} className="h-3" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-black uppercase italic tracking-tighter text-sm truncate">Processando...</h3>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest truncate">{generationStep}</p>
             </div>
+            <div className="text-[10px] font-black text-primary">{generationProgress}%</div>
           </div>
-          <p className="text-[10px] text-zinc-400 font-bold uppercase text-center leading-relaxed">
-            Aguarde enquanto preparamos seu arquivo em alta resolução. 
-            <br />Não feche esta aba.
-          </p>
+          <Progress value={generationProgress} className="h-1.5" />
         </CardContent>
       </Card>
     </div>
   )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
@@ -2051,7 +2034,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     <Settings2 className="w-5 h-5 text-primary" /> Gerador de Encartes A4
                   </CardTitle>
                   <button 
-                    onClick={() => setShowLogHistory(true)}
+                    onClick={() => setShowLogViewer(true)}
+
                     className="text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-primary transition-colors text-left"
                   >
                     Ver Log de Sistema
@@ -3164,14 +3148,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button 
                   size="sm" 
-                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200 transition-all active:scale-95" 
-                  onClick={async () => {
-                    await handleDownloadImage('jpg');
-                  }}
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white shadow-xl transition-all active:scale-95" 
+                  onClick={() => handleDownloadImage('jpg')}
                   disabled={uploading}
                 >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Gerar e Baixar JPG
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar JPG (A4)
                 </Button>
                 <Button 
                   size="sm" 
@@ -3181,8 +3163,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   disabled={uploading}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Baixar PNG
+                  Baixar PNG (Transparente)
                 </Button>
+
                 <Button 
                   size="sm" 
                   className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white shadow-lg shadow-black/20 transition-all active:scale-95" 
@@ -3332,6 +3315,36 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           transition-delay: 0s !important;
         }
       `}</style>
+      <Dialog open={showLogViewer} onOpenChange={setShowLogViewer}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase italic tracking-tighter">Log de Sistema do Gerador</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-4 bg-zinc-950 rounded-xl font-mono text-[10px] text-emerald-400 space-y-1 mt-4">
+            {logHistory.length === 0 ? (
+              <p className="text-zinc-500 italic">Nenhum evento registrado ainda...</p>
+            ) : (
+              logHistory.map((log, i) => (
+                <div key={i} className="border-l border-zinc-800 pl-2">
+                  <span className="text-zinc-500 mr-2">[{i+1}]</span>
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setLogHistory([])}
+              className="text-[10px] font-black uppercase"
+            >
+              <Eraser className="w-3 h-3 mr-2" />
+              Limpar Logs
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <BarcodeScanner 
         isOpen={barcodeScannerOpen} 
         onClose={() => setBarcodeScannerOpen(false)} 
@@ -3343,3 +3356,4 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       </>
     )
   }
+
