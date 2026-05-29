@@ -42,7 +42,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
   
-  const slideDuration = 2000 // 2 seconds per slide
+  const slideDuration = 4000 // 4 seconds per slide to allow full narration
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const slideRef = useRef<HTMLDivElement>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -59,12 +59,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices()
-      const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
+      // Filter for Portuguese, prioritizing pt-BR
+      let ptVoices = availableVoices.filter(v => v.lang === 'pt-BR')
+      if (ptVoices.length === 0) {
+        ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
+      }
+      
       setVoices(ptVoices)
       if (ptVoices.length > 0 && !selectedVoice) {
-        // Try to find a good natural voice
-        const googleVoice = ptVoices.find(v => v.name.includes('Google'))
-        setSelectedVoice(googleVoice ? googleVoice.name : ptVoices[0].name)
+        // Try to find Google or natural sounding voices first
+        const naturalVoice = ptVoices.find(v => v.name.includes('Google') || v.name.includes('Natural'))
+        setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
       }
     }
 
@@ -126,7 +131,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (voice) utterance.voice = voice
     }
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.1
+    utterance.rate = 1.0 // Natural speed
     window.speechSynthesis.speak(utterance)
   }
 
