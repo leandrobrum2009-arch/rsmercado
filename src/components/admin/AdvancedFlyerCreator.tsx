@@ -1591,18 +1591,27 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
       try {
         await new Promise(resolve => setTimeout(resolve, 300));
-        logStep('Passo 1: Carregando recursos e tratando CORS');
-        setGenerationStep('Preparando imagens...')
-        setGenerationProgress(20)
+        logStep('Passo 1: Verificando imagens e CORS');
+        setGenerationStep('Analisando imagens...')
+        setGenerationProgress(15)
         
         const images = Array.from(element.getElementsByTagName('img'));
         let failedImagesCount = 0;
+        let corsImagesCount = 0;
         
-        // Função auxiliar para converter imagem para base64 para evitar problemas de CORS no canvas
+        // Função auxiliar para converter imagem para base64
         const toBase64 = async (img: HTMLImageElement): Promise<string | null> => {
+          if (!img.src) return null;
           if (img.src.startsWith('data:')) return img.src;
+          
           try {
-            const response = await fetch(img.src, { mode: 'cors' });
+            // Tenta fetch com cross-origin
+            const response = await fetch(img.src, { 
+              mode: 'cors',
+              credentials: 'omit',
+              cache: 'no-cache'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
             return new Promise((resolve) => {
               const reader = new FileReader();
@@ -1610,33 +1619,56 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               reader.onerror = () => resolve(null);
               reader.readAsDataURL(blob);
             });
-          } catch (e) {
-            logStep(`Falha ao converter imagem para base64 (CORS): ${img.src.substring(0, 50)}...`);
+          } catch (e: any) {
+            logStep(`Erro CORS/Fetch na imagem: ${img.src.substring(0, 60)}... - Detalhe: ${e.message}`);
             return null;
           }
         };
 
-        logStep(`Total de imagens para processar: ${images.length}`);
+        logStep(`Processando ${images.length} imagens...`);
 
+        // Carregar todas as imagens primeiro
         await Promise.all([
           ...images.map(async (img, i) => {
             if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
             return new Promise((resolve) => {
               const timer = setTimeout(() => {
-                logStep(`Imagem download ${i+1} TIMEOUT`);
+                logStep(`Timeout imagem ${i+1}`);
                 failedImagesCount++;
                 resolve(null);
-              }, 8000);
-              img.onload = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} OK`); resolve(null); };
-              img.onerror = () => { clearTimeout(timer); logStep(`Imagem download ${i+1} FALHOU`); failedImagesCount++; resolve(null); };
+              }, 10000);
+              img.onload = () => { clearTimeout(timer); resolve(null); };
+              img.onerror = () => { 
+                clearTimeout(timer); 
+                logStep(`Erro carga imagem ${i+1}`); 
+                failedImagesCount++; 
+                resolve(null); 
+              };
             });
           }),
-          document.fonts?.ready.then(() => logStep('Fontes download OK')) || Promise.resolve()
+          document.fonts?.ready || Promise.resolve()
         ]);
 
-        if (failedImagesCount > 0) {
-          logStep(`${failedImagesCount} imagens falharam ao carregar, mas tentaremos gerar mesmo assim.`);
+        logStep('Passo 2: Convertendo imagens externas para Base64 (Segurança)');
+        setGenerationStep('Convertendo imagens...');
+        setGenerationProgress(30)
+        
+        const base64Map = new Map<string, string>();
+        await Promise.all(images.map(async (img) => {
+          if (img.src && !img.src.startsWith('data:')) {
+            const b64 = await toBase64(img);
+            if (b64) {
+              base64Map.set(img.src, b64);
+            } else {
+              corsImagesCount++;
+            }
+          }
+        }));
+
+        if (corsImagesCount > 0) {
+          logStep(`Atenção: ${corsImagesCount} imagens podem causar erro de segurança (CORS).`);
         }
+
 
 
 
