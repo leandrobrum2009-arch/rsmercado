@@ -59,12 +59,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   useEffect(() => {
     const loadVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices()
-      const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
+      // Filter for Portuguese, prioritizing pt-BR
+      let ptVoices = availableVoices.filter(v => v.lang === 'pt-BR')
+      if (ptVoices.length === 0) {
+        ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
+      }
+      
       setVoices(ptVoices)
       if (ptVoices.length > 0 && !selectedVoice) {
-        // Try to find a good natural voice
-        const googleVoice = ptVoices.find(v => v.name.includes('Google'))
-        setSelectedVoice(googleVoice ? googleVoice.name : ptVoices[0].name)
+        // Try to find Google or natural sounding voices first
+        const naturalVoice = ptVoices.find(v => v.name.includes('Google') || v.name.includes('Natural'))
+        setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
       }
     }
 
