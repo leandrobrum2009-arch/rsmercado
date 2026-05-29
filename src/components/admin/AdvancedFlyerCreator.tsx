@@ -1717,11 +1717,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         
+        const url = URL.createObjectURL(blob);
         const link = document.body.appendChild(document.createElement('a'));
-        link.href = image
+        link.href = url
         link.download = `${fileName}.${format}`
         link.click()
         document.body.removeChild(link)
+        URL.revokeObjectURL(url);
+
         
         toast.dismiss(loadingToast)
         toast.success(`${format.toUpperCase()} baixado com sucesso!`)
