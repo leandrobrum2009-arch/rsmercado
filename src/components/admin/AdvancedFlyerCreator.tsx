@@ -1747,22 +1747,22 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         console.error('Error in handleDownloadImage:', err)
         toast.dismiss(loadingToast)
         
-        let errorMessage = 'Não foi possível gerar a imagem do encarte.';
-        let description = 'Tente atualizar a página e usar apenas imagens enviadas para o sistema.';
+        let errorMessage = 'Erro ao gerar imagem do encarte.';
+        let description = 'Algum elemento ou imagem impediu a criação do arquivo. Tente atualizar a página.';
         
         if (err.message === 'CANVAS_TAINTED' || (err.name === 'SecurityError')) {
-          errorMessage = 'Erro de Segurança (CORS)';
-          description = 'Alguma imagem externa impediu a criação do arquivo. Remova imagens de outros sites do seu encarte.';
+          description = 'Alguma imagem externa impediu a criação do arquivo por segurança (CORS). Remova imagens de sites externos.';
         } else if (err.message === 'EMPTY_IMAGE') {
-          description = 'O arquivo gerado ficou vazio. Tente usar uma escala menor ou menos produtos.';
-        } else if (err.name === 'QuotaExceededError') {
-          description = 'Memória do navegador insuficiente para esta resolução. Tente um encarte menor.';
+          description = 'A imagem gerada está vazia. Tente usar uma escala menor ou menos produtos.';
+        } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large')) {
+          description = 'O arquivo é muito grande para o seu navegador. Tente um encarte com menos produtos.';
         }
         
         toast.error(errorMessage, { 
           description,
           duration: 10000 
         });
+
 
 
       } finally {
