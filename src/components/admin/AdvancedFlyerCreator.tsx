@@ -1756,28 +1756,34 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.mixBlendMode = 'normal'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
 
-                    // 3. Forçar cores computadas para evitar oklch()
+                    // 3. Forçar cores computadas para evitar oklch() e funções modernas
                     try {
-                      // Pegar o estilo real (já convertido em RGB pelo navegador)
                       const computedStyle = window.getComputedStyle(el);
                       
-                      // Forçar RGB nas propriedades críticas
-                      if (computedStyle.color && computedStyle.color.includes('oklch')) el.style.color = '#000000';
-                      else if (computedStyle.color) el.style.color = computedStyle.color;
+                      // html2canvas trava em oklch, color-mix, etc.
+                      // window.getComputedStyle() normalmente retorna RGB, o que é perfeito
+                      const forceRGB = (prop: string) => {
+                        const val = (computedStyle as any)[prop];
+                        if (val && (val.includes('oklch') || val.includes('color-mix'))) {
+                           // Fallback se o navegador ainda retornar oklch no computed
+                           el.style.setProperty(prop, '#000000', 'important');
+                        } else if (val) {
+                           el.style.setProperty(prop, val, 'important');
+                        }
+                      };
 
-                      if (computedStyle.backgroundColor && computedStyle.backgroundColor.includes('oklch')) el.style.backgroundColor = 'transparent';
-                      else if (computedStyle.backgroundColor) el.style.backgroundColor = computedStyle.backgroundColor;
-
-                      if (computedStyle.borderColor && computedStyle.borderColor.includes('oklch')) el.style.borderColor = 'transparent';
-                      else if (computedStyle.borderColor) el.style.borderColor = computedStyle.borderColor;
+                      forceRGB('color');
+                      forceRGB('backgroundColor');
+                      forceRGB('borderColor');
+                      forceRGB('outlineColor');
 
                     } catch (e) {
-                      // Se falhar, tenta apenas remover estilos inline com oklch
                       const s = el.getAttribute('style');
                       if (s && s.includes('oklch')) {
                         el.setAttribute('style', s.replace(/oklch\([^)]+\)/g, 'inherit'));
                       }
                     }
+
 
                     // 4. Tratamento de Imagens
                     if (el.tagName === 'IMG') {
