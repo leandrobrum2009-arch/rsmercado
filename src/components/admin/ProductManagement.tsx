@@ -401,15 +401,19 @@ export function ProductManagement() {
      
      setIsSubmitting(false)
      
-     if (error) {
-       console.error('Save product error:', error)
-       toast.error('Falha ao salvar produto.')
-     } else {
-       toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
-       resetForm()
-       setIsProductDialogOpen(false)
-       fetchData()
-     }
+      if (error) {
+        console.error('Save product error:', error)
+        toast.error(`Falha ao salvar produto: ${error.message || 'Erro desconhecido'}`)
+        
+        if (error.code === '42501') {
+          toast.error('Erro de permissão (RLS). Verifique se você é um administrador.')
+        }
+      } else {
+        toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
+        resetForm()
+        setIsProductDialogOpen(false)
+        fetchData()
+      }
    }
  
    const resetForm = () => {
