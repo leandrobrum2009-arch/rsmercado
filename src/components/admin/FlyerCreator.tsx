@@ -352,7 +352,15 @@ export function FlyerCreator() {
                           >
                             <Camera size={14} />
                           </Button>
-                        </div>
+                         </div>
+                         <Button 
+                           variant="ghost" 
+                           size="sm" 
+                           className="text-[10px] font-bold uppercase text-zinc-400"
+                           onClick={() => setProductSearchTerm('')}
+                         >
+                           Limpar
+                         </Button>
                       </DialogTitle>
                     </DialogHeader>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-4">
