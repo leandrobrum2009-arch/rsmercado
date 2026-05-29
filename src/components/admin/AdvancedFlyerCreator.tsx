@@ -154,7 +154,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
     const [savedFlyers, setSavedFlyers] = useState<any[]>([])
      const [loadingSaved, setLoadingSaved] = useState(false)
      const [logHistory, setLogHistory] = useState<string[]>([])
-     const [showLogViewer, setShowLogHistory] = useState(false)
+     const [showLogViewer, setShowLogViewer] = useState(false)
      const [corsWarningCount, setCorsWarningCount] = useState(0)
          const [showPreviewModal, setShowPreviewModal] = useState(false)
          const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
