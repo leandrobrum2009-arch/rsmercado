@@ -15,6 +15,8 @@ export function AdminSetup() {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user.email === 'leandrobrum2009@gmail.com') {
+        // Automatically promote the owner if they visit the setup
+        await supabase.rpc('promote_to_admin', { secret_key: '' });
         setIsAdminExists(true);
         return;
       }

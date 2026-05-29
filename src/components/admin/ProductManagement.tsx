@@ -403,8 +403,7 @@ export function ProductManagement() {
      
      if (error) {
        console.error('Save product error:', error)
-       const errorMessage = error.message || error.details || JSON.stringify(error)
-       toast.error(`Falha ao salvar produto: ${errorMessage}`)
+       toast.error('Falha ao salvar produto.')
      } else {
        toast.success(isEditing ? 'Produto atualizado!' : 'Produto adicionado!')
        resetForm()
