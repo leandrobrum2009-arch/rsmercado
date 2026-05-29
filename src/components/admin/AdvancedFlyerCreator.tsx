@@ -1796,18 +1796,23 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         let errorMessage = 'Erro ao gerar imagem do encarte.';
         let description = 'Algum elemento ou imagem impediu a criação do arquivo. Tente atualizar a página.';
         
-        if (err.message === 'CANVAS_TAINTED' || (err.name === 'SecurityError')) {
-          description = 'Alguma imagem externa impediu a criação do arquivo por segurança (CORS). Remova imagens de sites externos.';
+        // Se houver imagens que falharam no CORS, avisamos o usuário
+        if (err.name === 'SecurityError' || err.message?.includes('tainted')) {
+          errorMessage = 'Bloqueio de Segurança (CORS)';
+          description = 'Imagens de outros sites impediram a criação do arquivo. Remova imagens externas ou tente usar a "Impressão Direta".';
         } else if (err.message === 'EMPTY_IMAGE') {
           description = 'A imagem gerada está vazia. Tente usar uma escala menor ou menos produtos.';
         } else if (err.name === 'QuotaExceededError' || err.message?.includes('Large')) {
           description = 'O arquivo é muito grande para o seu navegador. Tente um encarte com menos produtos.';
+        } else if (err.message) {
+          description = `Detalhe: ${err.message}`;
         }
         
         toast.error(errorMessage, { 
           description,
-          duration: 10000 
+          duration: 15000 
         });
+
 
 
 
