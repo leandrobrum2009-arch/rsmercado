@@ -1706,27 +1706,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         }, 500)
       }
     }
-      } catch (err: any) {
-        console.error('Error generating image:', err)
-        toast.dismiss(loadingToast)
-        const isCORS = err.message === 'CANVAS_TAINTED';
-        
-        toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : 'Erro ao gerar imagem.', {
-          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
-          duration: 10000,
-          action: {
-            label: 'Imprimir Direto',
-            onClick: () => handleDirectPrint()
-          }
-        });
-      } finally {
-        setUploading(false)
-        setTimeout(() => {
-          setGenerationProgress(0)
-          setGenerationStep('')
-        }, 500)
-      }
-    }
+
 
     const handleDownloadPDF = async () => {
       const element = document.getElementById('flyer-content')
