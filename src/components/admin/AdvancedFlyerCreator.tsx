@@ -3124,13 +3124,23 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
               <div className="flex flex-wrap gap-2 justify-center">
                 <Button 
                   size="sm" 
-                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all active:scale-95" 
-                  onClick={() => handleDownloadImage('jpg')}
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200 transition-all active:scale-95" 
+                  onClick={async () => {
+                    await handleDownloadImage('jpg');
+                  }}
                   disabled={uploading}
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar JPG
+                  <Camera className="w-4 h-4 mr-2" />
+                  Gerar e Baixar JPG
                 </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-white border-2 border-zinc-100 hover:border-zinc-900 transition-all active:scale-95" 
+                  onClick={() => handleDownloadImage('png')}
+                  disabled={uploading}
+                >
+
                 <Button 
                   size="sm" 
                   variant="outline"
