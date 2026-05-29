@@ -1608,67 +1608,75 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
-          return await html2canvas(element, {
-            useCORS: true,
-            allowTaint: false,
-            scale: customScale,
-            backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+          try {
+            return await html2canvas(element, {
+              useCORS: true,
+              allowTaint: false,
+              scale: customScale,
+              backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+              logging: false,
+              imageTimeout: 30000,
+              onclone: (clonedDoc) => {
+                logStep('onclone: Preparando clone para imagem A4');
+                const clonedElement = clonedDoc.getElementById('flyer-content');
+                if (clonedElement) {
+                  // Forçar dimensões exatas A4 (210mm x 297mm em 96dpi aprox)
+                  clonedElement.style.width = '794px';
+                  clonedElement.style.height = '1123px';
+                  clonedElement.style.transform = 'none';
+                  clonedElement.style.transition = 'none';
+                  clonedElement.style.animation = 'none';
+                  clonedElement.style.margin = '0';
+                  clonedElement.style.padding = '0';
+                  clonedElement.style.boxShadow = 'none';
+                  clonedElement.style.border = 'none'; 
+                  clonedElement.style.display = 'flex';
+                  clonedElement.style.flexDirection = 'column';
+                  clonedElement.style.visibility = 'visible';
+                  clonedElement.style.position = 'relative';
+                  clonedElement.style.left = '0';
+                  clonedElement.style.top = '0';
 
-            logging: false,
-            imageTimeout: 30000,
-            onclone: (clonedDoc) => {
-              logStep('onclone: Preparando clone para imagem A4');
-              const clonedElement = clonedDoc.getElementById('flyer-content');
-              if (clonedElement) {
-                // Forçar dimensões exatas A4 (210mm x 297mm em 96dpi aprox)
-                clonedElement.style.width = '794px';
-                clonedElement.style.height = '1123px';
-                clonedElement.style.transform = 'none';
-                clonedElement.style.transition = 'none';
-                clonedElement.style.animation = 'none';
-                clonedElement.style.margin = '0';
-                clonedElement.style.padding = '0';
-                clonedElement.style.boxShadow = 'none';
-                clonedElement.style.border = 'none'; // Sem bordas conforme pedido
-                clonedElement.style.display = 'flex';
-                clonedElement.style.flexDirection = 'column';
-                clonedElement.style.visibility = 'visible';
-                clonedElement.style.position = 'relative';
-                clonedElement.style.left = '0';
-                clonedElement.style.top = '0';
-
-                const allElements = clonedElement.querySelectorAll('*');
-                allElements.forEach((el: any) => {
-                  el.style.setProperty('transition', 'none', 'important');
-                  el.style.setProperty('animation', 'none', 'important');
-                  el.style.setProperty('animation-duration', '0s', 'important');
-                  el.style.setProperty('transition-duration', '0s', 'important');
-                  el.style.backdropFilter = 'none';
-                  el.style.fontVariantNumeric = 'tabular-nums';
-                  
-                  // Remover classes de animação
-                  if (el.className && typeof el.className === 'string') {
-                    el.className = el.className
-                      .replace(/\banimate-\S+/g, '')
-                      .replace(/\bduration-\S+/g, '')
-                      .replace(/\bfade-in\S*/g, '')
-                      .replace(/\bzoom-in\S*/g, '')
-                      .replace(/\bslide-in\S*/g, '')
-                      .replace(/\bdelay-\S+/g, '');
-                  }
-                });
+                  const allElements = clonedElement.querySelectorAll('*');
+                  allElements.forEach((el: any) => {
+                    el.style.setProperty('transition', 'none', 'important');
+                    el.style.setProperty('animation', 'none', 'important');
+                    el.style.setProperty('animation-duration', '0s', 'important');
+                    el.style.setProperty('transition-duration', '0s', 'important');
+                    el.style.backdropFilter = 'none';
+                    el.style.fontVariantNumeric = 'tabular-nums';
+                    
+                    if (el.className && typeof el.className === 'string') {
+                      el.className = el.className
+                        .replace(/\banimate-\S+/g, '')
+                        .replace(/\bduration-\S+/g, '')
+                        .replace(/\bfade-in\S*/g, '')
+                        .replace(/\bzoom-in\S*/g, '')
+                        .replace(/\bslide-in\S*/g, '')
+                        .replace(/\bdelay-\S+/g, '');
+                    }
+                  });
+                }
               }
-            }
-          });
+            });
+          } catch (error) {
+            logStep(`Erro no html2canvas (escala ${customScale}):`, error);
+            throw error;
+          }
         };
 
         let canvas: HTMLCanvasElement;
         try {
-          // Usamos escala 3 para alta qualidade (aprox 300 DPI para A4)
+          // Tentamos escala 3 para alta qualidade (aprox 300 DPI para A4)
           canvas = await generateImageCanvas(3);
         } catch (firstErr) {
           logStep('Erro escala 3, tentando escala 2...', firstErr);
-          canvas = await generateImageCanvas(2);
+          try {
+            canvas = await generateImageCanvas(2);
+          } catch (secondErr) {
+            logStep('Erro escala 2, tentando escala 1.5...', secondErr);
+            canvas = await generateImageCanvas(1.5);
+          }
         }
 
         logStep('Passo 3: Finalizando arquivo de imagem');
@@ -1679,15 +1687,24 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
         const quality = format === 'jpg' ? 0.95 : undefined
         
-        const image = canvas.toDataURL(mimeType, quality)
+        let image = '';
+        try {
+          image = canvas.toDataURL(mimeType, quality);
+        } catch (exportError) {
+          logStep('Erro ao exportar canvas (possível problema de CORS):', exportError);
+          throw new Error('CANVAS_TAINTED');
+        }
+        
+        if (!image || image === 'data:,') {
+          throw new Error('EMPTY_IMAGE');
+        }
         
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
         
-        const link = document.createElement('a')
+        const link = document.body.appendChild(document.createElement('a'));
         link.href = image
         link.download = `${fileName}.${format}`
-        document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         
@@ -1696,9 +1713,18 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       } catch (err: any) {
         console.error('Error generating image:', err)
         toast.dismiss(loadingToast)
-        toast.error('Erro ao gerar imagem.', {
-          description: 'Tente usar a Impressão Direta se o problema persistir.'
-        });
+        
+        let errorMessage = 'Não foi possível gerar a imagem.';
+        let description = 'Verifique se há imagens de outros sites no encarte ou tente novamente.';
+        
+        if (err.message === 'CANVAS_TAINTED') {
+          description = 'Algumas imagens impediram a geração do arquivo por segurança (CORS). Tente usar imagens enviadas pelo sistema.';
+        } else if (err.message === 'EMPTY_IMAGE') {
+          description = 'A imagem gerada está vazia. Tente atualizar a página.';
+        }
+        
+        toast.error(errorMessage, { description });
+
       } finally {
         setUploading(false)
         setTimeout(() => {
