@@ -1621,14 +1621,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const generateImageCanvas = async (customScale = 2) => {
           logStep(`Iniciando html2canvas para imagem (Escala: ${customScale})`);
           try {
-            // Garante que o elemento original esteja visível e com dimensões estáveis
-            if (element) {
-              element.scrollIntoView({ block: 'center' });
-            }
-
             return await html2canvas(element, {
               useCORS: true,
-              allowTaint: false, // Importante para toDataURL funcionar
+              allowTaint: false, 
               scale: customScale,
               backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
               logging: false,
@@ -1637,7 +1632,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                 logStep('onclone: Preparando clone para imagem A4');
                 const clonedElement = clonedDoc.getElementById('flyer-content');
                 if (clonedElement) {
-                  // Forçar dimensões exatas A4 (210mm x 297mm em 96dpi aprox)
                   clonedElement.style.width = '794px';
                   clonedElement.style.height = '1123px';
                   clonedElement.style.transform = 'none';
@@ -1654,7 +1648,6 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
 
-                  // Desativar efeitos que html2canvas não suporta ou que causam bugs
                   const allElements = clonedElement.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                     el.style.setProperty('transition', 'none', 'important');
@@ -1662,10 +1655,9 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                     el.style.setProperty('animation-duration', '0s', 'important');
                     el.style.setProperty('transition-duration', '0s', 'important');
                     el.style.backdropFilter = 'none';
-                    el.style.filter = 'none'; // Desativar filtros complexos
+                    el.style.filter = 'none'; 
                     el.style.fontVariantNumeric = 'tabular-nums';
                     
-                    // Se for imagem, tenta garantir que crossOrigin esteja lá (redundância)
                     if (el.tagName === 'IMG') {
                       el.crossOrigin = 'anonymous';
                     }
@@ -1692,20 +1684,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
 
         let canvas: HTMLCanvasElement;
         try {
-          // Tentamos escala 3 para alta qualidade
-          canvas = await generateImageCanvas(3);
+          // Começamos com escala 2 que é estável e de boa qualidade para A4
+          canvas = await generateImageCanvas(2);
         } catch (firstErr) {
-          logStep('Erro escala 3, tentando escala 2...', firstErr);
+          logStep('Erro escala 2, tentando escala 1.5...', firstErr);
           try {
-            canvas = await generateImageCanvas(2);
+            canvas = await generateImageCanvas(1.5);
           } catch (secondErr) {
-            logStep('Erro escala 2, tentando escala 1.5...', secondErr);
-            try {
-              canvas = await generateImageCanvas(1.5);
-            } catch (thirdErr) {
-              logStep('Erro escala 1.5, tentando escala 1 (compatibilidade máxima)...', thirdErr);
-              canvas = await generateImageCanvas(1);
-            }
+            logStep('Erro escala 1.5, tentando escala 1...', secondErr);
+            canvas = await generateImageCanvas(1);
           }
         }
 
@@ -1717,20 +1704,15 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
         const mimeType = format === 'png' ? 'image/png' : 'image/jpeg'
         const quality = format === 'jpg' ? 0.95 : undefined
         
-        let image = '';
-        try {
-          // Tentar gerar a URL da imagem. Se houver erro de CORS, o navegador lança SecurityError aqui.
-          image = canvas.toDataURL(mimeType, quality);
-        } catch (exportError: any) {
-          logStep('Erro fatal ao exportar canvas (CORS/SecurityError):', exportError);
-          // Se falhou por CORS, tentamos uma última vez permitindo "taint" mas sem poder baixar se for o caso
-          // Na verdade, se falhou aqui, o canvas já está "sujo"
-          throw new Error('CANVAS_TAINTED');
-        }
-        
-        if (!image || image === 'data:,') {
+        logStep('Convertendo canvas para blob para download seguro');
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((b) => resolve(b), mimeType, quality);
+        });
+
+        if (!blob) {
           throw new Error('EMPTY_IMAGE');
         }
+
         
         setGenerationProgress(100)
         setGenerationStep('Pronto!')
