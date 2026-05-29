@@ -203,21 +203,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 1080
-    canvas.height = 1920
+    canvas.width = 720 // Reduced for better performance during capture
+    canvas.height = 1280
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(30)
+    const stream = canvas.captureStream(24) // 24 FPS is enough
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4') 
       ? 'video/mp4' 
-      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=h264')
+        ? 'video/webm;codecs=h264'
         : 'video/webm'
         
     const recorder = new MediaRecorder(stream, {
       mimeType,
-      videoBitsPerSecond: 5000000
+      videoBitsPerSecond: 2500000
     })
     
     chunksRef.current = []
@@ -231,42 +231,49 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       const link = document.createElement('a')
       link.href = url
       link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
       setIsRecording(false)
+      setIsPlaying(false)
       toast.success('Vídeo gerado com sucesso!')
     }
     
     recorderRef.current = recorder
     recorder.start()
     
-    const captureFrame = async () => {
-      if (!isRecording || !recordingCanvasRef.current || !slideRef.current) return
+    // Use a fixed interval for frame capture instead of requestAnimationFrame 
+    // to have more control and avoid blocking the main thread too much
+    const captureInterval = setInterval(async () => {
+      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current) {
+        clearInterval(captureInterval)
+        return
+      }
       
       try {
         const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1.5,
-          backgroundColor: flyer.config?.backgroundColor || '#ffffff'
+          pixelRatio: 1, // Lower resolution for video frames to improve performance
+          backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          style: {
+            borderRadius: '0px' // Remove rounded corners for export
+          }
         })
         
         const img = new Image()
         img.src = dataUrl
         await new Promise(r => img.onload = r)
         
-        const ctx = recordingCanvasRef.current.getContext('2d')
+        const ctx = canvas.getContext('2d')
         if (ctx) {
-          ctx.drawImage(img, 0, 0, 1080, 1920)
+          ctx.drawImage(img, 0, 0, 720, 1280)
         }
       } catch (e) {
         console.error('Frame capture error:', e)
       }
-      
-      if (isRecording) {
-        requestAnimationFrame(captureFrame)
-      }
-    }
-    
-    captureFrame()
+    }, 1000 / 12) // Capture 12 frames per second to save resources
   }
+
 
   const stopRecording = () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
