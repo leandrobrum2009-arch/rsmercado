@@ -3212,6 +3212,14 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
           transition-delay: 0s !important;
         }
       `}</style>
+      <BarcodeScanner 
+        isOpen={barcodeScannerOpen} 
+        onClose={() => setBarcodeScannerOpen(false)} 
+        onScan={(code) => {
+          setProductSearchTerm(code);
+          toast.success(`Buscando por: ${code}`);
+        }}
+      />
       </>
     )
   }
