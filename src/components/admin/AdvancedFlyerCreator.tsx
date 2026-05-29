@@ -2956,7 +2956,7 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
                    </DialogTrigger>
                     <DialogContent className="max-w-5xl w-[98vw] overflow-hidden flex flex-col h-[90vh] md:h-[85vh] p-0 gap-0 bg-white shadow-2xl">
                        <DialogHeader className="p-4 md:p-6 pb-2 space-y-4 shrink-0 border-b bg-zinc-50/50 max-w-full overflow-hidden">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
                             <DialogTitle className="flex items-center gap-2">
                               <span>Selecionar Produtos</span>
                               <span className="text-[10px] font-normal text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
