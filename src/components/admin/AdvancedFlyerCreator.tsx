@@ -1572,11 +1572,17 @@ import { BarcodeScanner } from '@/components/BarcodeScanner'
       };
  
     const handleDownloadImage = async (format: 'png' | 'jpg' = 'jpg') => {
+      if (selectedProducts.length === 0) {
+        toast.error('Adicione produtos ao encarte primeiro');
+        return;
+      }
+
       const element = document.getElementById('flyer-content')
       if (!element) {
         toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
         return
       }
+
 
       logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
