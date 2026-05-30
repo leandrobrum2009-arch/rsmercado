@@ -734,9 +734,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 3: Finalizar</p>
                       <Button variant="default" className="w-full h-16 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
                         {isRecording ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GRAVANDO MP4...</span></div>
-                            <span className="text-[8px] opacity-70 font-normal italic">Aguarde o download automático</span>
+                          <div className="flex flex-col items-center gap-1 w-full">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" /> 
+                              <span>GERANDO VÍDEO: {Math.round(exportProgress)}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden mt-1">
+                              <div className="h-full bg-white transition-all duration-300" style={{ width: `${exportProgress}%` }} />
+                            </div>
+                            <span className="text-[8px] opacity-70 font-normal italic">Não feche esta janela</span>
                           </div>
                         ) : <><Video className="h-6 w-6 mr-2" /> BAIXAR VÍDEO COMPLETO</>}
                       </Button>
