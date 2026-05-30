@@ -509,7 +509,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     >
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-6 py-3 rounded-full text-xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" style={{ fontWeight: config.fontWeight }}>
+                    <div 
+                      className="bg-green-600 text-white px-6 py-3 rounded-full text-xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" 
+                      style={{ 
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight 
+                      }}
+                    >
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
