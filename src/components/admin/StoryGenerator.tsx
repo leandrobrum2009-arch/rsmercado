@@ -63,7 +63,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     priceColor: flyer.config?.priceColor || '#ef4444',
     showLogo: flyer.config?.showLogo ?? true,
     productSpacing: flyer.config?.productSpacing || 24,
-    productImageSize: flyer.config?.productImageSize || 90
+    productImageSize: flyer.config?.productImageSize || 90,
+    backgroundMusic: flyer.config?.backgroundMusic || null
   })
 
 
@@ -316,6 +317,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       mimeType,
       videoBitsPerSecond: 10000000 // 10Mbps for high quality
     })
+
+    // Handle background music if selected
+    let bgAudio: HTMLAudioElement | null = null
+    if (config.backgroundMusic) {
+      bgAudio = new Audio(config.backgroundMusic)
+      bgAudio.crossOrigin = "anonymous"
+      bgAudio.loop = true
+      const source = audioContext.createMediaElementSource(bgAudio)
+      source.connect(dest)
+      source.connect(audioContext.destination)
+      bgAudio.play().catch(e => console.error("Error playing background music:", e))
+    }
     
     chunksRef.current = []
     recorder.ondataavailable = (e) => {
@@ -323,6 +336,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     recorder.onstop = () => {
+      if (bgAudio) {
+        bgAudio.pause()
+        bgAudio.currentTime = 0
+      }
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -812,6 +829,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         onChange={(e) => setConfig({...config, outroPhrase: e.target.value})}
                         className="bg-zinc-900 border-zinc-800 text-white text-xs h-16"
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Música de Fundo (MP3 URL)</Label>
+                      <Input 
+                        placeholder="Cole aqui a URL de um MP3"
+                        value={config.backgroundMusic || ''}
+                        onChange={(e) => setConfig({...config, backgroundMusic: e.target.value})}
+                        className="bg-zinc-900 border-zinc-800 text-white text-xs"
+                      />
+                      <p className="text-[9px] text-zinc-500 italic">Dica: Use links do Pixabay Audio ou similares para música ambiente.</p>
+                    </div>
+
+                    <div className="p-4 bg-amber-900/20 border border-amber-900/30 rounded-xl space-y-2">
+                      <p className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
+                        <Volume2 className="h-3 w-3" /> Nota sobre Narração
+                      </p>
+                      <p className="text-[9px] text-amber-200/70 leading-relaxed">
+                        A voz do narrador é gerada pelo seu navegador e, por segurança, navegadores não permitem capturá-la diretamente no vídeo. Para que o vídeo tenha som, use uma <strong>Música de Fundo</strong> acima.
+                      </p>
                     </div>
                   </div>
 
