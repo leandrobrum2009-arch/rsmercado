@@ -255,11 +255,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       return next;
     });
 
-
     const slide = slides[index]
     if (!slide) return;
     
     let text = ''
+
+    if (recording && audioDestRef.current && audioContextRef.current) {
+      setIsAudioLoading(true)
+    }
+
 
     const replacePlaceholders = (template: string, product?: Product) => {
       let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
