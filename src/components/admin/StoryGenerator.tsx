@@ -421,8 +421,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
+    // Use high video bitrate for crystal clear output
+    const videoBitrate = 12000000; // 12 Mbps
+    
     // Create a high-quality stream
-    const stream = canvas.captureStream(30)
+    const stream = canvas.captureStream(60) // Increase to 60fps for smoother motion if possible
+
     
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     console.log('[StoryGenerator] AudioContext state:', audioContext.state);
@@ -464,8 +468,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 10000000 
+      videoBitsPerSecond: videoBitrate 
     })
+
 
     // Handle background music if selected
     let bgAudio: HTMLAudioElement | null = null
@@ -542,8 +547,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       try {
         // Use the actual element dimensions for the canvas to avoid stretching
         const rect = slideRef.current.getBoundingClientRect();
+        // Capture at exactly 1080x1920 by forcing the width/height in html-to-image
+        // This ensures pixel-perfect quality regardless of browser window size
         const frameCanvas = await htmlToImage.toCanvas(slideRef.current, {
-          pixelRatio: 3, // Even higher resolution
+          pixelRatio: 1, // Use 1 since we're setting the exact target size
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           style: { 
@@ -552,22 +559,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             margin: '0',
             padding: '0'
           },
-          width: rect.width,
-          height: rect.height
+          width: 1080,
+          height: 1920
         });
+
         
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.clearRect(0, 0, 1080, 1920);
-          
-          // Draw image maintaining aspect ratio
-          const scale = Math.min(1080 / frameCanvas.width, 1920 / frameCanvas.height);
-          const x = (1080 - frameCanvas.width * scale) / 2;
-          const y = (1920 - frameCanvas.height * scale) / 2;
-          ctx.drawImage(frameCanvas, x, y, frameCanvas.width * scale, frameCanvas.height * scale);
+          ctx.imageSmoothingEnabled = false; // Disable smoothing since we are drawing 1:1
+          ctx.drawImage(frameCanvas, 0, 0, 1080, 1920);
         }
+
       } catch (e) {
         console.error('Frame capture error:', e);
       } finally {
