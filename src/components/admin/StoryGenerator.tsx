@@ -366,7 +366,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       }
 
     } else {
+      setIsAudioLoading(false)
       console.log('[StoryGenerator] Using browser TTS');
+
       const utterance = new SpeechSynthesisUtterance(text)
       if (config.selectedVoice) {
         const voice = voices.find(v => v.name === config.selectedVoice)
