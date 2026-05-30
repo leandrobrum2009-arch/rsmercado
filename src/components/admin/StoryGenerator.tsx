@@ -421,8 +421,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
+    // Use high video bitrate for crystal clear output
+    const videoBitrate = 12000000; // 12 Mbps
+    
     // Create a high-quality stream
-    const stream = canvas.captureStream(30)
+    const stream = canvas.captureStream(60) // Increase to 60fps for smoother motion if possible
+
     
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     console.log('[StoryGenerator] AudioContext state:', audioContext.state);
