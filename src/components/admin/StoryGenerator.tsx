@@ -452,6 +452,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setProgress(0)
     setIsPlaying(true)
     
+    // Create recording canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = 1080 
+    canvas.height = 1920
+    recordingCanvasRef.current = canvas
+    
+    // Video stream from canvas
+    const videoStream = canvas.captureStream(30)
+    
     // Web Audio setup for recording
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     audioContextRef.current = audioContext
@@ -464,15 +473,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     // Constant low-level signal to keep the audio track active in some browsers
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-    gain.gain.value = 0.00001
-    oscillator.connect(gain)
-    gain.connect(dest)
-    oscillator.start()
-    
-    // Video stream from canvas
-    const videoStream = canvas.captureStream(30)
+    const osc = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    gainNode.gain.value = 0.00001
+    osc.connect(gainNode)
+    gainNode.connect(dest)
+    osc.start()
     
     // Combine video and audio tracks
     const combinedStream = new MediaStream()
@@ -481,24 +487,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     if (combinedStream.getAudioTracks().length === 0) {
       console.error('CRITICAL: No audio tracks detected in the recording stream!')
-    }
-    
-    // Low-volume constant tone to keep stream alive
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-    gain.gain.value = 0.0001
-    oscillator.connect(gain)
-    gain.connect(dest)
-    oscillator.start()
-    
-    let combinedStream = stream
-    if (dest.stream.getAudioTracks().length > 0) {
-      combinedStream = new MediaStream([
-        ...stream.getVideoTracks(),
-        ...dest.stream.getAudioTracks()
-      ])
-    } else {
-      console.warn('No audio tracks found for recording');
     }
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
