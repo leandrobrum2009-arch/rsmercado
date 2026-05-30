@@ -242,7 +242,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
           quality: 0.95,
           pixelRatio: 2,
-          backgroundColor: flyer.config?.backgroundColor || '#ffffff'
+          backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          cacheBust: true,
         })
         
         const link = document.createElement('a')
@@ -323,6 +324,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const dataUrl = await htmlToImage.toPng(slideRef.current, {
           pixelRatio: 1, // Reduced for performance
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          cacheBust: true,
           style: {
             borderRadius: '0px'
           }
