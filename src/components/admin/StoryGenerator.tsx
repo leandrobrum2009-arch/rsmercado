@@ -63,6 +63,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     priceColor: flyer.config?.priceColor || '#ef4444'
   })
 
+  const slides: SlideType[] = [
+    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
+    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
+    { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
+  ]
+
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
     if (slide?.type === 'product') return config.productDuration * 1000
@@ -76,12 +82,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
-
-  const slides: SlideType[] = [
-    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
-    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
-    { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
-  ]
 
   // Load voices with polling
   useEffect(() => {
