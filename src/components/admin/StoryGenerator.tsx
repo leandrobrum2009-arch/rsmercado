@@ -492,102 +492,215 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             </div>
           </div>
 
-          <div className="w-full md:w-80 bg-zinc-950 p-6 flex flex-col gap-6 overflow-y-auto">
-            <div>
-              <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
-                Gerador de Stories
-              </h3>
-              <p className="text-zinc-500 text-xs font-bold uppercase">Melhorado & Potente</p>
-            </div>
+          <div className="w-full md:w-80 bg-zinc-950 flex flex-col overflow-hidden">
+            <Tabs defaultValue="controls" className="flex-1 flex flex-col">
+              <TabsList className="grid grid-cols-2 bg-zinc-900 rounded-none h-14">
+                <TabsTrigger value="controls" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white gap-2 font-bold uppercase text-[10px] tracking-widest">
+                  <Play className="h-3 w-3" /> Controles
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white gap-2 font-bold uppercase text-[10px] tracking-widest">
+                  <Settings2 className="h-3 w-3" /> Ajustes
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="space-y-4">
-              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                <Settings2 className="h-3 w-3" /> Narrador (Escolha abaixo)
-              </p>
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl border-2 focus:ring-purple-500">
-                  <SelectValue placeholder="Selecione o narrador" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                  {voices.map(voice => (
-                    <SelectItem key={voice.name} value={voice.name} className="focus:bg-purple-900/50 focus:text-white">
-                      <div className="flex flex-col">
-                        <span className="font-bold">{voice.name}</span>
-                        <span className="text-[10px] opacity-50">{voice.lang}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                  {voices.length === 0 && (
-                    <div className="p-2 text-xs text-zinc-500 text-center">
-                      Carregando vozes...
+              <TabsContent value="controls" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0">
+                <div>
+                  <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
+                    Story Player
+                  </h3>
+                  <p className="text-zinc-500 text-xs font-bold uppercase">Visualizar e Exportar</p>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <Settings2 className="h-3 w-3" /> Narrador (Escolha abaixo)
+                  </p>
+                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                    <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl border-2 focus:ring-purple-500">
+                      <SelectValue placeholder="Selecione o narrador" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                      {voices.map(voice => (
+                        <SelectItem key={voice.name} value={voice.name} className="focus:bg-purple-900/50 focus:text-white">
+                          <div className="flex flex-col">
+                            <span className="font-bold">{voice.name}</span>
+                            <span className="text-[10px] opacity-50">{voice.lang}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Reprodução</p>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={isPlaying ? "destructive" : "default"}
+                      className="flex-1 h-14 rounded-xl font-black uppercase text-sm shadow-lg shadow-purple-500/20"
+                      onClick={handleTogglePlay}
+                      disabled={isRecording}
+                    >
+                      {isPlaying ? <><Pause className="mr-2 h-5 w-5" /> Pausar</> : <><Play className="mr-2 h-5 w-5" /> Reproduzir</>}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-14 h-14 rounded-xl border-2 border-zinc-800 text-white hover:bg-zinc-900 hover:border-zinc-700"
+                      onClick={() => setIsMuted(!isMuted)}
+                    >
+                      {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-zinc-900 bg-zinc-900/50 p-4 rounded-2xl border-2 border-purple-500/20 shadow-2xl">
+                  <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <Video className="h-3 w-3" /> Exportar MP4
+                  </p>
+                  
+                  <Button 
+                    variant="default"
+                    className="w-full h-14 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 shadow-xl shadow-purple-900/20 border-0"
+                    onClick={isRecording ? stopRecording : startVideoRecording}
+                    disabled={isExporting}
+                  >
+                    {isRecording ? (
+                      <><Loader2 className="h-5 w-5 animate-spin" /> GERANDO VÍDEO...</>
+                    ) : (
+                      <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO</>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    variant="secondary"
+                    className="w-full h-10 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 border-2 border-zinc-800"
+                    onClick={exportAsImage}
+                    disabled={isExporting || isRecording}
+                  >
+                    <Camera className="h-4 w-4" /> Baixar Slide Atual (JPG)
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0 custom-scrollbar">
+                <div>
+                  <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
+                    Configurações
+                  </h3>
+                  <p className="text-zinc-500 text-xs font-bold uppercase">Personalize seu Story</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Tempo por Slide (segundos)</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider 
+                        value={[config.slideDuration]} 
+                        min={3} 
+                        max={30} 
+                        step={0.5}
+                        onValueChange={(val) => setConfig({...config, slideDuration: val[0]})}
+                        className="flex-1"
+                      />
+                      <span className="text-white font-bold text-sm w-12 text-right">{config.slideDuration}s</span>
                     </div>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+                  </div>
 
-            <div className="flex flex-col gap-2">
-              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Controles</p>
-              <div className="flex gap-2">
-                <Button 
-                  variant={isPlaying ? "destructive" : "default"}
-                  className="flex-1 h-14 rounded-xl font-black uppercase text-sm shadow-lg shadow-purple-500/20"
-                  onClick={handleTogglePlay}
-                  disabled={isRecording}
-                >
-                  {isPlaying ? <><Pause className="mr-2 h-5 w-5" /> Pausar</> : <><Play className="mr-2 h-5 w-5" /> Reproduzir</>}
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="w-14 h-14 rounded-xl border-2 border-zinc-800 text-white hover:bg-zinc-900 hover:border-zinc-700"
-                  onClick={() => setIsMuted(!isMuted)}
-                >
-                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                </Button>
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Logo</Label>
+                    <Slider 
+                      value={[config.logoTop]} 
+                      min={0} 
+                      max={200} 
+                      onValueChange={(val) => setConfig({...config, logoTop: val[0]})}
+                    />
+                  </div>
 
-            <div className="space-y-4 pt-4 border-t border-zinc-900 bg-zinc-900/50 p-4 rounded-2xl border-2 border-purple-500/20 shadow-2xl">
-              <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                <Video className="h-3 w-3" /> Exportar para WhatsApp/Instagram
-              </p>
-              
-              <Button 
-                variant="secondary"
-                className="w-full h-12 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 border-2 border-zinc-800"
-                onClick={exportAsImage}
-                disabled={isExporting || isRecording}
-              >
-                {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                Baixar Imagem (Slide)
-              </Button>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Conteúdo</Label>
+                    <Slider 
+                      value={[config.contentTop]} 
+                      min={0} 
+                      max={400} 
+                      onValueChange={(val) => setConfig({...config, contentTop: val[0]})}
+                    />
+                  </div>
 
-              <Button 
-                variant="default"
-                className="w-full h-14 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 shadow-xl shadow-purple-900/20 border-0"
-                onClick={isRecording ? stopRecording : startVideoRecording}
-                disabled={isExporting}
-              >
-                {isRecording ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    GERANDO VÍDEO... AGUARDE
-                  </>
-                ) : (
-                  <>
-                    <Video className="h-6 w-6" />
-                    BAIXAR VÍDEO MP4 COMPLETO
-                  </>
-                )
-                }
-              </Button>
-              {isRecording && (
-                <p className="text-[10px] text-purple-400 font-bold animate-pulse text-center">
-                  Gravando... Aguarde o final dos slides.
-                </p>
-              )}
-            </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Fonte</Label>
+                    <Select value={config.fontFamily} onValueChange={(val) => setConfig({...config, fontFamily: val})}>
+                      <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                        <SelectItem value="sans-serif">Padrão</SelectItem>
+                        <SelectItem value="'Inter', sans-serif">Inter</SelectItem>
+                        <SelectItem value="'Montserrat', sans-serif">Montserrat</SelectItem>
+                        <SelectItem value="'Roboto Condensed', sans-serif">Roboto Condensed</SelectItem>
+                        <SelectItem value="'Oswald', sans-serif">Oswald</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Peso da Fonte</Label>
+                    <Select value={config.fontWeight} onValueChange={(val) => setConfig({...config, fontWeight: val})}>
+                      <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                        <SelectItem value="400">Normal</SelectItem>
+                        <SelectItem value="600">Semibold</SelectItem>
+                        <SelectItem value="700">Bold</SelectItem>
+                        <SelectItem value="800">Extra Bold</SelectItem>
+                        <SelectItem value="900">Black</SelectItem>
+                        <SelectItem value="1000">Ultra Black</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-zinc-900">
+                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-2">
+                      <MessageSquare className="h-3 w-3" /> Frases da Narração
+                    </p>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase text-zinc-400">Introdução ({'{store}'})</Label>
+                      <Textarea 
+                        value={config.introPhrase} 
+                        onChange={(e) => setConfig({...config, introPhrase: e.target.value})}
+                        className="bg-zinc-900 border-zinc-800 text-white text-xs h-16"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase text-zinc-400">Produto ({'{name}'}, {'{price}'})</Label>
+                      <Textarea 
+                        value={config.productPhrase} 
+                        onChange={(e) => setConfig({...config, productPhrase: e.target.value})}
+                        className="bg-zinc-900 border-zinc-800 text-white text-xs h-16"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] uppercase text-zinc-400">Encerramento</Label>
+                      <Textarea 
+                        value={config.outroPhrase} 
+                        onChange={(e) => setConfig({...config, outroPhrase: e.target.value})}
+                        className="bg-zinc-900 border-zinc-800 text-white text-xs h-16"
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full h-12 rounded-xl font-black uppercase text-xs bg-green-600 hover:bg-green-500 shadow-lg shadow-green-900/20"
+                    onClick={saveConfig}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar Configurações'}
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
+
         </div>
       </DialogContent>
     </Dialog>
