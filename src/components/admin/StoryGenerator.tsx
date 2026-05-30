@@ -198,9 +198,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (voice) utterance.voice = voice
     }
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.0
+    // Increase rate if duration is short to avoid cutting
+    const duration = slide.type === 'product' ? config.productDuration : config.introDuration
+    utterance.rate = duration < 3 ? 1.2 : 1.0
     window.speechSynthesis.speak(utterance)
   }
+
 
 
   const handleTogglePlay = () => {
