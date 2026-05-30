@@ -104,6 +104,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
 
   // Load voices with polling
@@ -191,10 +194,16 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
-  const speakSlide = (index: number) => {
+  const speakSlide = async (index: number) => {
     if (isMuted) return
     
+    // Stop any current audio
     window.speechSynthesis.cancel()
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause()
+      activeAudioRef.current.currentTime = 0
+    }
+
     const slide = slides[index]
     let text = ''
 
@@ -215,16 +224,41 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       text = replacePlaceholders(config.outroPhrase)
     }
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    if (selectedVoice) {
-      const voice = voices.find(v => v.name === selectedVoice)
-      if (voice) utterance.voice = voice
+    // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
+    if (isRecording && audioDestRef.current && audioContextRef.current) {
+      try {
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
+          body: { text, lang: 'pt-BR' }
+        })
+
+        if (error) throw error
+
+        const audioBlob = new Blob([data], { type: 'audio/mpeg' })
+        const url = URL.createObjectURL(audioBlob)
+        const audio = new Audio(url)
+        audio.crossOrigin = "anonymous"
+        
+        const source = audioContextRef.current.createMediaElementSource(audio)
+        source.connect(audioDestRef.current)
+        source.connect(audioContextRef.current.destination)
+        
+        activeAudioRef.current = audio
+        audio.play()
+      } catch (e) {
+        console.error('TTS Recording Error:', e)
+      }
+    } else {
+      // Normal playback uses browser TTS
+      const utterance = new SpeechSynthesisUtterance(text)
+      if (selectedVoice) {
+        const voice = voices.find(v => v.name === selectedVoice)
+        if (voice) utterance.voice = voice
+      }
+      utterance.lang = 'pt-BR'
+      const duration = slide.type === 'product' ? config.productDuration : config.introDuration
+      utterance.rate = duration < 3 ? 1.2 : 1.0
+      window.speechSynthesis.speak(utterance)
     }
-    utterance.lang = 'pt-BR'
-    // Increase rate if duration is short to avoid cutting
-    const duration = slide.type === 'product' ? config.productDuration : config.introDuration
-    utterance.rate = duration < 3 ? 1.2 : 1.0
-    window.speechSynthesis.speak(utterance)
   }
 
 
@@ -308,6 +342,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     let combinedStream = stream
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     const dest = audioContext.createMediaStreamDestination()
+    audioContextRef.current = audioContext
+    audioDestRef.current = dest
     
     // If we had a recordable audio source, we'd connect it here
     // For now, we at least provide a silent track to ensure the file has an audio stream container
@@ -358,6 +394,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         bgAudio.pause()
         bgAudio.currentTime = 0
       }
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause()
+        activeAudioRef.current.currentTime = 0
+      }
+      
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -367,8 +408,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+      
+      // Clean up refs
       setIsRecording(false)
       setIsPlaying(false)
+      audioContextRef.current = null
+      audioDestRef.current = null
+      
       toast.success('Vídeo gerado com sucesso!')
     }
     
@@ -868,10 +914,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
                     <div className="p-4 bg-amber-900/20 border border-amber-900/30 rounded-xl space-y-2">
                       <p className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
-                        <Volume2 className="h-3 w-3" /> Nota sobre Narração
+                        <Volume2 className="h-3 w-3" /> Narração Ativada
                       </p>
                       <p className="text-[9px] text-amber-200/70 leading-relaxed">
-                        A voz do narrador é gerada pelo seu navegador e, por segurança, navegadores não permitem capturá-la diretamente no vídeo. Para que o vídeo tenha som, use uma <strong>Música de Fundo</strong> acima.
+                        A voz do narrador agora é incluída automaticamente no vídeo baixado usando inteligência artificial. Para melhores resultados, aguarde o vídeo processar completamente.
                       </p>
                     </div>
                   </div>
