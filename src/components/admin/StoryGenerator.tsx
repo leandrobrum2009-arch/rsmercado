@@ -468,8 +468,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 10000000 
+      videoBitsPerSecond: videoBitrate 
     })
+
 
     // Handle background music if selected
     let bgAudio: HTMLAudioElement | null = null
