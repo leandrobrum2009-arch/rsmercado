@@ -376,29 +376,45 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 ))}
               </div>
 
-              <div className="absolute top-16 left-0 right-0 z-30 flex justify-center px-8">
+              <div 
+                className="absolute left-0 right-0 z-30 flex justify-center px-8 transition-all duration-300"
+                style={{ top: `${config.logoTop}px` }}
+              >
                 {storeSettings?.logo_url && (
                   <img src={storeSettings.logo_url} alt="Logo" className="h-28 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center pt-32">
+              <div 
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center transition-all duration-300"
+                style={{ paddingTop: `${config.contentTop}px` }}
+              >
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
-                      style={{ color: flyer.config?.priceColor || '#ef4444' }}
+                      className="text-7xl italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+                      style={{ 
+                        color: config.priceColor,
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight
+                      }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10">
+                    <p 
+                      className="text-3xl uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10"
+                      style={{ 
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight
+                      }}
+                    >
                       {currentSlideData.subtitle}
                     </p>
                   </div>
                 )}
 
                 {currentSlideData.type === 'product' && (
-                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500 mt-24">
+                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500">
                     <div className="relative w-full aspect-square mb-10 p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
@@ -406,18 +422,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-110"
                       />
                     </div>
-                    <h3 className="text-4xl font-[1000] uppercase tracking-tighter mb-8 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm">
+                    <h3 
+                      className="text-4xl uppercase tracking-tighter mb-8 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      style={{ 
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight
+                      }}
+                    >
                       {currentSlideData.product.name}
                     </h3>
                     <div 
                       className="inline-block px-12 py-6 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20"
-                      style={{ background: flyer.config?.priceColor || '#ef4444' }}
+                      style={{ 
+                        background: config.priceColor,
+                        fontFamily: config.fontFamily
+                      }}
                     >
-                      <span className="text-white text-7xl font-[1000] italic tracking-tighter drop-shadow-md">
+                      <span className="text-white text-7xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
-                        <span className="text-white/90 text-2xl font-[1000] ml-3 uppercase">
+                        <span className="text-white/90 text-2xl ml-3 uppercase" style={{ fontWeight: config.fontWeight }}>
                           {currentSlideData.product.unit}
                         </span>
                       )}
@@ -428,20 +453,31 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-7xl font-[1000] italic tracking-tighter uppercase mb-8 leading-[0.85]"
-                      style={{ color: flyer.config?.priceColor || '#ef4444' }}
+                      className="text-7xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
+                      style={{ 
+                        color: config.priceColor,
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight
+                      }}
                     >
                       {currentSlideData.title}
                     </h2>
-                    <p className="text-3xl font-[1000] uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10">
+                    <p 
+                      className="text-3xl uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10"
+                      style={{ 
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight
+                      }}
+                    >
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-12 py-6 rounded-full font-[1000] text-3xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20">
+                    <div className="bg-green-600 text-white px-12 py-6 rounded-full text-3xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" style={{ fontWeight: config.fontWeight }}>
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
                 )}
               </div>
+
 
               <div className="absolute bottom-12 left-0 right-0 z-30 flex flex-col items-center">
                 <p className="text-xs font-black uppercase tracking-[0.4em] text-zinc-800 bg-white/50 backdrop-blur-sm px-4 py-1 rounded-full">
