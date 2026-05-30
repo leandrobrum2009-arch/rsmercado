@@ -46,7 +46,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isExporting, setIsExporting] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [selectedVoice, setSelectedVoice] = useState<string>(() => localStorage.getItem('last_story_voice') || '')
+
   const [isSaving, setIsSaving] = useState(false)
   const [activeSpeechDuration, setActiveSpeechDuration] = useState<number | null>(null)
 
@@ -60,7 +60,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       introPhrase: "Confira as ofertas de hoje no {store}",
       productPhrase: "{name}, por apenas {price}",
       outroPhrase: "Aproveite essas ofertas! Esperamos por você.",
-
       logoTop: 40,
       contentTop: 320,
       fontFamily: 'sans-serif',
@@ -71,8 +70,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       productSpacing: 16,
       productImageSize: 90,
       backgroundMusic: null,
-      voiceOffset: 0.3
+      voiceOffset: 0.3,
+      selectedVoice: localStorage.getItem('last_story_voice') || ''
     }
+
 
 
     if (savedConfig) {
@@ -132,12 +133,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
       
       setVoices(ptVoices)
-      if (ptVoices.length > 0 && !selectedVoice) {
+      if (ptVoices.length > 0 && !config.selectedVoice) {
         const naturalVoice = ptVoices.find(v => 
           v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft'))
         )
-        setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
+        setConfig((prev: any) => ({ ...prev, selectedVoice: naturalVoice ? naturalVoice.name : ptVoices[0].name }))
       }
+
     }
 
     loadVoices()
@@ -149,13 +151,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [selectedVoice, voices.length])
+  }, [config.selectedVoice, voices.length])
 
   useEffect(() => {
-    if (selectedVoice) {
-      localStorage.setItem('last_story_voice', selectedVoice)
+    if (config.selectedVoice) {
+      localStorage.setItem('last_story_voice', config.selectedVoice)
     }
-  }, [selectedVoice])
+  }, [config.selectedVoice])
+
 
   useEffect(() => {
     if (isPlaying) {
@@ -271,7 +274,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         // Map selected voice to OpenAI voices
         let voiceId = 'alloy';
-        const lowerVoice = (selectedVoice || '').toLowerCase();
+        const lowerVoice = (config.selectedVoice || '').toLowerCase();
         
         // Comprehensive mapping for PT-BR and common voices
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
@@ -285,6 +288,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
           voiceId = 'echo';
         }
+
 
         console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
@@ -325,13 +329,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     } else {
       console.log('[StoryGenerator] Using browser TTS');
       const utterance = new SpeechSynthesisUtterance(text)
-      if (selectedVoice) {
-        const voice = voices.find(v => v.name === selectedVoice)
+      if (config.selectedVoice) {
+        const voice = voices.find(v => v.name === config.selectedVoice)
         if (voice) utterance.voice = voice
       }
       utterance.lang = 'pt-BR'
       const duration = slide.type === 'product' ? config.productDuration : config.introDuration
       utterance.rate = duration < 3 ? 1.2 : 1.0
+
       
       // For browser TTS, we can't get duration upfront, but we can try to estimate
       // or just rely on the fixed duration.
@@ -773,7 +778,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                   <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                     <Settings2 className="h-3 w-3" /> Narrador (Escolha abaixo)
                   </p>
-                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                  <Select value={config.selectedVoice} onValueChange={(val) => setConfig({ ...config, selectedVoice: val })}>
                     <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl border-2 focus:ring-purple-500">
                       <SelectValue placeholder="Selecione o narrador" />
                     </SelectTrigger>
