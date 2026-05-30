@@ -1208,6 +1208,3 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   )
 }
 
-
-  )
-}
