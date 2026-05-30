@@ -70,8 +70,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       showLogo: true,
       productSpacing: 16,
       productImageSize: 90,
-      backgroundMusic: null
+      backgroundMusic: null,
+      voiceOffset: 0.3
     }
+
 
     if (savedConfig) {
       try {
