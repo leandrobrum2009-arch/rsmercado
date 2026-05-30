@@ -60,7 +60,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     contentTop: flyer.config?.contentTop || 320,
     fontFamily: flyer.config?.fontFamily || 'sans-serif',
     fontWeight: flyer.config?.fontWeight || '1000',
-    priceColor: flyer.config?.priceColor || '#ef4444'
+    priceColor: flyer.config?.priceColor || '#ef4444',
+    showLogo: flyer.config?.showLogo ?? true,
+    productSpacing: flyer.config?.productSpacing || 24,
+    productImageSize: flyer.config?.productImageSize || 90
   })
 
 
@@ -377,7 +380,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               ref={slideRef}
               className="relative aspect-[9/16] h-full max-h-[700px] rounded-[32px] overflow-hidden shadow-2xl bg-white"
               style={{
-                fontFamily: flyer.config?.fontFamily || 'sans-serif'
+                fontFamily: config.fontFamily
               }}
             >
               <div 
@@ -405,14 +408,16 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 ))}
               </div>
 
-              <div 
-                className="absolute left-0 right-0 z-30 flex justify-center px-8 transition-all duration-300"
-                style={{ top: `${config.logoTop}px` }}
-              >
-                {storeSettings?.logo_url && (
-                  <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" />
-                )}
-              </div>
+              {config.showLogo && (
+                <div 
+                  className="absolute left-0 right-0 z-30 flex justify-center px-8 transition-all duration-300"
+                  style={{ top: `${config.logoTop}px` }}
+                >
+                  {storeSettings?.logo_url && (
+                    <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" />
+                  )}
+                </div>
+              )}
 
               <div 
                 className="absolute inset-0 z-10 flex flex-col items-center justify-start p-8 text-center transition-all duration-300"
@@ -443,16 +448,20 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 )}
 
                 {currentSlideData.type === 'product' && (
-                  <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500">
-                    <div className="relative w-full aspect-square mb-4 p-4">
+                  <div 
+                    className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500"
+                    style={{ gap: `${config.productSpacing}px` }}
+                  >
+                    <div className="relative w-full aspect-square p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-90"
+                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto"
+                        style={{ transform: `scale(${config.productImageSize / 100})` }}
                       />
                     </div>
                     <h3 
-                      className="text-xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      className="text-xl uppercase tracking-tighter text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
@@ -500,7 +509,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     >
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-6 py-3 rounded-full text-xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" style={{ fontWeight: config.fontWeight }}>
+                    <div 
+                      className="bg-green-600 text-white px-6 py-3 rounded-full text-xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" 
+                      style={{ 
+                        fontFamily: config.fontFamily,
+                        fontWeight: config.fontWeight 
+                      }}
+                    >
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
@@ -508,11 +523,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
               </div>
 
 
-              <div className="absolute bottom-12 left-0 right-0 z-30 flex flex-col items-center">
-                <p className="text-xs font-black uppercase tracking-[0.4em] text-zinc-800 bg-white/50 backdrop-blur-sm px-4 py-1 rounded-full">
-                  {storeSettings?.site_name}
-                </p>
-              </div>
+              {/* Footer text removed as requested */}
             </div>
 
             <div className="absolute inset-0 z-20 flex">
@@ -652,15 +663,28 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Logo</Label>
-                    <Slider 
-                      value={[config.logoTop]} 
-                      min={0} 
-                      max={200} 
-                      onValueChange={(val) => setConfig({...config, logoTop: val[0]})}
+                  <div className="flex items-center justify-between p-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
+                    <Label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest cursor-pointer" htmlFor="show-logo">Exibir Logotipo</Label>
+                    <input 
+                      type="checkbox" 
+                      id="show-logo"
+                      checked={config.showLogo}
+                      onChange={(e) => setConfig({...config, showLogo: e.target.checked})}
+                      className="h-4 w-4 rounded border-zinc-800 bg-zinc-900 text-purple-600 focus:ring-purple-500"
                     />
                   </div>
+
+                  {config.showLogo && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Logo</Label>
+                      <Slider 
+                        value={[config.logoTop]} 
+                        min={0} 
+                        max={200} 
+                        onValueChange={(val) => setConfig({...config, logoTop: val[0]})}
+                      />
+                    </div>
+                  )}
 
                    <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Conteúdo</Label>
@@ -670,6 +694,36 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       max={600} 
                       onValueChange={(val) => setConfig({...config, contentTop: val[0]})}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Tamanho da Imagem do Produto</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider 
+                        value={[config.productImageSize]} 
+                        min={50} 
+                        max={120} 
+                        step={1}
+                        onValueChange={(val) => setConfig({...config, productImageSize: val[0]})}
+                        className="flex-1"
+                      />
+                      <span className="text-white font-bold text-xs w-8">{config.productImageSize}%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Espaçamento (Produto/Nome/Preço)</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider 
+                        value={[config.productSpacing]} 
+                        min={0} 
+                        max={100} 
+                        step={1}
+                        onValueChange={(val) => setConfig({...config, productSpacing: val[0]})}
+                        className="flex-1"
+                      />
+                      <span className="text-white font-bold text-xs w-8">{config.productSpacing}px</span>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

@@ -80,23 +80,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   };
 
-  export function AdvancedFlyerCreator() {
-  const ValidityBanner = ({ isLine = false }: { isLine?: boolean }) => (
-    <div 
-       className={cn(
-         "w-full px-4 text-center font-black uppercase italic shadow-md z-[45] tracking-tight transition-all",
-         isLine ? "py-0.5 border-y border-black/10 my-1" : "py-1.5"
-       )}
-       style={{ 
-         backgroundColor: validityBgColor, 
-         color: validityTextColor, 
-         fontSize: `${isLine ? Math.max(validityFontSize * 0.7, 7) : validityFontSize}px`,
-         minHeight: isLine ? '12px' : 'auto'
-       }}
-    >
-      {validityText}
-    </div>
-  )
+interface ValidityBannerProps {
+  isLine?: boolean;
+  validityBgColor: string;
+  validityTextColor: string;
+  validityFontSize: number;
+  validityText: string;
+}
+
+const ValidityBanner = ({ 
+  isLine = false, 
+  validityBgColor, 
+  validityTextColor, 
+  validityFontSize, 
+  validityText 
+}: ValidityBannerProps) => (
+  <div 
+     className={cn(
+       "w-full px-4 text-center font-black uppercase italic shadow-md z-[45] tracking-tight transition-all",
+       isLine ? "py-0.5 border-y border-black/10 my-1" : "py-1.5"
+     )}
+     style={{ 
+       backgroundColor: validityBgColor, 
+       color: validityTextColor, 
+       fontSize: `${isLine ? Math.max(validityFontSize * 0.7, 7) : validityFontSize}px`,
+       minHeight: isLine ? '12px' : 'auto'
+     }}
+  >
+    {validityText}
+  </div>
+)
+
+export function AdvancedFlyerCreator() {
 
   const { settings: storeSettings } = useStoreSettings()
 
@@ -431,7 +446,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
                   )}
                   {showValidity && validityPosition === 'top' && (
                     <div className="absolute -bottom-4 left-0 w-full z-50">
-                      <ValidityBanner />
+                      <ValidityBanner 
+                        validityBgColor={validityBgColor}
+                        validityTextColor={validityTextColor}
+                        validityFontSize={validityFontSize}
+                        validityText={validityText}
+                      />
                     </div>
                   )}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
@@ -445,7 +465,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
                 <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
                   {showValidity && validityPosition === 'bottom' && (
                     <div className="mb-4">
-                      <ValidityBanner />
+                      <ValidityBanner 
+                        validityBgColor={validityBgColor}
+                        validityTextColor={validityTextColor}
+                        validityFontSize={validityFontSize}
+                        validityText={validityText}
+                      />
                     </div>
                   )}
                 <div 
@@ -473,7 +498,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
                      <>
                      {isBetweenRow && (
                        <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
-                         <ValidityBanner isLine={true} />
+                         <ValidityBanner 
+                           isLine={true} 
+                           validityBgColor={validityBgColor}
+                           validityTextColor={validityTextColor}
+                           validityFontSize={validityFontSize}
+                           validityText={validityText}
+                         />
                        </div>
                      )}
                      <div
@@ -617,7 +648,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
                  <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
                    {showValidity && validityPosition === 'footer' && (
                      <div className="absolute bottom-full left-0 w-full mb-1">
-                       <ValidityBanner />
+                       <ValidityBanner 
+                         validityBgColor={validityBgColor}
+                         validityTextColor={validityTextColor}
+                         validityFontSize={validityFontSize}
+                         validityText={validityText}
+                       />
                      </div>
                    )}
                    {showFooter && footerText && (
