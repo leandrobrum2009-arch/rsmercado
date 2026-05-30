@@ -164,14 +164,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }, [config.selectedVoice])
 
 
+  const startTimeRef = useRef<number>(0)
+  const startProgressRef = useRef<number>(0)
+
   useEffect(() => {
     if (isPlaying) {
-      const startTime = Date.now()
-      const startProgress = progress
+      startTimeRef.current = Date.now()
+      startProgressRef.current = progress
 
       timerRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime
-        const newProgress = Math.min(startProgress + (elapsed / slideDuration) * 100, 100)
+        const elapsed = Date.now() - startTimeRef.current
+        const newProgress = Math.min(startProgressRef.current + (elapsed / slideDuration) * 100, 100)
         
         setProgress(newProgress)
 
@@ -195,7 +198,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, currentSlide, progress, slides.length, isRecording, slideDuration])
+  }, [isPlaying, currentSlide, slides.length, isRecording, slideDuration])
+
 
 
   const saveConfig = async () => {
