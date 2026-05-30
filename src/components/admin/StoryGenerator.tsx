@@ -43,6 +43,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [exportProgress, setExportProgress] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
@@ -169,6 +170,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         setProgress(newProgress)
 
+        if (isRecordingRef.current) {
+          const totalProgress = ((currentSlide + (newProgress / 100)) / slides.length) * 100
+          setExportProgress(totalProgress)
+        }
+
         if (newProgress >= 100) {
           if (currentSlide < slides.length - 1) {
             const nextSlide = currentSlide + 1
@@ -178,7 +184,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           } else {
             setIsPlaying(false)
             setProgress(100)
-            if (isRecordingRef.current) stopRecording()
+            if (isRecordingRef.current) {
+              setExportProgress(100)
+              setTimeout(() => stopRecording(), 1000)
+            }
           }
         }
       }, 50)
@@ -285,12 +294,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // Use cached audio if available
     if (audioUrls[index]) {
       const audio = new Audio(audioUrls[index])
+      audio.crossOrigin = "anonymous"
       if (recording && audioDestRef.current && audioContextRef.current) {
-        const source = audioContextRef.current.createMediaElementSource(audio)
-        source.connect(audioDestRef.current)
-        source.connect(audioContextRef.current.destination)
+        try {
+          const source = audioContextRef.current.createMediaElementSource(audio)
+          source.connect(audioDestRef.current)
+          source.connect(audioContextRef.current.destination)
+        } catch (err) {
+          console.warn('Audio connection error (already connected?):', err)
+        }
       }
-      audio.play()
+      audio.play().catch(e => console.error('Audio play error:', e))
       activeAudioRef.current = audio
       return
     }
@@ -343,17 +357,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination);
         source.start();
         
-        setIsAudioLoading(false)
         activeAudioRef.current = { 
           pause: () => { try { source.stop(); } catch(e) {} },
           currentTime: 0
         } as any;
       } catch (e) {
         console.error('TTS Error:', e);
-        setIsAudioLoading(false)
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
+      } finally {
+        setIsAudioLoading(false)
       }
     } else {
       setIsAudioLoading(false)
@@ -425,8 +439,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const startVideoRecording = async () => {
     if (!slideRef.current) return
     
+    if (Object.keys(audioUrls).length < slides.length) {
+      toast.error('Gere os áudios (Passo 2) antes de baixar o vídeo para garantir a narração.')
+      // We still allow it but warn, though better would be to return.
+      // return 
+    }
+    
     isRecordingRef.current = true
     setIsRecording(true)
+    setExportProgress(0)
     setCurrentSlide(0)
     setProgress(0)
     setIsPlaying(true)
@@ -458,6 +479,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         ...stream.getVideoTracks(),
         ...dest.stream.getAudioTracks()
       ])
+    } else {
+      console.warn('No audio tracks found for recording');
     }
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
@@ -523,18 +546,24 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) return;
       isCapturing = true;
       try {
+        const elementWidth = slideRef.current.clientWidth;
+        const pr = 1080 / elementWidth;
+
         const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
-          pixelRatio: 1,
+          pixelRatio: pr,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           width: 1080,
           height: 1920,
-          quality: 0.8
+          quality: 0.85
         });
 
         const img = new Image();
         img.src = dataUrl;
-        await new Promise((res) => { img.onload = res; img.onerror = res; });
+        await new Promise((res) => { 
+          img.onload = res; 
+          img.onerror = res; 
+        });
         
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx && img.complete && img.naturalWidth > 0) {
@@ -545,7 +574,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          setTimeout(captureFrame, 50); // 20fps for stability
+          setTimeout(captureFrame, 66); // ~15fps is enough for stories and more stable
         }
       }
     };
@@ -716,9 +745,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 3: Finalizar</p>
                       <Button variant="default" className="w-full h-16 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
                         {isRecording ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GRAVANDO MP4...</span></div>
-                            <span className="text-[8px] opacity-70 font-normal italic">Aguarde o download automático</span>
+                          <div className="flex flex-col items-center gap-1 w-full">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" /> 
+                              <span>GERANDO VÍDEO: {Math.round(exportProgress)}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden mt-1">
+                              <div className="h-full bg-white transition-all duration-300" style={{ width: `${exportProgress}%` }} />
+                            </div>
+                            <span className="text-[8px] opacity-70 font-normal italic">Não feche esta janela</span>
                           </div>
                         ) : <><Video className="h-6 w-6 mr-2" /> BAIXAR VÍDEO COMPLETO</>}
                       </Button>
