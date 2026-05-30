@@ -348,6 +348,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         source.start();
         console.log(`[StoryGenerator] TTS audio started, duration: ${audioBuffer.duration}s`);
+        setIsAudioLoading(false)
         
         activeAudioRef.current = { 
           pause: () => {
@@ -358,10 +359,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
       } catch (e) {
         console.error('[StoryGenerator] TTS Recording Error:', e);
+        setIsAudioLoading(false)
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
       }
+
     } else {
       console.log('[StoryGenerator] Using browser TTS');
       const utterance = new SpeechSynthesisUtterance(text)
