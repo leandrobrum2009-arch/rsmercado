@@ -210,7 +210,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     setIsSaving(true)
     try {
-      const { error } = await supabase
+      const { error } = await oldSupabase
         .from('flyers')
         .update({ config: { ...flyer.config, ...config } })
         .eq('id', flyer.id)
@@ -224,6 +224,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       setIsSaving(false)
     }
   }
+
 
   const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
