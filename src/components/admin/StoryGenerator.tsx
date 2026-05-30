@@ -172,7 +172,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const startProgressRef = useRef<number>(0)
 
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !isAudioLoading) {
       startTimeRef.current = Date.now()
       startProgressRef.current = progress
 
@@ -181,6 +181,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const newProgress = Math.min(startProgressRef.current + (elapsed / slideDuration) * 100, 100)
         
         setProgress(newProgress)
+
 
         if (newProgress >= 100) {
           if (currentSlide < slides.length - 1) {
