@@ -2,10 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, Video, Settings2 } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Loader2, Camera, X, Video, Settings2, Sliders, Type, MessageSquare } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import * as htmlToImage from 'html-to-image'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Slider } from '@/components/ui/slider'
+import { supabase } from '@/lib/supabase'
 
 interface Product {
   id: string
@@ -24,6 +30,7 @@ interface StoryGeneratorProps {
   isOpen: boolean
   onClose: () => void
   flyer: {
+    id?: string
     title: string
     products_data: Product[]
     config: any
@@ -40,13 +47,28 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>('')
-  
-  const slideDuration = 12000 // 12 seconds per slide (increased for better narration flow)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Configuration state
+  const [config, setConfig] = useState({
+    slideDuration: flyer.config?.slideDuration || 12,
+    introPhrase: flyer.config?.introPhrase || "Confira as ofertas de hoje no {store}",
+    productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
+    outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
+    logoTop: flyer.config?.logoTop || 64,
+    contentTop: flyer.config?.contentTop || 128,
+    fontFamily: flyer.config?.fontFamily || 'sans-serif',
+    fontWeight: flyer.config?.fontWeight || '1000',
+    priceColor: flyer.config?.priceColor || '#ef4444'
+  })
+
+  const slideDuration = config.slideDuration * 1000
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const slideRef = useRef<HTMLDivElement>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
+
 
   const slides: SlideType[] = [
     { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
