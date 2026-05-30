@@ -528,7 +528,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                   style={{ top: `${config.logoTop}px` }}
                 >
                   {storeSettings?.logo_url && (
-                    <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" />
+                    <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" crossOrigin="anonymous" />
                   )}
                 </div>
               )}
@@ -572,6 +572,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         alt={currentSlideData.product.name}
                         className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto"
                         style={{ transform: `scale(${config.productImageSize / 100})` }}
+                        crossOrigin="anonymous"
                       />
                     </div>
                     <h3 
