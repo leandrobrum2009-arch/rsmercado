@@ -202,20 +202,29 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const saveConfig = async () => {
     if (!flyer.id) {
+      console.error('[StoryGenerator] Missing flyer ID', flyer)
       toast.error('ID do flyer não encontrado')
       return
     }
     setIsSaving(true)
     try {
-      const { error } = await oldSupabase
+      console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
+      const { error, data } = await oldSupabase
         .from('flyers')
         .update({ config: { ...flyer.config, ...config } })
         .eq('id', flyer.id)
-      if (error) throw error
+        .select()
+      
+      if (error) {
+        console.error('[StoryGenerator] Save error:', error)
+        throw error
+      }
+      
+      console.log('[StoryGenerator] Save success:', data)
       toast.success('Configurações salvas!')
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao salvar')
+    } catch (err: any) {
+      console.error('[StoryGenerator] Exception in saveConfig:', err)
+      toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
     } finally {
       setIsSaving(false)
     }
@@ -293,10 +302,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
-      let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+      let result = (template || '').replace(/{store}/g, storeSettings?.site_name || 'nosso supermercado')
       if (product) {
-        result = result.replace('{name}', product.name)
-        result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+        result = result.replace(/{name}/g, product.name || '')
+        result = result.replace(/{price}/g, (product.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
       }
       return result
     }
@@ -307,29 +316,33 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     // Use cached audio if available
     if (audioUrls[index]) {
-      const audio = new Audio(audioUrls[index])
-      audio.crossOrigin = "anonymous"
-      
-      if (recording && audioDestRef.current && audioContextRef.current) {
-        try {
+      try {
+        const audio = new Audio(audioUrls[index])
+        audio.crossOrigin = "anonymous"
+        
+        if (recording && audioDestRef.current && audioContextRef.current) {
+          if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
+          }
+          
           console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
           const source = audioContextRef.current.createMediaElementSource(audio)
           source.connect(audioDestRef.current)
           source.connect(audioContextRef.current.destination)
-        } catch (err) {
-          console.warn('[StoryGenerator] Audio connection error:', err)
         }
-      }
-      
-      audio.play().catch(e => {
+        
+        await audio.play()
+        activeAudioRef.current = audio
+        return
+      } catch (e) {
         console.error('[StoryGenerator] Audio play error:', e);
+        // Fallback to synthesis if play fails and NOT recording
         if (!recording) {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'pt-BR';
           window.speechSynthesis.speak(utterance);
         }
-      })
-      activeAudioRef.current = audio
+      }
       return
     }
 
@@ -468,6 +481,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
+    console.log('[StoryGenerator] Started video recording at 1080x1920');
+
     // Video stream from canvas
     const videoStream = canvas.captureStream(30)
     
@@ -562,16 +577,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) return;
       isCapturing = true;
       try {
-        const elementWidth = slideRef.current.clientWidth;
-        const pr = 1080 / elementWidth;
-
-        const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
-          pixelRatio: pr,
+        const element = slideRef.current;
+        const dataUrl = await htmlToImage.toJpeg(element, {
+          pixelRatio: 1080 / element.clientWidth,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           width: 1080,
           height: 1920,
-          quality: 0.85
+          quality: 0.95
         });
 
         const img = new Image();
