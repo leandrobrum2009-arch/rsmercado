@@ -452,7 +452,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       />
                     </div>
                     <h3 
-                      className="text-2xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      className="text-xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
