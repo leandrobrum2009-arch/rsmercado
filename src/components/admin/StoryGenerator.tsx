@@ -313,42 +313,47 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     console.log('Recording started...')
     
-    const captureInterval = setInterval(async () => {
-      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current) {
-        clearInterval(captureInterval)
-        console.log('Recording stopped or inactive.')
-        return
+    let isCapturing = false;
+    const captureFrame = async () => {
+      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) {
+        return;
       }
       
+      isCapturing = true;
       try {
         const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1, // Reduced for performance
+          pixelRatio: 1,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
-          style: {
-            borderRadius: '0px'
-          }
-        })
+          style: { borderRadius: '0px' }
+        });
         
-        const img = new Image()
-        img.src = dataUrl
+        const img = new Image();
+        img.src = dataUrl;
         await new Promise((resolve, reject) => {
-          img.onload = resolve
-          img.onerror = reject
-          // Timeout if image fails to load
-          setTimeout(() => reject(new Error('Image load timeout')), 1000)
-        })
+          img.onload = resolve;
+          img.onerror = reject;
+          setTimeout(() => reject(new Error('Image load timeout')), 2000);
+        });
         
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.clearRect(0, 0, 720, 1280)
-          ctx.drawImage(img, 0, 0, 720, 1280)
+          ctx.clearRect(0, 0, 720, 1280);
+          ctx.drawImage(img, 0, 0, 720, 1280);
         }
       } catch (e) {
-        console.error('Frame capture error:', e)
+        console.error('Frame capture error:', e);
+      } finally {
+        isCapturing = false;
+        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+          setTimeout(captureFrame, 100); // Wait 100ms before next frame
+        }
       }
-    }, 150) // Increased delay between frames to avoid browser freeze
+    };
+
+    captureFrame();
   }
+
 
   const stopRecording = () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
