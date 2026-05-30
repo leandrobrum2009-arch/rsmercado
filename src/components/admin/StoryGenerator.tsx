@@ -137,6 +137,29 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }, [isPlaying, currentSlide, progress, slides.length, isRecording])
 
+  const saveConfig = async () => {
+    if (!flyer.id) {
+      toast.error('Não é possível salvar: ID do flyer não encontrado')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('flyers')
+        .update({ config: { ...flyer.config, ...config } })
+        .eq('id', flyer.id)
+
+      if (error) throw error
+      toast.success('Configurações salvas com sucesso!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao salvar configurações')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const speakSlide = (index: number) => {
     if (isMuted) return
     
@@ -144,12 +167,21 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     const slide = slides[index]
     let text = ''
 
+    const replacePlaceholders = (template: string, product?: Product) => {
+      let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+      if (product) {
+        result = result.replace('{name}', product.name)
+        result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+      }
+      return result
+    }
+
     if (slide.type === 'intro') {
-      text = `Confira as ofertas de hoje no ${storeSettings?.site_name || 'nosso supermercado'}`
+      text = replacePlaceholders(config.introPhrase)
     } else if (slide.type === 'product') {
-      text = `${slide.product.name}, por apenas ${slide.product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
+      text = replacePlaceholders(config.productPhrase, slide.product)
     } else if (slide.type === 'outro') {
-      text = 'Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.'
+      text = replacePlaceholders(config.outroPhrase)
     }
 
     const utterance = new SpeechSynthesisUtterance(text)
@@ -161,6 +193,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     utterance.rate = 1.0
     window.speechSynthesis.speak(utterance)
   }
+
 
   const handleTogglePlay = () => {
     if (!isPlaying && (currentSlide === slides.length - 1 && progress >= 100)) {
