@@ -202,20 +202,29 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const saveConfig = async () => {
     if (!flyer.id) {
+      console.error('[StoryGenerator] Missing flyer ID', flyer)
       toast.error('ID do flyer não encontrado')
       return
     }
     setIsSaving(true)
     try {
-      const { error } = await oldSupabase
+      console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
+      const { error, data } = await oldSupabase
         .from('flyers')
         .update({ config: { ...flyer.config, ...config } })
         .eq('id', flyer.id)
-      if (error) throw error
+        .select()
+      
+      if (error) {
+        console.error('[StoryGenerator] Save error:', error)
+        throw error
+      }
+      
+      console.log('[StoryGenerator] Save success:', data)
       toast.success('Configurações salvas!')
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao salvar')
+    } catch (err: any) {
+      console.error('[StoryGenerator] Exception in saveConfig:', err)
+      toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
     } finally {
       setIsSaving(false)
     }
@@ -233,10 +242,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const slide = slides[i]
         let text = ''
         const replacePlaceholders = (template: string, product?: Product) => {
-          let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+          let result = (template || '').replace(/{store}/g, storeSettings?.site_name || 'nosso supermercado')
           if (product) {
-            result = result.replace('{name}', product.name)
-            result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+            result = result.replace(/{name}/g, product.name || '')
+            result = result.replace(/{price}/g, (product.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
           }
           return result
         }
@@ -250,12 +259,20 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
         else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
 
+        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..."`)
+
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         })
 
-        if (!error && data) {
-          const blob = data
+        if (error) {
+          console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+          continue
+        }
+
+        if (data) {
+          // data might be a Blob or already an ArrayBuffer depending on Supabase version/config
+          const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' })
           const url = URL.createObjectURL(blob)
           newAudioUrls[i] = url
           
@@ -267,10 +284,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       setAudioUrls(newAudioUrls)
       setSlideDurations(newDurations)
-      toast.success('Locuções geradas com sucesso!')
+      toast.success(`${Object.keys(newAudioUrls).length} locuções prontas!`)
     } catch (err) {
-      console.error('Error generating audio:', err)
-      toast.error('Erro ao gerar algumas locuções')
+      console.error('[StoryGenerator] Error in generateAllAudio:', err)
+      toast.error('Erro ao gerar áudios')
     } finally {
       setIsGeneratingAudio(false)
     }
@@ -293,10 +310,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
-      let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+      let result = (template || '').replace(/{store}/g, storeSettings?.site_name || 'nosso supermercado')
       if (product) {
-        result = result.replace('{name}', product.name)
-        result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+        result = result.replace(/{name}/g, product.name || '')
+        result = result.replace(/{price}/g, (product.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
       }
       return result
     }
@@ -307,29 +324,33 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     // Use cached audio if available
     if (audioUrls[index]) {
-      const audio = new Audio(audioUrls[index])
-      audio.crossOrigin = "anonymous"
-      
-      if (recording && audioDestRef.current && audioContextRef.current) {
-        try {
+      try {
+        const audio = new Audio(audioUrls[index])
+        audio.crossOrigin = "anonymous"
+        
+        if (recording && audioDestRef.current && audioContextRef.current) {
+          if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
+          }
+          
           console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
           const source = audioContextRef.current.createMediaElementSource(audio)
           source.connect(audioDestRef.current)
           source.connect(audioContextRef.current.destination)
-        } catch (err) {
-          console.warn('[StoryGenerator] Audio connection error:', err)
         }
-      }
-      
-      audio.play().catch(e => {
+        
+        await audio.play()
+        activeAudioRef.current = audio
+        return
+      } catch (e) {
         console.error('[StoryGenerator] Audio play error:', e);
+        // Fallback to synthesis if play fails and NOT recording
         if (!recording) {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'pt-BR';
           window.speechSynthesis.speak(utterance);
         }
-      })
-      activeAudioRef.current = audio
+      }
       return
     }
 
@@ -349,6 +370,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         else if (lowerVoice.includes('shimmer')) voiceId = 'shimmer';
         else if (lowerVoice.includes('echo')) voiceId = 'echo';
 
+        console.log(`[StoryGenerator] Direct TTS for recording slide ${index}: "${text.substring(0, 30)}..."`)
+        
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
@@ -356,7 +379,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (error) throw error;
         if (!data) throw new Error('No audio data');
 
-        const arrayBuffer = await data.arrayBuffer();
+        const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
+        const arrayBuffer = await blob.arrayBuffer();
         const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
         
         setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
@@ -372,7 +396,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           currentTime: 0
         } as any;
       } catch (e) {
-        console.error('TTS Error:', e);
+        console.error('[StoryGenerator] TTS Error during recording:', e);
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
@@ -468,6 +492,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
+    console.log('[StoryGenerator] Started video recording at 1080x1920');
+
     // Video stream from canvas
     const videoStream = canvas.captureStream(30)
     
@@ -562,16 +588,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) return;
       isCapturing = true;
       try {
-        const elementWidth = slideRef.current.clientWidth;
-        const pr = 1080 / elementWidth;
-
-        const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
-          pixelRatio: pr,
+        const element = slideRef.current;
+        const dataUrl = await htmlToImage.toJpeg(element, {
+          pixelRatio: 1080 / element.clientWidth,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           width: 1080,
           height: 1920,
-          quality: 0.85
+          quality: 0.95
         });
 
         const img = new Image();
@@ -613,20 +637,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             <div className="flex-1 relative flex items-center justify-center bg-zinc-900 p-4">
               <div 
                 ref={slideRef}
-                className="relative aspect-[9/16] h-full max-h-[700px] rounded-[32px] overflow-hidden shadow-2xl bg-white"
+                className="relative aspect-[9/16] h-full max-h-[85vh] rounded-[32px] overflow-hidden shadow-2xl bg-white"
                 style={{ fontFamily: config.fontFamily }}
               >
-                <div 
-                  className="absolute inset-0 z-0"
-                  style={{
-                    background: flyer.config?.backgroundType === 'gradient' 
-                      ? flyer.config.backgroundGradient 
-                      : flyer.config?.backgroundColor || '#ffffff',
-                    backgroundImage: flyer.config?.backgroundType === 'image' && flyer.config.backgroundUrl ? `url(${flyer.config.backgroundUrl})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                />
+                {flyer.config?.backgroundType === 'image' && flyer.config.backgroundUrl ? (
+                  <img 
+                    src={flyer.config.backgroundUrl} 
+                    className="absolute inset-0 z-0 w-full h-full object-cover" 
+                    crossOrigin="anonymous"
+                    alt="background"
+                  />
+                ) : (
+                  <div 
+                    className="absolute inset-0 z-0"
+                    style={{
+                      background: flyer.config?.backgroundType === 'gradient' 
+                        ? flyer.config.backgroundGradient 
+                        : flyer.config?.backgroundColor || '#ffffff',
+                    }}
+                  />
+                )}
 
                 <div className="absolute top-6 left-6 right-6 z-30 flex gap-1.5">
                   {slides.map((_, idx) => (
