@@ -46,7 +46,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isExporting, setIsExporting] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [selectedVoice, setSelectedVoice] = useState<string>('')
+  const [selectedVoice, setSelectedVoice] = useState<string>(() => localStorage.getItem('last_story_voice') || '')
   const [isSaving, setIsSaving] = useState(false)
 
   // Configuration state
@@ -139,6 +139,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     return () => clearInterval(interval)
   }, [selectedVoice, voices.length])
+
+  useEffect(() => {
+    if (selectedVoice) {
+      localStorage.setItem('last_story_voice', selectedVoice)
+    }
+  }, [selectedVoice])
 
   useEffect(() => {
     if (isPlaying) {
