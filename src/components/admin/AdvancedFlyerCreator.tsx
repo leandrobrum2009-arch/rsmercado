@@ -2616,7 +2616,7 @@ export function AdvancedFlyerCreator() {
                             <img src={bg} className="w-full h-full object-cover" alt={`User BG ${idx}`} />
                           </button>
                           <button 
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setCustomBackgrounds(prev => prev.filter(u => u !== bg));
@@ -2627,25 +2627,29 @@ export function AdvancedFlyerCreator() {
                           </button>
                         </div>
                       ))}
-                      {PREDEFINED_BGS.map((bg, idx) => (
+                      
+                      {/* Only show defaults if user has few or no custom backgrounds */}
+                      {(customBackgrounds.length < 4) && PREDEFINED_BGS.map((bg, idx) => (
                         <button
                           key={`default-${idx}`}
                           className={cn(
-                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-60 hover:opacity-100",
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-40 hover:opacity-100",
                             backgroundUrl === bg ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent hover:border-zinc-300"
                           )}
                           onClick={() => setBackgroundUrl(bg)}
                         >
-                          <img src={bg} className="w-full h-full object-cover" alt={`Default BG ${idx}`} />
+                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} />
                         </button>
                       ))}
                     </div>
                     <div className="flex gap-4 items-center">
                       <div className="flex-1">
                         <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                        <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Novo Fundo'}</span>
+                        <label htmlFor="bg-upload" className="flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors bg-zinc-50/50">
+                          <div className="flex flex-col items-center">
+                            {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Upload className="w-5 h-5 mb-1 text-zinc-400" />}
+                            <span className="text-[10px] font-bold uppercase text-zinc-600">{uploading ? 'Enviando...' : 'Adicionar Novo Fundo à Galeria'}</span>
+                          </div>
                         </label>
                       </div>
                     </div>
