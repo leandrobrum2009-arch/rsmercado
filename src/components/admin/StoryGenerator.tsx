@@ -104,6 +104,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
 
   // Load voices with polling
