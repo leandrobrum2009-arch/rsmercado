@@ -50,22 +50,40 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isSaving, setIsSaving] = useState(false)
 
   // Configuration state
-  const [config, setConfig] = useState({
-    introDuration: flyer.config?.introDuration || 4.5,
-    productDuration: flyer.config?.productDuration || 2.5,
-    introPhrase: flyer.config?.introPhrase || "Confira as ofertas de hoje no {store}",
-    productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
-    outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
-    logoTop: flyer.config?.logoTop || 40,
-    contentTop: flyer.config?.contentTop || 320,
-    fontFamily: flyer.config?.fontFamily || 'sans-serif',
-    fontWeight: flyer.config?.fontWeight || '1000',
-    priceColor: flyer.config?.priceColor || '#ef4444',
-    showLogo: flyer.config?.showLogo ?? true,
-    productSpacing: flyer.config?.productSpacing || 24,
-    productImageSize: flyer.config?.productImageSize || 90,
-    backgroundMusic: flyer.config?.backgroundMusic || null
+  const [config, setConfig] = useState(() => {
+    const savedConfig = localStorage.getItem('last_story_config')
+    const defaults = {
+      introDuration: 4.5,
+      productDuration: 2.5,
+      introPhrase: "Confira as ofertas de hoje no {store}",
+      productPhrase: "{name}, por apenas {price}",
+      outroPhrase: "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
+      logoTop: 40,
+      contentTop: 320,
+      fontFamily: 'sans-serif',
+      fontWeight: '1000',
+      priceColor: '#ef4444',
+      showLogo: true,
+      productSpacing: 24,
+      productImageSize: 90,
+      backgroundMusic: null
+    }
+
+    if (savedConfig) {
+      try {
+        const parsed = JSON.parse(savedConfig)
+        return { ...defaults, ...flyer.config, ...parsed }
+      } catch (e) {
+        return { ...defaults, ...flyer.config }
+      }
+    }
+    return { ...defaults, ...flyer.config }
   })
+
+  // Auto-save story config
+  useEffect(() => {
+    localStorage.setItem('last_story_config', JSON.stringify(config))
+  }, [config])
 
 
   const slides: SlideType[] = [

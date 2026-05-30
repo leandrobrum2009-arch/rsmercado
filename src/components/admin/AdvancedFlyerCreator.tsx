@@ -115,11 +115,12 @@ export function AdvancedFlyerCreator() {
 
   const { settings: storeSettings } = useStoreSettings()
 
-   const [layout, setLayout] = useState<LayoutType>('grid')
-   const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
-   const [backgroundUrl, setBackgroundUrl] = useState('')
-   const [backgroundColor, setBackgroundColor] = useState('#ffffff')
-  const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+    const [layout, setLayout] = useState<LayoutType>('grid')
+    const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
+    const [backgroundUrl, setBackgroundUrl] = useState('')
+    const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+    const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+    const [customBackgrounds, setCustomBackgrounds] = useState<string[]>([])
   const [gradientStart, setGradientStart] = useState('#ffffff')
   const [gradientEnd, setGradientEnd] = useState('#f3f4f6')
   const [gradientDirection, setGradientDirection] = useState('to bottom')
@@ -304,6 +305,7 @@ export function AdvancedFlyerCreator() {
             if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
             if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
             if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
+            if (config.customBackgrounds) setCustomBackgrounds(config.customBackgrounds)
           } catch (e) {
             console.error('Error loading last flyer config:', e)
           }
@@ -337,7 +339,8 @@ export function AdvancedFlyerCreator() {
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
         nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor,
+        customBackgrounds
       }
       safeSetLocalStorage('last_flyer_config', JSON.stringify(config))
     }, [
@@ -1161,9 +1164,10 @@ export function AdvancedFlyerCreator() {
        
        if (error) throw error
  
-       const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
-       setBackgroundUrl(publicUrl)
-       toast.success('Fundo carregado com sucesso!')
+        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
+        setBackgroundUrl(publicUrl)
+        setCustomBackgrounds(prev => [...prev, publicUrl])
+        toast.success('Fundo carregado com sucesso!')
      } catch (error: any) {
        toast.error('Erro no upload: ' + error.message)
      } finally {
@@ -2600,25 +2604,52 @@ export function AdvancedFlyerCreator() {
                 {backgroundType === 'image' && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                     <div className="grid grid-cols-4 gap-2">
-                      {PREDEFINED_BGS.map((bg, idx) => (
+                      {customBackgrounds.map((bg, idx) => (
+                        <div key={`user-${idx}`} className="relative group">
+                          <button
+                            className={cn(
+                              "w-full relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
+                              backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                            )}
+                            onClick={() => setBackgroundUrl(bg)}
+                          >
+                            <img src={bg} className="w-full h-full object-cover" alt={`User BG ${idx}`} />
+                          </button>
+                          <button 
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCustomBackgrounds(prev => prev.filter(u => u !== bg));
+                              if (backgroundUrl === bg) setBackgroundUrl('');
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {/* Only show defaults if user has few or no custom backgrounds */}
+                      {(customBackgrounds.length < 4) && PREDEFINED_BGS.map((bg, idx) => (
                         <button
-                          key={idx}
+                          key={`default-${idx}`}
                           className={cn(
-                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
-                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-40 hover:opacity-100",
+                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent hover:border-zinc-300"
                           )}
                           onClick={() => setBackgroundUrl(bg)}
                         >
-                          <img src={bg} className="w-full h-full object-cover" alt={`BG ${idx}`} />
+                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} />
                         </button>
                       ))}
                     </div>
                     <div className="flex gap-4 items-center">
                       <div className="flex-1">
                         <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
-                        <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
-                          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Minha Arte'}</span>
+                        <label htmlFor="bg-upload" className="flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors bg-zinc-50/50">
+                          <div className="flex flex-col items-center">
+                            {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Upload className="w-5 h-5 mb-1 text-zinc-400" />}
+                            <span className="text-[10px] font-bold uppercase text-zinc-600">{uploading ? 'Enviando...' : 'Adicionar Novo Fundo à Galeria'}</span>
+                          </div>
                         </label>
                       </div>
                     </div>
