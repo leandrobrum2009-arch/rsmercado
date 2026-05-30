@@ -234,7 +234,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         if (error) throw error
 
-        const audioBlob = new Blob([data], { type: 'audio/mpeg' })
+        let audioBlob: Blob;
+        if (data instanceof Blob) {
+          audioBlob = data;
+        } else {
+          audioBlob = new Blob([data], { type: 'audio/mpeg' });
+        }
+        
         const url = URL.createObjectURL(audioBlob)
         const audio = new Audio(url)
         audio.crossOrigin = "anonymous"
@@ -244,7 +250,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination)
         
         activeAudioRef.current = audio
-        audio.play()
+        await audio.play()
       } catch (e) {
         console.error('TTS Recording Error:', e)
       }
@@ -585,9 +591,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       {currentSlideData.product.name}
                     </h3>
                     <div 
-                      className="flex items-center justify-center px-6 py-3 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20 whitespace-nowrap min-w-[200px]"
+                      className="flex items-center justify-center px-8 py-4 rounded-[50px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] transform -rotate-2 scale-110 border-4 border-white/30 whitespace-nowrap min-w-[220px]"
                       style={{ 
-                        background: config.priceColor,
+                        background: `linear-gradient(135deg, ${config.priceColor}, ${config.priceColor}dd)`,
                         fontFamily: config.fontFamily
                       }}
                     >
