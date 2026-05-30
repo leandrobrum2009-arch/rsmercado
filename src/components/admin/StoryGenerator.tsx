@@ -329,13 +329,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     } else {
       console.log('[StoryGenerator] Using browser TTS');
       const utterance = new SpeechSynthesisUtterance(text)
-      if (selectedVoice) {
-        const voice = voices.find(v => v.name === selectedVoice)
+      if (config.selectedVoice) {
+        const voice = voices.find(v => v.name === config.selectedVoice)
         if (voice) utterance.voice = voice
       }
       utterance.lang = 'pt-BR'
       const duration = slide.type === 'product' ? config.productDuration : config.introDuration
       utterance.rate = duration < 3 ? 1.2 : 1.0
+
       
       // For browser TTS, we can't get duration upfront, but we can try to estimate
       // or just rely on the fixed duration.
