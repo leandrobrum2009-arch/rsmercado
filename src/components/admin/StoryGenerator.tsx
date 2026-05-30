@@ -295,16 +295,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     if (audioUrls[index]) {
       const audio = new Audio(audioUrls[index])
       audio.crossOrigin = "anonymous"
+      
       if (recording && audioDestRef.current && audioContextRef.current) {
         try {
+          console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
           const source = audioContextRef.current.createMediaElementSource(audio)
           source.connect(audioDestRef.current)
           source.connect(audioContextRef.current.destination)
         } catch (err) {
-          console.warn('Audio connection error (already connected?):', err)
+          console.warn('[StoryGenerator] Audio connection error:', err)
         }
       }
-      audio.play().catch(e => console.error('Audio play error:', e))
+      
+      audio.play().catch(e => {
+        console.error('[StoryGenerator] Audio play error:', e);
+        // Fallback to synthesis if play fails
+        if (!recording) {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'pt-BR';
+          window.speechSynthesis.speak(utterance);
+        }
+      })
       activeAudioRef.current = audio
       return
     }
