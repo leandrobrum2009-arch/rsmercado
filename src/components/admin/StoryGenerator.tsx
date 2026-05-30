@@ -467,10 +467,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     gain.connect(dest)
     oscillator.start()
     
-    const combinedStream = new MediaStream([
-      ...stream.getVideoTracks(),
-      ...dest.stream.getAudioTracks()
-    ])
+    let combinedStream = stream
+    if (dest.stream.getAudioTracks().length > 0) {
+      combinedStream = new MediaStream([
+        ...stream.getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+      ])
+    } else {
+      console.warn('No audio tracks found for recording');
+    }
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
