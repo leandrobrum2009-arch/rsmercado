@@ -339,7 +339,8 @@ export function AdvancedFlyerCreator() {
         priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
         nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
         bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+        showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor,
+        customBackgrounds
       }
       safeSetLocalStorage('last_flyer_config', JSON.stringify(config))
     }, [
