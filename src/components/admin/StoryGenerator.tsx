@@ -65,7 +65,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       priceColor: '#ef4444',
       productNameColor: '#09090b',
       showLogo: true,
-      productSpacing: 24,
+      productSpacing: 16,
       productImageSize: 90,
       backgroundMusic: null
     }
