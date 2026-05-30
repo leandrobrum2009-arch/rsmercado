@@ -135,7 +135,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, currentSlide, progress, slides.length, isRecording])
+  }, [isPlaying, currentSlide, progress, slides.length, isRecording, slideDuration])
+
 
   const saveConfig = async () => {
     if (!flyer.id) {
