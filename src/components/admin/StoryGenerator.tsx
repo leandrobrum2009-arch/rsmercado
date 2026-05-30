@@ -100,9 +100,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
-    if (slide?.type === 'product') return config.productDuration * 1000
-    return config.introDuration * 1000
+    const baseDuration = (slide?.type === 'product' ? config.productDuration : config.introDuration) * 1000
+    if (activeSpeechDuration) {
+      return Math.max(baseDuration, (activeSpeechDuration * 1000) + 300)
+    }
+    return baseDuration
   }
+
   
   const slideDuration = getCurrentSlideDuration()
   const timerRef = useRef<NodeJS.Timeout | null>(null)
