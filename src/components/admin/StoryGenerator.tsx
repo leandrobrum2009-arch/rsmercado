@@ -48,6 +48,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>(() => localStorage.getItem('last_story_voice') || '')
   const [isSaving, setIsSaving] = useState(false)
+  const [activeSpeechDuration, setActiveSpeechDuration] = useState<number | null>(null)
+
 
   // Configuration state
   const [config, setConfig] = useState(() => {
@@ -68,8 +70,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       showLogo: true,
       productSpacing: 16,
       productImageSize: 90,
-      backgroundMusic: null
+      backgroundMusic: null,
+      voiceOffset: 0.3
     }
+
 
     if (savedConfig) {
       try {
@@ -98,9 +102,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
-    if (slide?.type === 'product') return config.productDuration * 1000
-    return config.introDuration * 1000
+    const baseDuration = (slide?.type === 'product' ? config.productDuration : config.introDuration) * 1000
+    if (activeSpeechDuration) {
+      return Math.max(baseDuration, (activeSpeechDuration * 1000) + 300)
+    }
+    return baseDuration
   }
+
   
   const slideDuration = getCurrentSlideDuration()
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -223,6 +231,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       activeAudioRef.current = null
     }
 
+    // Reset duration for the new slide
+    setActiveSpeechDuration(null)
+
     const slide = slides[index]
     if (!slide) return;
     
@@ -243,6 +254,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       text = replacePlaceholders(config.productPhrase, slide.product)
     } else if (slide.type === 'outro') {
       text = replacePlaceholders(config.outroPhrase)
+    }
+
+    // Apply voice offset (delay)
+    if (config.voiceOffset > 0) {
+      await new Promise(resolve => setTimeout(resolve, config.voiceOffset * 1000));
     }
 
     // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
@@ -275,15 +291,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
 
-
         if (error) throw error;
         if (!data) throw new Error('No data received from TTS function');
 
-        // Convert Blob to ArrayBuffer
         const arrayBuffer = await data.arrayBuffer();
-        
-        // Decode audio data for more reliable playback in MediaStream
         const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
+        
+        // Update slide duration based on actual audio length
+        setActiveSpeechDuration(audioBuffer.duration);
+        
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
         
@@ -291,9 +307,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination);
         
         source.start();
-        console.log('[StoryGenerator] TTS audio started playing into stream');
+        console.log(`[StoryGenerator] TTS audio started, duration: ${audioBuffer.duration}s`);
         
-        // Track active audio to stop if needed
         activeAudioRef.current = { 
           pause: () => {
             try { source.stop(); } catch(e) {}
@@ -303,15 +318,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
       } catch (e) {
         console.error('[StoryGenerator] TTS Recording Error:', e);
-        // Fallback to browser TTS so at least the user hears something, 
-        // even if it won't be in the recording
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
       }
     } else {
       console.log('[StoryGenerator] Using browser TTS');
-      // Normal playback uses browser TTS
       const utterance = new SpeechSynthesisUtterance(text)
       if (selectedVoice) {
         const voice = voices.find(v => v.name === selectedVoice)
@@ -320,9 +332,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       utterance.lang = 'pt-BR'
       const duration = slide.type === 'product' ? config.productDuration : config.introDuration
       utterance.rate = duration < 3 ? 1.2 : 1.0
+      
+      // For browser TTS, we can't get duration upfront, but we can try to estimate
+      // or just rely on the fixed duration.
       window.speechSynthesis.speak(utterance)
     }
   }
+
 
 
 
@@ -836,7 +852,23 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     Configurações
                   </h3>
                   <p className="text-zinc-500 text-xs font-bold uppercase">Personalize seu Story</p>
-                </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Sincronização: Atraso da Voz (segundos)</Label>
+                      <div className="flex items-center gap-4">
+                        <Slider 
+                          value={[config.voiceOffset || 0]} 
+                          min={0} 
+                          max={2} 
+                          step={0.1}
+                          onValueChange={(val) => setConfig({...config, voiceOffset: val[0]})}
+                          className="flex-1"
+                        />
+                        <span className="text-white font-bold text-sm w-12 text-right">{(config.voiceOffset || 0).toFixed(1)}s</span>
+                      </div>
+                      <p className="text-[9px] text-zinc-500 italic">Aumente se a voz começar muito cedo.</p>
+                    </div>
+                  </div>
+
 
                 <div className="space-y-4">
                   <div className="space-y-4">
