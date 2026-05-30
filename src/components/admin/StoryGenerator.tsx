@@ -852,7 +852,23 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     Configurações
                   </h3>
                   <p className="text-zinc-500 text-xs font-bold uppercase">Personalize seu Story</p>
-                </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Sincronização: Atraso da Voz (segundos)</Label>
+                      <div className="flex items-center gap-4">
+                        <Slider 
+                          value={[config.voiceOffset || 0]} 
+                          min={0} 
+                          max={2} 
+                          step={0.1}
+                          onValueChange={(val) => setConfig({...config, voiceOffset: val[0]})}
+                          className="flex-1"
+                        />
+                        <span className="text-white font-bold text-sm w-12 text-right">{(config.voiceOffset || 0).toFixed(1)}s</span>
+                      </div>
+                      <p className="text-[9px] text-zinc-500 italic">Aumente se a voz começar muito cedo.</p>
+                    </div>
+                  </div>
+
 
                 <div className="space-y-4">
                   <div className="space-y-4">
