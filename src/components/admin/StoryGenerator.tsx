@@ -318,7 +318,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
         
         // Update slide duration based on actual audio length
-        setActiveSpeechDuration(audioBuffer.duration);
+        setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
+
         
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
