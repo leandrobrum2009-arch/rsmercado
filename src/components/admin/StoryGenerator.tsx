@@ -255,14 +255,25 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         // Map selected voice to OpenAI voices
         let voiceId = 'alloy';
         const lowerVoice = (selectedVoice || '').toLowerCase();
-        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria')) voiceId = 'nova';
-        else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel')) voiceId = 'onyx';
-        else if (lowerVoice.includes('google') || lowerVoice.includes('natural')) voiceId = 'shimmer';
+        
+        // Comprehensive mapping for PT-BR and common voices
+        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
+          voiceId = 'nova';
+        } else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || lowerVoice.includes('lucas')) {
+          voiceId = 'onyx';
+        } else if (lowerVoice.includes('google') || lowerVoice.includes('natural') || lowerVoice.includes('fable')) {
+          voiceId = 'fable';
+        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('soft')) {
+          voiceId = 'shimmer';
+        } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
+          voiceId = 'echo';
+        }
 
-        console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId}`);
+        console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
+
 
         if (error) throw error;
         if (!data) throw new Error('No data received from TTS function');
