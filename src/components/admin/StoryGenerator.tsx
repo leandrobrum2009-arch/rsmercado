@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { supabase } from '@/lib/supabase'
+import { supabase as oldSupabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
+
 
 interface Product {
   id: string
