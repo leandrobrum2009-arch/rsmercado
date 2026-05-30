@@ -446,7 +446,12 @@ export function AdvancedFlyerCreator() {
                   )}
                   {showValidity && validityPosition === 'top' && (
                     <div className="absolute -bottom-4 left-0 w-full z-50">
-                      <ValidityBanner />
+                      <ValidityBanner 
+                        validityBgColor={validityBgColor}
+                        validityTextColor={validityTextColor}
+                        validityFontSize={validityFontSize}
+                        validityText={validityText}
+                      />
                     </div>
                   )}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity print:hidden">
@@ -460,7 +465,12 @@ export function AdvancedFlyerCreator() {
                 <div className="h-[80%] px-8 py-2 flex flex-col justify-center overflow-visible relative">
                   {showValidity && validityPosition === 'bottom' && (
                     <div className="mb-4">
-                      <ValidityBanner />
+                      <ValidityBanner 
+                        validityBgColor={validityBgColor}
+                        validityTextColor={validityTextColor}
+                        validityFontSize={validityFontSize}
+                        validityText={validityText}
+                      />
                     </div>
                   )}
                 <div 
@@ -488,7 +498,13 @@ export function AdvancedFlyerCreator() {
                      <>
                      {isBetweenRow && (
                        <div className="col-span-full my-1 animate-in fade-in slide-in-from-left-2" style={{ zIndex: 40 }}>
-                         <ValidityBanner isLine={true} />
+                         <ValidityBanner 
+                           isLine={true} 
+                           validityBgColor={validityBgColor}
+                           validityTextColor={validityTextColor}
+                           validityFontSize={validityFontSize}
+                           validityText={validityText}
+                         />
                        </div>
                      )}
                      <div
@@ -632,7 +648,12 @@ export function AdvancedFlyerCreator() {
                  <div className="h-[5%] w-full flex flex-col items-center justify-center relative border-t border-dashed border-zinc-100/30 px-12 overflow-visible">
                    {showValidity && validityPosition === 'footer' && (
                      <div className="absolute bottom-full left-0 w-full mb-1">
-                       <ValidityBanner />
+                       <ValidityBanner 
+                         validityBgColor={validityBgColor}
+                         validityTextColor={validityTextColor}
+                         validityFontSize={validityFontSize}
+                         validityText={validityText}
+                       />
                      </div>
                    )}
                    {showFooter && footerText && (
