@@ -357,17 +357,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination);
         source.start();
         
-        setIsAudioLoading(false)
         activeAudioRef.current = { 
           pause: () => { try { source.stop(); } catch(e) {} },
           currentTime: 0
         } as any;
       } catch (e) {
         console.error('TTS Error:', e);
-        setIsAudioLoading(false)
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
+      } finally {
+        setIsAudioLoading(false)
       }
     } else {
       setIsAudioLoading(false)
