@@ -12,6 +12,8 @@ serve(async (req) => {
 
   try {
     const { text, voice = 'alloy', speed = 1.0 } = await req.json()
+    console.log(`TTS Request: voice=${voice}, speed=${speed}, text="${text.substring(0, 50)}..."`)
+
     
     if (!text) {
       return new Response(JSON.stringify({ error: 'Text is required' }), {

@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { supabase } from '@/lib/supabase'
+import { supabase as oldSupabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
+
 
 interface Product {
   id: string
@@ -47,7 +49,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   const [isSaving, setIsSaving] = useState(false)
-  const [activeSpeechDuration, setActiveSpeechDuration] = useState<number | null>(null)
+  const [slideDurations, setSlideDurations] = useState<Record<number, number>>({})
+  const [isAudioLoading, setIsAudioLoading] = useState(false)
+
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
 
@@ -106,11 +111,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
     const baseDuration = (slide?.type === 'product' ? config.productDuration : config.introDuration) * 1000
-    if (activeSpeechDuration) {
-      return Math.max(baseDuration, (activeSpeechDuration * 1000) + 300)
+    if (slideDurations[currentSlide]) {
+      return Math.max(baseDuration, (slideDurations[currentSlide] * 1000) + 300)
     }
     return baseDuration
   }
+
 
   
   const slideDuration = getCurrentSlideDuration()
@@ -162,16 +168,20 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }, [config.selectedVoice])
 
 
+  const startTimeRef = useRef<number>(0)
+  const startProgressRef = useRef<number>(0)
+
   useEffect(() => {
-    if (isPlaying) {
-      const startTime = Date.now()
-      const startProgress = progress
+    if (isPlaying && !isAudioLoading) {
+      startTimeRef.current = Date.now()
+      startProgressRef.current = progress
 
       timerRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime
-        const newProgress = Math.min(startProgress + (elapsed / slideDuration) * 100, 100)
+        const elapsed = Date.now() - startTimeRef.current
+        const newProgress = Math.min(startProgressRef.current + (elapsed / slideDuration) * 100, 100)
         
         setProgress(newProgress)
+
 
         if (newProgress >= 100) {
           if (currentSlide < slides.length - 1) {
@@ -193,7 +203,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, currentSlide, progress, slides.length, isRecording, slideDuration])
+  }, [isPlaying, currentSlide, slides.length, isRecording, slideDuration])
+
 
 
   const saveConfig = async () => {
@@ -204,7 +215,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
     setIsSaving(true)
     try {
-      const { error } = await supabase
+      const { error } = await oldSupabase
         .from('flyers')
         .update({ config: { ...flyer.config, ...config } })
         .eq('id', flyer.id)
@@ -218,6 +229,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       setIsSaving(false)
     }
   }
+
 
   const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
@@ -236,13 +248,22 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       activeAudioRef.current = null
     }
 
-    // Reset duration for the new slide
-    setActiveSpeechDuration(null)
+    // Reset current audio state
+    setSlideDurations(prev => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
 
     const slide = slides[index]
     if (!slide) return;
     
     let text = ''
+
+    if (recording && audioDestRef.current && audioContextRef.current) {
+      setIsAudioLoading(true)
+    }
+
 
     const replacePlaceholders = (template: string, product?: Product) => {
       let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
@@ -278,18 +299,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         let voiceId = 'alloy';
         const lowerVoice = (config.selectedVoice || '').toLowerCase();
         
-        // Comprehensive mapping for PT-BR and common voices
-        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
+        // Detailed mapping for common PT-BR and other voices to OpenAI equivalents
+        if (
+          lowerVoice.includes('female') || lowerVoice.includes('feminina') || 
+          lowerVoice.includes('maria') || lowerVoice.includes('francisca') || 
+          lowerVoice.includes('vitoria') || lowerVoice.includes('helena') || 
+          lowerVoice.includes('luciana') || lowerVoice.includes('fernanda') ||
+          lowerVoice.includes('google português do brasil')
+        ) {
           voiceId = 'nova';
-        } else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || lowerVoice.includes('lucas')) {
+        } else if (
+          lowerVoice.includes('male') || lowerVoice.includes('masculina') || 
+          lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || 
+          lowerVoice.includes('lucas') || lowerVoice.includes('ricardo') ||
+          lowerVoice.includes('felipe')
+        ) {
           voiceId = 'onyx';
-        } else if (lowerVoice.includes('google') || lowerVoice.includes('natural') || lowerVoice.includes('fable')) {
+        } else if (lowerVoice.includes('fable') || lowerVoice.includes('soft') || lowerVoice.includes('natural')) {
           voiceId = 'fable';
-        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('soft')) {
+        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('light')) {
           voiceId = 'shimmer';
         } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
           voiceId = 'echo';
         }
+
 
 
         console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
@@ -304,7 +337,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
         
         // Update slide duration based on actual audio length
-        setActiveSpeechDuration(audioBuffer.duration);
+        setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
+
         
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
@@ -314,6 +348,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         source.start();
         console.log(`[StoryGenerator] TTS audio started, duration: ${audioBuffer.duration}s`);
+        setIsAudioLoading(false)
         
         activeAudioRef.current = { 
           pause: () => {
@@ -324,12 +359,16 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
       } catch (e) {
         console.error('[StoryGenerator] TTS Recording Error:', e);
+        setIsAudioLoading(false)
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
       }
+
     } else {
+      setIsAudioLoading(false)
       console.log('[StoryGenerator] Using browser TTS');
+
       const utterance = new SpeechSynthesisUtterance(text)
       if (config.selectedVoice) {
         const voice = voices.find(v => v.name === config.selectedVoice)
