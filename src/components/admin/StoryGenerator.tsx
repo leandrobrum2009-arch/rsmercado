@@ -370,6 +370,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         else if (lowerVoice.includes('shimmer')) voiceId = 'shimmer';
         else if (lowerVoice.includes('echo')) voiceId = 'echo';
 
+        console.log(`[StoryGenerator] Direct TTS for recording slide ${index}: "${text.substring(0, 30)}..."`)
+        
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
@@ -377,7 +379,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (error) throw error;
         if (!data) throw new Error('No audio data');
 
-        const arrayBuffer = await data.arrayBuffer();
+        const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
+        const arrayBuffer = await blob.arrayBuffer();
         const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
         
         setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
@@ -393,7 +396,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           currentTime: 0
         } as any;
       } catch (e) {
-        console.error('TTS Error:', e);
+        console.error('[StoryGenerator] TTS Error during recording:', e);
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'pt-BR';
         window.speechSynthesis.speak(utterance);
