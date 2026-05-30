@@ -46,9 +46,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isExporting, setIsExporting] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-
   const [isSaving, setIsSaving] = useState(false)
   const [activeSpeechDuration, setActiveSpeechDuration] = useState<number | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false)
+
 
 
   // Configuration state
@@ -491,7 +493,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     recorder.onstop = () => {
-      console.log('[StoryGenerator] Recording stopped, generating file...');
+      console.log('[StoryGenerator] Recording stopped, generating preview...');
       if (bgAudio) {
         bgAudio.pause()
         bgAudio.currentTime = 0
@@ -502,13 +504,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.${extension}`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      setPreviewUrl(url)
+      setShowPreviewDialog(true)
       
       // Clean up refs
       isRecordingRef.current = false
@@ -522,8 +519,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       audioContextRef.current = null
       audioDestRef.current = null
       
-      toast.success('Vídeo gerado com sucesso!')
+      toast.success('Vídeo gerado! Veja a prévia.')
     }
+
 
     
     recorderRef.current = recorder
@@ -1107,7 +1105,66 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           </div>
 
         </div>
+
+        {/* Preview Dialog */}
+        <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+          <DialogContent className="max-w-md bg-zinc-950 border-zinc-800 p-0 overflow-hidden">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-black uppercase italic text-xl tracking-tighter">
+                  PRÉVIA DO VÍDEO
+                </h3>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowPreviewDialog(false)}
+                  className="text-zinc-500 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {previewUrl && (
+                <div className="relative aspect-[9/16] w-full bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-zinc-800">
+                  <video 
+                    src={previewUrl} 
+                    controls 
+                    className="w-full h-full object-contain"
+                    autoPlay
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline"
+                  className="flex-1 bg-transparent border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]"
+                  onClick={() => setShowPreviewDialog(false)}
+                >
+                  FECHAR
+                </Button>
+                <Button 
+                  className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase text-[10px] gap-2"
+                  onClick={() => {
+                    if (previewUrl) {
+                      const link = document.createElement('a')
+                      link.href = previewUrl
+                      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                      toast.success('Download iniciado!')
+                    }
+                  }}
+                >
+                  <Video className="h-4 w-4" /> BAIXAR AGORA
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
+
   )
 }
