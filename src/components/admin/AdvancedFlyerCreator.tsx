@@ -2604,16 +2604,39 @@ export function AdvancedFlyerCreator() {
                 {backgroundType === 'image' && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                     <div className="grid grid-cols-4 gap-2">
+                      {customBackgrounds.map((bg, idx) => (
+                        <div key={`user-${idx}`} className="relative group">
+                          <button
+                            className={cn(
+                              "w-full relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
+                              backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                            )}
+                            onClick={() => setBackgroundUrl(bg)}
+                          >
+                            <img src={bg} className="w-full h-full object-cover" alt={`User BG ${idx}`} />
+                          </button>
+                          <button 
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCustomBackgrounds(prev => prev.filter(u => u !== bg));
+                              if (backgroundUrl === bg) setBackgroundUrl('');
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                       {PREDEFINED_BGS.map((bg, idx) => (
                         <button
-                          key={idx}
+                          key={`default-${idx}`}
                           className={cn(
-                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all",
-                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg" : "border-transparent hover:border-zinc-300"
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-60 hover:opacity-100",
+                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent hover:border-zinc-300"
                           )}
                           onClick={() => setBackgroundUrl(bg)}
                         >
-                          <img src={bg} className="w-full h-full object-cover" alt={`BG ${idx}`} />
+                          <img src={bg} className="w-full h-full object-cover" alt={`Default BG ${idx}`} />
                         </button>
                       ))}
                     </div>
@@ -2622,7 +2645,7 @@ export function AdvancedFlyerCreator() {
                         <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
                         <label htmlFor="bg-upload" className="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors">
                           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Minha Arte'}</span>
+                          <span className="text-[10px] font-bold uppercase">{uploading ? 'Enviando...' : 'Carregar Novo Fundo'}</span>
                         </label>
                       </div>
                     </div>
