@@ -276,8 +276,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         // Offset delay if configured
         if (config.voiceOffset > 0) {
-          await new Promise(r => setTimeout(resolve, config.voiceOffset * 1000));
+          await new Promise(r => setTimeout(r, config.voiceOffset * 1000));
         }
+
 
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
