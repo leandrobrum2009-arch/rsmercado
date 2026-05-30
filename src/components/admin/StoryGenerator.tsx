@@ -57,11 +57,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
     outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
     logoTop: flyer.config?.logoTop || 40,
-    contentTop: flyer.config?.contentTop || 280,
+    contentTop: flyer.config?.contentTop || 320,
     fontFamily: flyer.config?.fontFamily || 'sans-serif',
     fontWeight: flyer.config?.fontWeight || '1000',
     priceColor: flyer.config?.priceColor || '#ef4444'
   })
+
 
   const slides: SlideType[] = [
     { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
