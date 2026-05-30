@@ -57,7 +57,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       productDuration: 2.5,
       introPhrase: "Confira as ofertas de hoje no {store}",
       productPhrase: "{name}, por apenas {price}",
-      outroPhrase: "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
+      outroPhrase: "Aproveite essas ofertas! Esperamos por você.",
       logoTop: 40,
       contentTop: 320,
       fontFamily: 'sans-serif',
@@ -73,6 +73,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     if (savedConfig) {
       try {
         const parsed = JSON.parse(savedConfig)
+        // Global config (from localStorage) takes precedence over flyer specific config
+        // to satisfy "always save last config for next story"
         return { ...defaults, ...flyer.config, ...parsed }
       } catch (e) {
         return { ...defaults, ...flyer.config }
@@ -90,7 +92,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const slides: SlideType[] = [
     { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
     ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
-    { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
+    { type: 'outro', title: 'CONFIRA NOSSAS OFERTAS!', subtitle: 'Esperamos por você' }
   ]
 
   const getCurrentSlideDuration = () => {
@@ -232,24 +234,38 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           await audioContextRef.current.resume();
         }
 
+        // Map selected voice to OpenAI voices
+        let voiceId = 'alloy';
+        const lowerVoice = selectedVoice.toLowerCase();
+        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria')) voiceId = 'nova';
+        else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel')) voiceId = 'onyx';
+        else if (lowerVoice.includes('google') || lowerVoice.includes('natural')) voiceId = 'shimmer';
+
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
-          body: { text, lang: 'pt-BR' }
+          body: { text, lang: 'pt-BR', voice: voiceId }
         });
 
         if (error) throw error;
 
-        // Ensure we have a Blob
-        const audioBlob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
-        const url = URL.createObjectURL(audioBlob);
-        const audio = new Audio(url);
-        audio.crossOrigin = "anonymous";
+        // Convert Blob to ArrayBuffer
+        const arrayBuffer = await data.arrayBuffer();
         
-        const source = audioContextRef.current.createMediaElementSource(audio);
+        // Decode audio data for more reliable playback in MediaStream
+        const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
+        const source = audioContextRef.current.createBufferSource();
+        source.buffer = audioBuffer;
+        
         source.connect(audioDestRef.current);
         source.connect(audioContextRef.current.destination);
         
-        activeAudioRef.current = audio;
-        await audio.play();
+        source.start();
+        
+        // Track active audio to stop if needed
+        activeAudioRef.current = { 
+          pause: () => source.stop(),
+          currentTime: 0
+        } as any;
+
       } catch (e) {
         console.error('TTS Recording Error:', e);
       }
@@ -637,7 +653,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         fontWeight: config.fontWeight 
                       }}
                     >
-                      FAZER PEDIDO AGORA
+                      VISITE NOSSA LOJA!
                     </div>
                   </div>
                 )}
