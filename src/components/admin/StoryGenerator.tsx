@@ -109,11 +109,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
     const baseDuration = (slide?.type === 'product' ? config.productDuration : config.introDuration) * 1000
-    if (activeSpeechDuration) {
-      return Math.max(baseDuration, (activeSpeechDuration * 1000) + 300)
+    if (slideDurations[currentSlide]) {
+      return Math.max(baseDuration, (slideDurations[currentSlide] * 1000) + 300)
     }
     return baseDuration
   }
+
 
   
   const slideDuration = getCurrentSlideDuration()
