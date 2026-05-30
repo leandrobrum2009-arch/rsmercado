@@ -58,6 +58,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       introPhrase: "Confira as ofertas de hoje no {store}",
       productPhrase: "{name}, por apenas {price}",
       outroPhrase: "Aproveite essas ofertas! Esperamos por você.",
+
       logoTop: 40,
       contentTop: 320,
       fontFamily: 'sans-serif',
@@ -108,8 +109,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null)
-  const activeAudioRef = useRef<HTMLAudioElement | null>(null)
+  const activeAudioRef = useRef<{ pause: () => void; currentTime: number } | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const isRecordingRef = useRef(false)
+
 
 
   // Load voices with polling
@@ -203,17 +206,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
-  const speakSlide = async (index: number) => {
+  const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
     
+    const recording = forceRecording || isRecording || isRecordingRef.current;
+    console.log(`[StoryGenerator] Speaking slide ${index}, recording: ${recording}`);
+
     // Stop any current audio
     window.speechSynthesis.cancel()
     if (activeAudioRef.current) {
-      activeAudioRef.current.pause()
-      activeAudioRef.current.currentTime = 0
+      try {
+        activeAudioRef.current.pause()
+      } catch (e) {
+        console.warn('Error pausing active audio:', e)
+      }
+      activeAudioRef.current = null
     }
 
     const slide = slides[index]
+    if (!slide) return;
+    
     let text = ''
 
     const replacePlaceholders = (template: string, product?: Product) => {
@@ -234,7 +246,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
 
     // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
-    if (isRecording && audioDestRef.current && audioContextRef.current) {
+    if (recording && audioDestRef.current && audioContextRef.current) {
+      console.log('[StoryGenerator] Using Edge Function TTS for recording');
       try {
         if (audioContextRef.current.state === 'suspended') {
           await audioContextRef.current.resume();
@@ -242,16 +255,29 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         // Map selected voice to OpenAI voices
         let voiceId = 'alloy';
-        const lowerVoice = selectedVoice.toLowerCase();
-        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria')) voiceId = 'nova';
-        else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel')) voiceId = 'onyx';
-        else if (lowerVoice.includes('google') || lowerVoice.includes('natural')) voiceId = 'shimmer';
+        const lowerVoice = (selectedVoice || '').toLowerCase();
+        
+        // Comprehensive mapping for PT-BR and common voices
+        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
+          voiceId = 'nova';
+        } else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || lowerVoice.includes('lucas')) {
+          voiceId = 'onyx';
+        } else if (lowerVoice.includes('google') || lowerVoice.includes('natural') || lowerVoice.includes('fable')) {
+          voiceId = 'fable';
+        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('soft')) {
+          voiceId = 'shimmer';
+        } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
+          voiceId = 'echo';
+        }
 
+        console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
 
+
         if (error) throw error;
+        if (!data) throw new Error('No data received from TTS function');
 
         // Convert Blob to ArrayBuffer
         const arrayBuffer = await data.arrayBuffer();
@@ -265,17 +291,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination);
         
         source.start();
+        console.log('[StoryGenerator] TTS audio started playing into stream');
         
         // Track active audio to stop if needed
         activeAudioRef.current = { 
-          pause: () => source.stop(),
+          pause: () => {
+            try { source.stop(); } catch(e) {}
+          },
           currentTime: 0
-        } as any;
+        };
 
       } catch (e) {
-        console.error('TTS Recording Error:', e);
+        console.error('[StoryGenerator] TTS Recording Error:', e);
+        // Fallback to browser TTS so at least the user hears something, 
+        // even if it won't be in the recording
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        window.speechSynthesis.speak(utterance);
       }
     } else {
+      console.log('[StoryGenerator] Using browser TTS');
       // Normal playback uses browser TTS
       const utterance = new SpeechSynthesisUtterance(text)
       if (selectedVoice) {
@@ -288,6 +323,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       window.speechSynthesis.speak(utterance)
     }
   }
+
 
 
 
@@ -352,65 +388,75 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const startVideoRecording = async () => {
     if (!slideRef.current) return
     
+    console.log('[StoryGenerator] Starting video recording...');
+    isRecordingRef.current = true
     setIsRecording(true)
     setCurrentSlide(0)
     setProgress(0)
     setIsPlaying(true)
-    speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 1080 // Increased to Full HD Vertical
+    canvas.width = 1080 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
     // Create a high-quality stream
     const stream = canvas.captureStream(30)
     
-    // Add audio track if possible (using Web Audio API for background music or placeholder)
-    let combinedStream = stream
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    await audioContext.resume()
+    console.log('[StoryGenerator] AudioContext state:', audioContext.state);
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume()
+    }
+    
     const dest = audioContext.createMediaStreamDestination()
     audioContextRef.current = audioContext
     audioDestRef.current = dest
     
-    // If we had a recordable audio source, we'd connect it here
-    // For now, we at least provide a silent track to ensure the file has an audio stream container
+    // Silent track to keep audio context alive and ensure the stream has an audio track from the start
     const oscillator = audioContext.createOscillator()
     const gain = audioContext.createGain()
-    gain.gain.value = 0 // Silent
+    gain.gain.value = 0.0001 // Almost silent but not zero to keep some encoders happy
     oscillator.connect(gain)
     gain.connect(dest)
     oscillator.start()
     
+    let combinedStream = stream
     if (dest.stream.getAudioTracks().length > 0) {
+      console.log('[StoryGenerator] Successfully created audio track');
       combinedStream = new MediaStream([
         ...stream.getVideoTracks(),
         ...dest.stream.getAudioTracks()
       ])
+    } else {
+      console.warn('[StoryGenerator] Failed to create audio track in combined stream');
     }
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+    const extension = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2') ? 'mp4' : 'webm';
+    const mimeType = extension === 'mp4' 
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
       : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
         ? 'video/webm;codecs=vp9,opus'
-        : 'video/webm'
+        : 'video/webm';
         
+    console.log(`[StoryGenerator] Using mimeType: ${mimeType}, extension: ${extension}`);
+
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 10000000 // 10Mbps for high quality
+      videoBitsPerSecond: 10000000 
     })
 
     // Handle background music if selected
     let bgAudio: HTMLAudioElement | null = null
     if (config.backgroundMusic) {
+      console.log('[StoryGenerator] Adding background music to recording');
       bgAudio = new Audio(config.backgroundMusic)
       bgAudio.crossOrigin = "anonymous"
       bgAudio.loop = true
       const source = audioContext.createMediaElementSource(bgAudio)
       source.connect(dest)
       source.connect(audioContext.destination)
-      bgAudio.play().catch(e => console.error("Error playing background music:", e))
+      bgAudio.play().catch(e => console.error("[StoryGenerator] Error playing background music:", e))
     }
     
     chunksRef.current = []
@@ -419,36 +465,49 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     recorder.onstop = () => {
+      console.log('[StoryGenerator] Recording stopped, generating file...');
       if (bgAudio) {
         bgAudio.pause()
         bgAudio.currentTime = 0
       }
       if (activeAudioRef.current) {
         activeAudioRef.current.pause()
-        activeAudioRef.current.currentTime = 0
       }
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.${extension}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
       // Clean up refs
+      isRecordingRef.current = false
       setIsRecording(false)
       setIsPlaying(false)
+      
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(e => console.error('[StoryGenerator] Error closing AudioContext:', e));
+      }
+      
       audioContextRef.current = null
       audioDestRef.current = null
       
       toast.success('Vídeo gerado com sucesso!')
     }
+
     
     recorderRef.current = recorder
     recorder.start()
+    
+    // Now that everything is set up, start the first slide's audio
+    setTimeout(() => {
+      speakSlide(0, true)
+    }, 500); // Give 500ms for the recorder to warm up
+
     
     console.log('Recording started...')
     
