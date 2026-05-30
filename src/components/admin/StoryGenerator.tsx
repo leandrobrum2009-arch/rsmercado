@@ -292,18 +292,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         let voiceId = 'alloy';
         const lowerVoice = (config.selectedVoice || '').toLowerCase();
         
-        // Comprehensive mapping for PT-BR and common voices
-        if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
+        // Detailed mapping for common PT-BR and other voices to OpenAI equivalents
+        if (
+          lowerVoice.includes('female') || lowerVoice.includes('feminina') || 
+          lowerVoice.includes('maria') || lowerVoice.includes('francisca') || 
+          lowerVoice.includes('vitoria') || lowerVoice.includes('helena') || 
+          lowerVoice.includes('luciana') || lowerVoice.includes('fernanda') ||
+          lowerVoice.includes('google português do brasil')
+        ) {
           voiceId = 'nova';
-        } else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || lowerVoice.includes('lucas')) {
+        } else if (
+          lowerVoice.includes('male') || lowerVoice.includes('masculina') || 
+          lowerVoice.includes('daniel') || lowerVoice.includes('antonio') || 
+          lowerVoice.includes('lucas') || lowerVoice.includes('ricardo') ||
+          lowerVoice.includes('felipe')
+        ) {
           voiceId = 'onyx';
-        } else if (lowerVoice.includes('google') || lowerVoice.includes('natural') || lowerVoice.includes('fable')) {
+        } else if (lowerVoice.includes('fable') || lowerVoice.includes('soft') || lowerVoice.includes('natural')) {
           voiceId = 'fable';
-        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('soft')) {
+        } else if (lowerVoice.includes('shimmer') || lowerVoice.includes('light')) {
           voiceId = 'shimmer';
         } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
           voiceId = 'echo';
         }
+
 
 
         console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
