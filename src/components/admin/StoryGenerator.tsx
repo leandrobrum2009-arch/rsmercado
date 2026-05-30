@@ -487,11 +487,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       isRecordingRef.current = false
       setIsRecording(false)
       setIsPlaying(false)
+      
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(e => console.error('[StoryGenerator] Error closing AudioContext:', e));
+      }
+      
       audioContextRef.current = null
       audioDestRef.current = null
       
       toast.success('Vídeo gerado com sucesso!')
     }
+
     
     recorderRef.current = recorder
     recorder.start()
