@@ -564,18 +564,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         });
 
         
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.clearRect(0, 0, 1080, 1920);
-          
-          // Draw image maintaining aspect ratio
-          const scale = Math.min(1080 / frameCanvas.width, 1920 / frameCanvas.height);
-          const x = (1080 - frameCanvas.width * scale) / 2;
-          const y = (1920 - frameCanvas.height * scale) / 2;
-          ctx.drawImage(frameCanvas, x, y, frameCanvas.width * scale, frameCanvas.height * scale);
+          ctx.imageSmoothingEnabled = false; // Disable smoothing since we are drawing 1:1
+          ctx.drawImage(frameCanvas, 0, 0, 1080, 1920);
         }
+
       } catch (e) {
         console.error('Frame capture error:', e);
       } finally {
