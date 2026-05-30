@@ -230,6 +230,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR' }
         })
+        console.log('TTS response type:', typeof data, data)
 
         if (error) throw error
 
@@ -341,6 +342,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // Add audio track if possible (using Web Audio API for background music or placeholder)
     let combinedStream = stream
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    await audioContext.resume()
     const dest = audioContext.createMediaStreamDestination()
     audioContextRef.current = audioContext
     audioDestRef.current = dest
