@@ -278,21 +278,43 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 720
-    canvas.height = 1280
+    canvas.width = 1080 // Increased to Full HD Vertical
+    canvas.height = 1920
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(30) // higher fps for smoother video
+    // Create a high-quality stream
+    const stream = canvas.captureStream(30)
     
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-      ? 'video/webm;codecs=vp9'
-      : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
-        ? 'video/webm;codecs=vp8'
+    // Add audio track if possible (using Web Audio API for background music or placeholder)
+    let combinedStream = stream
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const dest = audioContext.createMediaStreamDestination()
+    
+    // If we had a recordable audio source, we'd connect it here
+    // For now, we at least provide a silent track to ensure the file has an audio stream container
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    gain.gain.value = 0 // Silent
+    oscillator.connect(gain)
+    gain.connect(dest)
+    oscillator.start()
+    
+    if (dest.stream.getAudioTracks().length > 0) {
+      combinedStream = new MediaStream([
+        ...stream.getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+      ])
+    }
+    
+    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
+      ? 'video/mp4;codecs=avc1'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
         : 'video/webm'
         
-    const recorder = new MediaRecorder(stream, {
+    const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 5000000
+      videoBitsPerSecond: 10000000 // 10Mbps for high quality
     })
     
     chunksRef.current = []
@@ -328,32 +350,36 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       isCapturing = true;
       try {
-        const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1,
+        // Use higher pixelRatio for better resolution
+        // Use toCanvas directly for better performance and quality
+        const frameCanvas = await htmlToImage.toCanvas(slideRef.current, {
+          pixelRatio: 2.5, // High resolution capture
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
-          style: { borderRadius: '0px' }
-        });
-        
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          setTimeout(() => reject(new Error('Image load timeout')), 2000);
+          style: { 
+            borderRadius: '0px',
+            transform: 'none',
+            margin: '0',
+            padding: '0'
+          },
+          width: 540, // Match a standard aspect but higher pixel ratio will boost quality
+          height: 960
         });
         
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.clearRect(0, 0, 720, 1280);
-          ctx.drawImage(img, 0, 0, 720, 1280);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.clearRect(0, 0, 1080, 1920);
+          ctx.drawImage(frameCanvas, 0, 0, 1080, 1920);
         }
       } catch (e) {
         console.error('Frame capture error:', e);
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          setTimeout(captureFrame, 100); // Wait 100ms before next frame
+          // Optimized interval for smoother capture while allowing for high-res processing
+          setTimeout(captureFrame, 33); // Target ~30fps if processing allows
         }
       }
 
