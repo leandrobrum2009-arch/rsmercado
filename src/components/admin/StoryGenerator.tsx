@@ -431,7 +431,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       {currentSlideData.title}
                     </h2>
                     <p 
-                      className="text-2xl uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10"
+                      className="text-lg uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
