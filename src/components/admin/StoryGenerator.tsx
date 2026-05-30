@@ -466,7 +466,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     const videoBitrate = 12000000; // 12 Mbps
     
     // Create a high-quality stream
-    const stream = canvas.captureStream(60) // Increase to 60fps for smoother motion if possible
+    const stream = canvas.captureStream(30) // 30fps is standard and more stable
 
     
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
