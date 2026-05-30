@@ -305,6 +305,7 @@ export function AdvancedFlyerCreator() {
             if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
             if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
             if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
+            if (config.customBackgrounds) setCustomBackgrounds(config.customBackgrounds)
           } catch (e) {
             console.error('Error loading last flyer config:', e)
           }
