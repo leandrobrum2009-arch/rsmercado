@@ -452,18 +452,36 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setProgress(0)
     setIsPlaying(true)
     
-    const canvas = document.createElement('canvas')
-    canvas.width = 1080 
-    canvas.height = 1920
-    recordingCanvasRef.current = canvas
-    
-    const stream = canvas.captureStream(30)
+    // Web Audio setup for recording
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    if (audioContext.state === 'suspended') await audioContext.resume()
+    audioContextRef.current = audioContext
     
     const dest = audioContext.createMediaStreamDestination()
-    audioContextRef.current = audioContext
     audioDestRef.current = dest
+    
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume()
+    }
+    
+    // Constant low-level signal to keep the audio track active in some browsers
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    gain.gain.value = 0.00001
+    oscillator.connect(gain)
+    gain.connect(dest)
+    oscillator.start()
+    
+    // Video stream from canvas
+    const videoStream = canvas.captureStream(30)
+    
+    // Combine video and audio tracks
+    const combinedStream = new MediaStream()
+    videoStream.getVideoTracks().forEach(track => combinedStream.addTrack(track))
+    dest.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track))
+    
+    if (combinedStream.getAudioTracks().length === 0) {
+      console.error('CRITICAL: No audio tracks detected in the recording stream!')
+    }
     
     // Low-volume constant tone to keep stream alive
     const oscillator = audioContext.createOscillator()
