@@ -291,24 +291,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     const slide = slides[index]
     if (!slide) return;
 
-    // Use cached audio if available
-    if (audioUrls[index]) {
-      const audio = new Audio(audioUrls[index])
-      audio.crossOrigin = "anonymous"
-      if (recording && audioDestRef.current && audioContextRef.current) {
-        try {
-          const source = audioContextRef.current.createMediaElementSource(audio)
-          source.connect(audioDestRef.current)
-          source.connect(audioContextRef.current.destination)
-        } catch (err) {
-          console.warn('Audio connection error (already connected?):', err)
-        }
-      }
-      audio.play().catch(e => console.error('Audio play error:', e))
-      activeAudioRef.current = audio
-      return
-    }
-    
     let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
       let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
@@ -322,6 +304,34 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     if (slide.type === 'intro') text = replacePlaceholders(config.introPhrase)
     else if (slide.type === 'product') text = replacePlaceholders(config.productPhrase, slide.product)
     else if (slide.type === 'outro') text = replacePlaceholders(config.outroPhrase)
+
+    // Use cached audio if available
+    if (audioUrls[index]) {
+      const audio = new Audio(audioUrls[index])
+      audio.crossOrigin = "anonymous"
+      
+      if (recording && audioDestRef.current && audioContextRef.current) {
+        try {
+          console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
+          const source = audioContextRef.current.createMediaElementSource(audio)
+          source.connect(audioDestRef.current)
+          source.connect(audioContextRef.current.destination)
+        } catch (err) {
+          console.warn('[StoryGenerator] Audio connection error:', err)
+        }
+      }
+      
+      audio.play().catch(e => {
+        console.error('[StoryGenerator] Audio play error:', e);
+        if (!recording) {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'pt-BR';
+          window.speechSynthesis.speak(utterance);
+        }
+      })
+      activeAudioRef.current = audio
+      return
+    }
 
     if (recording && audioDestRef.current && audioContextRef.current) {
       setIsAudioLoading(true)
@@ -452,35 +462,41 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setProgress(0)
     setIsPlaying(true)
     
+    // Create recording canvas
     const canvas = document.createElement('canvas')
     canvas.width = 1080 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(30)
+    // Video stream from canvas
+    const videoStream = canvas.captureStream(30)
+    
+    // Web Audio setup for recording
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    if (audioContext.state === 'suspended') await audioContext.resume()
+    audioContextRef.current = audioContext
     
     const dest = audioContext.createMediaStreamDestination()
-    audioContextRef.current = audioContext
     audioDestRef.current = dest
     
-    // Low-volume constant tone to keep stream alive
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-    gain.gain.value = 0.0001
-    oscillator.connect(gain)
-    gain.connect(dest)
-    oscillator.start()
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume()
+    }
     
-    let combinedStream = stream
-    if (dest.stream.getAudioTracks().length > 0) {
-      combinedStream = new MediaStream([
-        ...stream.getVideoTracks(),
-        ...dest.stream.getAudioTracks()
-      ])
-    } else {
-      console.warn('No audio tracks found for recording');
+    // Constant low-level signal to keep the audio track active in some browsers
+    const osc = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    gainNode.gain.value = 0.00001
+    osc.connect(gainNode)
+    gainNode.connect(dest)
+    osc.start()
+    
+    // Combine video and audio tracks
+    const combinedStream = new MediaStream()
+    videoStream.getVideoTracks().forEach(track => combinedStream.addTrack(track))
+    dest.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track))
+    
+    if (combinedStream.getAudioTracks().length === 0) {
+      console.error('CRITICAL: No audio tracks detected in the recording stream!')
     }
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
