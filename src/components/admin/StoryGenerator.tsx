@@ -137,8 +137,9 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const naturalVoice = ptVoices.find(v => 
           v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft'))
         )
-        setConfig(prev => ({ ...prev, selectedVoice: naturalVoice ? naturalVoice.name : ptVoices[0].name }))
+        setConfig((prev: any) => ({ ...prev, selectedVoice: naturalVoice ? naturalVoice.name : ptVoices[0].name }))
       }
+
     }
 
     loadVoices()
