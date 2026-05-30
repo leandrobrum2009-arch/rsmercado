@@ -439,6 +439,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const startVideoRecording = async () => {
     if (!slideRef.current) return
     
+    if (Object.keys(audioUrls).length < slides.length) {
+      toast.error('Gere os áudios (Passo 2) antes de baixar o vídeo para garantir a narração.')
+      // We still allow it but warn, though better would be to return.
+      // return 
+    }
+    
     isRecordingRef.current = true
     setIsRecording(true)
     setExportProgress(0)
