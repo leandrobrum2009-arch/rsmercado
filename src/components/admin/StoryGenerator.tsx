@@ -410,7 +410,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 style={{ top: `${config.logoTop}px` }}
               >
                 {storeSettings?.logo_url && (
-                  <img src={storeSettings.logo_url} alt="Logo" className="h-24 max-w-full object-contain drop-shadow-lg" />
+                  <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
