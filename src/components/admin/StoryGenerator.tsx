@@ -441,6 +441,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     isRecordingRef.current = true
     setIsRecording(true)
+    setExportProgress(0)
     setCurrentSlide(0)
     setProgress(0)
     setIsPlaying(true)
@@ -466,13 +467,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     gain.connect(dest)
     oscillator.start()
     
-    let combinedStream = stream
-    if (dest.stream.getAudioTracks().length > 0) {
-      combinedStream = new MediaStream([
-        ...stream.getVideoTracks(),
-        ...dest.stream.getAudioTracks()
-      ])
-    }
+    const combinedStream = new MediaStream([
+      ...stream.getVideoTracks(),
+      ...dest.stream.getAudioTracks()
+    ])
     
     const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
