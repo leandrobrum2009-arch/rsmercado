@@ -115,11 +115,12 @@ export function AdvancedFlyerCreator() {
 
   const { settings: storeSettings } = useStoreSettings()
 
-   const [layout, setLayout] = useState<LayoutType>('grid')
-   const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
-   const [backgroundUrl, setBackgroundUrl] = useState('')
-   const [backgroundColor, setBackgroundColor] = useState('#ffffff')
-  const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+    const [layout, setLayout] = useState<LayoutType>('grid')
+    const [backgroundType, setBackgroundType] = useState<BackgroundType>('image')
+    const [backgroundUrl, setBackgroundUrl] = useState('')
+    const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+    const [backgroundGradient, setBackgroundGradient] = useState('linear-gradient(to bottom, #ffffff, #f3f4f6)')
+    const [customBackgrounds, setCustomBackgrounds] = useState<string[]>([])
   const [gradientStart, setGradientStart] = useState('#ffffff')
   const [gradientEnd, setGradientEnd] = useState('#f3f4f6')
   const [gradientDirection, setGradientDirection] = useState('to bottom')
