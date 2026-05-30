@@ -133,11 +133,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       const ptVoices = availableVoices.filter(v => v.lang.startsWith('pt'))
       
       setVoices(ptVoices)
-      if (ptVoices.length > 0 && !selectedVoice) {
+      if (ptVoices.length > 0 && !config.selectedVoice) {
         const naturalVoice = ptVoices.find(v => 
           v.lang === 'pt-BR' && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Microsoft'))
         )
-        setSelectedVoice(naturalVoice ? naturalVoice.name : ptVoices[0].name)
+        setConfig(prev => ({ ...prev, selectedVoice: naturalVoice ? naturalVoice.name : ptVoices[0].name }))
       }
     }
 
@@ -150,13 +150,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [selectedVoice, voices.length])
+  }, [config.selectedVoice, voices.length])
 
   useEffect(() => {
-    if (selectedVoice) {
-      localStorage.setItem('last_story_voice', selectedVoice)
+    if (config.selectedVoice) {
+      localStorage.setItem('last_story_voice', config.selectedVoice)
     }
-  }, [selectedVoice])
+  }, [config.selectedVoice])
+
 
   useEffect(() => {
     if (isPlaying) {
