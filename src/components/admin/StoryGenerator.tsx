@@ -242,10 +242,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const slide = slides[i]
         let text = ''
         const replacePlaceholders = (template: string, product?: Product) => {
-          let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+          let result = (template || '').replace(/{store}/g, storeSettings?.site_name || 'nosso supermercado')
           if (product) {
-            result = result.replace('{name}', product.name)
-            result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+            result = result.replace(/{name}/g, product.name || '')
+            result = result.replace(/{price}/g, (product.price || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
           }
           return result
         }
@@ -259,12 +259,20 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
         else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
 
+        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..."`)
+
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         })
 
-        if (!error && data) {
-          const blob = data
+        if (error) {
+          console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+          continue
+        }
+
+        if (data) {
+          // data might be a Blob or already an ArrayBuffer depending on Supabase version/config
+          const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' })
           const url = URL.createObjectURL(blob)
           newAudioUrls[i] = url
           
@@ -276,10 +284,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       setAudioUrls(newAudioUrls)
       setSlideDurations(newDurations)
-      toast.success('Locuções geradas com sucesso!')
+      toast.success(`${Object.keys(newAudioUrls).length} locuções prontas!`)
     } catch (err) {
-      console.error('Error generating audio:', err)
-      toast.error('Erro ao gerar algumas locuções')
+      console.error('[StoryGenerator] Error in generateAllAudio:', err)
+      toast.error('Erro ao gerar áudios')
     } finally {
       setIsGeneratingAudio(false)
     }
