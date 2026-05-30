@@ -654,7 +654,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           </div>
 
           <div className="w-full md:w-80 bg-zinc-950 flex flex-col overflow-hidden">
-            <Tabs defaultValue="controls" className="flex-1 flex flex-col">
+            <Tabs defaultValue="controls" className="flex-1 flex flex-col h-full">
               <TabsList className="grid grid-cols-2 bg-zinc-900 rounded-none h-14">
                 <TabsTrigger value="controls" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white gap-2 font-bold uppercase text-[10px] tracking-widest">
                   <Play className="h-3 w-3" /> Controles
