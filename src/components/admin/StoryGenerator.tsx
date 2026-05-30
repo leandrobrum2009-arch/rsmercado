@@ -50,6 +50,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isSaving, setIsSaving] = useState(false)
   const [slideDurations, setSlideDurations] = useState<Record<number, number>>({})
   const [isAudioLoading, setIsAudioLoading] = useState(false)
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false)
+  const [audioUrls, setAudioUrls] = useState<Record<number, string>>({})
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
 
@@ -210,6 +212,61 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
+  const generateAllAudio = async () => {
+    setIsGeneratingAudio(true)
+    const newAudioUrls: Record<number, string> = {}
+    const newDurations: Record<number, number> = {}
+
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i]
+        let text = ''
+        const replacePlaceholders = (template: string, product?: Product) => {
+          let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+          if (product) {
+            result = result.replace('{name}', product.name)
+            result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+          }
+          return result
+        }
+
+        if (slide.type === 'intro') text = replacePlaceholders(config.introPhrase)
+        else if (slide.type === 'product') text = replacePlaceholders(config.productPhrase, slide.product)
+        else if (slide.type === 'outro') text = replacePlaceholders(config.outroPhrase)
+
+        let voiceId = 'alloy'
+        const lowerVoice = (config.selectedVoice || '').toLowerCase()
+        if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
+        else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
+
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
+          body: { text, lang: 'pt-BR', voice: voiceId }
+        })
+
+        if (!error && data) {
+          const blob = data
+          const url = URL.createObjectURL(blob)
+          newAudioUrls[i] = url
+          
+          const arrayBuffer = await blob.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          newDurations[i] = audioBuffer.duration
+        }
+      }
+      
+      setAudioUrls(newAudioUrls)
+      setSlideDurations(newDurations)
+      toast.success('Locuções geradas com sucesso!')
+    } catch (err) {
+      console.error('Error generating audio:', err)
+      toast.error('Erro ao gerar algumas locuções')
+    } finally {
+      setIsGeneratingAudio(false)
+    }
+  }
+
   const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
     
@@ -218,19 +275,25 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // Stop current audio
     window.speechSynthesis.cancel()
     if (activeAudioRef.current) {
-      try { activeAudioRef.current.pause() } catch (e) {}
+      try { (activeAudioRef.current as any).pause() } catch (e) {}
       activeAudioRef.current = null
     }
 
-    // Reset slide duration cache for this index
-    setSlideDurations(prev => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
-
     const slide = slides[index]
     if (!slide) return;
+
+    // Use cached audio if available
+    if (audioUrls[index]) {
+      const audio = new Audio(audioUrls[index])
+      if (recording && audioDestRef.current && audioContextRef.current) {
+        const source = audioContextRef.current.createMediaElementSource(audio)
+        source.connect(audioDestRef.current)
+        source.connect(audioContextRef.current.destination)
+      }
+      audio.play()
+      activeAudioRef.current = audio
+      return
+    }
     
     let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
@@ -274,12 +337,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
         
-        // Offset delay if configured
-        if (config.voiceOffset > 0) {
-          await new Promise(r => setTimeout(r, config.voiceOffset * 1000));
-        }
-
-
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(audioDestRef.current);
@@ -290,7 +347,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         activeAudioRef.current = { 
           pause: () => { try { source.stop(); } catch(e) {} },
           currentTime: 0
-        };
+        } as any;
       } catch (e) {
         console.error('TTS Error:', e);
         setIsAudioLoading(false)
@@ -431,12 +488,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     recorder.onstop = async () => {
       if (bgAudio) { bgAudio.pause(); bgAudio.currentTime = 0; }
-      if (activeAudioRef.current) activeAudioRef.current.pause();
+      if (activeAudioRef.current) (activeAudioRef.current as any).pause();
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
-      setPreviewUrl(url)
-      setShowPreviewDialog(true)
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       isRecordingRef.current = false
       setIsRecording(false)
@@ -447,7 +509,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       }
       audioContextRef.current = null
       audioDestRef.current = null
-      toast.success('Vídeo gerado! Veja a prévia.')
+      toast.success('Vídeo baixado com sucesso!')
     }
     
     recorderRef.current = recorder
@@ -632,31 +694,47 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     </Select>
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Reprodução</p>
-                    <div className="flex gap-2">
-                      <Button variant={isPlaying ? "destructive" : "default"} className="flex-1 h-14 rounded-xl font-black uppercase text-sm" onClick={handleTogglePlay} disabled={isRecording}>
-                        {isPlaying ? <><Pause className="mr-2 h-5 w-5" /> Pausar</> : <><Play className="mr-2 h-5 w-5" /> Reproduzir</>}
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-zinc-900">
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 1: Salvar Edições</p>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase text-xs bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-700" onClick={saveConfig} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar Story'}
                       </Button>
-                      <Button variant="outline" className="w-14 h-14 rounded-xl border-2 border-zinc-800 text-white" onClick={() => setIsMuted(!isMuted)}>
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 2: Áudio da IA</p>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase text-xs bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-700" onClick={generateAllAudio} disabled={isGeneratingAudio}>
+                        {isGeneratingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar Áudio de Locutor'}
+                      </Button>
+                      {Object.keys(audioUrls).length > 0 && (
+                        <p className="text-[8px] text-green-500 font-bold uppercase text-center">✓ Locução pronta para todos os slides</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 3: Finalizar</p>
+                      <Button variant="default" className="w-full h-16 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
+                        {isRecording ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GRAVANDO MP4...</span></div>
+                            <span className="text-[8px] opacity-70 font-normal italic">Aguarde o download automático</span>
+                          </div>
+                        ) : <><Video className="h-6 w-6 mr-2" /> BAIXAR VÍDEO COMPLETO</>}
                       </Button>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t border-zinc-900 bg-zinc-900/50 p-4 rounded-2xl border-2 border-purple-500/20 shadow-2xl">
-                    <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><Video className="h-3 w-3" /> Exportar HD</p>
-                    <Button variant="default" className="w-full h-14 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
-                      {isRecording ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GERANDO VÍDEO...</span></div>
-                          <span className="text-[8px] opacity-70 font-normal">Aguarde o processamento HD</span>
-                        </div>
-                      ) : <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO HD</>}
-                    </Button>
-                    <Button variant="secondary" className="w-full h-10 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 border-2 border-zinc-800" onClick={exportAsImage} disabled={isExporting || isRecording}>
-                      <Camera className="h-4 w-4" /> Baixar Slide Atual (JPG)
-                    </Button>
+                  <div className="flex flex-col gap-2 pt-4 border-t border-zinc-900">
+                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Testar Preview</p>
+                    <div className="flex gap-2">
+                      <Button variant={isPlaying ? "destructive" : "outline"} className="flex-1 h-12 rounded-xl font-black uppercase text-xs border-2 border-zinc-800" onClick={handleTogglePlay} disabled={isRecording}>
+                        {isPlaying ? <><Pause className="mr-2 h-4 w-4" /> Parar</> : <><Play className="mr-2 h-4 w-4" /> Ouvir</>}
+                      </Button>
+                      <Button variant="outline" className="w-12 h-12 rounded-xl border-2 border-zinc-800 text-white" onClick={() => setIsMuted(!isMuted)}>
+                        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -715,35 +793,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-md bg-zinc-950 border-zinc-800 p-0 overflow-hidden z-[9999]">
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-black uppercase italic text-xl tracking-tighter">PRÉVIA DO VÍDEO</h3>
-              <Button variant="ghost" size="icon" onClick={() => setShowPreviewDialog(false)} className="text-zinc-500 hover:text-white"><X className="h-4 w-4" /></Button>
-            </div>
-            {previewUrl && (
-              <div className="relative aspect-[9/16] w-full bg-black rounded-2xl overflow-hidden shadow-2xl border-2 border-zinc-800">
-                <video src={previewUrl} controls className="w-full h-full object-contain" autoPlay />
-              </div>
-            )}
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" className="flex-1 bg-transparent border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]" onClick={() => setShowPreviewDialog(false)}>FECHAR</Button>
-              <Button className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase text-[10px] gap-2" onClick={() => {
-                if (previewUrl) {
-                  const link = document.createElement('a');
-                  link.href = previewUrl;
-                  link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  toast.success('Download iniciado!');
-                }
-              }}><Video className="h-4 w-4" /> BAIXAR AGORA</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
