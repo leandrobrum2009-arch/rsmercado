@@ -46,9 +46,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isExporting, setIsExporting] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-
   const [isSaving, setIsSaving] = useState(false)
   const [activeSpeechDuration, setActiveSpeechDuration] = useState<number | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false)
+
 
 
   // Configuration state
