@@ -535,18 +535,24 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) return;
       isCapturing = true;
       try {
+        const elementWidth = slideRef.current.clientWidth;
+        const pr = 1080 / elementWidth;
+
         const dataUrl = await htmlToImage.toJpeg(slideRef.current, {
-          pixelRatio: 1,
+          pixelRatio: pr,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           width: 1080,
           height: 1920,
-          quality: 0.8
+          quality: 0.85
         });
 
         const img = new Image();
         img.src = dataUrl;
-        await new Promise((res) => { img.onload = res; img.onerror = res; });
+        await new Promise((res) => { 
+          img.onload = res; 
+          img.onerror = res; 
+        });
         
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx && img.complete && img.naturalWidth > 0) {
@@ -557,7 +563,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          setTimeout(captureFrame, 50); // 20fps for stability
+          setTimeout(captureFrame, 66); // ~15fps is enough for stories and more stable
         }
       }
     };
