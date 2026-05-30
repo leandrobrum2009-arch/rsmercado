@@ -913,11 +913,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     </div>
 
                     <div className="p-4 bg-amber-900/20 border border-amber-900/30 rounded-xl space-y-2">
-                      <p className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
-                        <Volume2 className="h-3 w-3" /> Nota sobre Narração
+                      <p class="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
+                        <Volume2 className="h-3 w-3" /> Narração Ativada
                       </p>
                       <p className="text-[9px] text-amber-200/70 leading-relaxed">
-                        A voz do narrador é gerada pelo seu navegador e, por segurança, navegadores não permitem capturá-la diretamente no vídeo. Para que o vídeo tenha som, use uma <strong>Música de Fundo</strong> acima.
+                        A voz do narrador agora é incluída automaticamente no vídeo baixado usando inteligência artificial. Para melhores resultados, aguarde o vídeo processar completamente.
                       </p>
                     </div>
                   </div>
