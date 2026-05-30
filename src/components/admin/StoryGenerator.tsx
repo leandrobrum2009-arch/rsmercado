@@ -50,6 +50,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const [isSaving, setIsSaving] = useState(false)
   const [slideDurations, setSlideDurations] = useState<Record<number, number>>({})
   const [isAudioLoading, setIsAudioLoading] = useState(false)
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false)
+  const [audioUrls, setAudioUrls] = useState<Record<number, string>>({})
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
 
