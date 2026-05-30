@@ -348,10 +348,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         console.error('Frame capture error:', e);
       } finally {
         isCapturing = false;
-        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        if (recorderRef.current && recorderRef.current.state === 'recording') {
           setTimeout(captureFrame, 100); // Wait 100ms before next frame
         }
       }
+
     };
 
     captureFrame();
