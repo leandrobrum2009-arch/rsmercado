@@ -57,7 +57,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
     outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
     logoTop: flyer.config?.logoTop || 40,
-    contentTop: flyer.config?.contentTop || 220,
+    contentTop: flyer.config?.contentTop || 280,
     fontFamily: flyer.config?.fontFamily || 'sans-serif',
     fontWeight: flyer.config?.fontWeight || '1000',
     priceColor: flyer.config?.priceColor || '#ef4444'
@@ -275,17 +275,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     canvas.height = 1280
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(24)
+    const stream = canvas.captureStream(30) // higher fps for smoother video
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4') 
-      ? 'video/mp4' 
-      : MediaRecorder.isTypeSupported('video/webm;codecs=h264')
-        ? 'video/webm;codecs=h264'
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
+        ? 'video/webm;codecs=vp8'
         : 'video/webm'
         
     const recorder = new MediaRecorder(stream, {
       mimeType,
-      videoBitsPerSecond: 2500000
+      videoBitsPerSecond: 5000000
     })
     
     chunksRef.current = []
@@ -347,7 +347,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       } catch (e) {
         console.error('Frame capture error:', e)
       }
-    }, 100) // 10 fps is more stable for browser rendering
+    }, 150) // Increased delay between frames to avoid browser freeze
   }
 
   const stopRecording = () => {
@@ -400,18 +400,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 style={{ top: `${config.logoTop}px` }}
               >
                 {storeSettings?.logo_url && (
-                  <img src={storeSettings.logo_url} alt="Logo" className="h-28 max-w-full object-contain drop-shadow-lg" />
+                  <img src={storeSettings.logo_url} alt="Logo" className="h-24 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
               <div 
-                className="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center transition-all duration-300"
+                className="absolute inset-0 z-10 flex flex-col items-center justify-start p-8 text-center transition-all duration-300"
                 style={{ paddingTop: `${config.contentTop}px` }}
               >
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-5xl italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+                      className="text-4xl italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
                       style={{ 
                         color: config.priceColor,
                         fontFamily: config.fontFamily,
@@ -434,15 +434,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
                 {currentSlideData.type === 'product' && (
                   <div className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500">
-                    <div className="relative w-full aspect-square mb-6 p-4">
+                    <div className="relative w-full aspect-square mb-4 p-4">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-100"
+                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-90"
                       />
                     </div>
                     <h3 
-                      className="text-3xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      className="text-2xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
@@ -457,7 +457,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         fontFamily: config.fontFamily
                       }}
                     >
-                      <span className="text-white text-5xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
+                      <span className="text-white text-4xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
@@ -472,7 +472,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-5xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
+                      className="text-4xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
                       style={{ 
                         color: config.priceColor,
                         fontFamily: config.fontFamily,
@@ -482,7 +482,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       {currentSlideData.title}
                     </h2>
                     <p 
-                      className="text-2xl uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10"
+                      className="text-xl uppercase text-zinc-900 tracking-[0.1em] mb-12 bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl border-2 border-zinc-900/10"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
@@ -490,7 +490,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     >
                       {currentSlideData.subtitle}
                     </p>
-                    <div className="bg-green-600 text-white px-8 py-4 rounded-full text-2xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" style={{ fontWeight: config.fontWeight }}>
+                    <div className="bg-green-600 text-white px-6 py-3 rounded-full text-xl shadow-[0_10px_30px_rgba(22,163,74,0.5)] flex items-center gap-4 animate-bounce border-4 border-white/20" style={{ fontWeight: config.fontWeight }}>
                       FAZER PEDIDO AGORA
                     </div>
                   </div>
@@ -652,12 +652,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     />
                   </div>
 
-                  <div className="space-y-2">
+                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Posição do Conteúdo</Label>
                     <Slider 
                       value={[config.contentTop]} 
-                      min={0} 
-                      max={400} 
+                      min={100} 
+                      max={600} 
                       onValueChange={(val) => setConfig({...config, contentTop: val[0]})}
                     />
                   </div>
