@@ -488,12 +488,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     recorder.onstop = async () => {
       if (bgAudio) { bgAudio.pause(); bgAudio.currentTime = 0; }
-      if (activeAudioRef.current) activeAudioRef.current.pause();
+      if (activeAudioRef.current) (activeAudioRef.current as any).pause();
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
-      setPreviewUrl(url)
-      setShowPreviewDialog(true)
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       isRecordingRef.current = false
       setIsRecording(false)
@@ -504,7 +509,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       }
       audioContextRef.current = null
       audioDestRef.current = null
-      toast.success('Vídeo gerado! Veja a prévia.')
+      toast.success('Vídeo baixado com sucesso!')
     }
     
     recorderRef.current = recorder
