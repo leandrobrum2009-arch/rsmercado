@@ -58,6 +58,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       introPhrase: "Confira as ofertas de hoje no {store}",
       productPhrase: "{name}, por apenas {price}",
       outroPhrase: "Aproveite essas ofertas! Esperamos por você.",
+
       logoTop: 40,
       contentTop: 320,
       fontFamily: 'sans-serif',
