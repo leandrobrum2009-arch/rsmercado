@@ -57,11 +57,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
     outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
     logoTop: flyer.config?.logoTop || 40,
-    contentTop: flyer.config?.contentTop || 280,
+    contentTop: flyer.config?.contentTop || 320,
     fontFamily: flyer.config?.fontFamily || 'sans-serif',
     fontWeight: flyer.config?.fontWeight || '1000',
     priceColor: flyer.config?.priceColor || '#ef4444'
   })
+
+
+  const slides: SlideType[] = [
+    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
+    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
+    { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
+  ]
 
   const getCurrentSlideDuration = () => {
     const slide = slides[currentSlide]
@@ -76,12 +83,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const chunksRef = useRef<Blob[]>([])
   const recordingCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
-
-  const slides: SlideType[] = [
-    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
-    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
-    { type: 'outro', title: 'FAÇA SEU PEDIDO!', subtitle: 'Ou visite nossa loja' }
-  ]
 
   // Load voices with polling
   useEffect(() => {
@@ -198,9 +199,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       if (voice) utterance.voice = voice
     }
     utterance.lang = 'pt-BR'
-    utterance.rate = 1.0
+    // Increase rate if duration is short to avoid cutting
+    const duration = slide.type === 'product' ? config.productDuration : config.introDuration
+    utterance.rate = duration < 3 ? 1.2 : 1.0
     window.speechSynthesis.speak(utterance)
   }
+
 
 
   const handleTogglePlay = () => {
@@ -313,42 +317,48 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     console.log('Recording started...')
     
-    const captureInterval = setInterval(async () => {
-      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current) {
-        clearInterval(captureInterval)
-        console.log('Recording stopped or inactive.')
-        return
+    let isCapturing = false;
+    const captureFrame = async () => {
+      if (!recorderRef.current || recorderRef.current.state === 'inactive' || !slideRef.current || isCapturing) {
+        return;
       }
       
+      isCapturing = true;
       try {
         const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1, // Reduced for performance
+          pixelRatio: 1,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
-          style: {
-            borderRadius: '0px'
-          }
-        })
+          style: { borderRadius: '0px' }
+        });
         
-        const img = new Image()
-        img.src = dataUrl
+        const img = new Image();
+        img.src = dataUrl;
         await new Promise((resolve, reject) => {
-          img.onload = resolve
-          img.onerror = reject
-          // Timeout if image fails to load
-          setTimeout(() => reject(new Error('Image load timeout')), 1000)
-        })
+          img.onload = resolve;
+          img.onerror = reject;
+          setTimeout(() => reject(new Error('Image load timeout')), 2000);
+        });
         
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.clearRect(0, 0, 720, 1280)
-          ctx.drawImage(img, 0, 0, 720, 1280)
+          ctx.clearRect(0, 0, 720, 1280);
+          ctx.drawImage(img, 0, 0, 720, 1280);
         }
       } catch (e) {
-        console.error('Frame capture error:', e)
+        console.error('Frame capture error:', e);
+      } finally {
+        isCapturing = false;
+        if (recorderRef.current && recorderRef.current.state === 'recording') {
+          setTimeout(captureFrame, 100); // Wait 100ms before next frame
+        }
       }
-    }, 150) // Increased delay between frames to avoid browser freeze
+
+    };
+
+    captureFrame();
   }
+
 
   const stopRecording = () => {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
@@ -400,7 +410,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 style={{ top: `${config.logoTop}px` }}
               >
                 {storeSettings?.logo_url && (
-                  <img src={storeSettings.logo_url} alt="Logo" className="h-24 max-w-full object-contain drop-shadow-lg" />
+                  <img src={storeSettings.logo_url} alt="Logo" className="h-20 max-w-full object-contain drop-shadow-lg" />
                 )}
               </div>
 
@@ -411,7 +421,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'intro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-4xl italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+                      className="text-3xl italic tracking-tighter uppercase mb-6 leading-[0.85] drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
                       style={{ 
                         color: config.priceColor,
                         fontFamily: config.fontFamily,
@@ -421,7 +431,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       {currentSlideData.title}
                     </h2>
                     <p 
-                      className="text-2xl uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10"
+                      className="text-lg uppercase text-zinc-900 tracking-[0.2em] bg-white/60 backdrop-blur-md px-6 py-2 rounded-xl inline-block border-2 border-zinc-900/10"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
@@ -442,7 +452,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       />
                     </div>
                     <h3 
-                      className="text-2xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      className="text-xl uppercase tracking-tighter mb-6 text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
                       style={{ 
                         fontFamily: config.fontFamily,
                         fontWeight: config.fontWeight
@@ -457,7 +467,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         fontFamily: config.fontFamily
                       }}
                     >
-                      <span className="text-white text-4xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
+                      <span className="text-white text-3xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
@@ -472,7 +482,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-4xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
+                      className="text-3xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
                       style={{ 
                         color: config.priceColor,
                         fontFamily: config.fontFamily,
