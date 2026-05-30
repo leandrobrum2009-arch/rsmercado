@@ -60,7 +60,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       introPhrase: "Confira as ofertas de hoje no {store}",
       productPhrase: "{name}, por apenas {price}",
       outroPhrase: "Aproveite essas ofertas! Esperamos por você.",
-
       logoTop: 40,
       contentTop: 320,
       fontFamily: 'sans-serif',
@@ -71,8 +70,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       productSpacing: 16,
       productImageSize: 90,
       backgroundMusic: null,
-      voiceOffset: 0.3
+      voiceOffset: 0.3,
+      selectedVoice: localStorage.getItem('last_story_voice') || ''
     }
+
 
 
     if (savedConfig) {
