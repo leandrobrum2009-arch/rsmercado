@@ -431,10 +431,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       isCapturing = true;
       try {
-        // Use higher pixelRatio for better resolution
-        // Use toCanvas directly for better performance and quality
+        // Use the actual element dimensions for the canvas to avoid stretching
+        const rect = slideRef.current.getBoundingClientRect();
         const frameCanvas = await htmlToImage.toCanvas(slideRef.current, {
-          pixelRatio: 2.5, // High resolution capture
+          pixelRatio: 3, // Even higher resolution
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           style: { 
@@ -443,8 +443,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             margin: '0',
             padding: '0'
           },
-          width: 540, // Match a standard aspect but higher pixel ratio will boost quality
-          height: 960
+          width: rect.width,
+          height: rect.height
         });
         
         const ctx = canvas.getContext('2d');
@@ -452,7 +452,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           ctx.clearRect(0, 0, 1080, 1920);
-          ctx.drawImage(frameCanvas, 0, 0, 1080, 1920);
+          
+          // Draw image maintaining aspect ratio
+          const scale = Math.min(1080 / frameCanvas.width, 1920 / frameCanvas.height);
+          const x = (1080 - frameCanvas.width * scale) / 2;
+          const y = (1920 - frameCanvas.height * scale) / 2;
+          ctx.drawImage(frameCanvas, x, y, frameCanvas.width * scale, frameCanvas.height * scale);
         }
       } catch (e) {
         console.error('Frame capture error:', e);
@@ -577,17 +582,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       {currentSlideData.product.name}
                     </h3>
                     <div 
-                      className="inline-block px-8 py-4 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20"
+                      className="flex items-center justify-center px-6 py-3 rounded-[50px] shadow-2xl transform -rotate-2 scale-110 border-4 border-white/20 whitespace-nowrap min-w-[200px]"
                       style={{ 
                         background: config.priceColor,
                         fontFamily: config.fontFamily
                       }}
                     >
-                      <span className="text-white text-3xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
+                      <span className="text-white text-3xl italic tracking-tighter drop-shadow-md leading-none" style={{ fontWeight: config.fontWeight }}>
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
-                        <span className="text-white/90 text-2xl ml-3 uppercase" style={{ fontWeight: config.fontWeight }}>
+                        <span className="text-white/90 text-xl ml-2 uppercase leading-none" style={{ fontWeight: config.fontWeight }}>
                           {currentSlideData.product.unit}
                         </span>
                       )}
@@ -735,7 +740,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 </div>
               </TabsContent>
 
-              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0 custom-scrollbar">
+              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0 custom-scrollbar min-h-0">
                 <div>
                   <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
                     Configurações
