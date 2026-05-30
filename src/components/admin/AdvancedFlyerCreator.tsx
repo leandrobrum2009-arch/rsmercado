@@ -1164,9 +1164,10 @@ export function AdvancedFlyerCreator() {
        
        if (error) throw error
  
-       const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
-       setBackgroundUrl(publicUrl)
-       toast.success('Fundo carregado com sucesso!')
+        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
+        setBackgroundUrl(publicUrl)
+        setCustomBackgrounds(prev => [...prev, publicUrl])
+        toast.success('Fundo carregado com sucesso!')
      } catch (error: any) {
        toast.error('Erro no upload: ' + error.message)
      } finally {
