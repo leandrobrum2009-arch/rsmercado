@@ -63,6 +63,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       fontFamily: 'sans-serif',
       fontWeight: '1000',
       priceColor: '#ef4444',
+      productNameColor: '#09090b',
       showLogo: true,
       productSpacing: 24,
       productImageSize: 90,
@@ -227,32 +228,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
     if (isRecording && audioDestRef.current && audioContextRef.current) {
       try {
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
+
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR' }
-        })
-        console.log('TTS response type:', typeof data, data)
+        });
 
-        if (error) throw error
+        if (error) throw error;
 
-        let audioBlob: Blob;
-        if (data instanceof Blob) {
-          audioBlob = data;
-        } else {
-          audioBlob = new Blob([data], { type: 'audio/mpeg' });
-        }
+        // Ensure we have a Blob
+        const audioBlob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(audioBlob);
+        const audio = new Audio(url);
+        audio.crossOrigin = "anonymous";
         
-        const url = URL.createObjectURL(audioBlob)
-        const audio = new Audio(url)
-        audio.crossOrigin = "anonymous"
+        const source = audioContextRef.current.createMediaElementSource(audio);
+        source.connect(audioDestRef.current);
+        source.connect(audioContextRef.current.destination);
         
-        const source = audioContextRef.current.createMediaElementSource(audio)
-        source.connect(audioDestRef.current)
-        source.connect(audioContextRef.current.destination)
-        
-        activeAudioRef.current = audio
-        await audio.play()
+        activeAudioRef.current = audio;
+        await audio.play();
       } catch (e) {
-        console.error('TTS Recording Error:', e)
+        console.error('TTS Recording Error:', e);
       }
     } else {
       // Normal playback uses browser TTS
@@ -572,7 +571,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     className="w-full flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-500"
                     style={{ gap: `${config.productSpacing}px` }}
                   >
-                    <div className="relative w-full aspect-square p-4">
+                    <div className="relative w-full aspect-square p-1">
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
@@ -582,10 +581,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       />
                     </div>
                     <h3 
-                      className="text-xl uppercase tracking-tighter text-zinc-950 leading-[1.1] drop-shadow-sm px-4 max-w-sm"
+                      className="text-xl uppercase tracking-tighter leading-[1.1] drop-shadow-sm px-4 max-w-sm"
                       style={{ 
                         fontFamily: config.fontFamily,
-                        fontWeight: config.fontWeight
+                        fontWeight: config.fontWeight,
+                        color: config.productNameColor
                       }}
                     >
                       {currentSlideData.product.name}
@@ -850,6 +850,44 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         className="flex-1"
                       />
                       <span className="text-white font-bold text-xs w-8">{config.productSpacing}px</span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Cor do Preço</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={config.priceColor} 
+                          onChange={(e) => setConfig({...config, priceColor: e.target.value})}
+                          className="w-10 h-10 p-1 bg-zinc-900 border-zinc-800"
+                        />
+                        <Input 
+                          type="text" 
+                          value={config.priceColor} 
+                          onChange={(e) => setConfig({...config, priceColor: e.target.value})}
+                          className="flex-1 bg-zinc-900 border-zinc-800 text-white text-xs h-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Cor do Nome</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={config.productNameColor} 
+                          onChange={(e) => setConfig({...config, productNameColor: e.target.value})}
+                          className="w-10 h-10 p-1 bg-zinc-900 border-zinc-800"
+                        />
+                        <Input 
+                          type="text" 
+                          value={config.productNameColor} 
+                          onChange={(e) => setConfig({...config, productNameColor: e.target.value})}
+                          className="flex-1 bg-zinc-900 border-zinc-800 text-white text-xs h-10"
+                        />
+                      </div>
                     </div>
                   </div>
 
