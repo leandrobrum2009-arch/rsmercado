@@ -332,18 +332,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       activeAudioRef.current = audio
       return
     }
-    const replacePlaceholders = (template: string, product?: Product) => {
-      let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
-      if (product) {
-        result = result.replace('{name}', product.name)
-        result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
-      }
-      return result
-    }
-
-    if (slide.type === 'intro') text = replacePlaceholders(config.introPhrase)
-    else if (slide.type === 'product') text = replacePlaceholders(config.productPhrase, slide.product)
-    else if (slide.type === 'outro') text = replacePlaceholders(config.outroPhrase)
 
     if (recording && audioDestRef.current && audioContextRef.current) {
       setIsAudioLoading(true)
