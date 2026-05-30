@@ -368,10 +368,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       ])
     }
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
-      ? 'video/mp4;codecs=avc1'
-      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
+    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+      ? 'video/mp4;codecs=avc1,mp4a.40.2'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
         : 'video/webm'
         
     const recorder = new MediaRecorder(combinedStream, {
@@ -749,7 +749,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 </div>
               </TabsContent>
 
-              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0 custom-scrollbar min-h-0">
+              <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 space-y-6 mt-0 custom-scrollbar min-h-0 max-h-[calc(90vh-60px)]">
                 <div>
                   <h3 className="text-white font-black uppercase italic text-xl tracking-tighter flex items-center gap-2">
                     Configurações
