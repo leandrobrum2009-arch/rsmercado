@@ -482,7 +482,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                 {currentSlideData.type === 'outro' && (
                   <div className="animate-in zoom-in fade-in duration-700">
                     <h2 
-                      className="text-4xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
+                      className="text-3xl italic tracking-tighter uppercase mb-8 leading-[0.85]"
                       style={{ 
                         color: config.priceColor,
                         fontFamily: config.fontFamily,
