@@ -22,10 +22,10 @@ image_url: string
 }
 
 export function FlyerCreator() {
-const [layout, setLayout] = useState('grid-4')
-const [designStyle, setDesignStyle] = useState('varejo')
-const [primaryColor, setPrimaryColor] = useState('#e11d48')
-const [secondaryColor, setSecondaryColor] = useState('#fbbf24')
+const [layout, setLayout] = useState(() => localStorage.getItem('last_flyer_layout') || 'grid-4')
+const [designStyle, setDesignStyle] = useState(() => localStorage.getItem('last_flyer_style') || 'varejo')
+const [primaryColor, setPrimaryColor] = useState(() => localStorage.getItem('last_flyer_primary_color') || '#e11d48')
+const [secondaryColor, setSecondaryColor] = useState(() => localStorage.getItem('last_flyer_secondary_color') || '#fbbf24')
 const { settings: storeSettings } = useStoreSettings()
 const [title, setTitle] = useState('Ofertas Especiais')
 const [printImage, setPrintImage] = useState<string | null>(null)
@@ -83,6 +83,22 @@ if (saved) setProductSearchTerm(saved);
 useEffect(() => {
 sessionStorage.setItem('simple_flyer_search', productSearchTerm);
 }, [productSearchTerm]);
+
+useEffect(() => {
+  localStorage.setItem('last_flyer_layout', layout)
+}, [layout])
+
+useEffect(() => {
+  localStorage.setItem('last_flyer_style', designStyle)
+}, [designStyle])
+
+useEffect(() => {
+  localStorage.setItem('last_flyer_primary_color', primaryColor)
+}, [primaryColor])
+
+useEffect(() => {
+  localStorage.setItem('last_flyer_secondary_color', secondaryColor)
+}, [secondaryColor])
 
 useEffect(() => {
 fetchProducts()
