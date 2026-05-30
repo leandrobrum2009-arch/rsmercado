@@ -245,8 +245,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       activeAudioRef.current = null
     }
 
-    // Reset duration for the new slide
-    setActiveSpeechDuration(null)
+    // Reset current audio state
+    setSlideDurations(prev => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+
 
     const slide = slides[index]
     if (!slide) return;
