@@ -63,7 +63,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     priceColor: flyer.config?.priceColor || '#ef4444',
     showLogo: flyer.config?.showLogo ?? true,
     productSpacing: flyer.config?.productSpacing || 24,
-    productImageSize: flyer.config?.productImageSize || 90
+    productImageSize: flyer.config?.productImageSize || 90,
+    backgroundMusic: flyer.config?.backgroundMusic || null
   })
 
 
@@ -278,22 +279,56 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 720
-    canvas.height = 1280
+    canvas.width = 1080 // Increased to Full HD Vertical
+    canvas.height = 1920
     recordingCanvasRef.current = canvas
     
-    const stream = canvas.captureStream(30) // higher fps for smoother video
+    // Create a high-quality stream
+    const stream = canvas.captureStream(30)
     
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-      ? 'video/webm;codecs=vp9'
-      : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
-        ? 'video/webm;codecs=vp8'
+    // Add audio track if possible (using Web Audio API for background music or placeholder)
+    let combinedStream = stream
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const dest = audioContext.createMediaStreamDestination()
+    
+    // If we had a recordable audio source, we'd connect it here
+    // For now, we at least provide a silent track to ensure the file has an audio stream container
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    gain.gain.value = 0 // Silent
+    oscillator.connect(gain)
+    gain.connect(dest)
+    oscillator.start()
+    
+    if (dest.stream.getAudioTracks().length > 0) {
+      combinedStream = new MediaStream([
+        ...stream.getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+      ])
+    }
+    
+    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
+      ? 'video/mp4;codecs=avc1'
+      : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
         : 'video/webm'
         
-    const recorder = new MediaRecorder(stream, {
+    const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 5000000
+      videoBitsPerSecond: 10000000 // 10Mbps for high quality
     })
+
+    // Handle background music if selected
+    let bgAudio: HTMLAudioElement | null = null
+    if (config.backgroundMusic) {
+      bgAudio = new Audio(config.backgroundMusic)
+      bgAudio.crossOrigin = "anonymous"
+      bgAudio.loop = true
+      const source = audioContext.createMediaElementSource(bgAudio)
+      source.connect(dest)
+      source.connect(audioContext.destination)
+      bgAudio.play().catch(e => console.error("Error playing background music:", e))
+    }
     
     chunksRef.current = []
     recorder.ondataavailable = (e) => {
@@ -301,6 +336,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     recorder.onstop = () => {
+      if (bgAudio) {
+        bgAudio.pause()
+        bgAudio.currentTime = 0
+      }
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -328,32 +367,36 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       isCapturing = true;
       try {
-        const dataUrl = await htmlToImage.toPng(slideRef.current, {
-          pixelRatio: 1,
+        // Use higher pixelRatio for better resolution
+        // Use toCanvas directly for better performance and quality
+        const frameCanvas = await htmlToImage.toCanvas(slideRef.current, {
+          pixelRatio: 2.5, // High resolution capture
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
-          style: { borderRadius: '0px' }
-        });
-        
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          setTimeout(() => reject(new Error('Image load timeout')), 2000);
+          style: { 
+            borderRadius: '0px',
+            transform: 'none',
+            margin: '0',
+            padding: '0'
+          },
+          width: 540, // Match a standard aspect but higher pixel ratio will boost quality
+          height: 960
         });
         
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.clearRect(0, 0, 720, 1280);
-          ctx.drawImage(img, 0, 0, 720, 1280);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.clearRect(0, 0, 1080, 1920);
+          ctx.drawImage(frameCanvas, 0, 0, 1080, 1920);
         }
       } catch (e) {
         console.error('Frame capture error:', e);
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          setTimeout(captureFrame, 100); // Wait 100ms before next frame
+          // Optimized interval for smoother capture while allowing for high-res processing
+          setTimeout(captureFrame, 33); // Target ~30fps if processing allows
         }
       }
 
@@ -605,9 +648,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     disabled={isExporting}
                   >
                     {isRecording ? (
-                      <><Loader2 className="h-5 w-5 animate-spin" /> GERANDO VÍDEO...</>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>GERANDO VÍDEO HD...</span>
+                        </div>
+                        <span className="text-[8px] opacity-70 font-normal">Isso pode levar um momento devido à alta qualidade</span>
+                      </div>
                     ) : (
-                      <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO</>
+                      <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO HD</>
                     )}
                   </Button>
                   
@@ -786,6 +835,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         onChange={(e) => setConfig({...config, outroPhrase: e.target.value})}
                         className="bg-zinc-900 border-zinc-800 text-white text-xs h-16"
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Música de Fundo (MP3 URL)</Label>
+                      <Input 
+                        placeholder="Cole aqui a URL de um MP3"
+                        value={config.backgroundMusic || ''}
+                        onChange={(e) => setConfig({...config, backgroundMusic: e.target.value})}
+                        className="bg-zinc-900 border-zinc-800 text-white text-xs"
+                      />
+                      <p className="text-[9px] text-zinc-500 italic">Dica: Use links do Pixabay Audio ou similares para música ambiente.</p>
+                    </div>
+
+                    <div className="p-4 bg-amber-900/20 border border-amber-900/30 rounded-xl space-y-2">
+                      <p className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-2">
+                        <Volume2 className="h-3 w-3" /> Nota sobre Narração
+                      </p>
+                      <p className="text-[9px] text-amber-200/70 leading-relaxed">
+                        A voz do narrador é gerada pelo seu navegador e, por segurança, navegadores não permitem capturá-la diretamente no vídeo. Para que o vídeo tenha som, use uma <strong>Música de Fundo</strong> acima.
+                      </p>
                     </div>
                   </div>
 
