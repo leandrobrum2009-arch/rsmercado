@@ -274,7 +274,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         // Map selected voice to OpenAI voices
         let voiceId = 'alloy';
-        const lowerVoice = (selectedVoice || '').toLowerCase();
+        const lowerVoice = (config.selectedVoice || '').toLowerCase();
         
         // Comprehensive mapping for PT-BR and common voices
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria') || lowerVoice.includes('francisca') || lowerVoice.includes('google português do brasil')) {
@@ -288,6 +288,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         } else if (lowerVoice.includes('echo') || lowerVoice.includes('bold')) {
           voiceId = 'echo';
         }
+
 
         console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId} for text: ${text.substring(0, 30)}...`);
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
