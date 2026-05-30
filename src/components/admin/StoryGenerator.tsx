@@ -637,20 +637,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             <div className="flex-1 relative flex items-center justify-center bg-zinc-900 p-4">
               <div 
                 ref={slideRef}
-                className="relative aspect-[9/16] h-full max-h-[700px] rounded-[32px] overflow-hidden shadow-2xl bg-white"
+                className="relative aspect-[9/16] h-full max-h-[85vh] rounded-[32px] overflow-hidden shadow-2xl bg-white"
                 style={{ fontFamily: config.fontFamily }}
               >
-                <div 
-                  className="absolute inset-0 z-0"
-                  style={{
-                    background: flyer.config?.backgroundType === 'gradient' 
-                      ? flyer.config.backgroundGradient 
-                      : flyer.config?.backgroundColor || '#ffffff',
-                    backgroundImage: flyer.config?.backgroundType === 'image' && flyer.config.backgroundUrl ? `url(${flyer.config.backgroundUrl})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                />
+                {flyer.config?.backgroundType === 'image' && flyer.config.backgroundUrl ? (
+                  <img 
+                    src={flyer.config.backgroundUrl} 
+                    className="absolute inset-0 z-0 w-full h-full object-cover" 
+                    crossOrigin="anonymous"
+                    alt="background"
+                  />
+                ) : (
+                  <div 
+                    className="absolute inset-0 z-0"
+                    style={{
+                      background: flyer.config?.backgroundType === 'gradient' 
+                        ? flyer.config.backgroundGradient 
+                        : flyer.config?.backgroundColor || '#ffffff',
+                    }}
+                  />
+                )}
 
                 <div className="absolute top-6 left-6 right-6 z-30 flex gap-1.5">
                   {slides.map((_, idx) => (
