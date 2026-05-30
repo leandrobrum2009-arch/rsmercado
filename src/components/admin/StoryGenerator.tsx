@@ -547,8 +547,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       try {
         // Use the actual element dimensions for the canvas to avoid stretching
         const rect = slideRef.current.getBoundingClientRect();
+        // Capture at exactly 1080x1920 by forcing the width/height in html-to-image
+        // This ensures pixel-perfect quality regardless of browser window size
         const frameCanvas = await htmlToImage.toCanvas(slideRef.current, {
-          pixelRatio: 3, // Even higher resolution
+          pixelRatio: 1, // Use 1 since we're setting the exact target size
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
           style: { 
@@ -557,9 +559,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
             margin: '0',
             padding: '0'
           },
-          width: rect.width,
-          height: rect.height
+          width: 1080,
+          height: 1920
         });
+
         
         const ctx = canvas.getContext('2d');
         if (ctx) {
