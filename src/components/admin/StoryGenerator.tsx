@@ -291,6 +291,20 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     const slide = slides[index]
     if (!slide) return;
 
+    let text = ''
+    const replacePlaceholders = (template: string, product?: Product) => {
+      let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+      if (product) {
+        result = result.replace('{name}', product.name)
+        result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+      }
+      return result
+    }
+
+    if (slide.type === 'intro') text = replacePlaceholders(config.introPhrase)
+    else if (slide.type === 'product') text = replacePlaceholders(config.productPhrase, slide.product)
+    else if (slide.type === 'outro') text = replacePlaceholders(config.outroPhrase)
+
     // Use cached audio if available
     if (audioUrls[index]) {
       const audio = new Audio(audioUrls[index])
@@ -309,7 +323,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       audio.play().catch(e => {
         console.error('[StoryGenerator] Audio play error:', e);
-        // Fallback to synthesis if play fails
         if (!recording) {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'pt-BR';
@@ -319,8 +332,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       activeAudioRef.current = audio
       return
     }
-    
-    let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
       let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
       if (product) {
