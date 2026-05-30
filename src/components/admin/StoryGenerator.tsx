@@ -342,6 +342,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     let combinedStream = stream
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     const dest = audioContext.createMediaStreamDestination()
+    audioContextRef.current = audioContext
+    audioDestRef.current = dest
     
     // If we had a recordable audio source, we'd connect it here
     // For now, we at least provide a silent track to ensure the file has an audio stream container
@@ -392,6 +394,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         bgAudio.pause()
         bgAudio.currentTime = 0
       }
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause()
+        activeAudioRef.current.currentTime = 0
+      }
+      
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -401,8 +408,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+      
+      // Clean up refs
       setIsRecording(false)
       setIsPlaying(false)
+      audioContextRef.current = null
+      audioDestRef.current = null
+      
       toast.success('Vídeo gerado com sucesso!')
     }
     
