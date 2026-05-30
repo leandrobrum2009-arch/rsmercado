@@ -286,12 +286,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // Use cached audio if available
     if (audioUrls[index]) {
       const audio = new Audio(audioUrls[index])
+      audio.crossOrigin = "anonymous"
       if (recording && audioDestRef.current && audioContextRef.current) {
-        const source = audioContextRef.current.createMediaElementSource(audio)
-        source.connect(audioDestRef.current)
-        source.connect(audioContextRef.current.destination)
+        try {
+          const source = audioContextRef.current.createMediaElementSource(audio)
+          source.connect(audioDestRef.current)
+          source.connect(audioContextRef.current.destination)
+        } catch (err) {
+          console.warn('Audio connection error (already connected?):', err)
+        }
       }
-      audio.play()
+      audio.play().catch(e => console.error('Audio play error:', e))
       activeAudioRef.current = audio
       return
     }
