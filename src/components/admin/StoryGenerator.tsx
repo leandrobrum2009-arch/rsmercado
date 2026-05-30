@@ -694,31 +694,47 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     </Select>
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Reprodução</p>
-                    <div className="flex gap-2">
-                      <Button variant={isPlaying ? "destructive" : "default"} className="flex-1 h-14 rounded-xl font-black uppercase text-sm" onClick={handleTogglePlay} disabled={isRecording}>
-                        {isPlaying ? <><Pause className="mr-2 h-5 w-5" /> Pausar</> : <><Play className="mr-2 h-5 w-5" /> Reproduzir</>}
+                  <div className="grid grid-cols-1 gap-4 pt-4 border-t border-zinc-900">
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 1: Salvar Edições</p>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase text-xs bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-700" onClick={saveConfig} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar Story'}
                       </Button>
-                      <Button variant="outline" className="w-14 h-14 rounded-xl border-2 border-zinc-800 text-white" onClick={() => setIsMuted(!isMuted)}>
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 2: Áudio da IA</p>
+                      <Button className="w-full h-12 rounded-xl font-black uppercase text-xs bg-zinc-800 hover:bg-zinc-700 border-2 border-zinc-700" onClick={generateAllAudio} disabled={isGeneratingAudio}>
+                        {isGeneratingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Gerar Áudio de Locutor'}
+                      </Button>
+                      {Object.keys(audioUrls).length > 0 && (
+                        <p className="text-[8px] text-green-500 font-bold uppercase text-center">✓ Locução pronta para todos os slides</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Passo 3: Finalizar</p>
+                      <Button variant="default" className="w-full h-16 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
+                        {isRecording ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GRAVANDO MP4...</span></div>
+                            <span className="text-[8px] opacity-70 font-normal italic">Aguarde o download automático</span>
+                          </div>
+                        ) : <><Video className="h-6 w-6 mr-2" /> BAIXAR VÍDEO COMPLETO</>}
                       </Button>
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t border-zinc-900 bg-zinc-900/50 p-4 rounded-2xl border-2 border-purple-500/20 shadow-2xl">
-                    <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><Video className="h-3 w-3" /> Exportar HD</p>
-                    <Button variant="default" className="w-full h-14 rounded-xl font-black uppercase text-xs bg-gradient-to-r from-purple-600 to-blue-600 shadow-xl border-0" onClick={isRecording ? stopRecording : startVideoRecording} disabled={isExporting}>
-                      {isRecording ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> <span>GERANDO VÍDEO...</span></div>
-                          <span className="text-[8px] opacity-70 font-normal">Aguarde o processamento HD</span>
-                        </div>
-                      ) : <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO HD</>}
-                    </Button>
-                    <Button variant="secondary" className="w-full h-10 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 border-2 border-zinc-800" onClick={exportAsImage} disabled={isExporting || isRecording}>
-                      <Camera className="h-4 w-4" /> Baixar Slide Atual (JPG)
-                    </Button>
+                  <div className="flex flex-col gap-2 pt-4 border-t border-zinc-900">
+                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Testar Preview</p>
+                    <div className="flex gap-2">
+                      <Button variant={isPlaying ? "destructive" : "outline"} className="flex-1 h-12 rounded-xl font-black uppercase text-xs border-2 border-zinc-800" onClick={handleTogglePlay} disabled={isRecording}>
+                        {isPlaying ? <><Pause className="mr-2 h-4 w-4" /> Parar</> : <><Play className="mr-2 h-4 w-4" /> Ouvir</>}
+                      </Button>
+                      <Button variant="outline" className="w-12 h-12 rounded-xl border-2 border-zinc-800 text-white" onClick={() => setIsMuted(!isMuted)}>
+                        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
 
