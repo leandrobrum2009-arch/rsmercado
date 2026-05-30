@@ -778,7 +778,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                   <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                     <Settings2 className="h-3 w-3" /> Narrador (Escolha abaixo)
                   </p>
-                  <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                  <Select value={config.selectedVoice} onValueChange={(val) => setConfig({ ...config, selectedVoice: val })}>
                     <SelectTrigger className="w-full bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl border-2 focus:ring-purple-500">
                       <SelectValue placeholder="Selecione o narrador" />
                     </SelectTrigger>
