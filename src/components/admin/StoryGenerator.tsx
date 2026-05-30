@@ -212,6 +212,61 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
+  const generateAllAudio = async () => {
+    setIsGeneratingAudio(true)
+    const newAudioUrls: Record<number, string> = {}
+    const newDurations: Record<number, number> = {}
+
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i]
+        let text = ''
+        const replacePlaceholders = (template: string, product?: Product) => {
+          let result = template.replace('{store}', storeSettings?.site_name || 'nosso supermercado')
+          if (product) {
+            result = result.replace('{name}', product.name)
+            result = result.replace('{price}', product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))
+          }
+          return result
+        }
+
+        if (slide.type === 'intro') text = replacePlaceholders(config.introPhrase)
+        else if (slide.type === 'product') text = replacePlaceholders(config.productPhrase, slide.product)
+        else if (slide.type === 'outro') text = replacePlaceholders(config.outroPhrase)
+
+        let voiceId = 'alloy'
+        const lowerVoice = (config.selectedVoice || '').toLowerCase()
+        if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
+        else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
+
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
+          body: { text, lang: 'pt-BR', voice: voiceId }
+        })
+
+        if (!error && data) {
+          const blob = data
+          const url = URL.createObjectURL(blob)
+          newAudioUrls[i] = url
+          
+          const arrayBuffer = await blob.arrayBuffer()
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+          newDurations[i] = audioBuffer.duration
+        }
+      }
+      
+      setAudioUrls(newAudioUrls)
+      setSlideDurations(newDurations)
+      toast.success('Locuções geradas com sucesso!')
+    } catch (err) {
+      console.error('Error generating audio:', err)
+      toast.error('Erro ao gerar algumas locuções')
+    } finally {
+      setIsGeneratingAudio(false)
+    }
+  }
+
   const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
     
@@ -220,19 +275,25 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     // Stop current audio
     window.speechSynthesis.cancel()
     if (activeAudioRef.current) {
-      try { activeAudioRef.current.pause() } catch (e) {}
+      try { (activeAudioRef.current as any).pause() } catch (e) {}
       activeAudioRef.current = null
     }
 
-    // Reset slide duration cache for this index
-    setSlideDurations(prev => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
-
     const slide = slides[index]
     if (!slide) return;
+
+    // Use cached audio if available
+    if (audioUrls[index]) {
+      const audio = new Audio(audioUrls[index])
+      if (recording && audioDestRef.current && audioContextRef.current) {
+        const source = audioContextRef.current.createMediaElementSource(audio)
+        source.connect(audioDestRef.current)
+        source.connect(audioContextRef.current.destination)
+      }
+      audio.play()
+      activeAudioRef.current = audio
+      return
+    }
     
     let text = ''
     const replacePlaceholders = (template: string, product?: Product) => {
@@ -276,12 +337,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         setSlideDurations(prev => ({ ...prev, [index]: audioBuffer.duration }));
         
-        // Offset delay if configured
-        if (config.voiceOffset > 0) {
-          await new Promise(r => setTimeout(r, config.voiceOffset * 1000));
-        }
-
-
         const source = audioContextRef.current.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(audioDestRef.current);
@@ -292,7 +347,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         activeAudioRef.current = { 
           pause: () => { try { source.stop(); } catch(e) {} },
           currentTime: 0
-        };
+        } as any;
       } catch (e) {
         console.error('TTS Error:', e);
         setIsAudioLoading(false)
