@@ -170,6 +170,11 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         setProgress(newProgress)
 
+        if (isRecordingRef.current) {
+          const totalProgress = ((currentSlide + (newProgress / 100)) / slides.length) * 100
+          setExportProgress(totalProgress)
+        }
+
         if (newProgress >= 100) {
           if (currentSlide < slides.length - 1) {
             const nextSlide = currentSlide + 1
@@ -179,7 +184,10 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           } else {
             setIsPlaying(false)
             setProgress(100)
-            if (isRecordingRef.current) stopRecording()
+            if (isRecordingRef.current) {
+              setExportProgress(100)
+              setTimeout(() => stopRecording(), 1000)
+            }
           }
         }
       }, 50)
