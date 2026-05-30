@@ -2094,22 +2094,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
      return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
    }
  
-     const ValidityBanner = ({ isLine = false }: { isLine?: boolean }) => (
-      <div 
-         className={cn(
-           "w-full px-4 text-center font-black uppercase italic shadow-md z-[45] tracking-tight transition-all",
-           isLine ? "py-0.5 border-y border-black/10 my-1" : "py-1.5"
-         )}
-         style={{ 
-           backgroundColor: validityBgColor, 
-           color: validityTextColor, 
-           fontSize: `${isLine ? Math.max(validityFontSize * 0.7, 7) : validityFontSize}px`,
-           minHeight: isLine ? '12px' : 'auto'
-         }}
-      >
-        {validityText}
-      </div>
-    )
 
     return (
       <>
