@@ -194,10 +194,16 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
-  const speakSlide = (index: number) => {
+  const speakSlide = async (index: number) => {
     if (isMuted) return
     
+    // Stop any current audio
     window.speechSynthesis.cancel()
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause()
+      activeAudioRef.current.currentTime = 0
+    }
+
     const slide = slides[index]
     let text = ''
 
@@ -218,16 +224,41 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       text = replacePlaceholders(config.outroPhrase)
     }
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    if (selectedVoice) {
-      const voice = voices.find(v => v.name === selectedVoice)
-      if (voice) utterance.voice = voice
+    // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
+    if (isRecording && audioDestRef.current && audioContextRef.current) {
+      try {
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
+          body: { text, lang: 'pt-BR' }
+        })
+
+        if (error) throw error
+
+        const audioBlob = new Blob([data], { type: 'audio/mpeg' })
+        const url = URL.createObjectURL(audioBlob)
+        const audio = new Audio(url)
+        audio.crossOrigin = "anonymous"
+        
+        const source = audioContextRef.current.createMediaElementSource(audio)
+        source.connect(audioDestRef.current)
+        source.connect(audioContextRef.current.destination)
+        
+        activeAudioRef.current = audio
+        audio.play()
+      } catch (e) {
+        console.error('TTS Recording Error:', e)
+      }
+    } else {
+      // Normal playback uses browser TTS
+      const utterance = new SpeechSynthesisUtterance(text)
+      if (selectedVoice) {
+        const voice = voices.find(v => v.name === selectedVoice)
+        if (voice) utterance.voice = voice
+      }
+      utterance.lang = 'pt-BR'
+      const duration = slide.type === 'product' ? config.productDuration : config.introDuration
+      utterance.rate = duration < 3 ? 1.2 : 1.0
+      window.speechSynthesis.speak(utterance)
     }
-    utterance.lang = 'pt-BR'
-    // Increase rate if duration is short to avoid cutting
-    const duration = slide.type === 'product' ? config.productDuration : config.introDuration
-    utterance.rate = duration < 3 ? 1.2 : 1.0
-    window.speechSynthesis.speak(utterance)
   }
 
 
