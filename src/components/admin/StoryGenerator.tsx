@@ -56,8 +56,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     introPhrase: flyer.config?.introPhrase || "Confira as ofertas de hoje no {store}",
     productPhrase: flyer.config?.productPhrase || "{name}, por apenas {price}",
     outroPhrase: flyer.config?.outroPhrase || "Aproveite essas ofertas! Faça seu pedido agora ou venha nos visitar.",
-    logoTop: flyer.config?.logoTop || 80,
-    contentTop: flyer.config?.contentTop || 180,
+    logoTop: flyer.config?.logoTop || 40,
+    contentTop: flyer.config?.contentTop || 220,
     fontFamily: flyer.config?.fontFamily || 'sans-serif',
     fontWeight: flyer.config?.fontWeight || '1000',
     priceColor: flyer.config?.priceColor || '#ef4444'
@@ -438,7 +438,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                       <img 
                         src={currentSlideData.product.image_url} 
                         alt={currentSlideData.product.name}
-                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-110"
+                        className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)] scale-100"
                       />
                     </div>
                     <h3 
