@@ -205,17 +205,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
   }
 
-  const speakSlide = async (index: number) => {
+  const speakSlide = async (index: number, forceRecording: boolean = false) => {
     if (isMuted) return
     
+    const recording = forceRecording || isRecording || isRecordingRef.current;
+    console.log(`[StoryGenerator] Speaking slide ${index}, recording: ${recording}`);
+
     // Stop any current audio
     window.speechSynthesis.cancel()
     if (activeAudioRef.current) {
-      activeAudioRef.current.pause()
-      activeAudioRef.current.currentTime = 0
+      try {
+        activeAudioRef.current.pause()
+      } catch (e) {
+        console.warn('Error pausing active audio:', e)
+      }
+      activeAudioRef.current = null
     }
 
     const slide = slides[index]
+    if (!slide) return;
+    
     let text = ''
 
     const replacePlaceholders = (template: string, product?: Product) => {
@@ -236,7 +245,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
 
     // If we are recording, we MUST use the Edge Function TTS to capture the audio in the stream
-    if (isRecording && audioDestRef.current && audioContextRef.current) {
+    if (recording && audioDestRef.current && audioContextRef.current) {
+      console.log('[StoryGenerator] Using Edge Function TTS for recording');
       try {
         if (audioContextRef.current.state === 'suspended') {
           await audioContextRef.current.resume();
@@ -244,16 +254,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         // Map selected voice to OpenAI voices
         let voiceId = 'alloy';
-        const lowerVoice = selectedVoice.toLowerCase();
+        const lowerVoice = (selectedVoice || '').toLowerCase();
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina') || lowerVoice.includes('maria')) voiceId = 'nova';
         else if (lowerVoice.includes('male') || lowerVoice.includes('masculina') || lowerVoice.includes('daniel')) voiceId = 'onyx';
         else if (lowerVoice.includes('google') || lowerVoice.includes('natural')) voiceId = 'shimmer';
 
+        console.log(`[StoryGenerator] Calling TTS edge function with voice: ${voiceId}`);
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: { text, lang: 'pt-BR', voice: voiceId }
         });
 
         if (error) throw error;
+        if (!data) throw new Error('No data received from TTS function');
 
         // Convert Blob to ArrayBuffer
         const arrayBuffer = await data.arrayBuffer();
@@ -267,17 +279,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         source.connect(audioContextRef.current.destination);
         
         source.start();
+        console.log('[StoryGenerator] TTS audio started playing into stream');
         
         // Track active audio to stop if needed
         activeAudioRef.current = { 
-          pause: () => source.stop(),
+          pause: () => {
+            try { source.stop(); } catch(e) {}
+          },
           currentTime: 0
-        } as any;
+        };
 
       } catch (e) {
-        console.error('TTS Recording Error:', e);
+        console.error('[StoryGenerator] TTS Recording Error:', e);
+        // Fallback to browser TTS so at least the user hears something, 
+        // even if it won't be in the recording
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        window.speechSynthesis.speak(utterance);
       }
     } else {
+      console.log('[StoryGenerator] Using browser TTS');
       // Normal playback uses browser TTS
       const utterance = new SpeechSynthesisUtterance(text)
       if (selectedVoice) {
@@ -290,6 +311,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       window.speechSynthesis.speak(utterance)
     }
   }
+
 
 
 
