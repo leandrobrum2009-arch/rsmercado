@@ -376,65 +376,75 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   const startVideoRecording = async () => {
     if (!slideRef.current) return
     
+    console.log('[StoryGenerator] Starting video recording...');
+    isRecordingRef.current = true
     setIsRecording(true)
     setCurrentSlide(0)
     setProgress(0)
     setIsPlaying(true)
-    speakSlide(0)
     
     const canvas = document.createElement('canvas')
-    canvas.width = 1080 // Increased to Full HD Vertical
+    canvas.width = 1080 
     canvas.height = 1920
     recordingCanvasRef.current = canvas
     
     // Create a high-quality stream
     const stream = canvas.captureStream(30)
     
-    // Add audio track if possible (using Web Audio API for background music or placeholder)
-    let combinedStream = stream
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-    await audioContext.resume()
+    console.log('[StoryGenerator] AudioContext state:', audioContext.state);
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume()
+    }
+    
     const dest = audioContext.createMediaStreamDestination()
     audioContextRef.current = audioContext
     audioDestRef.current = dest
     
-    // If we had a recordable audio source, we'd connect it here
-    // For now, we at least provide a silent track to ensure the file has an audio stream container
+    // Silent track to keep audio context alive and ensure the stream has an audio track from the start
     const oscillator = audioContext.createOscillator()
     const gain = audioContext.createGain()
-    gain.gain.value = 0 // Silent
+    gain.gain.value = 0.0001 // Almost silent but not zero to keep some encoders happy
     oscillator.connect(gain)
     gain.connect(dest)
     oscillator.start()
     
+    let combinedStream = stream
     if (dest.stream.getAudioTracks().length > 0) {
+      console.log('[StoryGenerator] Successfully created audio track');
       combinedStream = new MediaStream([
         ...stream.getVideoTracks(),
         ...dest.stream.getAudioTracks()
       ])
+    } else {
+      console.warn('[StoryGenerator] Failed to create audio track in combined stream');
     }
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+    const extension = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2') ? 'mp4' : 'webm';
+    const mimeType = extension === 'mp4' 
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
       : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
         ? 'video/webm;codecs=vp9,opus'
-        : 'video/webm'
+        : 'video/webm';
         
+    console.log(`[StoryGenerator] Using mimeType: ${mimeType}, extension: ${extension}`);
+
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
-      videoBitsPerSecond: 10000000 // 10Mbps for high quality
+      videoBitsPerSecond: 10000000 
     })
 
     // Handle background music if selected
     let bgAudio: HTMLAudioElement | null = null
     if (config.backgroundMusic) {
+      console.log('[StoryGenerator] Adding background music to recording');
       bgAudio = new Audio(config.backgroundMusic)
       bgAudio.crossOrigin = "anonymous"
       bgAudio.loop = true
       const source = audioContext.createMediaElementSource(bgAudio)
       source.connect(dest)
       source.connect(audioContext.destination)
-      bgAudio.play().catch(e => console.error("Error playing background music:", e))
+      bgAudio.play().catch(e => console.error("[StoryGenerator] Error playing background music:", e))
     }
     
     chunksRef.current = []
@@ -443,26 +453,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     }
     
     recorder.onstop = () => {
+      console.log('[StoryGenerator] Recording stopped, generating file...');
       if (bgAudio) {
         bgAudio.pause()
         bgAudio.currentTime = 0
       }
       if (activeAudioRef.current) {
         activeAudioRef.current.pause()
-        activeAudioRef.current.currentTime = 0
       }
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.${extension}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       
       // Clean up refs
+      isRecordingRef.current = false
       setIsRecording(false)
       setIsPlaying(false)
       audioContextRef.current = null
@@ -473,6 +484,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     recorderRef.current = recorder
     recorder.start()
+    
+    // Now that everything is set up, start the first slide's audio
+    setTimeout(() => {
+      speakSlide(0, true)
+    }, 500); // Give 500ms for the recorder to warm up
+
     
     console.log('Recording started...')
     
