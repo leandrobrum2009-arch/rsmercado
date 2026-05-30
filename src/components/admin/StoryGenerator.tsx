@@ -467,7 +467,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                         fontFamily: config.fontFamily
                       }}
                     >
-                      <span className="text-white text-4xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
+                      <span className="text-white text-3xl italic tracking-tighter drop-shadow-md" style={{ fontWeight: config.fontWeight }}>
                         R$ {currentSlideData.product.price.toFixed(2).replace('.', ',')}
                       </span>
                       {currentSlideData.product.unit && (
