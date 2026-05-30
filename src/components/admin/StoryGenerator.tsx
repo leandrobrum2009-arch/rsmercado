@@ -648,9 +648,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
                     disabled={isExporting}
                   >
                     {isRecording ? (
-                      <><Loader2 className="h-5 w-5 animate-spin" /> GERANDO VÍDEO...</>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>GERANDO VÍDEO HD...</span>
+                        </div>
+                        <span className="text-[8px] opacity-70 font-normal">Isso pode levar um momento devido à alta qualidade</span>
+                      </div>
                     ) : (
-                      <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO</>
+                      <><Video className="h-6 w-6" /> BAIXAR VÍDEO COMPLETO HD</>
                     )}
                   </Button>
                   
