@@ -386,8 +386,12 @@ export function SupplierManagement() {
             {newOrder.items.map((it, idx) => (
               <div key={idx} className="flex gap-2">
                 <Select onValueChange={val => { const items = [...newOrder.items]; items[idx].product_id = val; setNewOrder({...newOrder, items}) }}>
-                  <SelectTrigger className="flex-1"><SelectValue placeholder="Produto" /></SelectTrigger>
-                  <SelectContent>{products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="flex-1 rounded-xl h-11"><SelectValue placeholder="Produto" /></SelectTrigger>
+                  <SelectContent>
+                    {products
+                      .filter(p => !newOrder.supplier_id || suppliers.find(s => s.id === newOrder.supplier_id)?.supplier_products?.some(sp => sp.product_id === p.id))
+                      .map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
                 </Select>
                 <Input type="number" className="w-20" placeholder="Qtd" onChange={e => { const items = [...newOrder.items]; items[idx].quantity = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
                 <Input type="number" className="w-24" placeholder="Preço" onChange={e => { const items = [...newOrder.items]; items[idx].unit_price = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
