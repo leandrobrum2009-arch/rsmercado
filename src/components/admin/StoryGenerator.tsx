@@ -546,12 +546,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     // Combine video and audio tracks
     const combinedStream = new MediaStream()
-    videoStream.getVideoTracks().forEach(track => combinedStream.addTrack(track))
-    dest.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track))
     
-    if (combinedStream.getAudioTracks().length === 0) {
-      console.error('CRITICAL: No audio tracks detected in the recording stream!')
+    // Video tracks
+    videoStream.getVideoTracks().forEach(track => {
+      console.log('[StoryGenerator] Adding video track:', track.id);
+      combinedStream.addTrack(track);
+    });
+    
+    // Audio tracks from destination
+    const audioTracks = dest.stream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      console.error('CRITICAL: No audio tracks found in the destination stream!');
+      // Create a silent audio track as fallback to ensure the file has audio track
+      const silence = audioContext.createGain();
+      silence.gain.value = 0;
+      silence.connect(dest);
     }
+    
+    audioTracks.forEach(track => {
+      console.log('[StoryGenerator] Adding audio track:', track.id);
+      combinedStream.addTrack(track);
+    });
     
     const isMp4Supported = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2');
     const mimeType = isMp4Supported
