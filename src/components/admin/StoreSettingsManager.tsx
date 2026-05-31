@@ -522,6 +522,47 @@
                       </div>
                     )}
                     </div>
+                    {settings.logo_url && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Mobile)</label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              type="number"
+                              value={settings.logo_height_mobile}
+                              onChange={(e) => setSettings({ ...settings, logo_height_mobile: e.target.value })}
+                              className="rounded-xl border-zinc-200 h-10 font-bold"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Desktop)</label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              type="number"
+                              value={settings.logo_height_desktop}
+                              onChange={(e) => setSettings({ ...settings, logo_height_desktop: e.target.value })}
+                              className="rounded-xl border-zinc-200 h-10 font-bold"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-zinc-500">Ajuste Vertical (Efeito Sobreposto)</label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              type="number"
+                              value={settings.logo_offset_y}
+                              onChange={(e) => setSettings({ ...settings, logo_offset_y: e.target.value })}
+                              className="rounded-xl border-zinc-200 h-10 font-bold"
+                              placeholder="Ex: 10 ou -10"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                 </CardContent>
               </Card>
   
