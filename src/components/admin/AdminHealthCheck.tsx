@@ -46,11 +46,12 @@ export function AdminSecurityVerification() {
       // 2. Critical Tables
       const criticalTables = ['suppliers', 'products', 'orders', 'profiles', 'store_settings']
       const tableChecks = await Promise.all(criticalTables.map(async table => {
-        const { error } = await supabase.from(table).select('count').limit(1)
+        const { error } = await supabase.from(table as any).select('count').limit(1)
         return { table, exists: !error || error.code !== '42P01' }
       }))
       
-      const missingTables = tableChecks.filter(t => !t.exists).map(t => t.table as string)
+      const missingTables: string[] = tableChecks.filter(t => !t.exists).map(t => t.table)
+
       if (missingTables.length > 0) {
         updateResult('tables', { status: 'error', message: `Tabelas ausentes: ${missingTables.join(', ')}` })
       } else {
