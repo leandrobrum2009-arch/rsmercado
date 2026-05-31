@@ -530,6 +530,10 @@ export const Route = createFileRoute('/admin')({
                     <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
                       <FeedbackManager />
                     </TabsContent>
+                    <TabsContent value="system_health" className="mt-0 focus-visible:ring-0">
+                      <AdminSecurityVerification />
+                    </TabsContent>
+
             </Tabs>
           </div>
         </main>
