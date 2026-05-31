@@ -112,21 +112,126 @@ export function SupplierManagement() {
     try {
       const { data: suppliersData } = await supabase
         .from('suppliers')
-        .select('*')
+        .select('*, supplier_brands(*)')
         .order('name')
       
       const { data: ordersData } = await supabase
         .from('purchase_orders')
-        .select('*, suppliers(name)')
+        .select('*, suppliers(name, whatsapp, phone), purchase_order_items(*, products(name))')
         .order('created_at', { ascending: false })
+
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('id, name, brand')
+        .order('name')
 
       setSuppliers(suppliersData || [])
       setOrders(ordersData || [])
+      setProducts(productsData || [])
     } catch (error) {
       console.error('Error fetching supplier data:', error)
       toast.error('Erro ao carregar dados dos fornecedores')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAddOrder = async () => {
+    if (!newOrder.supplier_id) return toast.error('Selecione um fornecedor')
+    if (newOrder.items.length === 0) return toast.error('Adicione ao menos um item')
+
+    try {
+      const { data: order, error: orderError } = await supabase
+        .from('purchase_orders')
+        .insert([{ 
+          supplier_id: newOrder.supplier_id, 
+          notes: newOrder.notes,
+          status: 'quotation_pending'
+        }])
+        .select()
+        .single()
+
+      if (orderError) throw orderError
+
+      const itemsToInsert = newOrder.items.map(item => ({
+        purchase_order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        brand_name: item.brand_name
+      }))
+
+      const { error: itemsError } = await supabase
+        .from('purchase_order_items')
+        .insert(itemsToInsert)
+
+      if (itemsError) throw itemsError
+
+      toast.success('Solicitação de cotação criada!')
+      setIsAddingOrder(false)
+      setNewOrder({ supplier_id: '', notes: '', items: [] })
+      fetchData()
+    } catch (error: any) {
+      toast.error('Erro ao criar pedido: ' + error.message)
+    }
+  }
+
+  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('purchase_orders')
+        .update({ status })
+        .eq('id', orderId)
+      
+      if (error) throw error
+      toast.success('Status do pedido atualizado')
+      fetchData()
+    } catch (error: any) {
+      toast.error('Erro ao atualizar status: ' + error.message)
+    }
+  }
+
+  const handleRegisterReceipt = async (orderId: string, items: any[]) => {
+    // Aqui atualizaríamos as quantidades recebidas, validade e estoque
+    // Para simplificar, vamos apenas atualizar os itens e o status do pedido
+    try {
+      for (const item of items) {
+        const { error: itemError } = await supabase
+          .from('purchase_order_items')
+          .update({ 
+            received_quantity: item.received_quantity,
+            defective_quantity: item.defective_quantity,
+            expiry_date: item.expiry_date
+          })
+          .eq('id', item.id)
+        
+        if (itemError) throw itemError
+
+        // Se recebido > 0 e tem product_id, atualizamos o estoque
+        if (item.received_quantity > 0 && item.product_id) {
+          const { data: prod } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product_id)
+            .single()
+          
+          await supabase
+            .from('products')
+            .update({ stock: (prod?.stock || 0) + item.received_quantity })
+            .eq('id', item.product_id)
+        }
+      }
+
+      await supabase
+        .from('purchase_orders')
+        .update({ status: 'delivered', actual_delivery_date: new Date().toISOString() })
+        .eq('id', orderId)
+
+      toast.success('Recebimento registrado e estoque atualizado!')
+      setIsViewingOrder(false)
+      fetchData()
+    } catch (error: any) {
+      toast.error('Erro ao registrar recebimento: ' + error.message)
     }
   }
 
