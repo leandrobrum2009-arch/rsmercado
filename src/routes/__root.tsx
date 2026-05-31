@@ -124,6 +124,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
           data.forEach(item => {
             if (item.key === 'site_name') newSettings.site_name = item.value;
             if (item.key === 'logo_url') newSettings.logo_url = item.value;
+            if (item.key === 'logo_height_mobile') newSettings.logo_height_mobile = parseInt(item.value) || 40;
+            if (item.key === 'logo_height_desktop') newSettings.logo_height_desktop = parseInt(item.value) || 64;
+            if (item.key === 'logo_offset_y') newSettings.logo_offset_y = parseInt(item.value) || 0;
             if (item.key === 'color_palette' && item.value) {
               newSettings.colors.primary = item.value.primary || newSettings.colors.primary;
               newSettings.colors.secondary = item.value.secondary || newSettings.colors.secondary;
