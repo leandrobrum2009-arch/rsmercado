@@ -315,6 +315,7 @@ export const Route = createFileRoute('/admin')({
         {
           title: 'Controle de Acesso',
           items: [
+              { id: 'admin_account', label: 'Minha Conta (Login)', icon: UserCog },
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
               { id: 'sending_logs', label: 'Log de Envios', icon: Send },
