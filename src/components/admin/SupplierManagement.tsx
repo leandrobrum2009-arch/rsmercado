@@ -32,6 +32,7 @@ import { toast } from '@/lib/toast'
 interface Supplier {
   id: string
   name: string
+  cnpj: string
   contact_person: string
   phone: string
   whatsapp: string
@@ -97,7 +98,7 @@ export function SupplierManagement() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
-    name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
+    name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
   })
 
   const [newOrder, setNewOrder] = useState({
@@ -132,7 +133,24 @@ export function SupplierManagement() {
 
   const handleAddSupplier = async () => {
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
+    
+    // Basic validation
+    if (newSupplier.email && !newSupplier.email.includes('@')) {
+      return toast.error('E-mail inválido')
+    }
+
     try {
+      // Check if supplier with same name already exists
+      const { data: existing } = await supabase
+        .from('suppliers')
+        .select('id')
+        .ilike('name', newSupplier.name!)
+        .maybeSingle()
+      
+      if (existing) {
+        return toast.error('Já existe um fornecedor com este nome')
+      }
+
       // Filter out empty strings to avoid validation/format issues in DB
       const supplierData = Object.fromEntries(
         Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
@@ -142,7 +160,7 @@ export function SupplierManagement() {
       if (error) throw error
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
-      setNewSupplier({ name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
+      setNewSupplier({ name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
       
       // Auto-open product management for the new supplier
@@ -307,6 +325,17 @@ export function SupplierManagement() {
                     </div>
                   </div>
                   
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">CNPJ</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.cnpj || '-'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">Telefone</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.phone || '-'}</p>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2 pt-4 border-t border-zinc-50">
                     <div className="flex items-center justify-between">
                       <p className="text-[8px] font-black uppercase text-zinc-400">Produtos</p>
@@ -363,16 +392,24 @@ export function SupplierManagement() {
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="md:col-span-2 space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Nome Fantasia</Label>
-              <Input value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" />
+              <Label className="text-[10px] font-black uppercase text-zinc-400">Nome Fantasia *</Label>
+              <Input value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" placeholder="Ex: Nestlé" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400">CNPJ</Label>
+              <Input value={newSupplier.cnpj} onChange={e => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="h-12 rounded-xl" placeholder="00.000.000/0000-00" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400">Contato (Responsável)</Label>
+              <Input value={newSupplier.contact_person} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" placeholder="Nome do vendedor" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp</Label>
-              <Input value={newSupplier.whatsapp} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" />
+              <Input value={newSupplier.whatsapp} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" placeholder="(00) 00000-0000" />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Contato</Label>
-              <Input value={newSupplier.contact_person} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" />
+              <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
+              <Input type="email" value={newSupplier.email} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
             </div>
           </div>
           <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
