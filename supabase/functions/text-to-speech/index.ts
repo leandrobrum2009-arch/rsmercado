@@ -6,31 +6,34 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { text, voice = 'alloy', speed = 1.0 } = await req.json()
-    console.log(`TTS Request: voice=${voice}, speed=${speed}, text="${text?.substring(0, 50)}..."`)
+    const json = await req.json()
+    const { text, voice = 'alloy', speed = 1.0 } = json
+    
+    console.log(`[TTS] Request received for: "${text?.substring(0, 50)}..."`)
 
-    if (!text) {
+    if (!text || text.trim().length === 0) {
+      console.error('[TTS] Missing text')
       return new Response(JSON.stringify({ error: 'Text is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // Use OPENAI_API_KEY for real OpenAI TTS
-    const apiKey = Deno.env.get('OPENAI_API_KEY')
-    
-    if (apiKey && apiKey.startsWith('sk-')) {
-      console.log('Attempting OpenAI TTS with OPENAI_API_KEY...')
+    // Attempt OpenAI TTS if key is available
+    const openAiKey = Deno.env.get('OPENAI_API_KEY')
+    if (openAiKey && openAiKey.startsWith('sk-')) {
+      console.log('[TTS] Attempting OpenAI TTS...')
       try {
         const response = await fetch('https://api.openai.com/v1/audio/speech', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${openAiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -40,9 +43,9 @@ serve(async (req) => {
             speed: speed,
           }),
         })
-        
+
         if (response.ok) {
-          console.log('OpenAI TTS successful')
+          console.log('[TTS] OpenAI TTS Success')
           const arrayBuffer = await response.arrayBuffer()
           return new Response(arrayBuffer, {
             headers: { 
@@ -52,49 +55,49 @@ serve(async (req) => {
             },
           })
         }
-        
-        const errorText = await response.text()
-        console.warn('OpenAI TTS failed with status:', response.status, errorText)
+        const err = await response.text()
+        console.warn(`[TTS] OpenAI TTS Failed: ${response.status} - ${err}`)
       } catch (e) {
-        console.error('Error calling OpenAI:', e)
+        console.error('[TTS] OpenAI Fetch Error:', e)
       }
-    } else {
-      console.log('No valid OPENAI_API_KEY found, skipping OpenAI...')
     }
 
     // Fallback to Google Translate TTS
-    console.log('Falling back to Google Translate TTS')
-    // We try to split text into chunks if it's too long for Google (max 200 chars)
+    console.log('[TTS] Using Google Translate Fallback')
     const lang = 'pt-BR'
-    const chunks = text.match(/.{1,200}/g) || [text];
-    const audioChunks: ArrayBuffer[] = [];
+    // Split text into 200-char chunks for Google TTS
+    const chunks = text.match(/.{1,200}/g) || [text]
+    const audioBuffers: ArrayBuffer[] = []
 
     for (const chunk of chunks) {
-      const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=${lang}&client=tw-ob`
-      const googleResponse = await fetch(googleTtsUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      try {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=${lang}&client=tw-ob`
+        const gResp = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        })
+        
+        if (gResp.ok) {
+          audioBuffers.push(await gResp.arrayBuffer())
+        } else {
+          console.warn(`[TTS] Google Chunk Failed: ${gResp.status}`)
         }
-      })
-      
-      if (googleResponse.ok) {
-        audioChunks.push(await googleResponse.arrayBuffer());
-      } else {
-        console.warn('Google Translate TTS chunk failed:', googleResponse.status);
+      } catch (e) {
+        console.error('[TTS] Google Fetch Error:', e)
       }
     }
-    
-    if (audioChunks.length > 0) {
-      console.log(`Google Translate TTS successful with ${audioChunks.length} chunks`)
-      // Concatenate chunks if there are multiple
-      let totalLength = 0;
-      for (const chunk of audioChunks) totalLength += chunk.byteLength;
+
+    if (audioBuffers.length > 0) {
+      console.log(`[TTS] Success with Google (${audioBuffers.length} chunks)`)
       
-      const combined = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const chunk of audioChunks) {
-        combined.set(new Uint8Array(chunk), offset);
-        offset += chunk.byteLength;
+      // Concatenate all chunks
+      const totalLen = audioBuffers.reduce((acc, buf) => acc + buf.byteLength, 0)
+      const combined = new Uint8Array(totalLen)
+      let offset = 0
+      for (const buf of audioBuffers) {
+        combined.set(new Uint8Array(buf), offset)
+        offset += buf.byteLength
       }
 
       return new Response(combined.buffer, {
@@ -106,11 +109,11 @@ serve(async (req) => {
       })
     }
 
-    throw new Error('All TTS methods failed')
+    throw new Error('Could not generate audio using any method')
 
   } catch (error: any) {
-    console.error('TTS Function Error:', error)
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
+    console.error(`[TTS] Global Error: ${error.message}`)
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
