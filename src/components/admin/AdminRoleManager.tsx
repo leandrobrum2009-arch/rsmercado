@@ -80,6 +80,7 @@
       { id: 'theme', label: 'Tema Visual', group: 'Sistêmico' },
       { id: 'admin_roles', label: 'Gestão de Cargos', group: 'Controle de Acesso' },
       { id: 'activity_logs', label: 'Logs de Auditoria', group: 'Controle de Acesso' },
+      { id: 'suppliers', label: 'Gestão de Fornecedores', group: 'Suprimentos' },
       { id: 'feedback', label: 'Feedbacks do App', group: 'Controle de Acesso' },
    ]
  
