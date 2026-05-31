@@ -663,23 +663,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       try {
         const element = slideRef.current;
         
-        // Remove rounded corners and shadow temporarily for a perfect full-screen capture
+        // Temporarily prepare element for high-quality capture
         const originalStyle = element.getAttribute('style') || '';
         const originalClassName = element.className;
         
-        // Remove styling that would make the capture "smaller" or have artifacts
         element.style.borderRadius = '0';
         element.style.boxShadow = 'none';
-        element.style.maxHeight = 'none';
+        element.style.transform = 'none';
         
+        // Target 1080x1920 for Instagram Stories
         const dataUrl = await htmlToImage.toJpeg(element, {
-          pixelRatio: 1080 / element.clientWidth,
-          backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          width: 1080,
+          height: 1920,
+          style: {
+            transform: 'none',
+            borderRadius: '0',
+            width: '1080px',
+            height: '1920px',
+          },
+          backgroundColor: config.backgroundColor || '#ffffff',
           cacheBust: true,
           quality: 0.95
         });
 
-        // Restore styles
+        // Restore styles immediately
         element.className = originalClassName;
         element.setAttribute('style', originalStyle);
 
@@ -692,21 +699,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx && img.complete && img.naturalWidth > 0) {
-          // Clear and draw centered
-          ctx.fillStyle = flyer.config?.backgroundColor || '#ffffff';
+          ctx.fillStyle = config.backgroundColor || '#ffffff';
           ctx.fillRect(0, 0, 1080, 1920);
-          
-          // Draw the image scaled to fit 1080x1920
-          // Since it's 9:16 aspect ratio, it should fit perfectly
           ctx.drawImage(img, 0, 0, 1080, 1920);
         }
       } catch (e) {
-        console.error('Frame error:', e);
+        console.error('[StoryGenerator] Frame capture error:', e);
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          // 24fps for smoother video
-          setTimeout(captureFrame, 41); 
+          // Keep capturing at approx 24-30fps
+          setTimeout(captureFrame, 33); 
         }
       }
     };
