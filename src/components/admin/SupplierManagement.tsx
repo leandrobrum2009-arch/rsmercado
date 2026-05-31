@@ -84,13 +84,17 @@ export function SupplierManagement() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [orders, setOrders] = useState<PurchaseOrder[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddingSupplier, setIsAddingSupplier] = useState(false)
+  const [isManagingProducts, setIsManagingProducts] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [isAddingOrder, setIsAddingOrder] = useState(false)
   const [isViewingOrder, setIsViewingOrder] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('suppliers')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
     name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
