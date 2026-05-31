@@ -259,7 +259,8 @@ export function SupplierManagement() {
       fetchData()
       toast.success(selectAll ? 'Produtos adicionados!' : 'Produtos removidos!')
     } catch (error: any) {
-      toast.error('Erro ao atualizar categoria: ' + error.message)
+      console.error(error)
+      toast.error('Erro ao atualizar categoria: ' + (error.message || 'Erro desconhecido'))
     }
   }
 
