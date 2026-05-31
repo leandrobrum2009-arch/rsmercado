@@ -19,8 +19,14 @@ import {
   PackageCheck,
   History,
   FileText,
-  Printer
+  Printer,
+  CheckSquare,
+  Square,
+  Filter,
+  Package
 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from '@/lib/toast'
 
 interface Supplier {
@@ -34,12 +40,19 @@ interface Supplier {
   notes: string
   is_active: boolean
   supplier_brands?: { id: string, brand_name: string }[]
+  supplier_products?: { product_id: string }[]
 }
 
 interface Product {
   id: string
   name: string
   brand: string
+  category_id: string
+}
+
+interface Category {
+  id: string
+  name: string
 }
 
 interface PurchaseOrderItem {
@@ -71,13 +84,17 @@ export function SupplierManagement() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [orders, setOrders] = useState<PurchaseOrder[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddingSupplier, setIsAddingSupplier] = useState(false)
+  const [isManagingProducts, setIsManagingProducts] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [isAddingOrder, setIsAddingOrder] = useState(false)
   const [isViewingOrder, setIsViewingOrder] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('suppliers')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
     name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
@@ -96,24 +113,41 @@ export function SupplierManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*)').order('name')
+      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*), supplier_products(product_id)').order('name')
       const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))').order('created_at', { ascending: false })
-      const { data: productsData } = await supabase.from('products').select('id, name, brand').order('name')
+      const { data: productsData } = await supabase.from('products').select('id, name, brand, category_id').order('name')
+      const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
+      
       setSuppliers(suppliersData || [])
       setOrders(ordersData || [])
       setProducts(productsData || [])
-    } catch (error) { toast.error('Erro ao carregar dados') } finally { setLoading(false) }
+      setCategories(categoriesData || [])
+    } catch (error) { 
+      console.error(error)
+      toast.error('Erro ao carregar dados') 
+    } finally { 
+      setLoading(false) 
+    }
   }
 
   const handleAddSupplier = async () => {
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
     try {
-      const { error } = await supabase.from('suppliers').insert([newSupplier])
+      // Filter out empty strings to avoid validation/format issues in DB
+      const supplierData = Object.fromEntries(
+        Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+      )
+
+      const { error } = await supabase.from('suppliers').insert([supplierData])
       if (error) throw error
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
+      setNewSupplier({ name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
-    } catch (error: any) { toast.error('Erro: ' + error.message) }
+    } catch (error: any) { 
+      console.error(error)
+      toast.error('Erro: ' + error.message) 
+    }
   }
 
   const handleAddOrder = async () => {
@@ -156,6 +190,54 @@ export function SupplierManagement() {
     return <Badge className={s.color}>{s.label}</Badge>
   }
 
+  const toggleProduct = async (supplierId: string, productId: string, isSelected: boolean) => {
+    try {
+      if (isSelected) {
+        await supabase.from('supplier_products').delete().eq('supplier_id', supplierId).eq('product_id', productId)
+      } else {
+        await supabase.from('supplier_products').insert([{ supplier_id: supplierId, product_id: productId }])
+      }
+      fetchData()
+    } catch (error: any) {
+      toast.error('Erro ao atualizar produto: ' + error.message)
+    }
+  }
+
+  const toggleCategoryProducts = async (supplierId: string, categoryId: string, selectAll: boolean) => {
+    try {
+      const categoryProducts = products.filter(p => p.category_id === categoryId)
+      const supplierProductIds = suppliers.find(s => s.id === supplierId)?.supplier_products?.map(sp => sp.product_id) || []
+      
+      if (selectAll) {
+        const toAdd = categoryProducts
+          .filter(p => !supplierProductIds.includes(p.id))
+          .map(p => ({ supplier_id: supplierId, product_id: p.id }))
+        
+        if (toAdd.length > 0) {
+          await supabase.from('supplier_products').insert(toAdd)
+        }
+      } else {
+        const toRemoveIds = categoryProducts
+          .filter(p => supplierProductIds.includes(p.id))
+          .map(p => p.id)
+        
+        if (toRemoveIds.length > 0) {
+          await supabase.from('supplier_products').delete().eq('supplier_id', supplierId).in('product_id', toRemoveIds)
+        }
+      }
+      fetchData()
+      toast.success(selectAll ? 'Produtos adicionados!' : 'Produtos removidos!')
+    } catch (error: any) {
+      toast.error('Erro ao atualizar categoria: ' + error.message)
+    }
+  }
+
+  const filteredSuppliers = suppliers.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.contact_person.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+
   return (
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,20 +264,55 @@ export function SupplierManagement() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="suppliers" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {suppliers.map(supplier => (
-              <Card key={supplier.id} className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white group">
-                <CardHeader className="bg-zinc-50 border-b border-zinc-100 pb-4">
-                  <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
+        <TabsContent value="suppliers" className="space-y-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5" />
+            <Input 
+              placeholder="Buscar fornecedor por nome ou contato..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-12 h-14 rounded-2xl bg-white border-zinc-100 shadow-sm focus:ring-zinc-900"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSuppliers.map(supplier => (
+              <Card key={supplier.id} className="border-0 shadow-lg rounded-[32px] overflow-hidden bg-white group hover:shadow-xl transition-all duration-300">
+                <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
+                      <p className="text-[10px] font-bold uppercase text-zinc-400 mt-1">{supplier.contact_person}</p>
+                    </div>
+                    <Badge variant={supplier.is_active ? "default" : "secondary"} className="rounded-full px-3 py-1 text-[8px] font-black uppercase">
+                      {supplier.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-zinc-400">Contato: {supplier.contact_person}</p>
-                    <p className="text-[10px] font-black uppercase text-zinc-400">Wpp: {supplier.whatsapp}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">WhatsApp</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.whatsapp || '-'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">E-mail</p>
+                      <p className="text-xs font-bold text-zinc-700 truncate">{supplier.email || '-'}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-50">
-                    {supplier.supplier_brands?.map(b => <Badge key={b.id} variant="outline" className="text-[8px] font-bold uppercase">{b.brand_name}</Badge>)}
+                  
+                  <div className="space-y-2 pt-4 border-t border-zinc-50">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">Produtos</p>
+                      <Badge variant="outline" className="text-[8px] font-bold">{supplier.supplier_products?.length || 0} itens</Badge>
+                    </div>
+                    <Button 
+                      onClick={() => { setSelectedSupplier(supplier); setIsManagingProducts(true); }}
+                      variant="outline" 
+                      className="w-full rounded-2xl border-zinc-200 text-zinc-600 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all font-black uppercase text-[10px] tracking-widest h-10"
+                    >
+                      <Package className="w-3 h-3 mr-2" /> Gerenciar Mix
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -269,8 +386,12 @@ export function SupplierManagement() {
             {newOrder.items.map((it, idx) => (
               <div key={idx} className="flex gap-2">
                 <Select onValueChange={val => { const items = [...newOrder.items]; items[idx].product_id = val; setNewOrder({...newOrder, items}) }}>
-                  <SelectTrigger className="flex-1"><SelectValue placeholder="Produto" /></SelectTrigger>
-                  <SelectContent>{products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="flex-1 rounded-xl h-11"><SelectValue placeholder="Produto" /></SelectTrigger>
+                  <SelectContent>
+                    {products
+                      .filter(p => !newOrder.supplier_id || suppliers.find(s => s.id === newOrder.supplier_id)?.supplier_products?.some(sp => sp.product_id === p.id))
+                      .map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
                 </Select>
                 <Input type="number" className="w-20" placeholder="Qtd" onChange={e => { const items = [...newOrder.items]; items[idx].quantity = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
                 <Input type="number" className="w-24" placeholder="Preço" onChange={e => { const items = [...newOrder.items]; items[idx].unit_price = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
@@ -302,6 +423,119 @@ export function SupplierManagement() {
                   </div>
                 ))}
                 <Button className="w-full h-14 bg-zinc-900 rounded-3xl font-black uppercase text-xs" onClick={() => handleRegisterReceipt(selectedOrder.id, selectedOrder.purchase_order_items!)}>Finalizar Recebimento e Atualizar Estoque</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isManagingProducts} onOpenChange={setIsManagingProducts}>
+        <DialogContent className="max-w-3xl rounded-[40px] p-0 overflow-hidden">
+          {selectedSupplier && (
+            <div className="flex flex-col h-[85vh]">
+              <div className="bg-zinc-900 text-white p-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-white/10 p-3 rounded-2xl"><Package size={24} /></div>
+                  <div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter">Mix de Produtos</h2>
+                    <p className="text-[10px] font-bold uppercase text-white/50 tracking-widest">{selectedSupplier.name}</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 w-4 h-4" />
+                    <Input 
+                      placeholder="Filtrar produtos..." 
+                      className="bg-white/5 border-white/10 text-white pl-10 h-11 rounded-xl focus:ring-white/20"
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-[200px] bg-white/5 border-white/10 text-white h-11 rounded-xl">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas Categorias</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="p-8 flex-1 overflow-hidden flex flex-col gap-6">
+                {selectedCategory !== 'all' && (
+                  <div className="flex items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-zinc-400" />
+                      <span className="text-xs font-black uppercase text-zinc-600">
+                        Ações para {categories.find(c => c.id === selectedCategory)?.name}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] font-black uppercase text-zinc-500 hover:text-green-600"
+                        onClick={() => toggleCategoryProducts(selectedSupplier.id, selectedCategory, true)}
+                      >
+                        <CheckSquare className="w-3 h-3 mr-2" /> Marcar Todos
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] font-black uppercase text-zinc-500 hover:text-red-600"
+                        onClick={() => toggleCategoryProducts(selectedSupplier.id, selectedCategory, false)}
+                      >
+                        <Square className="w-3 h-3 mr-2" /> Desmarcar Todos
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <ScrollArea className="flex-1 pr-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {products
+                      .filter(p => selectedCategory === 'all' || p.category_id === selectedCategory)
+                      .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(product => {
+                        const isSelected = selectedSupplier.supplier_products?.some(sp => sp.product_id === product.id)
+                        return (
+                          <div 
+                            key={product.id}
+                            className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${
+                              isSelected 
+                                ? 'bg-zinc-900 border-zinc-900 text-white' 
+                                : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-300'
+                            }`}
+                            onClick={() => toggleProduct(selectedSupplier.id, product.id, !!isSelected)}
+                          >
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={() => toggleProduct(selectedSupplier.id, product.id, !!isSelected)}
+                              className={isSelected ? 'border-white data-[state=checked]:bg-white data-[state=checked]:text-zinc-900' : ''}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black uppercase truncate">{product.name}</p>
+                              <p className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/50' : 'text-zinc-400'}`}>
+                                {categories.find(c => c.id === product.category_id)?.name || 'Sem categoria'}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              <div className="p-8 border-t border-zinc-100 flex justify-end">
+                <Button 
+                  onClick={() => setIsManagingProducts(false)}
+                  className="rounded-2xl bg-zinc-900 h-12 px-8 font-black uppercase text-xs tracking-widest"
+                >
+                  Concluir
+                </Button>
               </div>
             </div>
           )}
