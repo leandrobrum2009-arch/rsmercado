@@ -424,6 +424,119 @@ export function SupplierManagement() {
           )}
         </DialogContent>
       </Dialog>
+      <Dialog open={isManagingProducts} onOpenChange={setIsManagingProducts}>
+        <DialogContent className="max-w-3xl rounded-[40px] p-0 overflow-hidden">
+          {selectedSupplier && (
+            <div className="flex flex-col h-[85vh]">
+              <div className="bg-zinc-900 text-white p-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-white/10 p-3 rounded-2xl"><Package size={24} /></div>
+                  <div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter">Mix de Produtos</h2>
+                    <p className="text-[10px] font-bold uppercase text-white/50 tracking-widest">{selectedSupplier.name}</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 w-4 h-4" />
+                    <Input 
+                      placeholder="Filtrar produtos..." 
+                      className="bg-white/5 border-white/10 text-white pl-10 h-11 rounded-xl focus:ring-white/20"
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-[200px] bg-white/5 border-white/10 text-white h-11 rounded-xl">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas Categorias</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="p-8 flex-1 overflow-hidden flex flex-col gap-6">
+                {selectedCategory !== 'all' && (
+                  <div className="flex items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-zinc-400" />
+                      <span className="text-xs font-black uppercase text-zinc-600">
+                        Ações para {categories.find(c => c.id === selectedCategory)?.name}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] font-black uppercase text-zinc-500 hover:text-green-600"
+                        onClick={() => toggleCategoryProducts(selectedSupplier.id, selectedCategory, true)}
+                      >
+                        <CheckSquare className="w-3 h-3 mr-2" /> Marcar Todos
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] font-black uppercase text-zinc-500 hover:text-red-600"
+                        onClick={() => toggleCategoryProducts(selectedSupplier.id, selectedCategory, false)}
+                      >
+                        <Square className="w-3 h-3 mr-2" /> Desmarcar Todos
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <ScrollArea className="flex-1 pr-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {products
+                      .filter(p => selectedCategory === 'all' || p.category_id === selectedCategory)
+                      .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(product => {
+                        const isSelected = selectedSupplier.supplier_products?.some(sp => sp.product_id === product.id)
+                        return (
+                          <div 
+                            key={product.id}
+                            className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${
+                              isSelected 
+                                ? 'bg-zinc-900 border-zinc-900 text-white' 
+                                : 'bg-white border-zinc-100 text-zinc-600 hover:border-zinc-300'
+                            }`}
+                            onClick={() => toggleProduct(selectedSupplier.id, product.id, !!isSelected)}
+                          >
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={() => toggleProduct(selectedSupplier.id, product.id, !!isSelected)}
+                              className={isSelected ? 'border-white data-[state=checked]:bg-white data-[state=checked]:text-zinc-900' : ''}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black uppercase truncate">{product.name}</p>
+                              <p className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/50' : 'text-zinc-400'}`}>
+                                {categories.find(c => c.id === product.category_id)?.name || 'Sem categoria'}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              <div className="p-8 border-t border-zinc-100 flex justify-end">
+                <Button 
+                  onClick={() => setIsManagingProducts(false)}
+                  className="rounded-2xl bg-zinc-900 h-12 px-8 font-black uppercase text-xs tracking-widest"
+                >
+                  Concluir
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
