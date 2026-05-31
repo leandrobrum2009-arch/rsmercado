@@ -133,7 +133,24 @@ export function SupplierManagement() {
 
   const handleAddSupplier = async () => {
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
+    
+    // Basic validation
+    if (newSupplier.email && !newSupplier.email.includes('@')) {
+      return toast.error('E-mail inválido')
+    }
+
     try {
+      // Check if supplier with same name already exists
+      const { data: existing } = await supabase
+        .from('suppliers')
+        .select('id')
+        .ilike('name', newSupplier.name!)
+        .maybeSingle()
+      
+      if (existing) {
+        return toast.error('Já existe um fornecedor com este nome')
+      }
+
       // Filter out empty strings to avoid validation/format issues in DB
       const supplierData = Object.fromEntries(
         Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
@@ -143,7 +160,7 @@ export function SupplierManagement() {
       if (error) throw error
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
-      setNewSupplier({ name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
+      setNewSupplier({ name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
       
       // Auto-open product management for the new supplier
