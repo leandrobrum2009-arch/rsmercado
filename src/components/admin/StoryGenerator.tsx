@@ -109,8 +109,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }, [config])
 
   const slides: SlideType[] = [
-    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
-    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
+    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title || 'Ofertas' },
+    ...(flyer.products_data || []).filter(p => p && p.name).map(p => ({ type: 'product' as const, product: p })),
     { type: 'outro', title: 'CONFIRA NOSSAS OFERTAS!', subtitle: 'Esperamos por você' }
   ]
 
@@ -236,11 +236,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }
 
   const generateAllAudio = async () => {
+    if (!slides || slides.length === 0) {
+      toast.error('Nenhum slide encontrado para narrar.');
+      return;
+    }
+
     setIsGeneratingAudio(true)
     const newAudioUrls: Record<number, string> = {}
     const newDurations: Record<number, number> = {}
 
     console.log('[StoryGenerator] Starting audio generation for', slides.length, 'slides');
+    toast.info(`Gerando locução para ${slides.length} slides...`);
 
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -268,43 +274,53 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..." with voice ${voiceId}`)
 
-        try {
-          const { data, error } = await supabase.functions.invoke('text-to-speech', {
-            body: { text, lang: 'pt-BR', voice: voiceId }
-          })
+        if (!text || text.trim().length === 0) {
+          console.warn(`[StoryGenerator] Empty text for slide ${i}, skipping...`);
+          continue;
+        }
 
-          if (error) {
-            console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
-            continue
+        try {
+          console.log(`[StoryGenerator] Calling TTS for slide ${i} with text: "${text.substring(0, 30)}..."`);
+          
+          // Use fetch directly to ensure binary response handling is perfect
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          
+          if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Configuração do Supabase ausente. Verifique as chaves VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.');
           }
 
-          if (data) {
-            let blob: Blob;
-            if (data instanceof Blob) {
-              blob = data;
-            } else if (data instanceof ArrayBuffer) {
-              blob = new Blob([data], { type: 'audio/mpeg' });
-            } else {
-              // Handle case where it might be returned as an object { error: ... }
-              const potentialData = data as any;
-              if (potentialData.error) {
-                console.error(`[StoryGenerator] Error in data for slide ${i}:`, potentialData.error);
-                continue;
-              }
-              console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
-              continue;
-            }
+          const functionUrl = `${supabaseUrl}/functions/v1/text-to-speech`;
+          const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({ text, lang: 'pt-BR', voice: voiceId })
+          });
 
+          if (!response.ok) {
+            const errText = await response.text();
+            console.error(`[StoryGenerator] TTS failed for slide ${i}:`, response.status, errText);
+            throw new Error(`Servidor respondeu com erro ${response.status}: ${errText}`);
+          }
+
+          const blob = await response.blob();
+          if (blob && blob.size > 0) {
             const url = URL.createObjectURL(blob)
             newAudioUrls[i] = url
             
             const arrayBuffer = await blob.arrayBuffer()
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
             newDurations[i] = audioBuffer.duration
-            console.log(`[StoryGenerator] Audio generated for slide ${i}, duration: ${audioBuffer.duration}s`);
+            console.log(`[StoryGenerator] Audio generated for slide ${i}, duration: ${audioBuffer.duration}s, size: ${blob.size} bytes`);
+          } else {
+            console.warn(`[StoryGenerator] Received empty audio for slide ${i}`);
           }
         } catch (e: any) {
           console.error(`[StoryGenerator] Exception generating audio for slide ${i}:`, e);
+          toast.error(`Erro no slide ${i+1}: ${e.message}`);
           continue;
         }
       }
