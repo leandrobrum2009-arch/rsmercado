@@ -123,9 +123,9 @@ export function SupplierManagement() {
       setOrders(ordersData || [])
       setProducts(productsData || [])
       setCategories(categoriesData || [])
-    } catch (error) { 
+    } catch (error: any) { 
       console.error(error)
-      toast.error('Erro ao carregar dados') 
+      toast.error('Erro ao carregar dados: ' + (error.message || 'Erro desconhecido')) 
     } finally { 
       setLoading(false) 
     }
