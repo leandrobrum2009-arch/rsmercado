@@ -109,8 +109,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }, [config])
 
   const slides: SlideType[] = [
-    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title },
-    ...flyer.products_data.map(p => ({ type: 'product' as const, product: p })),
+    { type: 'intro', title: 'OFERTAS DE HOJE', subtitle: flyer.title || 'Ofertas' },
+    ...(flyer.products_data || []).filter(p => p && p.name).map(p => ({ type: 'product' as const, product: p })),
     { type: 'outro', title: 'CONFIRA NOSSAS OFERTAS!', subtitle: 'Esperamos por você' }
   ]
 
