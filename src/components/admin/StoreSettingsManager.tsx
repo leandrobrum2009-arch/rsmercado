@@ -523,43 +523,48 @@
                     )}
                     </div>
                     {settings.logo_url && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Mobile)</label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              type="number"
-                              value={settings.logo_height_mobile}
-                              onChange={(e) => setSettings({ ...settings, logo_height_mobile: e.target.value })}
-                              className="rounded-xl border-zinc-200 h-10 font-bold"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-zinc-100">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Mobile)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_height_mobile}px</span>
                           </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_height_mobile) || 40]} 
+                            min={20} 
+                            max={150} 
+                            step={1} 
+                            onValueChange={([val]) => setSettings({ ...settings, logo_height_mobile: val.toString() })} 
+                          />
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Desktop)</label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              type="number"
-                              value={settings.logo_height_desktop}
-                              onChange={(e) => setSettings({ ...settings, logo_height_desktop: e.target.value })}
-                              className="rounded-xl border-zinc-200 h-10 font-bold"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Desktop)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_height_desktop}px</span>
                           </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_height_desktop) || 64]} 
+                            min={30} 
+                            max={300} 
+                            step={1} 
+                            onValueChange={([val]) => setSettings({ ...settings, logo_height_desktop: val.toString() })} 
+                          />
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-zinc-500">Ajuste Vertical (Efeito Sobreposto)</label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              type="number"
-                              value={settings.logo_offset_y}
-                              onChange={(e) => setSettings({ ...settings, logo_offset_y: e.target.value })}
-                              className="rounded-xl border-zinc-200 h-10 font-bold"
-                              placeholder="Ex: 10 ou -10"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase">px</span>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Ajuste Vertical (Sobreposição)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_offset_y}px</span>
                           </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_offset_y) || 0]} 
+                            min={-50} 
+                            max={100} 
+                            step={1} 
+                            onValueChange={([val]) => setSettings({ ...settings, logo_offset_y: val.toString() })} 
+                          />
+                          <p className="text-[8px] text-zinc-400 font-medium italic">
+                            Valores positivos descem a logo, criando o efeito de sobreposição.
+                          </p>
                         </div>
                       </div>
                     )}
