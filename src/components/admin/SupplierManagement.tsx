@@ -18,7 +18,8 @@ import {
   Search,
   PackageCheck,
   History,
-  FileText
+  FileText,
+  Printer
 } from 'lucide-react'
 import { toast } from '@/lib/toast'
 
@@ -95,30 +96,13 @@ export function SupplierManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: suppliersData } = await supabase
-        .from('suppliers')
-        .select('*, supplier_brands(*)')
-        .order('name')
-      
-      const { data: ordersData } = await supabase
-        .from('purchase_orders')
-        .select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))')
-        .order('created_at', { ascending: false })
-
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('id, name, brand')
-        .order('name')
-
+      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*)').order('name')
+      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))').order('created_at', { ascending: false })
+      const { data: productsData } = await supabase.from('products').select('id, name, brand').order('name')
       setSuppliers(suppliersData || [])
       setOrders(ordersData || [])
       setProducts(productsData || [])
-    } catch (error) {
-      console.error('Error fetching supplier data:', error)
-      toast.error('Erro ao carregar dados dos fornecedores')
-    } finally {
-      setLoading(false)
-    }
+    } catch (error) { toast.error('Erro ao carregar dados') } finally { setLoading(false) }
   }
 
   const handleAddSupplier = async () => {
@@ -129,38 +113,37 @@ export function SupplierManagement() {
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
       fetchData()
-    } catch (error: any) {
-      toast.error('Erro ao cadastrar fornecedor: ' + error.message)
-    }
+    } catch (error: any) { toast.error('Erro: ' + error.message) }
   }
 
   const handleAddOrder = async () => {
     if (!newOrder.supplier_id) return toast.error('Selecione um fornecedor')
-    if (newOrder.items.length === 0) return toast.error('Adicione ao menos um item')
-
     try {
       const total = newOrder.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
-      const { data: order, error: orderError } = await supabase
-        .from('purchase_orders')
-        .insert([{ supplier_id: newOrder.supplier_id, notes: newOrder.notes, total_amount: total, status: 'quotation_pending' }])
-        .select()
-        .single()
-
+      const { data: order, error: orderError } = await supabase.from('purchase_orders').insert([{ supplier_id: newOrder.supplier_id, notes: newOrder.notes, total_amount: total, status: 'quotation_pending' }]).select().single()
       if (orderError) throw orderError
-
-      const { error: itemsError } = await supabase
-        .from('purchase_order_items')
-        .insert(newOrder.items.map(item => ({ ...item, purchase_order_id: order.id })))
-
-      if (itemsError) throw itemsError
-
+      await supabase.from('purchase_order_items').insert(newOrder.items.map(item => ({ ...item, purchase_order_id: order.id })))
       toast.success('Solicitação criada!')
       setIsAddingOrder(false)
       setNewOrder({ supplier_id: '', notes: '', items: [] })
       fetchData()
-    } catch (error: any) {
-      toast.error('Erro ao criar: ' + error.message)
-    }
+    } catch (error: any) { toast.error('Erro: ' + error.message) }
+  }
+
+  const handleRegisterReceipt = async (orderId: string, items: any[]) => {
+    try {
+      for (const item of items) {
+        await supabase.from('purchase_order_items').update({ received_quantity: item.received_quantity, defective_quantity: item.defective_quantity, expiry_date: item.expiry_date }).eq('id', item.id)
+        if (item.received_quantity > 0 && item.product_id) {
+          const { data: prod } = await supabase.from('products').select('stock').eq('id', item.product_id).single()
+          await supabase.from('products').update({ stock: (prod?.stock || 0) + item.received_quantity }).eq('id', item.product_id)
+        }
+      }
+      await supabase.from('purchase_orders').update({ status: 'delivered', actual_delivery_date: new Date().toISOString() }).eq('id', orderId)
+      toast.success('Recebimento registrado!')
+      setIsViewingOrder(false)
+      fetchData()
+    } catch (error: any) { toast.error('Erro: ' + error.message) }
   }
 
   const getStatusBadge = (status: string) => {
@@ -201,7 +184,7 @@ export function SupplierManagement() {
 
         <TabsContent value="suppliers" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).map(supplier => (
+            {suppliers.map(supplier => (
               <Card key={supplier.id} className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white group">
                 <CardHeader className="bg-zinc-50 border-b border-zinc-100 pb-4">
                   <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
@@ -249,6 +232,81 @@ export function SupplierManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isAddingSupplier} onOpenChange={setIsAddingSupplier}>
+        <DialogContent className="max-w-xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Novo Fornecedor</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div className="md:col-span-2 space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400">Nome Fantasia</Label>
+              <Input value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp</Label>
+              <Input value={newSupplier.whatsapp} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-zinc-400">Contato</Label>
+              <Input value={newSupplier.contact_person} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+          </div>
+          <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddingOrder} onOpenChange={setIsAddingOrder}>
+        <DialogContent className="max-w-3xl rounded-3xl">
+          <DialogHeader><DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Nova Solicitação</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <Label className="text-[10px] font-black uppercase text-zinc-400">Fornecedor</Label>
+            <Select onValueChange={val => setNewOrder({...newOrder, supplier_id: val})}>
+              <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button onClick={() => setNewOrder({...newOrder, items: [...newOrder.items, { product_id: '', quantity: 1, unit_price: 0 }]})} className="w-full">Adicionar Item</Button>
+            {newOrder.items.map((it, idx) => (
+              <div key={idx} className="flex gap-2">
+                <Select onValueChange={val => { const items = [...newOrder.items]; items[idx].product_id = val; setNewOrder({...newOrder, items}) }}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Produto" /></SelectTrigger>
+                  <SelectContent>{products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                </Select>
+                <Input type="number" className="w-20" placeholder="Qtd" onChange={e => { const items = [...newOrder.items]; items[idx].quantity = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
+                <Input type="number" className="w-24" placeholder="Preço" onChange={e => { const items = [...newOrder.items]; items[idx].unit_price = parseFloat(e.target.value); setNewOrder({...newOrder, items}) }} />
+              </div>
+            ))}
+          </div>
+          <DialogFooter><Button onClick={handleAddOrder} className="bg-zinc-900 rounded-xl font-black uppercase text-xs">Criar Solicitação</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isViewingOrder} onOpenChange={setIsViewingOrder}>
+        <DialogContent className="max-w-4xl rounded-[40px] p-0 overflow-hidden">
+          {selectedOrder && (
+            <div className="flex flex-col">
+              <div className="bg-zinc-900 text-white p-8 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-3xl font-black uppercase italic italic tracking-tighter">Pedido #{selectedOrder.id.substring(0,6)}</h2>
+                  <Button variant="outline" className="text-white border-white/20" onClick={() => window.print()}><Printer size={16} className="mr-2" /> Imprimir</Button>
+                </div>
+                <p className="text-xs uppercase font-bold text-zinc-400">Fornecedor: {selectedOrder.suppliers?.name}</p>
+              </div>
+              <div className="p-8 space-y-6">
+                {selectedOrder.purchase_order_items?.map((item, idx) => (
+                  <div key={idx} className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-1"><p className="text-xs font-black uppercase">{(item as any).products?.name || 'Item'}</p></div>
+                    <div className="space-y-1"><Label className="text-[8px] uppercase text-zinc-400">Recebido</Label><Input type="number" defaultValue={item.received_quantity} onChange={e => { const items = [...selectedOrder.purchase_order_items!]; items[idx].received_quantity = parseFloat(e.target.value); setSelectedOrder({...selectedOrder, purchase_order_items: items}) }} /></div>
+                    <div className="space-y-1"><Label className="text-[8px] uppercase text-zinc-400">Defeitos</Label><Input type="number" defaultValue={item.defective_quantity} onChange={e => { const items = [...selectedOrder.purchase_order_items!]; items[idx].defective_quantity = parseFloat(e.target.value); setSelectedOrder({...selectedOrder, purchase_order_items: items}) }} /></div>
+                    <div className="space-y-1"><Label className="text-[8px] uppercase text-zinc-400">Validade</Label><Input type="date" defaultValue={item.expiry_date} onChange={e => { const items = [...selectedOrder.purchase_order_items!]; items[idx].expiry_date = e.target.value; setSelectedOrder({...selectedOrder, purchase_order_items: items}) }} /></div>
+                  </div>
+                ))}
+                <Button className="w-full h-14 bg-zinc-900 rounded-3xl font-black uppercase text-xs" onClick={() => handleRegisterReceipt(selectedOrder.id, selectedOrder.purchase_order_items!)}>Finalizar Recebimento e Atualizar Estoque</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
