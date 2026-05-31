@@ -32,13 +32,13 @@ import { toast } from '@/lib/toast'
 interface Supplier {
   id: string
   name: string
-  cnpj: string
-  contact_person: string
-  phone: string
-  whatsapp: string
-  email: string
-  address: string
-  notes: string
+  cnpj: string | null
+  contact_person: string | null
+  phone: string | null
+  whatsapp: string | null
+  email: string | null
+  address: string | null
+  notes: string | null
   is_active: boolean
   supplier_brands?: { id: string, brand_name: string }[]
   supplier_products?: { product_id: string }[]
@@ -47,8 +47,8 @@ interface Supplier {
 interface Product {
   id: string
   name: string
-  brand: string
-  category_id: string
+  brand: string | null
+  category_id: string | null
 }
 
 interface Category {
@@ -58,27 +58,27 @@ interface Category {
 
 interface PurchaseOrderItem {
   id?: string
-  product_id?: string
-  brand_name?: string
+  product_id?: string | null
+  brand_name?: string | null
   quantity: number
   unit_price: number
-  received_quantity: number
-  defective_quantity: number
-  expiry_date?: string
+  received_quantity: number | null
+  defective_quantity: number | null
+  expiry_date?: string | null
 }
 
 interface PurchaseOrder {
   id: string
-  supplier_id: string
+  supplier_id: string | null
   status: string
-  total_amount: number
-  delivery_date: string
-  actual_delivery_date: string
-  payment_status: string
-  notes: string
-  created_at: string
-  suppliers?: { name: string, whatsapp: string, phone: string, address: string, contact_person: string }
-  purchase_order_items?: PurchaseOrderItem[]
+  total_amount: number | null
+  delivery_date: string | null
+  actual_delivery_date: string | null
+  payment_status: string | null
+  notes: string | null
+  created_at: string | null
+  suppliers?: { name: string, whatsapp: string | null, phone: string | null, address: string | null, contact_person: string | null } | null
+  purchase_order_items?: any[]
 }
 
 export function SupplierManagement() {
