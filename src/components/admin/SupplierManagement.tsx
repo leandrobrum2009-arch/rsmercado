@@ -113,24 +113,41 @@ export function SupplierManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*)').order('name')
+      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*), supplier_products(product_id)').order('name')
       const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))').order('created_at', { ascending: false })
-      const { data: productsData } = await supabase.from('products').select('id, name, brand').order('name')
+      const { data: productsData } = await supabase.from('products').select('id, name, brand, category_id').order('name')
+      const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
+      
       setSuppliers(suppliersData || [])
       setOrders(ordersData || [])
       setProducts(productsData || [])
-    } catch (error) { toast.error('Erro ao carregar dados') } finally { setLoading(false) }
+      setCategories(categoriesData || [])
+    } catch (error) { 
+      console.error(error)
+      toast.error('Erro ao carregar dados') 
+    } finally { 
+      setLoading(false) 
+    }
   }
 
   const handleAddSupplier = async () => {
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
     try {
-      const { error } = await supabase.from('suppliers').insert([newSupplier])
+      // Filter out empty strings to avoid validation/format issues in DB
+      const supplierData = Object.fromEntries(
+        Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+      )
+
+      const { error } = await supabase.from('suppliers').insert([supplierData])
       if (error) throw error
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
+      setNewSupplier({ name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
-    } catch (error: any) { toast.error('Erro: ' + error.message) }
+    } catch (error: any) { 
+      console.error(error)
+      toast.error('Erro: ' + error.message) 
+    }
   }
 
   const handleAddOrder = async () => {
