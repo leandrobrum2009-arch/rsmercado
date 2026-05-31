@@ -478,6 +478,7 @@ export type Database = {
           avatar_url: string | null
           birth_date: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           gender: string | null
           household_status: string | null
@@ -492,6 +493,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           gender?: string | null
           household_status?: string | null
@@ -506,6 +508,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           gender?: string | null
           household_status?: string | null
@@ -725,18 +728,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          permissions: string[] | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          permissions?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          permissions?: string[] | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }

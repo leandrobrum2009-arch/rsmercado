@@ -1,35 +1,37 @@
- import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
+import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
 import { SendingLogViewer } from '@/components/admin/SendingLogViewer'
- import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
- import { FeedbackManager } from '@/components/admin/FeedbackManager'
- import { AlertManager } from '@/components/admin/AlertManager'
- import { AdminDashboard } from '@/components/admin/AdminDashboard'
- import { NotificationManager } from '@/components/admin/NotificationManager'
- import { 
-   ShoppingBag, 
-   Tag, 
-   ClipboardList, 
-   Upload, 
-   ChefHat, 
-   LayoutTemplate, 
-   Image as ImageIcon, 
-   MessageSquare,
-   Webhook,
-   Settings, 
-   ShieldCheck, 
-   Menu,
-   X,
-   Users,
-   Bell,
-    AlertCircle,
-    Palette,
-    Truck,
-    Percent,
-    Lock,
-    LayoutGrid,
-    Trophy,
-    Send
-  } from 'lucide-react'
+import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
+import { FeedbackManager } from '@/components/admin/FeedbackManager'
+import { AlertManager } from '@/components/admin/AlertManager'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { NotificationManager } from '@/components/admin/NotificationManager'
+import { AdminAccountSettings } from '@/components/admin/AdminAccountSettings'
+import { 
+  ShoppingBag, 
+  Tag, 
+  ClipboardList, 
+  Upload, 
+  ChefHat, 
+  LayoutTemplate, 
+  Image as ImageIcon, 
+  MessageSquare,
+  Webhook,
+  Settings, 
+  ShieldCheck, 
+  Menu,
+  X,
+  Users,
+  Bell,
+  AlertCircle,
+  Palette,
+  Truck,
+  Percent,
+  Lock,
+  LayoutGrid,
+  Trophy,
+  Send,
+  UserCog
+} from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
@@ -222,7 +224,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "activity_logs", "sending_logs", "feedback"
+                "admin_roles", "admin_account", "activity_logs", "sending_logs", "feedback"
               ])
             }
          }
@@ -313,6 +315,7 @@ export const Route = createFileRoute('/admin')({
         {
           title: 'Controle de Acesso',
           items: [
+              { id: 'admin_account', label: 'Minha Conta (Login)', icon: UserCog },
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
               { id: 'sending_logs', label: 'Log de Envios', icon: Send },
@@ -499,6 +502,9 @@ export const Route = createFileRoute('/admin')({
                    <TabsContent value="admin_roles" className="mt-0 focus-visible:ring-0">
                      <AdminRoleManager />
                    </TabsContent>
+                    <TabsContent value="admin_account" className="mt-0 focus-visible:ring-0">
+                      <AdminAccountSettings />
+                    </TabsContent>
                     <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
                       <SecurityLogViewer />
                     </TabsContent>
