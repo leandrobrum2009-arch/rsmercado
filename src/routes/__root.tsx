@@ -333,7 +333,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
             <Link to="/" className="flex items-center gap-2 py-1">
               {storeSettings.logo_url ? (
-                <img src={storeSettings.logo_url} alt="Logo" className="h-14 md:h-16 object-contain" />
+                <img 
+                  src={storeSettings.logo_url} 
+                  alt="Logo" 
+                  style={{ 
+                    height: `${storeSettings.logo_height_desktop}px`,
+                    transform: `translateY(${storeSettings.logo_offset_y}px)`
+                  }} 
+                  className="object-contain transition-all duration-300" 
+                />
               ) : (
                 <span className="text-2xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
               )}
