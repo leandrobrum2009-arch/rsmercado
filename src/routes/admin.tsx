@@ -1,35 +1,37 @@
- import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
+import { SecurityLogViewer } from '@/components/admin/SecurityLogViewer'
 import { SendingLogViewer } from '@/components/admin/SendingLogViewer'
- import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
- import { FeedbackManager } from '@/components/admin/FeedbackManager'
- import { AlertManager } from '@/components/admin/AlertManager'
- import { AdminDashboard } from '@/components/admin/AdminDashboard'
- import { NotificationManager } from '@/components/admin/NotificationManager'
- import { 
-   ShoppingBag, 
-   Tag, 
-   ClipboardList, 
-   Upload, 
-   ChefHat, 
-   LayoutTemplate, 
-   Image as ImageIcon, 
-   MessageSquare,
-   Webhook,
-   Settings, 
-   ShieldCheck, 
-   Menu,
-   X,
-   Users,
-   Bell,
-    AlertCircle,
-    Palette,
-    Truck,
-    Percent,
-    Lock,
-    LayoutGrid,
-    Trophy,
-    Send
-  } from 'lucide-react'
+import { ThemeSettingsManager } from '@/components/admin/ThemeSettingsManager'
+import { FeedbackManager } from '@/components/admin/FeedbackManager'
+import { AlertManager } from '@/components/admin/AlertManager'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { NotificationManager } from '@/components/admin/NotificationManager'
+import { AdminAccountSettings } from '@/components/admin/AdminAccountSettings'
+import { 
+  ShoppingBag, 
+  Tag, 
+  ClipboardList, 
+  Upload, 
+  ChefHat, 
+  LayoutTemplate, 
+  Image as ImageIcon, 
+  MessageSquare,
+  Webhook,
+  Settings, 
+  ShieldCheck, 
+  Menu,
+  X,
+  Users,
+  Bell,
+  AlertCircle,
+  Palette,
+  Truck,
+  Percent,
+  Lock,
+  LayoutGrid,
+  Trophy,
+  Send,
+  UserCog
+} from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
