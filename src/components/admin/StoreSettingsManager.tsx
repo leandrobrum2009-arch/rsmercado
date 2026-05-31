@@ -561,7 +561,7 @@
                             min={-50} 
                             max={100} 
                             step={1} 
-                            onValueChange={([val]) => setSettings({ ...settings, logo_offset_y: val.toString() })} 
+                            onValueChange={([val]: number[]) => setSettings({ ...settings, logo_offset_y: val.toString() })} 
                           />
                           <p className="text-[8px] text-zinc-400 font-medium italic">
                             Valores positivos descem a logo, criando o efeito de sobreposição.
