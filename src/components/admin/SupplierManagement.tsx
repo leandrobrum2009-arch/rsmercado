@@ -408,8 +408,16 @@ export function SupplierManagement() {
                     </TableCell>
                     <TableCell className="font-black text-sm text-zinc-900">R$ {order.total_amount?.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="h-8 px-3 rounded-xl font-black uppercase text-[10px] tracking-widest text-primary">
-                        Detalhes
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-3 rounded-xl font-black uppercase text-[10px] tracking-widest text-primary"
+                        onClick={() => {
+                          setSelectedOrder(order)
+                          setIsViewingOrder(true)
+                        }}
+                      >
+                        Conferir Entrega
                       </Button>
                     </TableCell>
                   </TableRow>
