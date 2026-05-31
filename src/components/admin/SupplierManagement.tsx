@@ -285,7 +285,7 @@ export function SupplierManagement() {
 
   const filteredSuppliers = suppliers.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.contact_person.toLowerCase().includes(searchTerm.toLowerCase())
+    (s.contact_person?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
 
