@@ -236,11 +236,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
   }
 
   const generateAllAudio = async () => {
+    if (!slides || slides.length === 0) {
+      toast.error('Nenhum slide encontrado para narrar.');
+      return;
+    }
+
     setIsGeneratingAudio(true)
     const newAudioUrls: Record<number, string> = {}
     const newDurations: Record<number, number> = {}
 
     console.log('[StoryGenerator] Starting audio generation for', slides.length, 'slides');
+    toast.info(`Gerando locução para ${slides.length} slides...`);
 
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
