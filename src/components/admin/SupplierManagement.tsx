@@ -40,6 +40,24 @@ interface Supplier {
   address: string
   notes: string
   is_active: boolean
+  supplier_brands?: { id: string, brand_name: string }[]
+}
+
+interface Product {
+  id: string
+  name: string
+  brand: string
+}
+
+interface PurchaseOrderItem {
+  id?: string
+  product_id?: string
+  brand_name?: string
+  quantity: number
+  unit_price: number
+  received_quantity: number
+  defective_quantity: number
+  expiry_date?: string
 }
 
 interface PurchaseOrder {
@@ -52,27 +70,26 @@ interface PurchaseOrder {
   payment_status: string
   notes: string
   created_at: string
-  suppliers?: { name: string }
+  suppliers?: { name: string, whatsapp: string, phone: string }
+  purchase_order_items?: PurchaseOrderItem[]
 }
 
 export function SupplierManagement() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [orders, setOrders] = useState<PurchaseOrder[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddingSupplier, setIsAddingSupplier] = useState(false)
   const [isAddingOrder, setIsAddingOrder] = useState(false)
+  const [isViewingOrder, setIsViewingOrder] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('suppliers')
 
-  const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
-    name: '',
-    contact_person: '',
-    phone: '',
-    whatsapp: '',
-    email: '',
-    address: '',
+  const [newOrder, setNewOrder] = useState({
+    supplier_id: '',
     notes: '',
-    is_active: true
+    items: [] as any[]
   })
 
   useEffect(() => {
