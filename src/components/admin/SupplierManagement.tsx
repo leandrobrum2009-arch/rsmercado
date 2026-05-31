@@ -34,6 +34,7 @@ interface Supplier {
   notes: string
   is_active: boolean
   supplier_brands?: { id: string, brand_name: string }[]
+  supplier_products?: { product_id: string }[]
 }
 
 interface Product {
