@@ -59,6 +59,8 @@ import { DevicePreview } from '@/components/admin/DevicePreview'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SupplierManagement } from '@/components/admin/SupplierManagement'
+import { AdminSecurityVerification } from '@/components/admin/AdminHealthCheck'
+
 
 
 export const Route = createFileRoute('/admin')({
@@ -227,7 +229,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback"
+                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback", "system_health"
               ])
             }
          }
@@ -328,7 +330,9 @@ export const Route = createFileRoute('/admin')({
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
               { id: 'sending_logs', label: 'Log de Envios', icon: Send },
+              { id: 'system_health', label: 'Saúde do Sistema', icon: ShieldCheck },
               { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
+
            ]
         }
     ];
@@ -526,6 +530,10 @@ export const Route = createFileRoute('/admin')({
                     <TabsContent value="feedback" className="mt-0 focus-visible:ring-0">
                       <FeedbackManager />
                     </TabsContent>
+                    <TabsContent value="system_health" className="mt-0 focus-visible:ring-0">
+                      <AdminSecurityVerification />
+                    </TabsContent>
+
             </Tabs>
           </div>
         </main>
