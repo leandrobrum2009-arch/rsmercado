@@ -19,8 +19,14 @@ import {
   PackageCheck,
   History,
   FileText,
-  Printer
+  Printer,
+  CheckSquare,
+  Square,
+  Filter,
+  Package
 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from '@/lib/toast'
 
 interface Supplier {
