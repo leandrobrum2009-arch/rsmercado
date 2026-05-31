@@ -170,7 +170,7 @@ export function SupplierManagement() {
       }
     } catch (error: any) { 
       console.error(error)
-      toast.error('Erro: ' + error.message) 
+      toast.error('Erro ao cadastrar fornecedor: ' + (error.message || 'Erro desconhecido')) 
     }
   }
 
