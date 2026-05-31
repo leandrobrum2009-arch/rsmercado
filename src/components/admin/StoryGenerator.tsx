@@ -373,16 +373,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           
           console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
           try {
+            // Re-use or create source
             const source = audioContextRef.current.createMediaElementSource(audio)
             source.connect(audioDestRef.current)
             source.connect(audioContextRef.current.destination)
           } catch (err) {
-            console.warn('[StoryGenerator] MediaElementSource already connected or failed:', err);
+            // This error often happens if the element is already connected to another source node
+            console.warn('[StoryGenerator] MediaElementSource connection info:', err);
           }
         }
         
-        await audio.play()
-        console.log(`[StoryGenerator] Playing audio for slide ${index}`);
+        audio.play().catch(e => console.error('[StoryGenerator] Audio play error:', e))
+        console.log(`[StoryGenerator] Playing cached audio for slide ${index}`);
         activeAudioRef.current = audio
         return
       } catch (e) {
