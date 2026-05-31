@@ -9,7 +9,8 @@
  
     import { Badge } from '@/components/ui/badge'
     import { Switch } from '@/components/ui/switch'
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  import { Slider } from '@/components/ui/slider'
  
    const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
  
