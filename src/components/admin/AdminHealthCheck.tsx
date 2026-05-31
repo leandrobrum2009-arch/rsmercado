@@ -215,11 +215,23 @@ export function AdminSecurityVerification() {
             <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">Ações Sugeridas</CardTitle>
           </CardHeader>
           <CardContent className="p-8 pt-0 space-y-4">
-            <Button variant="outline" className="w-full justify-start rounded-2xl h-12 text-xs font-black uppercase tracking-wider border-zinc-100">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start rounded-2xl h-12 text-xs font-black uppercase tracking-wider border-zinc-100"
+              onClick={async () => {
+                const { error } = await supabase.rpc('reload_schema_cache')
+                if (error) toast.error('Erro ao recarregar: ' + error.message)
+                else toast.success('Cache do esquema recarregado com sucesso!')
+              }}
+            >
               <RefreshCcw size={16} className="mr-3" /> Limpar Cache do Sistema
             </Button>
-            <Button variant="outline" className="w-full justify-start rounded-2xl h-12 text-xs font-black uppercase tracking-wider border-zinc-100">
-              <Database size={16} className="mr-3" /> Reotimizar Tabelas
+            <Button 
+              variant="outline" 
+              className="w-full justify-start rounded-2xl h-12 text-xs font-black uppercase tracking-wider border-zinc-100"
+              onClick={() => window.location.href = '/admin-fix'}
+            >
+              <Database size={16} className="mr-3" /> Script de Reparação Master
             </Button>
           </CardContent>
         </Card>

@@ -807,13 +807,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_supplier_brands_supplier"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "supplier_brands_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
@@ -842,20 +835,6 @@ export type Database = {
           supplier_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_supplier_products_product"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_supplier_products_supplier"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "supplier_products_product_id_fkey"
             columns: ["product_id"]
@@ -1113,6 +1092,7 @@ export type Database = {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
       }
+      reload_schema_cache: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
