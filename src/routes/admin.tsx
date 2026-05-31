@@ -36,7 +36,7 @@ import {
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
- import { supabase } from '@/lib/supabase'
+ import { supabase } from '@/integrations/supabase/client'
  import { toast } from '@/lib/toast'
  import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -177,7 +177,8 @@ export const Route = createFileRoute('/admin')({
             .eq('key', 'panel_alert_config')
             .maybeSingle()
           
-          const config = latest?.value || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
+          const config = (latest?.value as any) || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
+
 
            if (config.order_visual_pulse !== false) {
              setHasNewOrder(true)

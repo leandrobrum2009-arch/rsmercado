@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,14 +32,14 @@ import { toast } from '@/lib/toast'
 interface Supplier {
   id: string
   name: string
-  cnpj: string
-  contact_person: string
-  phone: string
-  whatsapp: string
-  email: string
-  address: string
-  notes: string
-  is_active: boolean
+  cnpj: string | null
+  contact_person: string | null
+  phone: string | null
+  whatsapp: string | null
+  email: string | null
+  address: string | null
+  notes: string | null
+  is_active: boolean | null
   supplier_brands?: { id: string, brand_name: string }[]
   supplier_products?: { product_id: string }[]
 }
@@ -47,8 +47,8 @@ interface Supplier {
 interface Product {
   id: string
   name: string
-  brand: string
-  category_id: string
+  brand: string | null
+  category_id: string | null
 }
 
 interface Category {
@@ -58,27 +58,27 @@ interface Category {
 
 interface PurchaseOrderItem {
   id?: string
-  product_id?: string
-  brand_name?: string
+  product_id?: string | null
+  brand_name?: string | null
   quantity: number
   unit_price: number
-  received_quantity: number
-  defective_quantity: number
-  expiry_date?: string
+  received_quantity: number | null
+  defective_quantity: number | null
+  expiry_date?: string | null
 }
 
 interface PurchaseOrder {
   id: string
-  supplier_id: string
+  supplier_id: string | null
   status: string
-  total_amount: number
-  delivery_date: string
-  actual_delivery_date: string
-  payment_status: string
-  notes: string
-  created_at: string
-  suppliers?: { name: string, whatsapp: string, phone: string, address: string, contact_person: string }
-  purchase_order_items?: PurchaseOrderItem[]
+  total_amount: number | null
+  delivery_date: string | null
+  actual_delivery_date: string | null
+  payment_status: string | null
+  notes: string | null
+  created_at: string | null
+  suppliers?: { name: string, whatsapp: string | null, phone: string | null, address: string | null, contact_person: string | null } | null
+  purchase_order_items?: any[]
 }
 
 export function SupplierManagement() {
@@ -114,15 +114,15 @@ export function SupplierManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*), supplier_products(product_id)').order('name')
-      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))').order('created_at', { ascending: false })
+      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands:supplier_brands!supplier_brands_supplier_id_fkey(*), supplier_products:supplier_products!supplier_products_supplier_id_fkey(product_id)').order('name')
+      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers:suppliers!purchase_orders_supplier_id_fkey(name, whatsapp, phone, address, contact_person), purchase_order_items:purchase_order_items!purchase_order_items_purchase_order_id_fkey(*, products(name))').order('created_at', { ascending: false })
       const { data: productsData } = await supabase.from('products').select('id, name, brand, category_id').order('name')
       const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
       
-      setSuppliers(suppliersData || [])
-      setOrders(ordersData || [])
-      setProducts(productsData || [])
-      setCategories(categoriesData || [])
+      setSuppliers((suppliersData as any) || [])
+      setOrders((ordersData as any) || [])
+      setProducts((productsData as any) || [])
+      setCategories((categoriesData as any) || [])
     } catch (error: any) { 
       console.error(error)
       toast.error('Erro ao carregar dados: ' + (error.message || 'Erro desconhecido')) 
@@ -157,9 +157,17 @@ export function SupplierManagement() {
       }
 
       // Filter out empty strings to avoid validation/format issues in DB
-      const supplierData = Object.fromEntries(
-        Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-      )
+      const supplierData: any = {
+        name: newSupplier.name,
+        cnpj: newSupplier.cnpj || null,
+        contact_person: newSupplier.contact_person || null,
+        phone: newSupplier.phone || null,
+        whatsapp: newSupplier.whatsapp || null,
+        email: newSupplier.email || null,
+        address: newSupplier.address || null,
+        notes: newSupplier.notes || null,
+        is_active: newSupplier.is_active ?? true
+      }
 
       console.log('Enviando dados para o Supabase:', supplierData)
       const { data, error } = await supabase.from('suppliers').insert([supplierData]).select().single()
@@ -277,7 +285,7 @@ export function SupplierManagement() {
 
   const filteredSuppliers = suppliers.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.contact_person.toLowerCase().includes(searchTerm.toLowerCase())
+    (s.contact_person?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
 
@@ -412,23 +420,23 @@ export function SupplierManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="md:col-span-2 space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">Nome Fantasia *</Label>
-              <Input value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" placeholder="Ex: Nestlé" />
+              <Input value={newSupplier.name || ""} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" placeholder="Ex: Nestlé" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">CNPJ</Label>
-              <Input value={newSupplier.cnpj} onChange={e => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="h-12 rounded-xl" placeholder="00.000.000/0000-00" />
+              <Input value={newSupplier.cnpj || ""} onChange={e => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="h-12 rounded-xl" placeholder="00.000.000/0000-00" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">Contato (Responsável)</Label>
-              <Input value={newSupplier.contact_person} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" placeholder="Nome do vendedor" />
+              <Input value={newSupplier.contact_person || ""} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" placeholder="Nome do vendedor" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp</Label>
-              <Input value={newSupplier.whatsapp} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" placeholder="(00) 00000-0000" />
+              <Input value={newSupplier.whatsapp || ""} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" placeholder="(00) 00000-0000" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
-              <Input type="email" value={newSupplier.email} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
+              <Input type="email" value={newSupplier.email || ""} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
             </div>
           </div>
           <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
