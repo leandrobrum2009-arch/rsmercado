@@ -226,7 +226,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "admin_account", "activity_logs", "sending_logs", "feedback"
+                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback"
               ])
             }
          }
