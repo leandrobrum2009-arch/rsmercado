@@ -157,9 +157,17 @@ export function SupplierManagement() {
       }
 
       // Filter out empty strings to avoid validation/format issues in DB
-      const supplierData = Object.fromEntries(
-        Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-      )
+      const supplierData: any = {
+        name: newSupplier.name,
+        cnpj: newSupplier.cnpj || null,
+        contact_person: newSupplier.contact_person || null,
+        phone: newSupplier.phone || null,
+        whatsapp: newSupplier.whatsapp || null,
+        email: newSupplier.email || null,
+        address: newSupplier.address || null,
+        notes: newSupplier.notes || null,
+        is_active: newSupplier.is_active ?? true
+      }
 
       console.log('Enviando dados para o Supabase:', supplierData)
       const { data, error } = await supabase.from('suppliers').insert([supplierData]).select().single()
