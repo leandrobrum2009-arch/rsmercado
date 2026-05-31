@@ -264,20 +264,55 @@ export function SupplierManagement() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="suppliers" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {suppliers.map(supplier => (
-              <Card key={supplier.id} className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white group">
-                <CardHeader className="bg-zinc-50 border-b border-zinc-100 pb-4">
-                  <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
+        <TabsContent value="suppliers" className="space-y-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5" />
+            <Input 
+              placeholder="Buscar fornecedor por nome ou contato..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-12 h-14 rounded-2xl bg-white border-zinc-100 shadow-sm focus:ring-zinc-900"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSuppliers.map(supplier => (
+              <Card key={supplier.id} className="border-0 shadow-lg rounded-[32px] overflow-hidden bg-white group hover:shadow-xl transition-all duration-300">
+                <CardHeader className="bg-zinc-50 border-b border-zinc-100 p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
+                      <p className="text-[10px] font-bold uppercase text-zinc-400 mt-1">{supplier.contact_person}</p>
+                    </div>
+                    <Badge variant={supplier.is_active ? "default" : "secondary"} className="rounded-full px-3 py-1 text-[8px] font-black uppercase">
+                      {supplier.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-zinc-400">Contato: {supplier.contact_person}</p>
-                    <p className="text-[10px] font-black uppercase text-zinc-400">Wpp: {supplier.whatsapp}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">WhatsApp</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.whatsapp || '-'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">E-mail</p>
+                      <p className="text-xs font-bold text-zinc-700 truncate">{supplier.email || '-'}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-50">
-                    {supplier.supplier_brands?.map(b => <Badge key={b.id} variant="outline" className="text-[8px] font-bold uppercase">{b.brand_name}</Badge>)}
+                  
+                  <div className="space-y-2 pt-4 border-t border-zinc-50">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">Produtos</p>
+                      <Badge variant="outline" className="text-[8px] font-bold">{supplier.supplier_products?.length || 0} itens</Badge>
+                    </div>
+                    <Button 
+                      onClick={() => { setSelectedSupplier(supplier); setIsManagingProducts(true); }}
+                      variant="outline" 
+                      className="w-full rounded-2xl border-zinc-200 text-zinc-600 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all font-black uppercase text-[10px] tracking-widest h-10"
+                    >
+                      <Package className="w-3 h-3 mr-2" /> Gerenciar Mix
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
