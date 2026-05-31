@@ -325,6 +325,17 @@ export function SupplierManagement() {
                     </div>
                   </div>
                   
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">CNPJ</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.cnpj || '-'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-zinc-400">Telefone</p>
+                      <p className="text-xs font-bold text-zinc-700">{supplier.phone || '-'}</p>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2 pt-4 border-t border-zinc-50">
                     <div className="flex items-center justify-between">
                       <p className="text-[8px] font-black uppercase text-zinc-400">Produtos</p>
