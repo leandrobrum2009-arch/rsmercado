@@ -185,7 +185,10 @@ export function SupplierManagement() {
       setIsAddingOrder(false)
       setNewOrder({ supplier_id: '', notes: '', items: [] })
       fetchData()
-    } catch (error: any) { toast.error('Erro: ' + error.message) }
+    } catch (error: any) { 
+      console.error(error)
+      toast.error('Erro ao criar solicitação: ' + (error.message || 'Erro desconhecido')) 
+    }
   }
 
   const handleRegisterReceipt = async (orderId: string, items: any[]) => {
@@ -201,7 +204,10 @@ export function SupplierManagement() {
       toast.success('Recebimento registrado!')
       setIsViewingOrder(false)
       fetchData()
-    } catch (error: any) { toast.error('Erro: ' + error.message) }
+    } catch (error: any) { 
+      console.error(error)
+      toast.error('Erro ao registrar recebimento: ' + (error.message || 'Erro desconhecido')) 
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -223,7 +229,8 @@ export function SupplierManagement() {
       }
       fetchData()
     } catch (error: any) {
-      toast.error('Erro ao atualizar produto: ' + error.message)
+      console.error(error)
+      toast.error('Erro ao atualizar produto: ' + (error.message || 'Erro desconhecido'))
     }
   }
 
