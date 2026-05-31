@@ -39,7 +39,7 @@ interface Supplier {
   email: string | null
   address: string | null
   notes: string | null
-  is_active: boolean
+  is_active: boolean | null
   supplier_brands?: { id: string, brand_name: string }[]
   supplier_products?: { product_id: string }[]
 }
