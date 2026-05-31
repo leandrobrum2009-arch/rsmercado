@@ -80,7 +80,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
     const [storeSettings, setStoreSettings] = useState<any>({
        site_name: 'RS SUPERMERCADO',
       logo_url: '',
-      colors: { primary: '#16a34a', secondary: '#facc15' }
+      colors: { primary: '#16a34a', secondary: '#facc15' },
+      logo_height_mobile: 40,
+      logo_height_desktop: 64,
+      logo_offset_y: 0
     });
    const cartCount = items.length;
  
