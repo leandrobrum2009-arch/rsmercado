@@ -3230,20 +3230,24 @@ export function AdvancedFlyerCreator() {
 
                       <Button 
                         className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl bg-purple-600 hover:bg-purple-700 text-white col-span-2 mt-2" 
-                        onClick={() => {
+                        onClick={async () => {
+                          const config = {
+                            layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
+                            columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
+                            fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
+                            productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
+                            priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
+                            nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
+                            bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
+                            showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
+                          }
+
+                          // If we don't have a saved flyer, we should try to save it first to get an ID
+                          // or at least prepare a temporary object
                           setSelectedFlyerForStory({
                             title: `Encarte ${new Date().toLocaleDateString('pt-BR')}`,
                             products_data: selectedProducts,
-                            config: {
-                              layout, backgroundType, backgroundUrl, backgroundColor, backgroundGradient,
-                              columns, gridGap, showLogo, logoPosition, logoSize, titleColor, priceColor,
-                              fontSize, priceSize, fontFamily, productBgColor, productBgOpacity,
-                              productBlockHeight, showPriceBg, priceBgColor, showShadows, removeFlyerBg,
-                              priceLayout, globalRemoveBg, imageSize, nameOnTop, bgRemovalThreshold, productPadding,
-                              nameOffsetY, nameOffsetX, priceOffsetY, priceOffsetX, imageOffsetY, imageOffsetX, blurAmount,
-                              bgRemovalSmoothing, footerText, showFooter, footerFontSize, subtitleText,
-                              showSubtitle, showValidity, validityText, validityPosition, validityBgColor, validityTextColor
-                            }
+                            config: config
                           })
                           setIsStoryGenOpen(true)
                         }}
