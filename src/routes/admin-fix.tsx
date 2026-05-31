@@ -353,11 +353,56 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
       shimmer_speed_seconds DECIMAL(4,1) DEFAULT 2.0,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
   );
-  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS target_url TEXT;
-  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS duration_seconds INTEGER DEFAULT 10;
-  ALTER TABLE public.store_alerts ADD COLUMN IF NOT EXISTS shimmer_speed_seconds DECIMAL(4,1) DEFAULT 2.0;
- ALTER TABLE public.store_alerts ENABLE ROW LEVEL SECURITY;
-  DROP POLICY IF EXISTS "Public view alerts" ON public.store_alerts;
+
+  -- 12. TABELAS DE FORNECEDORES (REPARAÇÃO)
+  CREATE TABLE IF NOT EXISTS public.suppliers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      cnpj TEXT,
+      contact_person TEXT,
+      phone TEXT,
+      whatsapp TEXT,
+      email TEXT,
+      address TEXT,
+      notes TEXT,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Authenticated users can view suppliers" ON public.suppliers;
+  CREATE POLICY "Authenticated users can view suppliers" ON public.suppliers FOR SELECT USING (true);
+  DROP POLICY IF EXISTS "Admins can manage suppliers" ON public.suppliers;
+  CREATE POLICY "Admins can manage suppliers" ON public.suppliers FOR ALL USING (public.is_admin());
+
+  CREATE TABLE IF NOT EXISTS public.supplier_brands (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      supplier_id UUID REFERENCES public.suppliers(id) ON DELETE CASCADE,
+      brand_name TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  ALTER TABLE public.supplier_brands ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Authenticated users can view supplier brands" ON public.supplier_brands;
+  CREATE POLICY "Authenticated users can view supplier brands" ON public.supplier_brands FOR SELECT USING (true);
+  DROP POLICY IF EXISTS "Admins can manage supplier brands" ON public.supplier_brands;
+  CREATE POLICY "Admins can manage supplier brands" ON public.supplier_brands FOR ALL USING (public.is_admin());
+
+  CREATE TABLE IF NOT EXISTS public.supplier_products (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      supplier_id UUID REFERENCES public.suppliers(id) ON DELETE CASCADE,
+      product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+  ALTER TABLE public.supplier_products ENABLE ROW LEVEL SECURITY;
+  DROP POLICY IF EXISTS "Authenticated users can view supplier products" ON public.supplier_products;
+  CREATE POLICY "Authenticated users can view supplier products" ON public.supplier_products FOR SELECT USING (true);
+  DROP POLICY IF EXISTS "Admins can manage supplier products" ON public.supplier_products;
+  CREATE POLICY "Admins can manage supplier products" ON public.supplier_products FOR ALL USING (public.is_admin());
+
+  -- LIMPEZA FINAL
+  NOTIFY pgrst, 'reload schema';
+  SELECT public.log_migration_step('ADMIN_FIX_UI', 'Repair Script Execution', 'completed', '{"source": "admin-fix-page"}');`
+
   CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
  
    -- 4. HARDENING E PERMISSÕES GERAIS
