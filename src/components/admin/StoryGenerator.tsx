@@ -202,32 +202,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const saveConfig = async () => {
     if (!flyer.id) {
-      console.error('[StoryGenerator] Missing flyer ID', flyer)
-      toast.error('ID do flyer não encontrado')
-      return
+      console.warn('[StoryGenerator] Missing flyer ID, saving to localStorage only');
+      localStorage.setItem('last_story_config', JSON.stringify(config));
+      toast.success('Configurações salvas localmente! (Salve o encarte para salvar permanentemente)');
+      return;
     }
+
     setIsSaving(true)
     try {
-      console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
-      
-      // Sanitize config to ensure it's a clean JSON object
+      // Sanitize config
       const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
       
-      const { error, data } = await oldSupabase
+      const { error } = await oldSupabase
         .from('flyers')
         .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
-        .select()
       
-      if (error) {
-        console.error('[StoryGenerator] Save error:', error)
-        throw error
-      }
+      if (error) throw error
       
-      console.log('[StoryGenerator] Save success:', data)
-      toast.success('Configurações salvas!')
+      toast.success('Configurações salvas com sucesso!')
     } catch (err: any) {
-      console.error('[StoryGenerator] Exception in saveConfig:', err)
+      console.error('[StoryGenerator] Save error:', err)
       toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
     } finally {
       setIsSaving(false)
@@ -265,18 +260,38 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..."`)
 
-        const { data, error } = await supabase.functions.invoke('text-to-speech', {
-          body: { text, lang: 'pt-BR', voice: voiceId }
-        })
+        let data, error;
+        try {
+          const result = await supabase.functions.invoke('text-to-speech', {
+            body: { text, lang: 'pt-BR', voice: voiceId }
+          })
+          data = result.data;
+          error = result.error;
+        } catch (e: any) {
+          console.error(`[StoryGenerator] Invoke exception for slide ${i}:`, e);
+          error = e;
+        }
 
         if (error) {
           console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+          // Fallback to synthesis for preview, but recording will miss this
           continue
         }
 
         if (data) {
-          // data might be a Blob or already an ArrayBuffer depending on Supabase version/config
-          const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' })
+          let blob: Blob;
+          if (data instanceof Blob) {
+            blob = data;
+          } else if (data instanceof ArrayBuffer) {
+            blob = new Blob([data], { type: 'audio/mpeg' });
+          } else if (data.error) {
+            console.error(`[StoryGenerator] Error in data for slide ${i}:`, data.error);
+            continue;
+          } else {
+            console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
+            continue;
+          }
+
           const url = URL.createObjectURL(blob)
           newAudioUrls[i] = url
           
@@ -288,10 +303,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       setAudioUrls(newAudioUrls)
       setSlideDurations(newDurations)
-      toast.success(`${Object.keys(newAudioUrls).length} locuções prontas!`)
-    } catch (err) {
+      
+      const count = Object.keys(newAudioUrls).length;
+      if (count === 0) {
+        toast.error('Nenhum áudio foi gerado. Verifique as configurações.');
+      } else if (count < slides.length) {
+        toast.warning(`${count} de ${slides.length} áudios gerados. Alguns slides ficarão sem narração.`);
+      } else {
+        toast.success(`Todas as ${count} locuções estão prontas!`);
+      }
+    } catch (err: any) {
       console.error('[StoryGenerator] Error in generateAllAudio:', err)
-      toast.error('Erro ao gerar áudios')
+      toast.error(`Erro ao gerar áudios: ${err.message || 'Tente novamente'}`)
     } finally {
       setIsGeneratingAudio(false)
     }
@@ -338,9 +361,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           }
           
           console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
-          const source = audioContextRef.current.createMediaElementSource(audio)
-          source.connect(audioDestRef.current)
-          source.connect(audioContextRef.current.destination)
+          try {
+            const source = audioContextRef.current.createMediaElementSource(audio)
+            source.connect(audioDestRef.current)
+            source.connect(audioContextRef.current.destination)
+          } catch (err) {
+            console.warn('[StoryGenerator] MediaElementSource already connected or failed:', err);
+          }
         }
         
         await audio.play()
@@ -523,12 +550,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     
     // Combine video and audio tracks
     const combinedStream = new MediaStream()
-    videoStream.getVideoTracks().forEach(track => combinedStream.addTrack(track))
-    dest.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track))
     
-    if (combinedStream.getAudioTracks().length === 0) {
-      console.error('CRITICAL: No audio tracks detected in the recording stream!')
+    // Video tracks
+    videoStream.getVideoTracks().forEach(track => {
+      console.log('[StoryGenerator] Adding video track:', track.id);
+      combinedStream.addTrack(track);
+    });
+    
+    // Audio tracks from destination
+    const audioTracks = dest.stream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      console.error('CRITICAL: No audio tracks found in the destination stream!');
+      // Create a silent audio track as fallback to ensure the file has audio track
+      const silence = audioContext.createGain();
+      silence.gain.value = 0;
+      silence.connect(dest);
     }
+    
+    audioTracks.forEach(track => {
+      console.log('[StoryGenerator] Adding audio track:', track.id);
+      combinedStream.addTrack(track);
+    });
     
     const isMp4Supported = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2');
     const mimeType = isMp4Supported
