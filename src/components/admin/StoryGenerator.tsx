@@ -320,6 +320,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           }
         } catch (e: any) {
           console.error(`[StoryGenerator] Exception generating audio for slide ${i}:`, e);
+          toast.error(`Erro no slide ${i+1}: ${e.message}`);
           continue;
         }
       }
