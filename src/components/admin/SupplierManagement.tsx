@@ -113,9 +113,42 @@ export function SupplierManagement() {
 
   const fetchData = async () => {
     setLoading(true)
+    console.log('SupplierManagement: Buscando dados...')
     try {
-      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands:supplier_brands!supplier_brands_supplier_id_fkey(*), supplier_products:supplier_products!supplier_products_supplier_id_fkey(product_id)').order('name')
-      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers:suppliers!purchase_orders_supplier_id_fkey(name, whatsapp, phone, address, contact_person), purchase_order_items:purchase_order_items!purchase_order_items_purchase_order_id_fkey(*, products(name))').order('created_at', { ascending: false })
+      // Use clean queries without redundant hints to see if PostgREST resolves correctly
+      const { data: suppliersData, error: sError } = await supabase
+        .from('suppliers')
+        .select(`
+          *, 
+          supplier_brands(*), 
+          supplier_products(product_id)
+        `)
+        .order('name')
+      
+      if (sError) {
+        console.error('Erro ao buscar fornecedores:', sError)
+        // If it's a schema cache error, we want to inform the user
+        if (sError.message.includes('schema cache')) {
+          toast.error('Erro de cache no banco de dados. Por favor, use a aba "Saúde do Sistema" para recarregar o esquema.')
+        } else {
+          throw sError
+        }
+      }
+
+      const { data: ordersData, error: oError } = await supabase
+        .from('purchase_orders')
+        .select(`
+          *, 
+          suppliers(name, whatsapp, phone, address, contact_person), 
+          purchase_order_items(*, products(name))
+        `)
+        .order('created_at', { ascending: false })
+      
+      if (oError) {
+        console.error('Erro ao buscar pedidos:', oError)
+        throw oError
+      }
+
       const { data: productsData } = await supabase.from('products').select('id, name, brand, category_id').order('name')
       const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
       
@@ -123,8 +156,9 @@ export function SupplierManagement() {
       setOrders((ordersData as any) || [])
       setProducts((productsData as any) || [])
       setCategories((categoriesData as any) || [])
+      console.log('SupplierManagement: Dados carregados com sucesso:', (suppliersData as any)?.length, 'fornecedores encontrados.')
     } catch (error: any) { 
-      console.error(error)
+      console.error('SupplierManagement: Erro fatal no fetchData:', error)
       toast.error('Erro ao carregar dados: ' + (error.message || 'Erro desconhecido')) 
     } finally { 
       setLoading(false) 
