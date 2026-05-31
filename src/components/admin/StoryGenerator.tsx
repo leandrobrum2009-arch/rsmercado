@@ -696,8 +696,6 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         const ratio = targetWidth / currentWidth;
 
         const dataUrl = await htmlToImage.toJpeg(element, {
-          width: targetWidth,
-          height: targetHeight,
           pixelRatio: ratio,
           backgroundColor: config.backgroundColor || '#ffffff',
           cacheBust: true,
