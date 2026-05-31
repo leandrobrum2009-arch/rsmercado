@@ -526,12 +526,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       console.error('CRITICAL: No audio tracks detected in the recording stream!')
     }
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+    const isMp4Supported = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2');
+    const mimeType = isMp4Supported
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
       : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
         ? 'video/webm;codecs=vp9,opus'
         : 'video/webm';
         
+    console.log('[StoryGenerator] Using MIME type:', mimeType);
+
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
       videoBitsPerSecond: 12000000 
@@ -543,25 +546,37 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       bgAudio = new Audio(config.backgroundMusic)
       bgAudio.crossOrigin = "anonymous"
       bgAudio.loop = true
+      
+      // Connect to the recording context
       const source = audioContext.createMediaElementSource(bgAudio)
       source.connect(dest)
       source.connect(audioContext.destination)
+      
       bgAudio.play().catch(e => console.error("BG music error:", e))
     }
     
     chunksRef.current = []
-    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+    recorder.ondataavailable = (e) => { 
+      if (e.data.size > 0) {
+        chunksRef.current.push(e.data) 
+        console.log(`[StoryGenerator] Received chunk of size: ${e.data.size}`);
+      }
+    }
     
     recorder.onstop = async () => {
+      console.log('[StoryGenerator] Recording stopped, processing chunks...');
       if (bgAudio) { bgAudio.pause(); bgAudio.currentTime = 0; }
-      if (activeAudioRef.current) (activeAudioRef.current as any).pause();
+      if (activeAudioRef.current) {
+        try { (activeAudioRef.current as any).pause(); } catch(e) {}
+      }
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       
+      const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
       const link = document.createElement('a');
       link.href = url;
-      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`;
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
