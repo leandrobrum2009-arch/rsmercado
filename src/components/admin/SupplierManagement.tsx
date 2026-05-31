@@ -190,6 +190,54 @@ export function SupplierManagement() {
     return <Badge className={s.color}>{s.label}</Badge>
   }
 
+  const toggleProduct = async (supplierId: string, productId: string, isSelected: boolean) => {
+    try {
+      if (isSelected) {
+        await supabase.from('supplier_products').delete().eq('supplier_id', supplierId).eq('product_id', productId)
+      } else {
+        await supabase.from('supplier_products').insert([{ supplier_id: supplierId, product_id: productId }])
+      }
+      fetchData()
+    } catch (error: any) {
+      toast.error('Erro ao atualizar produto: ' + error.message)
+    }
+  }
+
+  const toggleCategoryProducts = async (supplierId: string, categoryId: string, selectAll: boolean) => {
+    try {
+      const categoryProducts = products.filter(p => p.category_id === categoryId)
+      const supplierProductIds = suppliers.find(s => s.id === supplierId)?.supplier_products?.map(sp => sp.product_id) || []
+      
+      if (selectAll) {
+        const toAdd = categoryProducts
+          .filter(p => !supplierProductIds.includes(p.id))
+          .map(p => ({ supplier_id: supplierId, product_id: p.id }))
+        
+        if (toAdd.length > 0) {
+          await supabase.from('supplier_products').insert(toAdd)
+        }
+      } else {
+        const toRemoveIds = categoryProducts
+          .filter(p => supplierProductIds.includes(p.id))
+          .map(p => p.id)
+        
+        if (toRemoveIds.length > 0) {
+          await supabase.from('supplier_products').delete().eq('supplier_id', supplierId).in('product_id', toRemoveIds)
+        }
+      }
+      fetchData()
+      toast.success(selectAll ? 'Produtos adicionados!' : 'Produtos removidos!')
+    } catch (error: any) {
+      toast.error('Erro ao atualizar categoria: ' + error.message)
+    }
+  }
+
+  const filteredSuppliers = suppliers.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.contact_person.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+
   return (
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
