@@ -172,12 +172,15 @@
          data.forEach((item: any) => {
            if (item.key === 'site_name') newSettings.site_name = item.value;
            if (item.key === 'logo_url') newSettings.logo_url = item.value;
-           if (item.key === 'color_palette') newSettings.colors = item.value;
-           if (item.key === 'address') newSettings.address = item.value;
-           if (item.key === 'whatsapp') newSettings.whatsapp = item.value;
-           if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
-           if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
-           if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
+            if (item.key === 'color_palette') newSettings.colors = item.value;
+            if (item.key === 'logo_height_mobile') newSettings.logo_height_mobile = item.value;
+            if (item.key === 'logo_height_desktop') newSettings.logo_height_desktop = item.value;
+            if (item.key === 'logo_offset_y') newSettings.logo_offset_y = item.value;
+            if (item.key === 'address') newSettings.address = item.value;
+            if (item.key === 'whatsapp') newSettings.whatsapp = item.value;
+            if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
+            if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
+            if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
             if (item.key === 'store_description') newSettings.store_description = item.value;
              if (item.key === 'points_multiplier' || item.key === 'points_ratio') {
                const val = item.value;
