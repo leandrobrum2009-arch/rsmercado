@@ -340,6 +340,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         }
         
         await audio.play()
+        console.log(`[StoryGenerator] Playing audio for slide ${index}`);
         activeAudioRef.current = audio
         return
       } catch (e) {
