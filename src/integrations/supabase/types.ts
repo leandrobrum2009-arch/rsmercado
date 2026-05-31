@@ -520,6 +520,110 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_order_items: {
+        Row: {
+          brand_name: string | null
+          created_at: string | null
+          defective_quantity: number | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          purchase_order_id: string | null
+          quantity: number
+          received_quantity: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          brand_name?: string | null
+          created_at?: string | null
+          defective_quantity?: number | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          purchase_order_id?: string | null
+          quantity: number
+          received_quantity?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          brand_name?: string | null
+          created_at?: string | null
+          defective_quantity?: number | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          purchase_order_id?: string | null
+          quantity?: number
+          received_quantity?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          actual_delivery_date: string | null
+          created_at: string | null
+          delivery_date: string | null
+          id: string
+          notes: string | null
+          payment_status: string | null
+          status: string
+          supplier_id: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          status?: string
+          supplier_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          status?: string
+          supplier_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -658,6 +762,77 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      supplier_brands: {
+        Row: {
+          brand_name: string
+          created_at: string | null
+          id: string
+          supplier_id: string | null
+        }
+        Insert: {
+          brand_name: string
+          created_at?: string | null
+          id?: string
+          supplier_id?: string | null
+        }
+        Update: {
+          brand_name?: string
+          created_at?: string | null
+          id?: string
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_brands_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }

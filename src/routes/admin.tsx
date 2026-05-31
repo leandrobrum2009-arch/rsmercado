@@ -58,6 +58,8 @@ import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { DevicePreview } from '@/components/admin/DevicePreview'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { SupplierManagement } from '@/components/admin/SupplierManagement'
+
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
@@ -224,7 +226,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "admin_account", "activity_logs", "sending_logs", "feedback"
+                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback"
               ])
             }
          }
@@ -301,10 +303,16 @@ export const Route = createFileRoute('/admin')({
                { id: 'recipes', label: 'Receitas', icon: ChefHat },
               { id: 'notifications', label: 'Notificações', icon: Bell },
               { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
-           ]
+            ]
          },
+        {
+          title: 'Suprimentos e Estoque',
+          items: [
+            { id: 'suppliers', label: 'Gestão de Fornecedores', icon: Users },
+          ]
+        },
        {
-       title: 'Configurações e Integrações',
+        title: 'Configurações e Integrações',
         items: [
               { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
               { id: 'theme', label: 'Tema Visual', icon: Palette },
@@ -504,6 +512,9 @@ export const Route = createFileRoute('/admin')({
                    </TabsContent>
                     <TabsContent value="admin_account" className="mt-0 focus-visible:ring-0">
                       <AdminAccountSettings />
+                    </TabsContent>
+                    <TabsContent value="suppliers" className="mt-0 focus-visible:ring-0">
+                      <SupplierManagement />
                     </TabsContent>
                     <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
                       <SecurityLogViewer />
