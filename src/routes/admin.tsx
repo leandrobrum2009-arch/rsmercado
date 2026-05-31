@@ -36,7 +36,7 @@ import {
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
- import { supabase } from '@/lib/supabase'
+ import { supabase } from '@/integrations/supabase/client'
  import { toast } from '@/lib/toast'
  import { AlertTriangle, RefreshCcw, Home as HomeIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
