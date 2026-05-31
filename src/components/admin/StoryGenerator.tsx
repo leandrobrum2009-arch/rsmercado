@@ -209,9 +209,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setIsSaving(true)
     try {
       console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
+      
+      // Sanitize config to ensure it's a clean JSON object
+      const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
+      
       const { error, data } = await oldSupabase
         .from('flyers')
-        .update({ config: { ...flyer.config, ...config } })
+        .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
         .select()
       
@@ -340,6 +344,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         }
         
         await audio.play()
+        console.log(`[StoryGenerator] Playing audio for slide ${index}`);
         activeAudioRef.current = audio
         return
       } catch (e) {
@@ -525,12 +530,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       console.error('CRITICAL: No audio tracks detected in the recording stream!')
     }
     
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+    const isMp4Supported = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2');
+    const mimeType = isMp4Supported
       ? 'video/mp4;codecs=avc1,mp4a.40.2'
       : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
         ? 'video/webm;codecs=vp9,opus'
         : 'video/webm';
         
+    console.log('[StoryGenerator] Using MIME type:', mimeType);
+
     const recorder = new MediaRecorder(combinedStream, {
       mimeType,
       videoBitsPerSecond: 12000000 
@@ -542,25 +550,37 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       bgAudio = new Audio(config.backgroundMusic)
       bgAudio.crossOrigin = "anonymous"
       bgAudio.loop = true
+      
+      // Connect to the recording context
       const source = audioContext.createMediaElementSource(bgAudio)
       source.connect(dest)
       source.connect(audioContext.destination)
+      
       bgAudio.play().catch(e => console.error("BG music error:", e))
     }
     
     chunksRef.current = []
-    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+    recorder.ondataavailable = (e) => { 
+      if (e.data.size > 0) {
+        chunksRef.current.push(e.data) 
+        console.log(`[StoryGenerator] Received chunk of size: ${e.data.size}`);
+      }
+    }
     
     recorder.onstop = async () => {
+      console.log('[StoryGenerator] Recording stopped, processing chunks...');
       if (bgAudio) { bgAudio.pause(); bgAudio.currentTime = 0; }
-      if (activeAudioRef.current) (activeAudioRef.current as any).pause();
+      if (activeAudioRef.current) {
+        try { (activeAudioRef.current as any).pause(); } catch(e) {}
+      }
       
       const blob = new Blob(chunksRef.current, { type: mimeType })
       const url = URL.createObjectURL(blob)
       
+      const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
       const link = document.createElement('a');
       link.href = url;
-      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.mp4`;
+      link.download = `story-${flyer.title.replace(/\s+/g, '-')}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -589,14 +609,26 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       isCapturing = true;
       try {
         const element = slideRef.current;
+        
+        // Remove rounded corners and shadow temporarily for a perfect full-screen capture
+        const originalStyle = element.getAttribute('style') || '';
+        const originalClassName = element.className;
+        
+        // Remove styling that would make the capture "smaller" or have artifacts
+        element.style.borderRadius = '0';
+        element.style.boxShadow = 'none';
+        element.style.maxHeight = 'none';
+        
         const dataUrl = await htmlToImage.toJpeg(element, {
           pixelRatio: 1080 / element.clientWidth,
           backgroundColor: flyer.config?.backgroundColor || '#ffffff',
           cacheBust: true,
-          width: 1080,
-          height: 1920,
           quality: 0.95
         });
+
+        // Restore styles
+        element.className = originalClassName;
+        element.setAttribute('style', originalStyle);
 
         const img = new Image();
         img.src = dataUrl;
@@ -607,6 +639,12 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx && img.complete && img.naturalWidth > 0) {
+          // Clear and draw centered
+          ctx.fillStyle = flyer.config?.backgroundColor || '#ffffff';
+          ctx.fillRect(0, 0, 1080, 1920);
+          
+          // Draw the image scaled to fit 1080x1920
+          // Since it's 9:16 aspect ratio, it should fit perfectly
           ctx.drawImage(img, 0, 0, 1080, 1920);
         }
       } catch (e) {
@@ -614,7 +652,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          setTimeout(captureFrame, 66); // ~15fps is enough for stories and more stable
+          // 24fps for smoother video
+          setTimeout(captureFrame, 41); 
         }
       }
     };
