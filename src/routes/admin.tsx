@@ -58,6 +58,8 @@ import { CustomerManagement } from '@/components/admin/CustomerManagement'
 import { DevicePreview } from '@/components/admin/DevicePreview'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { SupplierManagement } from '@/components/admin/SupplierManagement'
+
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async ({ location }) => {
