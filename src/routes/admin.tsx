@@ -513,6 +513,9 @@ export const Route = createFileRoute('/admin')({
                     <TabsContent value="admin_account" className="mt-0 focus-visible:ring-0">
                       <AdminAccountSettings />
                     </TabsContent>
+                    <TabsContent value="suppliers" className="mt-0 focus-visible:ring-0">
+                      <SupplierManagement />
+                    </TabsContent>
                     <TabsContent value="activity_logs" className="mt-0 focus-visible:ring-0">
                       <SecurityLogViewer />
                     </TabsContent>
