@@ -204,26 +204,32 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     if (!flyer.id) {
       console.warn('[StoryGenerator] Missing flyer ID, saving to localStorage only');
       localStorage.setItem('last_story_config', JSON.stringify(config));
-      toast.success('Configurações salvas localmente! (Salve o encarte para salvar permanentemente)');
+      toast.info('Configurações salvas no navegador! Para salvar permanentemente, salve o encarte principal primeiro.');
       return;
     }
 
     setIsSaving(true)
     try {
+      console.log('[StoryGenerator] Attempting to save config to database for flyer:', flyer.id);
       // Sanitize config
       const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
       
-      const { error } = await oldSupabase
+      const { data, error } = await oldSupabase
         .from('flyers')
         .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
+        .select();
       
-      if (error) throw error
+      if (error) {
+        console.error('[StoryGenerator] Database update error:', error);
+        throw error;
+      }
       
-      toast.success('Configurações salvas com sucesso!')
+      console.log('[StoryGenerator] Save successful:', data);
+      toast.success('Configurações salvas com sucesso no banco de dados!');
     } catch (err: any) {
-      console.error('[StoryGenerator] Save error:', err)
-      toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
+      console.error('[StoryGenerator] Save error details:', err)
+      toast.error(`Erro ao salvar no banco: ${err.message || 'Verifique sua conexão ou se o encarte ainda existe.'}`)
     } finally {
       setIsSaving(false)
     }
