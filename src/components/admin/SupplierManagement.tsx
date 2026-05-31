@@ -132,6 +132,7 @@ export function SupplierManagement() {
   }
 
   const handleAddSupplier = async () => {
+    console.log('Iniciando cadastro de fornecedor:', newSupplier)
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
     
     // Basic validation
@@ -141,12 +142,16 @@ export function SupplierManagement() {
 
     try {
       // Check if supplier with same name already exists
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('suppliers')
         .select('id')
         .ilike('name', newSupplier.name!)
         .maybeSingle()
       
+      if (checkError) {
+        console.error('Erro ao verificar fornecedor existente:', checkError)
+      }
+
       if (existing) {
         return toast.error('Já existe um fornecedor com este nome')
       }
@@ -156,8 +161,14 @@ export function SupplierManagement() {
         Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
       )
 
+      console.log('Enviando dados para o Supabase:', supplierData)
       const { data, error } = await supabase.from('suppliers').insert([supplierData]).select().single()
-      if (error) throw error
+      
+      if (error) {
+        console.error('Erro detalhado do Supabase:', error)
+        throw error
+      }
+
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
       setNewSupplier({ name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
@@ -169,7 +180,7 @@ export function SupplierManagement() {
         setIsManagingProducts(true)
       }
     } catch (error: any) { 
-      console.error(error)
+      console.error('Erro ao cadastrar fornecedor:', error)
       toast.error('Erro ao cadastrar fornecedor: ' + (error.message || 'Erro desconhecido')) 
     }
   }
