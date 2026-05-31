@@ -32,6 +32,7 @@ import { toast } from '@/lib/toast'
 interface Supplier {
   id: string
   name: string
+  cnpj: string
   contact_person: string
   phone: string
   whatsapp: string
