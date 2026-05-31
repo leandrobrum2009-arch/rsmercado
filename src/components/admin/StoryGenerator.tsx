@@ -274,14 +274,28 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..." with voice ${voiceId}`)
 
+        if (!text || text.trim().length === 0) {
+          console.warn(`[StoryGenerator] Empty text for slide ${i}, skipping...`);
+          continue;
+        }
+
         try {
+          console.log(`[StoryGenerator] Calling TTS for slide ${i} with text: "${text.substring(0, 30)}..."`);
+          
           // Use fetch directly to ensure binary response handling is perfect
-          const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`;
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          
+          if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Configuração do Supabase ausente. Verifique as chaves VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.');
+          }
+
+          const functionUrl = `${supabaseUrl}/functions/v1/text-to-speech`;
           const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'Authorization': `Bearer ${supabaseKey}`,
             },
             body: JSON.stringify({ text, lang: 'pt-BR', voice: voiceId })
           });
@@ -289,7 +303,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           if (!response.ok) {
             const errText = await response.text();
             console.error(`[StoryGenerator] TTS failed for slide ${i}:`, response.status, errText);
-            continue;
+            throw new Error(`Servidor respondeu com erro ${response.status}: ${errText}`);
           }
 
           const blob = await response.blob();
