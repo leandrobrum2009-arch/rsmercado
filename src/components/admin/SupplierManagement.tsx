@@ -47,6 +47,12 @@ interface Product {
   id: string
   name: string
   brand: string
+  category_id: string
+}
+
+interface Category {
+  id: string
+  name: string
 }
 
 interface PurchaseOrderItem {
