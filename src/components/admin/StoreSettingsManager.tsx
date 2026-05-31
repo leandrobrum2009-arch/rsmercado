@@ -548,7 +548,7 @@
                             min={30} 
                             max={300} 
                             step={1} 
-                            onValueChange={([val]) => setSettings({ ...settings, logo_height_desktop: val.toString() })} 
+                            onValueChange={([val]: number[]) => setSettings({ ...settings, logo_height_desktop: val.toString() })} 
                           />
                         </div>
                         <div className="space-y-4">
