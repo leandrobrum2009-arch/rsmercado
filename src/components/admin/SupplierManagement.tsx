@@ -138,12 +138,18 @@ export function SupplierManagement() {
         Object.entries(newSupplier).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
       )
 
-      const { error } = await supabase.from('suppliers').insert([supplierData])
+      const { data, error } = await supabase.from('suppliers').insert([supplierData]).select().single()
       if (error) throw error
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
       setNewSupplier({ name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
+      
+      // Auto-open product management for the new supplier
+      if (data) {
+        setSelectedSupplier(data as Supplier)
+        setIsManagingProducts(true)
+      }
     } catch (error: any) { 
       console.error(error)
       toast.error('Erro: ' + error.message) 
