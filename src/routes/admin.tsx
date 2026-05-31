@@ -59,6 +59,8 @@ import { DevicePreview } from '@/components/admin/DevicePreview'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SupplierManagement } from '@/components/admin/SupplierManagement'
+import { AdminSecurityVerification } from '@/components/admin/AdminHealthCheck'
+
 
 
 export const Route = createFileRoute('/admin')({
