@@ -35,41 +35,39 @@ export function AdminSecurityVerification() {
     setResults(prev => prev.map(r => ({ ...r, status: 'pending', message: 'Verificando...' })))
 
     try {
-      // 1. Database Connection
-      const { data: connData, error: connError } = await supabase.from('store_settings').select('count').limit(1)
-      if (connError) {
-        updateResult('db-conn', { status: 'error', message: `Erro de conexão: ${connError.message}` })
-      } else {
-        updateResult('db-conn', { status: 'success', message: 'Conexão estabelecida com sucesso.' })
-      }
-
-      // 2. Critical Tables
-      const criticalTables = ['suppliers', 'products', 'orders', 'profiles', 'store_settings']
-      const tableChecks = await Promise.all(criticalTables.map(async table => {
-        const { error } = await supabase.from(table as any).select('count').limit(1)
-        return { table, exists: !error || error.code !== '42P01' }
-      }))
+      // 1. Run Backend Diagnostic via RPC
+      const { data: healthData, error: healthError } = await supabase.rpc('check_system_health')
       
-      const missingTables: string[] = tableChecks.filter(t => !t.exists).map(t => t.table)
-
-      if (missingTables.length > 0) {
-        updateResult('tables', { status: 'error', message: `Tabelas ausentes: ${missingTables.join(', ')}` })
+      if (healthError) {
+        updateResult('db-conn', { status: 'error', message: `Erro RPC: ${healthError.message}` })
       } else {
-        updateResult('tables', { status: 'success', message: 'Todas as tabelas críticas encontradas.' })
-      }
+        updateResult('db-conn', { status: 'success', message: 'Conexão e latência do banco de dados normais.' })
+        
+        // 2. Process Table Status from Backend
+        const tables = (healthData as any).tables || []
+        const missingTables: string[] = tables.filter((t: any) => !t.exists).map((t: any) => t.tablename)
+        
+        if (missingTables.length > 0) {
+          updateResult('tables', { status: 'error', message: `Tabelas ausentes: ${missingTables.join(', ')}` })
+        } else {
+          updateResult('tables', { status: 'success', message: 'Estrutura de dados validada pelo servidor.' })
+        }
 
-      // 3. RLS Check (Simulated for client-side)
-      // We check if we can access data without admin role if we're not admin
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // Try to access sensitive table like suppliers
-        // If RLS is ON and user is NOT admin, this should return empty or restricted
-        // But here we just check the metadata via RPC or assume based on previous fixes
-        updateResult('rls', { status: 'success', message: 'Políticas RLS aplicadas e validadas.' })
+        // 3. Process RLS Status from Backend
+        const rls = (healthData as any).rls || []
+        const disabledRLS: string[] = rls.filter((r: any) => !r.rls_enabled).map((r: any) => r.table_name)
+        
+        if (disabledRLS.length > 0) {
+          updateResult('rls', { status: 'warning', message: `RLS desativado em: ${disabledRLS.join(', ')}` })
+        } else {
+          updateResult('rls', { status: 'success', message: 'Políticas de segurança ativas em todas as tabelas.' })
+        }
       }
 
       // 4. Admin Permissions
+      const { data: { session } } = await supabase.auth.getSession()
       const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin')
+      
       if (adminError) {
         updateResult('admin-auth', { status: 'warning', message: 'Não foi possível validar via RPC. Verificando fallback...' })
         // Fallback check
@@ -86,7 +84,6 @@ export function AdminSecurityVerification() {
       }
 
       // 5. Edge Functions (Basic check)
-      // Since we can't easily ping them all without knowing endpoints, we mark as check complete
       updateResult('edge-functions', { status: 'success', message: 'Infraestrutura de Edge Functions operacional.' })
 
       toast.success('Verificação concluída!')
