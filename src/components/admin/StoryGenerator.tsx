@@ -234,6 +234,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     const newAudioUrls: Record<number, string> = {}
     const newDurations: Record<number, number> = {}
 
+    console.log('[StoryGenerator] Starting audio generation for', slides.length, 'slides');
+
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
       
@@ -258,46 +260,46 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
         else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
 
-        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..."`)
+        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..." with voice ${voiceId}`)
 
-        let data, error;
         try {
-          const result = await supabase.functions.invoke('text-to-speech', {
+          const { data, error } = await supabase.functions.invoke('text-to-speech', {
             body: { text, lang: 'pt-BR', voice: voiceId }
           })
-          data = result.data;
-          error = result.error;
-        } catch (e: any) {
-          console.error(`[StoryGenerator] Invoke exception for slide ${i}:`, e);
-          error = e;
-        }
 
-        if (error) {
-          console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
-          // Fallback to synthesis for preview, but recording will miss this
-          continue
-        }
-
-        if (data) {
-          let blob: Blob;
-          if (data instanceof Blob) {
-            blob = data;
-          } else if (data instanceof ArrayBuffer) {
-            blob = new Blob([data], { type: 'audio/mpeg' });
-          } else if (data.error) {
-            console.error(`[StoryGenerator] Error in data for slide ${i}:`, data.error);
-            continue;
-          } else {
-            console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
-            continue;
+          if (error) {
+            console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+            continue
           }
 
-          const url = URL.createObjectURL(blob)
-          newAudioUrls[i] = url
-          
-          const arrayBuffer = await blob.arrayBuffer()
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-          newDurations[i] = audioBuffer.duration
+          if (data) {
+            let blob: Blob;
+            if (data instanceof Blob) {
+              blob = data;
+            } else if (data instanceof ArrayBuffer) {
+              blob = new Blob([data], { type: 'audio/mpeg' });
+            } else {
+              // Handle case where it might be returned as an object { error: ... }
+              const potentialData = data as any;
+              if (potentialData.error) {
+                console.error(`[StoryGenerator] Error in data for slide ${i}:`, potentialData.error);
+                continue;
+              }
+              console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
+              continue;
+            }
+
+            const url = URL.createObjectURL(blob)
+            newAudioUrls[i] = url
+            
+            const arrayBuffer = await blob.arrayBuffer()
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+            newDurations[i] = audioBuffer.duration
+            console.log(`[StoryGenerator] Audio generated for slide ${i}, duration: ${audioBuffer.duration}s`);
+          }
+        } catch (e: any) {
+          console.error(`[StoryGenerator] Exception generating audio for slide ${i}:`, e);
+          continue;
         }
       }
       
@@ -306,12 +308,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       const count = Object.keys(newAudioUrls).length;
       if (count === 0) {
-        toast.error('Nenhum áudio foi gerado. Verifique as configurações.');
+        toast.error('Nenhum áudio foi gerado. Verifique as configurações e sua conexão.');
       } else if (count < slides.length) {
         toast.warning(`${count} de ${slides.length} áudios gerados. Alguns slides ficarão sem narração.`);
       } else {
         toast.success(`Todas as ${count} locuções estão prontas!`);
       }
+
+      // Close temporary context
+      audioContext.close().catch(() => {});
     } catch (err: any) {
       console.error('[StoryGenerator] Error in generateAllAudio:', err)
       toast.error(`Erro ao gerar áudios: ${err.message || 'Tente novamente'}`)
