@@ -12,21 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users, 
   Plus, 
-  Phone, 
-  Mail, 
-  Search, 
-  Trash2, 
-  Edit, 
   MessageSquare, 
   ClipboardList, 
-  Truck, 
-  AlertCircle,
-  FileText,
-  Calendar,
-  CheckCircle2,
-  Clock,
+  Trash2, 
+  Search,
   PackageCheck,
-  History
+  History,
+  FileText
 } from 'lucide-react'
 import { toast } from '@/lib/toast'
 
@@ -70,7 +62,7 @@ interface PurchaseOrder {
   payment_status: string
   notes: string
   created_at: string
-  suppliers?: { name: string, whatsapp: string, phone: string }
+  suppliers?: { name: string, whatsapp: string, phone: string, address: string, contact_person: string }
   purchase_order_items?: PurchaseOrderItem[]
 }
 
@@ -87,14 +79,7 @@ export function SupplierManagement() {
   const [activeTab, setActiveTab] = useState('suppliers')
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
-    name: '',
-    contact_person: '',
-    phone: '',
-    whatsapp: '',
-    email: '',
-    address: '',
-    notes: '',
-    is_active: true
+    name: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
   })
 
   const [newOrder, setNewOrder] = useState({
@@ -117,7 +102,7 @@ export function SupplierManagement() {
       
       const { data: ordersData } = await supabase
         .from('purchase_orders')
-        .select('*, suppliers(name, whatsapp, phone), purchase_order_items(*, products(name))')
+        .select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))')
         .order('created_at', { ascending: false })
 
       const { data: productsData } = await supabase
@@ -136,112 +121,12 @@ export function SupplierManagement() {
     }
   }
 
-  const handleAddOrder = async () => {
-    if (!newOrder.supplier_id) return toast.error('Selecione um fornecedor')
-    if (newOrder.items.length === 0) return toast.error('Adicione ao menos um item')
-
-    try {
-      const { data: order, error: orderError } = await supabase
-        .from('purchase_orders')
-        .insert([{ 
-          supplier_id: newOrder.supplier_id, 
-          notes: newOrder.notes,
-          status: 'quotation_pending'
-        }])
-        .select()
-        .single()
-
-      if (orderError) throw orderError
-
-      const itemsToInsert = newOrder.items.map(item => ({
-        purchase_order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        brand_name: item.brand_name
-      }))
-
-      const { error: itemsError } = await supabase
-        .from('purchase_order_items')
-        .insert(itemsToInsert)
-
-      if (itemsError) throw itemsError
-
-      toast.success('Solicitação de cotação criada!')
-      setIsAddingOrder(false)
-      setNewOrder({ supplier_id: '', notes: '', items: [] })
-      fetchData()
-    } catch (error: any) {
-      toast.error('Erro ao criar pedido: ' + error.message)
-    }
-  }
-
-  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('purchase_orders')
-        .update({ status })
-        .eq('id', orderId)
-      
-      if (error) throw error
-      toast.success('Status do pedido atualizado')
-      fetchData()
-    } catch (error: any) {
-      toast.error('Erro ao atualizar status: ' + error.message)
-    }
-  }
-
-  const handleRegisterReceipt = async (orderId: string, items: any[]) => {
-    // Aqui atualizaríamos as quantidades recebidas, validade e estoque
-    // Para simplificar, vamos apenas atualizar os itens e o status do pedido
-    try {
-      for (const item of items) {
-        const { error: itemError } = await supabase
-          .from('purchase_order_items')
-          .update({ 
-            received_quantity: item.received_quantity,
-            defective_quantity: item.defective_quantity,
-            expiry_date: item.expiry_date
-          })
-          .eq('id', item.id)
-        
-        if (itemError) throw itemError
-
-        // Se recebido > 0 e tem product_id, atualizamos o estoque
-        if (item.received_quantity > 0 && item.product_id) {
-          const { data: prod } = await supabase
-            .from('products')
-            .select('stock')
-            .eq('id', item.product_id)
-            .single()
-          
-          await supabase
-            .from('products')
-            .update({ stock: (prod?.stock || 0) + item.received_quantity })
-            .eq('id', item.product_id)
-        }
-      }
-
-      await supabase
-        .from('purchase_orders')
-        .update({ status: 'delivered', actual_delivery_date: new Date().toISOString() })
-        .eq('id', orderId)
-
-      toast.success('Recebimento registrado e estoque atualizado!')
-      setIsViewingOrder(false)
-      fetchData()
-    } catch (error: any) {
-      toast.error('Erro ao registrar recebimento: ' + error.message)
-    }
-  }
-
   const handleAddSupplier = async () => {
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
-    
     try {
       const { error } = await supabase.from('suppliers').insert([newSupplier])
       if (error) throw error
-      toast.success('Fornecedor cadastrado com sucesso!')
+      toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
       fetchData()
     } catch (error: any) {
@@ -249,66 +134,58 @@ export function SupplierManagement() {
     }
   }
 
-  const handleDeleteSupplier = async (id: string) => {
-    if (!confirm('Deseja realmente remover este fornecedor?')) return
-    
+  const handleAddOrder = async () => {
+    if (!newOrder.supplier_id) return toast.error('Selecione um fornecedor')
+    if (newOrder.items.length === 0) return toast.error('Adicione ao menos um item')
+
     try {
-      const { error } = await supabase.from('suppliers').delete().eq('id', id)
-      if (error) throw error
-      toast.success('Fornecedor removido')
+      const total = newOrder.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
+      const { data: order, error: orderError } = await supabase
+        .from('purchase_orders')
+        .insert([{ supplier_id: newOrder.supplier_id, notes: newOrder.notes, total_amount: total, status: 'quotation_pending' }])
+        .select()
+        .single()
+
+      if (orderError) throw orderError
+
+      const { error: itemsError } = await supabase
+        .from('purchase_order_items')
+        .insert(newOrder.items.map(item => ({ ...item, purchase_order_id: order.id })))
+
+      if (itemsError) throw itemsError
+
+      toast.success('Solicitação criada!')
+      setIsAddingOrder(false)
+      setNewOrder({ supplier_id: '', notes: '', items: [] })
       fetchData()
     } catch (error: any) {
-      toast.error('Erro ao remover fornecedor: ' + error.message)
+      toast.error('Erro ao criar: ' + error.message)
     }
   }
 
   const getStatusBadge = (status: string) => {
     const statuses: Record<string, { label: string, color: string }> = {
       'quotation_pending': { label: 'Cotação Pendente', color: 'bg-amber-100 text-amber-700' },
-      'approved': { label: 'Cotação Aprovada', color: 'bg-blue-100 text-blue-700' },
-      'ordered': { label: 'Pedido Realizado', color: 'bg-indigo-100 text-indigo-700' },
-      'shipped': { label: 'Em Trânsito', color: 'bg-purple-100 text-purple-700' },
-      'delivered': { label: 'Entregue', color: 'bg-green-100 text-green-700' },
-      'cancelled': { label: 'Cancelado', color: 'bg-red-100 text-red-700' }
+      'approved': { label: 'Aprovada', color: 'bg-blue-100 text-blue-700' },
+      'delivered': { label: 'Entregue', color: 'bg-green-100 text-green-700' }
     }
     const s = statuses[status] || { label: status, color: 'bg-gray-100 text-gray-700' }
     return <Badge className={s.color}>{s.label}</Badge>
   }
 
-  const handleWhatsAppOrder = (supplier: Supplier) => {
-    const phone = supplier.whatsapp || supplier.phone
-    if (!phone) return toast.error('Telefone não cadastrado')
-    
-    const text = encodeURIComponent(`Olá ${supplier.contact_person || supplier.name}, gostaria de solicitar uma cotação/pedido para o mercado...`)
-    window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${text}`, '_blank')
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-zinc-900 p-3 rounded-2xl text-white shadow-lg">
-            <Users size={24} />
-          </div>
+          <div className="bg-zinc-900 p-3 rounded-2xl text-white shadow-lg"><Users size={24} /></div>
           <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-none">Gestão de Fornecedores</h2>
-            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mt-1">Cotações, Estoque e Suprimentos</p>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-zinc-900 leading-none">Suprimentos</h2>
+            <p className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mt-1">Gestão de Fornecedores e Compras</p>
           </div>
         </div>
-
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setIsAddingSupplier(true)}
-            className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary shadow-lg shadow-primary/20"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Novo Fornecedor
-          </Button>
-          <Button 
-            onClick={() => setIsAddingOrder(true)}
-            className="rounded-xl font-black uppercase tracking-wider text-xs bg-zinc-900 shadow-lg shadow-black/20"
-          >
-            <ClipboardList className="mr-2 h-4 w-4" /> Nova Cotação/Pedido
-          </Button>
+          <Button onClick={() => setIsAddingSupplier(true)} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary shadow-lg shadow-primary/20"><Plus className="mr-2 h-4 w-4" /> Fornecedor</Button>
+          <Button onClick={() => setIsAddingOrder(true)} className="rounded-xl font-black uppercase tracking-wider text-xs bg-zinc-900 shadow-lg shadow-black/20"><ClipboardList className="mr-2 h-4 w-4" /> Solicitação</Button>
         </div>
       </div>
 
@@ -318,62 +195,24 @@ export function SupplierManagement() {
             <Users className="w-4 h-4 mr-2" /> Fornecedores
           </TabsTrigger>
           <TabsTrigger value="orders" className="rounded-xl py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm text-[10px] font-black uppercase tracking-widest">
-            <History className="w-4 h-4 mr-2" /> Histórico de Pedidos
+            <History className="w-4 h-4 mr-2" /> Histórico
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="suppliers" className="space-y-4 animate-in fade-in duration-500">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 h-4 w-4" />
-            <Input 
-              placeholder="Buscar fornecedores..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 rounded-2xl border-zinc-200 bg-white font-bold"
-            />
-          </div>
-
+        <TabsContent value="suppliers" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).map(supplier => (
-              <Card key={supplier.id} className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white hover:scale-[1.02] transition-all group">
+              <Card key={supplier.id} className="border-0 shadow-lg rounded-3xl overflow-hidden bg-white group">
                 <CardHeader className="bg-zinc-50 border-b border-zinc-100 pb-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Fornecedor</p>
-                      <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-primary rounded-xl" onClick={() => handleWhatsAppOrder(supplier)}>
-                        <MessageSquare size={16} />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-red-600 rounded-xl" onClick={() => handleDeleteSupplier(supplier.id)}>
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
+                  <CardTitle className="text-xl font-black uppercase italic tracking-tighter text-zinc-900">{supplier.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Contato</p>
-                      <p className="text-xs font-bold text-zinc-700">{supplier.contact_person || 'Não informado'}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">WhatsApp</p>
-                      <p className="text-xs font-bold text-zinc-700">{supplier.whatsapp || 'Não informado'}</p>
-                    </div>
-                  </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Endereço</p>
-                    <p className="text-xs font-bold text-zinc-700 line-clamp-1">{supplier.address || 'Não informado'}</p>
+                    <p className="text-[10px] font-black uppercase text-zinc-400">Contato: {supplier.contact_person}</p>
+                    <p className="text-[10px] font-black uppercase text-zinc-400">Wpp: {supplier.whatsapp}</p>
                   </div>
                   <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-50">
-                    {supplier.supplier_brands?.map(brand => (
-                      <Badge key={brand.id} variant="outline" className="text-[8px] font-bold uppercase py-0">{brand.brand_name}</Badge>
-                    ))}
-                    {(!supplier.supplier_brands || supplier.supplier_brands.length === 0) && (
-                      <p className="text-[8px] font-bold text-zinc-300 uppercase">Nenhuma marca vinculada</p>
-                    )}
+                    {supplier.supplier_brands?.map(b => <Badge key={b.id} variant="outline" className="text-[8px] font-bold uppercase">{b.brand_name}</Badge>)}
                   </div>
                 </CardContent>
               </Card>
@@ -381,44 +220,27 @@ export function SupplierManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="orders" className="space-y-4 animate-in fade-in duration-500">
+        <TabsContent value="orders" className="space-y-4">
           <Card className="border-0 shadow-xl rounded-3xl overflow-hidden bg-white">
             <Table>
               <TableHeader className="bg-zinc-50">
-                <TableRow className="border-zinc-100">
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400">ID / Data</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Fornecedor</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Entrega Prevista</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Valor Total</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 text-right">Ações</TableHead>
+                <TableRow>
+                  <TableHead className="text-[10px] font-black uppercase">Pedido</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase">Fornecedor</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase">Status</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase">Total</TableHead>
+                  <TableHead className="text-right text-[10px] font-black uppercase">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.map(order => (
-                  <TableRow key={order.id} className="border-zinc-50 hover:bg-zinc-50/50">
-                    <TableCell className="py-4">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase">#{order.id.substring(0,8)}</p>
-                      <p className="text-xs font-bold text-zinc-900">{new Date(order.created_at).toLocaleDateString()}</p>
-                    </TableCell>
-                    <TableCell className="font-bold text-xs uppercase italic tracking-tighter">{order.suppliers?.name}</TableCell>
+                  <TableRow key={order.id}>
+                    <TableCell className="text-xs font-bold text-zinc-900">#{order.id.substring(0,6)}</TableCell>
+                    <TableCell className="text-xs font-bold">{order.suppliers?.name}</TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-xs font-bold text-zinc-600">
-                      {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString() : 'Não agendada'}
-                    </TableCell>
-                    <TableCell className="font-black text-sm text-zinc-900">R$ {order.total_amount?.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs font-black">R$ {order.total_amount?.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 px-3 rounded-xl font-black uppercase text-[10px] tracking-widest text-primary"
-                        onClick={() => {
-                          setSelectedOrder(order)
-                          setIsViewingOrder(true)
-                        }}
-                      >
-                        Conferir Entrega
-                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setSelectedOrder(order); setIsViewingOrder(true); }}>Conferir</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -427,330 +249,6 @@ export function SupplierManagement() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Dialog para Adicionar Fornecedor */}
-      <Dialog open={isAddingSupplier} onOpenChange={setIsAddingSupplier}>
-        <DialogContent className="max-w-xl rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Novo Fornecedor</DialogTitle>
-            <DialogDescription className="text-xs font-bold uppercase text-zinc-500 tracking-widest">Cadastre um novo parceiro de suprimentos</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            <div className="space-y-2 md:col-span-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Nome da Empresa / Fantasia</Label>
-              <Input 
-                value={newSupplier.name}
-                onChange={e => setNewSupplier({ ...newSupplier, name: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Pessoa de Contato</Label>
-              <Input 
-                value={newSupplier.contact_person}
-                onChange={e => setNewSupplier({ ...newSupplier, contact_person: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp</Label>
-              <Input 
-                value={newSupplier.whatsapp}
-                onChange={e => setNewSupplier({ ...newSupplier, whatsapp: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
-              <Input 
-                value={newSupplier.email}
-                onChange={e => setNewSupplier({ ...newSupplier, email: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Telefone Fixo</Label>
-              <Input 
-                value={newSupplier.phone}
-                onChange={e => setNewSupplier({ ...newSupplier, phone: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label className="text-[10px] font-black uppercase text-zinc-400">Endereço Completo</Label>
-              <Input 
-                value={newSupplier.address}
-                onChange={e => setNewSupplier({ ...newSupplier, address: e.target.value })}
-                className="h-12 rounded-xl border-zinc-200"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsAddingSupplier(false)} className="rounded-xl font-bold uppercase text-[10px]">Cancelar</Button>
-            <Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar Fornecedor</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para Nova Cotação/Pedido */}
-      <Dialog open={isAddingOrder} onOpenChange={setIsAddingOrder}>
-        <DialogContent className="max-w-3xl rounded-3xl overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Nova Cotação / Pedido</DialogTitle>
-            <DialogDescription className="text-xs font-bold uppercase text-zinc-500 tracking-widest">Solicite preços e produtos aos fornecedores</DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-zinc-400">Fornecedor</Label>
-                <Select value={newOrder.supplier_id} onValueChange={val => setNewOrder({ ...newOrder, supplier_id: val })}>
-                  <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="Selecione o fornecedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-zinc-400">Observações do Pedido</Label>
-                <Input value={newOrder.notes} onChange={e => setNewOrder({ ...newOrder, notes: e.target.value })} className="h-12 rounded-xl" placeholder="Ex: Urgente, entrega pela manhã..." />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center border-b pb-2">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Itens da Solicitação</h4>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setNewOrder({ ...newOrder, items: [...newOrder.items, { product_id: '', quantity: 1, unit_price: 0, brand_name: '' }] })}
-                  className="h-8 text-[10px] font-black uppercase rounded-lg"
-                >
-                  <Plus className="w-3 h-3 mr-1" /> Adicionar Item
-                </Button>
-              </div>
-
-              <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2">
-                {newOrder.items.map((item, idx) => (
-                  <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-zinc-50 p-3 rounded-2xl border border-zinc-100 relative group">
-                    <div className="col-span-5 space-y-1">
-                      <Label className="text-[8px] font-black uppercase text-zinc-400">Produto ou Marca</Label>
-                      <Select 
-                        value={item.product_id} 
-                        onValueChange={val => {
-                          const updated = [...newOrder.items]
-                          updated[idx].product_id = val
-                          const prod = products.find(p => p.id === val)
-                          if (prod) updated[idx].brand_name = prod.brand
-                          setNewOrder({ ...newOrder, items: updated })
-                        }}
-                      >
-                        <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-sm text-xs font-bold uppercase">
-                          <SelectValue placeholder="Selecione um produto" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.brand})</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-2 space-y-1">
-                      <Label className="text-[8px] font-black uppercase text-zinc-400">Qtd</Label>
-                      <Input 
-                        type="number" 
-                        value={item.quantity} 
-                        onChange={e => {
-                          const updated = [...newOrder.items]
-                          updated[idx].quantity = parseFloat(e.target.value)
-                          setNewOrder({ ...newOrder, items: updated })
-                        }}
-                        className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-center" 
-                      />
-                    </div>
-                    <div className="col-span-3 space-y-1">
-                      <Label className="text-[8px] font-black uppercase text-zinc-400">Preço Est. (R$)</Label>
-                      <Input 
-                        type="number" 
-                        value={item.unit_price} 
-                        onChange={e => {
-                          const updated = [...newOrder.items]
-                          updated[idx].unit_price = parseFloat(e.target.value)
-                          setNewOrder({ ...newOrder, items: updated })
-                        }}
-                        className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-center" 
-                      />
-                    </div>
-                    <div className="col-span-2 flex justify-end">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => {
-                          const updated = newOrder.items.filter((_, i) => i !== idx)
-                          setNewOrder({ ...newOrder, items: updated })
-                        }}
-                        className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {newOrder.items.length === 0 && (
-                  <div className="text-center py-8 text-zinc-300">
-                    <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                    <p className="text-[10px] font-bold uppercase">Nenhum item adicionado ainda</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 mt-2">
-            <Button variant="ghost" onClick={() => setIsAddingOrder(false)} className="rounded-xl font-bold uppercase text-[10px]">Cancelar</Button>
-            <Button onClick={handleAddOrder} disabled={newOrder.items.length === 0} className="rounded-xl font-black uppercase tracking-wider text-xs bg-zinc-900 shadow-xl">Criar Solicitação</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para Visualizar/Receber Pedido */}
-      <Dialog open={isViewingOrder} onOpenChange={setIsViewingOrder}>
-        <DialogContent className="max-w-4xl rounded-[40px] overflow-hidden p-0 border-none shadow-2xl">
-          {selectedOrder && (
-            <div className="flex flex-col h-[90vh] md:h-auto">
-              <div className="bg-zinc-900 text-white p-8 md:p-12 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32 animate-pulse" />
-                <div className="relative z-10 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Solicitação de Suprimentos</p>
-                      <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none mt-1">Pedido #{selectedOrder.id.substring(0,8)}</h2>
-                    </div>
-                    {getStatusBadge(selectedOrder.status)}
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 border-t border-white/10">
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-zinc-500">Fornecedor</p>
-                      <p className="text-sm font-bold uppercase">{selectedOrder.suppliers?.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-zinc-500">Data de Criação</p>
-                      <p className="text-sm font-bold uppercase">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-zinc-500">Total Previsto</p>
-                      <p className="text-xl font-black italic text-primary">R$ {selectedOrder.total_amount?.toFixed(2)}</p>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        size="icon" 
-                        variant="outline" 
-                        className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-2xl"
-                        onClick={() => {
-                          const text = encodeURIComponent(`Olá, sobre o pedido #${selectedOrder.id.substring(0,8)}, gostaria de saber o status...`)
-                          window.open(`https://wa.me/${selectedOrder.suppliers?.whatsapp?.replace(/\D/g, '')}?text=${text}`, '_blank')
-                        }}
-                      >
-                        <MessageSquare size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 bg-white p-8 md:p-12 overflow-y-auto space-y-8">
-                <div className="space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <PackageCheck size={14} className="text-primary" /> Conferência de Itens na Entrega
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {selectedOrder.purchase_order_items?.map((item, idx) => (
-                      <div key={item.id} className="bg-zinc-50 rounded-[32px] p-6 border-2 border-zinc-100 space-y-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-xs font-black uppercase text-zinc-900">{(item as any).products?.name || item.brand_name}</p>
-                            <p className="text-[9px] font-bold text-zinc-400 uppercase">Solicitado: {item.quantity} un</p>
-                          </div>
-                          <p className="text-xs font-black text-primary">R$ {(item.unit_price * item.quantity).toFixed(2)}</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
-                          <div className="space-y-2">
-                            <Label className="text-[8px] font-black uppercase text-zinc-500">Qtd Recebida</Label>
-                            <Input 
-                              type="number" 
-                              value={item.received_quantity} 
-                              onChange={e => {
-                                const updated = [...selectedOrder.purchase_order_items!]
-                                updated[idx].received_quantity = parseFloat(e.target.value)
-                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
-                              }}
-                              className="h-10 rounded-xl bg-white border-none shadow-sm font-black" 
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[8px] font-black uppercase text-zinc-500">Avarias / Defeito</Label>
-                            <Input 
-                              type="number" 
-                              value={item.defective_quantity} 
-                              onChange={e => {
-                                const updated = [...selectedOrder.purchase_order_items!]
-                                updated[idx].defective_quantity = parseFloat(e.target.value)
-                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
-                              }}
-                              className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-red-500" 
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[8px] font-black uppercase text-zinc-500">Validade do Produto</Label>
-                            <Input 
-                              type="date" 
-                              value={item.expiry_date} 
-                              onChange={e => {
-                                const updated = [...selectedOrder.purchase_order_items!]
-                                updated[idx].expiry_date = e.target.value
-                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
-                              }}
-                              className="h-10 rounded-xl bg-white border-none shadow-sm font-bold" 
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4 pt-8 border-t border-zinc-100">
-                  <Button 
-                    className="flex-1 h-16 rounded-3xl font-black uppercase tracking-wider text-xs bg-zinc-900 hover:bg-black shadow-xl"
-                    onClick={() => handleRegisterReceipt(selectedOrder.id, selectedOrder.purchase_order_items!)}
-                  >
-                    Confirmar Recebimento e Atualizar Estoque
-                  </Button>
-                  {selectedOrder.status === 'quotation_pending' && (
-                    <Button 
-                      variant="outline"
-                      className="h-16 px-8 rounded-3xl font-black uppercase tracking-wider text-xs border-2 hover:bg-blue-50 hover:border-blue-200 text-blue-600"
-                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'approved')}
-                    >
-                      Aprovar Cotação
-                    </Button>
-                  )}
-                  <Button 
-                    variant="outline"
-                    className="h-16 px-8 rounded-3xl font-black uppercase tracking-wider text-xs border-2 hover:bg-red-50 hover:border-red-200 text-red-600"
-                    onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'cancelled')}
-                  >
-                    Cancelar Pedido
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
-
