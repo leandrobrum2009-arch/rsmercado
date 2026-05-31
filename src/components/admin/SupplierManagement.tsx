@@ -86,6 +86,17 @@ export function SupplierManagement() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('suppliers')
 
+  const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
+    name: '',
+    contact_person: '',
+    phone: '',
+    whatsapp: '',
+    email: '',
+    address: '',
+    notes: '',
+    is_active: true
+  })
+
   const [newOrder, setNewOrder] = useState({
     supplier_id: '',
     notes: '',
