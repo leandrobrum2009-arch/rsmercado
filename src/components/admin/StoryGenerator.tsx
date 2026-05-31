@@ -689,16 +689,14 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         element.style.boxShadow = 'none';
         element.style.transform = 'none';
         
-        // Target 1080x1920 for Instagram Stories
+        // Use pixelRatio to achieve 1080x1920 regardless of screen size
+        const targetWidth = 1080;
+        const targetHeight = 1920;
+        const currentWidth = element.offsetWidth || 360;
+        const ratio = targetWidth / currentWidth;
+
         const dataUrl = await htmlToImage.toJpeg(element, {
-          width: 1080,
-          height: 1920,
-          style: {
-            transform: 'none',
-            borderRadius: '0',
-            width: '1080px',
-            height: '1920px',
-          },
+          pixelRatio: ratio,
           backgroundColor: config.backgroundColor || '#ffffff',
           cacheBust: true,
           quality: 0.95
