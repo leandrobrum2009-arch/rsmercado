@@ -367,6 +367,14 @@ export function SupplierManagement() {
                     <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Endereço</p>
                     <p className="text-xs font-bold text-zinc-700 line-clamp-1">{supplier.address || 'Não informado'}</p>
                   </div>
+                  <div className="flex flex-wrap gap-1 pt-2 border-t border-zinc-50">
+                    {supplier.supplier_brands?.map(brand => (
+                      <Badge key={brand.id} variant="outline" className="text-[8px] font-bold uppercase py-0">{brand.brand_name}</Badge>
+                    ))}
+                    {(!supplier.supplier_brands || supplier.supplier_brands.length === 0) && (
+                      <p className="text-[8px] font-bold text-zinc-300 uppercase">Nenhuma marca vinculada</p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
