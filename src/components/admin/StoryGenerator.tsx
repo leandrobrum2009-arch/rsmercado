@@ -692,7 +692,7 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         // Use pixelRatio to achieve 1080x1920 regardless of screen size
         const targetWidth = 1080;
         const targetHeight = 1920;
-        const currentWidth = element.offsetWidth;
+        const currentWidth = element.offsetWidth || 360;
         const ratio = targetWidth / currentWidth;
 
         const dataUrl = await htmlToImage.toJpeg(element, {
