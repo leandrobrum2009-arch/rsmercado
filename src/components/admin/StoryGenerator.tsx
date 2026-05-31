@@ -204,26 +204,32 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     if (!flyer.id) {
       console.warn('[StoryGenerator] Missing flyer ID, saving to localStorage only');
       localStorage.setItem('last_story_config', JSON.stringify(config));
-      toast.success('Configurações salvas localmente! (Salve o encarte para salvar permanentemente)');
+      toast.info('Configurações salvas no navegador! Para salvar permanentemente, salve o encarte principal primeiro.');
       return;
     }
 
     setIsSaving(true)
     try {
+      console.log('[StoryGenerator] Attempting to save config to database for flyer:', flyer.id);
       // Sanitize config
       const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
       
-      const { error } = await oldSupabase
+      const { data, error } = await oldSupabase
         .from('flyers')
         .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
+        .select();
       
-      if (error) throw error
+      if (error) {
+        console.error('[StoryGenerator] Database update error:', error);
+        throw error;
+      }
       
-      toast.success('Configurações salvas com sucesso!')
+      console.log('[StoryGenerator] Save successful:', data);
+      toast.success('Configurações salvas com sucesso no banco de dados!');
     } catch (err: any) {
-      console.error('[StoryGenerator] Save error:', err)
-      toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
+      console.error('[StoryGenerator] Save error details:', err)
+      toast.error(`Erro ao salvar no banco: ${err.message || 'Verifique sua conexão ou se o encarte ainda existe.'}`)
     } finally {
       setIsSaving(false)
     }
@@ -233,6 +239,8 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setIsGeneratingAudio(true)
     const newAudioUrls: Record<number, string> = {}
     const newDurations: Record<number, number> = {}
+
+    console.log('[StoryGenerator] Starting audio generation for', slides.length, 'slides');
 
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -258,46 +266,46 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         if (lowerVoice.includes('female') || lowerVoice.includes('feminina')) voiceId = 'nova'
         else if (lowerVoice.includes('male') || lowerVoice.includes('masculina')) voiceId = 'onyx'
 
-        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..."`)
+        console.log(`[StoryGenerator] Generating audio for slide ${i}: "${text.substring(0, 30)}..." with voice ${voiceId}`)
 
-        let data, error;
         try {
-          const result = await supabase.functions.invoke('text-to-speech', {
+          const { data, error } = await supabase.functions.invoke('text-to-speech', {
             body: { text, lang: 'pt-BR', voice: voiceId }
           })
-          data = result.data;
-          error = result.error;
-        } catch (e: any) {
-          console.error(`[StoryGenerator] Invoke exception for slide ${i}:`, e);
-          error = e;
-        }
 
-        if (error) {
-          console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
-          // Fallback to synthesis for preview, but recording will miss this
-          continue
-        }
-
-        if (data) {
-          let blob: Blob;
-          if (data instanceof Blob) {
-            blob = data;
-          } else if (data instanceof ArrayBuffer) {
-            blob = new Blob([data], { type: 'audio/mpeg' });
-          } else if (data.error) {
-            console.error(`[StoryGenerator] Error in data for slide ${i}:`, data.error);
-            continue;
-          } else {
-            console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
-            continue;
+          if (error) {
+            console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+            continue
           }
 
-          const url = URL.createObjectURL(blob)
-          newAudioUrls[i] = url
-          
-          const arrayBuffer = await blob.arrayBuffer()
-          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-          newDurations[i] = audioBuffer.duration
+          if (data) {
+            let blob: Blob;
+            if (data instanceof Blob) {
+              blob = data;
+            } else if (data instanceof ArrayBuffer) {
+              blob = new Blob([data], { type: 'audio/mpeg' });
+            } else {
+              // Handle case where it might be returned as an object { error: ... }
+              const potentialData = data as any;
+              if (potentialData.error) {
+                console.error(`[StoryGenerator] Error in data for slide ${i}:`, potentialData.error);
+                continue;
+              }
+              console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
+              continue;
+            }
+
+            const url = URL.createObjectURL(blob)
+            newAudioUrls[i] = url
+            
+            const arrayBuffer = await blob.arrayBuffer()
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+            newDurations[i] = audioBuffer.duration
+            console.log(`[StoryGenerator] Audio generated for slide ${i}, duration: ${audioBuffer.duration}s`);
+          }
+        } catch (e: any) {
+          console.error(`[StoryGenerator] Exception generating audio for slide ${i}:`, e);
+          continue;
         }
       }
       
@@ -306,12 +314,15 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       
       const count = Object.keys(newAudioUrls).length;
       if (count === 0) {
-        toast.error('Nenhum áudio foi gerado. Verifique as configurações.');
+        toast.error('Nenhum áudio foi gerado. Verifique as configurações e sua conexão.');
       } else if (count < slides.length) {
         toast.warning(`${count} de ${slides.length} áudios gerados. Alguns slides ficarão sem narração.`);
       } else {
         toast.success(`Todas as ${count} locuções estão prontas!`);
       }
+
+      // Close temporary context
+      audioContext.close().catch(() => {});
     } catch (err: any) {
       console.error('[StoryGenerator] Error in generateAllAudio:', err)
       toast.error(`Erro ao gerar áudios: ${err.message || 'Tente novamente'}`)
@@ -362,16 +373,18 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
           
           console.log(`[StoryGenerator] Connecting slide ${index} audio to recording stream`);
           try {
+            // Re-use or create source
             const source = audioContextRef.current.createMediaElementSource(audio)
             source.connect(audioDestRef.current)
             source.connect(audioContextRef.current.destination)
           } catch (err) {
-            console.warn('[StoryGenerator] MediaElementSource already connected or failed:', err);
+            // This error often happens if the element is already connected to another source node
+            console.warn('[StoryGenerator] MediaElementSource connection info:', err);
           }
         }
         
-        await audio.play()
-        console.log(`[StoryGenerator] Playing audio for slide ${index}`);
+        audio.play().catch(e => console.error('[StoryGenerator] Audio play error:', e))
+        console.log(`[StoryGenerator] Playing cached audio for slide ${index}`);
         activeAudioRef.current = audio
         return
       } catch (e) {
@@ -652,23 +665,30 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
       try {
         const element = slideRef.current;
         
-        // Remove rounded corners and shadow temporarily for a perfect full-screen capture
+        // Temporarily prepare element for high-quality capture
         const originalStyle = element.getAttribute('style') || '';
         const originalClassName = element.className;
         
-        // Remove styling that would make the capture "smaller" or have artifacts
         element.style.borderRadius = '0';
         element.style.boxShadow = 'none';
-        element.style.maxHeight = 'none';
+        element.style.transform = 'none';
         
+        // Target 1080x1920 for Instagram Stories
         const dataUrl = await htmlToImage.toJpeg(element, {
-          pixelRatio: 1080 / element.clientWidth,
-          backgroundColor: flyer.config?.backgroundColor || '#ffffff',
+          width: 1080,
+          height: 1920,
+          style: {
+            transform: 'none',
+            borderRadius: '0',
+            width: '1080px',
+            height: '1920px',
+          },
+          backgroundColor: config.backgroundColor || '#ffffff',
           cacheBust: true,
           quality: 0.95
         });
 
-        // Restore styles
+        // Restore styles immediately
         element.className = originalClassName;
         element.setAttribute('style', originalStyle);
 
@@ -681,21 +701,17 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
         
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx && img.complete && img.naturalWidth > 0) {
-          // Clear and draw centered
-          ctx.fillStyle = flyer.config?.backgroundColor || '#ffffff';
+          ctx.fillStyle = config.backgroundColor || '#ffffff';
           ctx.fillRect(0, 0, 1080, 1920);
-          
-          // Draw the image scaled to fit 1080x1920
-          // Since it's 9:16 aspect ratio, it should fit perfectly
           ctx.drawImage(img, 0, 0, 1080, 1920);
         }
       } catch (e) {
-        console.error('Frame error:', e);
+        console.error('[StoryGenerator] Frame capture error:', e);
       } finally {
         isCapturing = false;
         if (recorderRef.current && recorderRef.current.state === 'recording') {
-          // 24fps for smoother video
-          setTimeout(captureFrame, 41); 
+          // Keep capturing at approx 24-30fps
+          setTimeout(captureFrame, 33); 
         }
       }
     };
