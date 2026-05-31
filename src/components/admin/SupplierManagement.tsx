@@ -114,15 +114,15 @@ export function SupplierManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands(*), supplier_products(product_id)').order('name')
-      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers(name, whatsapp, phone, address, contact_person), purchase_order_items(*, products(name))').order('created_at', { ascending: false })
+      const { data: suppliersData } = await supabase.from('suppliers').select('*, supplier_brands:supplier_brands!supplier_brands_supplier_id_fkey(*), supplier_products:supplier_products!supplier_products_supplier_id_fkey(product_id)').order('name')
+      const { data: ordersData } = await supabase.from('purchase_orders').select('*, suppliers:suppliers!purchase_orders_supplier_id_fkey(name, whatsapp, phone, address, contact_person), purchase_order_items:purchase_order_items!purchase_order_items_purchase_order_id_fkey(*, products(name))').order('created_at', { ascending: false })
       const { data: productsData } = await supabase.from('products').select('id, name, brand, category_id').order('name')
       const { data: categoriesData } = await supabase.from('categories').select('id, name').order('name')
       
-      setSuppliers(suppliersData || [])
-      setOrders(ordersData || [])
-      setProducts(productsData || [])
-      setCategories(categoriesData || [])
+      setSuppliers((suppliersData as any) || [])
+      setOrders((ordersData as any) || [])
+      setProducts((productsData as any) || [])
+      setCategories((categoriesData as any) || [])
     } catch (error: any) { 
       console.error(error)
       toast.error('Erro ao carregar dados: ' + (error.message || 'Erro desconhecido')) 
