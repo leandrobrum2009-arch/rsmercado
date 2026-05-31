@@ -483,6 +483,266 @@ export function SupplierManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para Nova Cotação/Pedido */}
+      <Dialog open={isAddingOrder} onOpenChange={setIsAddingOrder}>
+        <DialogContent className="max-w-3xl rounded-3xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter">Nova Cotação / Pedido</DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase text-zinc-500 tracking-widest">Solicite preços e produtos aos fornecedores</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-zinc-400">Fornecedor</Label>
+                <Select value={newOrder.supplier_id} onValueChange={val => setNewOrder({ ...newOrder, supplier_id: val })}>
+                  <SelectTrigger className="h-12 rounded-xl">
+                    <SelectValue placeholder="Selecione o fornecedor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-zinc-400">Observações do Pedido</Label>
+                <Input value={newOrder.notes} onChange={e => setNewOrder({ ...newOrder, notes: e.target.value })} className="h-12 rounded-xl" placeholder="Ex: Urgente, entrega pela manhã..." />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b pb-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-900">Itens da Solicitação</h4>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setNewOrder({ ...newOrder, items: [...newOrder.items, { product_id: '', quantity: 1, unit_price: 0, brand_name: '' }] })}
+                  className="h-8 text-[10px] font-black uppercase rounded-lg"
+                >
+                  <Plus className="w-3 h-3 mr-1" /> Adicionar Item
+                </Button>
+              </div>
+
+              <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2">
+                {newOrder.items.map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-zinc-50 p-3 rounded-2xl border border-zinc-100 relative group">
+                    <div className="col-span-5 space-y-1">
+                      <Label className="text-[8px] font-black uppercase text-zinc-400">Produto ou Marca</Label>
+                      <Select 
+                        value={item.product_id} 
+                        onValueChange={val => {
+                          const updated = [...newOrder.items]
+                          updated[idx].product_id = val
+                          const prod = products.find(p => p.id === val)
+                          if (prod) updated[idx].brand_name = prod.brand
+                          setNewOrder({ ...newOrder, items: updated })
+                        }}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl bg-white border-none shadow-sm text-xs font-bold uppercase">
+                          <SelectValue placeholder="Selecione um produto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.brand})</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label className="text-[8px] font-black uppercase text-zinc-400">Qtd</Label>
+                      <Input 
+                        type="number" 
+                        value={item.quantity} 
+                        onChange={e => {
+                          const updated = [...newOrder.items]
+                          updated[idx].quantity = parseFloat(e.target.value)
+                          setNewOrder({ ...newOrder, items: updated })
+                        }}
+                        className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-center" 
+                      />
+                    </div>
+                    <div className="col-span-3 space-y-1">
+                      <Label className="text-[8px] font-black uppercase text-zinc-400">Preço Est. (R$)</Label>
+                      <Input 
+                        type="number" 
+                        value={item.unit_price} 
+                        onChange={e => {
+                          const updated = [...newOrder.items]
+                          updated[idx].unit_price = parseFloat(e.target.value)
+                          setNewOrder({ ...newOrder, items: updated })
+                        }}
+                        className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-center" 
+                      />
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          const updated = newOrder.items.filter((_, i) => i !== idx)
+                          setNewOrder({ ...newOrder, items: updated })
+                        }}
+                        className="h-10 w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {newOrder.items.length === 0 && (
+                  <div className="text-center py-8 text-zinc-300">
+                    <ClipboardList className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                    <p className="text-[10px] font-bold uppercase">Nenhum item adicionado ainda</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-zinc-50 -mx-6 -mb-6 p-6 mt-2">
+            <Button variant="ghost" onClick={() => setIsAddingOrder(false)} className="rounded-xl font-bold uppercase text-[10px]">Cancelar</Button>
+            <Button onClick={handleAddOrder} disabled={newOrder.items.length === 0} className="rounded-xl font-black uppercase tracking-wider text-xs bg-zinc-900 shadow-xl">Criar Solicitação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Visualizar/Receber Pedido */}
+      <Dialog open={isViewingOrder} onOpenChange={setIsViewingOrder}>
+        <DialogContent className="max-w-4xl rounded-[40px] overflow-hidden p-0 border-none shadow-2xl">
+          {selectedOrder && (
+            <div className="flex flex-col h-[90vh] md:h-auto">
+              <div className="bg-zinc-900 text-white p-8 md:p-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32 animate-pulse" />
+                <div className="relative z-10 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Solicitação de Suprimentos</p>
+                      <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none mt-1">Pedido #{selectedOrder.id.substring(0,8)}</h2>
+                    </div>
+                    {getStatusBadge(selectedOrder.status)}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 border-t border-white/10">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-zinc-500">Fornecedor</p>
+                      <p className="text-sm font-bold uppercase">{selectedOrder.suppliers?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-zinc-500">Data de Criação</p>
+                      <p className="text-sm font-bold uppercase">{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-zinc-500">Total Previsto</p>
+                      <p className="text-xl font-black italic text-primary">R$ {selectedOrder.total_amount?.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        size="icon" 
+                        variant="outline" 
+                        className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-2xl"
+                        onClick={() => {
+                          const text = encodeURIComponent(`Olá, sobre o pedido #${selectedOrder.id.substring(0,8)}, gostaria de saber o status...`)
+                          window.open(`https://wa.me/${selectedOrder.suppliers?.whatsapp?.replace(/\D/g, '')}?text=${text}`, '_blank')
+                        }}
+                      >
+                        <MessageSquare size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-white p-8 md:p-12 overflow-y-auto space-y-8">
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
+                    <PackageCheck size={14} className="text-primary" /> Conferência de Itens na Entrega
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {selectedOrder.purchase_order_items?.map((item, idx) => (
+                      <div key={item.id} className="bg-zinc-50 rounded-[32px] p-6 border-2 border-zinc-100 space-y-4">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-xs font-black uppercase text-zinc-900">{(item as any).products?.name || item.brand_name}</p>
+                            <p className="text-[9px] font-bold text-zinc-400 uppercase">Solicitado: {item.quantity} un</p>
+                          </div>
+                          <p className="text-xs font-black text-primary">R$ {(item.unit_price * item.quantity).toFixed(2)}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
+                          <div className="space-y-2">
+                            <Label className="text-[8px] font-black uppercase text-zinc-500">Qtd Recebida</Label>
+                            <Input 
+                              type="number" 
+                              value={item.received_quantity} 
+                              onChange={e => {
+                                const updated = [...selectedOrder.purchase_order_items!]
+                                updated[idx].received_quantity = parseFloat(e.target.value)
+                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
+                              }}
+                              className="h-10 rounded-xl bg-white border-none shadow-sm font-black" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[8px] font-black uppercase text-zinc-500">Avarias / Defeito</Label>
+                            <Input 
+                              type="number" 
+                              value={item.defective_quantity} 
+                              onChange={e => {
+                                const updated = [...selectedOrder.purchase_order_items!]
+                                updated[idx].defective_quantity = parseFloat(e.target.value)
+                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
+                              }}
+                              className="h-10 rounded-xl bg-white border-none shadow-sm font-black text-red-500" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[8px] font-black uppercase text-zinc-500">Validade do Produto</Label>
+                            <Input 
+                              type="date" 
+                              value={item.expiry_date} 
+                              onChange={e => {
+                                const updated = [...selectedOrder.purchase_order_items!]
+                                updated[idx].expiry_date = e.target.value
+                                setSelectedOrder({ ...selectedOrder, purchase_order_items: updated })
+                              }}
+                              className="h-10 rounded-xl bg-white border-none shadow-sm font-bold" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4 pt-8 border-t border-zinc-100">
+                  <Button 
+                    className="flex-1 h-16 rounded-3xl font-black uppercase tracking-wider text-xs bg-zinc-900 hover:bg-black shadow-xl"
+                    onClick={() => handleRegisterReceipt(selectedOrder.id, selectedOrder.purchase_order_items!)}
+                  >
+                    Confirmar Recebimento e Atualizar Estoque
+                  </Button>
+                  {selectedOrder.status === 'quotation_pending' && (
+                    <Button 
+                      variant="outline"
+                      className="h-16 px-8 rounded-3xl font-black uppercase tracking-wider text-xs border-2 hover:bg-blue-50 hover:border-blue-200 text-blue-600"
+                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'approved')}
+                    >
+                      Aprovar Cotação
+                    </Button>
+                  )}
+                  <Button 
+                    variant="outline"
+                    className="h-16 px-8 rounded-3xl font-black uppercase tracking-wider text-xs border-2 hover:bg-red-50 hover:border-red-200 text-red-600"
+                    onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'cancelled')}
+                  >
+                    Cancelar Pedido
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
+
