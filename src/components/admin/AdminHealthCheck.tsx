@@ -73,7 +73,7 @@ export function AdminSecurityVerification() {
       if (adminError) {
         updateResult('admin-auth', { status: 'warning', message: 'Não foi possível validar via RPC. Verificando fallback...' })
         // Fallback check
-        const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session?.user.id).maybeSingle()
+        const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session?.user.id || '').maybeSingle()
         if (roleData?.role === 'admin') {
           updateResult('admin-auth', { status: 'success', message: 'Permissões de administrador validadas via tabela.' })
         } else {
