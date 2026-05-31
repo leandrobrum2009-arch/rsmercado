@@ -420,23 +420,23 @@ export function SupplierManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="md:col-span-2 space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">Nome Fantasia *</Label>
-              <Input value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" placeholder="Ex: Nestlé" />
+              <Input value={newSupplier.name || ""} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} className="h-12 rounded-xl" placeholder="Ex: Nestlé" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">CNPJ</Label>
-              <Input value={newSupplier.cnpj} onChange={e => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="h-12 rounded-xl" placeholder="00.000.000/0000-00" />
+              <Input value={newSupplier.cnpj || ""} onChange={e => setNewSupplier({...newSupplier, cnpj: e.target.value})} className="h-12 rounded-xl" placeholder="00.000.000/0000-00" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">Contato (Responsável)</Label>
-              <Input value={newSupplier.contact_person} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" placeholder="Nome do vendedor" />
+              <Input value={newSupplier.contact_person || ""} onChange={e => setNewSupplier({...newSupplier, contact_person: e.target.value})} className="h-12 rounded-xl" placeholder="Nome do vendedor" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">WhatsApp</Label>
-              <Input value={newSupplier.whatsapp} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" placeholder="(00) 00000-0000" />
+              <Input value={newSupplier.whatsapp || ""} onChange={e => setNewSupplier({...newSupplier, whatsapp: e.target.value})} className="h-12 rounded-xl" placeholder="(00) 00000-0000" />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
-              <Input type="email" value={newSupplier.email} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
+              <Input type="email" value={newSupplier.email || ""} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
             </div>
           </div>
           <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
