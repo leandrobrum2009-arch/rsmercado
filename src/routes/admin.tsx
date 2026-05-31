@@ -303,10 +303,16 @@ export const Route = createFileRoute('/admin')({
                { id: 'recipes', label: 'Receitas', icon: ChefHat },
               { id: 'notifications', label: 'Notificações', icon: Bell },
               { id: 'alerts', label: 'Alertas AO VIVO', icon: AlertCircle },
-           ]
+            ]
          },
+        {
+          title: 'Suprimentos e Estoque',
+          items: [
+            { id: 'suppliers', label: 'Gestão de Fornecedores', icon: Users },
+          ]
+        },
        {
-       title: 'Configurações e Integrações',
+        title: 'Configurações e Integrações',
         items: [
               { id: 'settings', label: 'Dados da Loja', icon: LayoutTemplate },
               { id: 'theme', label: 'Tema Visual', icon: Palette },
