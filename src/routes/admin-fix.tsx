@@ -401,9 +401,9 @@ ALTER TABLE public.whatsapp_logs ENABLE ROW LEVEL SECURITY;
 
   -- LIMPEZA FINAL
   NOTIFY pgrst, 'reload schema';
-  SELECT public.log_migration_step('ADMIN_FIX_UI', 'Repair Script Execution', 'completed', '{"source": "admin-fix-page"}');`
 
   CREATE POLICY "Public view alerts" ON public.store_alerts FOR SELECT USING (true);
+
  
    -- 4. HARDENING E PERMISSÕES GERAIS
    -- Enable RLS on all sensitive tables manually to avoid DO block syntax issues
