@@ -64,18 +64,30 @@ serve(async (req) => {
 
     // 2. Fallback to Google Translate TTS
     console.log('Falling back to Google Translate TTS')
-    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=pt-BR&client=tw-ob`
-    const googleResponse = await fetch(googleTtsUrl)
+    const lang = 'pt-BR'
+    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`
     
-    if (googleResponse.ok) {
-      const arrayBuffer = await googleResponse.arrayBuffer()
-      return new Response(arrayBuffer, {
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'audio/mpeg',
-          'Cache-Control': 'public, max-age=3600'
-        },
+    try {
+      const googleResponse = await fetch(googleTtsUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
       })
+      
+      if (googleResponse.ok) {
+        console.log('Google Translate TTS successful')
+        const arrayBuffer = await googleResponse.arrayBuffer()
+        return new Response(arrayBuffer, {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'audio/mpeg',
+            'Cache-Control': 'public, max-age=3600'
+          },
+        })
+      }
+      console.warn('Google Translate TTS failed with status:', googleResponse.status)
+    } catch (e) {
+      console.error('Error calling Google Translate:', e)
     }
 
     throw new Error('All TTS methods failed')
