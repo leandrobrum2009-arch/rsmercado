@@ -330,7 +330,9 @@ export const Route = createFileRoute('/admin')({
               { id: 'admin_roles', label: 'Cargos e Permissões', icon: Lock },
               { id: 'activity_logs', label: 'Logs de Atividade', icon: ShieldCheck },
               { id: 'sending_logs', label: 'Log de Envios', icon: Send },
+              { id: 'system_health', label: 'Saúde do Sistema', icon: ShieldCheck },
               { id: 'feedback', label: 'Feedback dos Usuários', icon: MessageSquare }
+
            ]
         }
     ];
