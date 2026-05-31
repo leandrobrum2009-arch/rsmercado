@@ -202,32 +202,27 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
   const saveConfig = async () => {
     if (!flyer.id) {
-      console.error('[StoryGenerator] Missing flyer ID', flyer)
-      toast.error('ID do flyer não encontrado')
-      return
+      console.warn('[StoryGenerator] Missing flyer ID, saving to localStorage only');
+      localStorage.setItem('last_story_config', JSON.stringify(config));
+      toast.success('Configurações salvas localmente! (Salve o encarte para salvar permanentemente)');
+      return;
     }
+
     setIsSaving(true)
     try {
-      console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
-      
-      // Sanitize config to ensure it's a clean JSON object
+      // Sanitize config
       const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
       
-      const { error, data } = await oldSupabase
+      const { error } = await oldSupabase
         .from('flyers')
         .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
-        .select()
       
-      if (error) {
-        console.error('[StoryGenerator] Save error:', error)
-        throw error
-      }
+      if (error) throw error
       
-      console.log('[StoryGenerator] Save success:', data)
-      toast.success('Configurações salvas!')
+      toast.success('Configurações salvas com sucesso!')
     } catch (err: any) {
-      console.error('[StoryGenerator] Exception in saveConfig:', err)
+      console.error('[StoryGenerator] Save error:', err)
       toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`)
     } finally {
       setIsSaving(false)
