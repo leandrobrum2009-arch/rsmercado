@@ -271,12 +271,23 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
 
         if (error) {
           console.error(`[StoryGenerator] Audio generation error for slide ${i}:`, error)
+          // Tentar fallback local se falhar a função
           continue
         }
 
         if (data) {
-          // data might be a Blob or already an ArrayBuffer depending on Supabase version/config
-          const blob = data instanceof Blob ? data : new Blob([data], { type: 'audio/mpeg' })
+          // Explicitly handle data as Blob if it's not already
+          let blob: Blob;
+          if (data instanceof Blob) {
+            blob = data;
+          } else if (data instanceof ArrayBuffer) {
+            blob = new Blob([data], { type: 'audio/mpeg' });
+          } else {
+            // Probably an error object returned as JSON but status 200
+            console.warn(`[StoryGenerator] Unexpected data type for slide ${i}:`, typeof data);
+            continue;
+          }
+
           const url = URL.createObjectURL(blob)
           newAudioUrls[i] = url
           
