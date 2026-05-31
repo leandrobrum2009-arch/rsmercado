@@ -209,9 +209,13 @@ export function StoryGenerator({ isOpen, onClose, flyer }: StoryGeneratorProps) 
     setIsSaving(true)
     try {
       console.log('[StoryGenerator] Saving config for flyer:', flyer.id, config)
+      
+      // Sanitize config to ensure it's a clean JSON object
+      const sanitizedConfig = JSON.parse(JSON.stringify({ ...flyer.config, ...config }));
+      
       const { error, data } = await oldSupabase
         .from('flyers')
-        .update({ config: { ...flyer.config, ...config } })
+        .update({ config: sanitizedConfig })
         .eq('id', flyer.id)
         .select()
       
