@@ -50,7 +50,7 @@ export function AdminSecurityVerification() {
         return { table, exists: !error || error.code !== '42P01' }
       }))
       
-      const missingTables = tableChecks.filter(t => !t.exists).map(t => t.table)
+      const missingTables = tableChecks.filter(t => !t.exists).map(t => t.table as string)
       if (missingTables.length > 0) {
         updateResult('tables', { status: 'error', message: `Tabelas ausentes: ${missingTables.join(', ')}` })
       } else {
