@@ -80,7 +80,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
     const [storeSettings, setStoreSettings] = useState<any>({
        site_name: 'RS SUPERMERCADO',
       logo_url: '',
-      colors: { primary: '#16a34a', secondary: '#facc15' }
+      colors: { primary: '#16a34a', secondary: '#facc15' },
+      logo_height_mobile: 40,
+      logo_height_desktop: 64,
+      logo_offset_y: 0
     });
    const cartCount = items.length;
  
@@ -121,6 +124,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
           data.forEach(item => {
             if (item.key === 'site_name') newSettings.site_name = item.value;
             if (item.key === 'logo_url') newSettings.logo_url = item.value;
+            if (item.key === 'logo_height_mobile') newSettings.logo_height_mobile = parseInt(item.value) || 40;
+            if (item.key === 'logo_height_desktop') newSettings.logo_height_desktop = parseInt(item.value) || 64;
+            if (item.key === 'logo_offset_y') newSettings.logo_offset_y = parseInt(item.value) || 0;
             if (item.key === 'color_palette' && item.value) {
               newSettings.colors.primary = item.value.primary || newSettings.colors.primary;
               newSettings.colors.secondary = item.value.secondary || newSettings.colors.secondary;
@@ -282,7 +288,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
              <div className="flex items-center justify-between h-14 px-4">
                 <Link to="/" className="flex items-center gap-2">
                   {storeSettings.logo_url ? (
-                    <img src={storeSettings.logo_url} alt="Logo" className="h-10 md:h-12 object-contain" />
+                    <img 
+                      src={storeSettings.logo_url} 
+                      alt="Logo" 
+                      style={{ 
+                        height: `${storeSettings.logo_height_mobile}px`,
+                        transform: `translateY(${storeSettings.logo_offset_y}px)`
+                      }} 
+                      className="object-contain transition-all duration-300" 
+                    />
                   ) : (
                     <span className="text-xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
                   )}
@@ -319,7 +333,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
          <div className="container flex items-center justify-between h-16 px-4 mx-auto">
             <Link to="/" className="flex items-center gap-2 py-1">
               {storeSettings.logo_url ? (
-                <img src={storeSettings.logo_url} alt="Logo" className="h-14 md:h-16 object-contain" />
+                <img 
+                  src={storeSettings.logo_url} 
+                  alt="Logo" 
+                  style={{ 
+                    height: `${storeSettings.logo_height_desktop}px`,
+                    transform: `translateY(${storeSettings.logo_offset_y}px)`
+                  }} 
+                  className="object-contain transition-all duration-300" 
+                />
               ) : (
                 <span className="text-2xl font-black italic tracking-tighter text-primary">{storeSettings.site_name}</span>
               )}

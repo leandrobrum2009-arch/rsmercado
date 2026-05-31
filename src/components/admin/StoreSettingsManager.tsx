@@ -9,7 +9,8 @@
  
     import { Badge } from '@/components/ui/badge'
     import { Switch } from '@/components/ui/switch'
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  import { Slider } from '@/components/ui/slider'
  
    const ALLOWED_SP_PLACEHOLDERS = ['name', 'neighborhood', 'count', 'product', 'stock', 'level'];
  
@@ -32,12 +33,15 @@
       site_name: '',
       logo_url: '',
       colors: { primary: '#ef4444', secondary: '#facc15' },
+      logo_height_mobile: '40',
+      logo_height_desktop: '64',
+      logo_offset_y: '0',
       address: '',
       whatsapp: '',
       opening_hours: '',
       instagram_url: '',
       facebook_url: '',
-       store_description: '',
+      store_description: '',
        points_ratio: '1',
      instagram_post_count: '6',
      instagram_items: [],
@@ -169,12 +173,15 @@
          data.forEach((item: any) => {
            if (item.key === 'site_name') newSettings.site_name = item.value;
            if (item.key === 'logo_url') newSettings.logo_url = item.value;
-           if (item.key === 'color_palette') newSettings.colors = item.value;
-           if (item.key === 'address') newSettings.address = item.value;
-           if (item.key === 'whatsapp') newSettings.whatsapp = item.value;
-           if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
-           if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
-           if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
+            if (item.key === 'color_palette') newSettings.colors = item.value;
+            if (item.key === 'logo_height_mobile') newSettings.logo_height_mobile = item.value;
+            if (item.key === 'logo_height_desktop') newSettings.logo_height_desktop = item.value;
+            if (item.key === 'logo_offset_y') newSettings.logo_offset_y = item.value;
+            if (item.key === 'address') newSettings.address = item.value;
+            if (item.key === 'whatsapp') newSettings.whatsapp = item.value;
+            if (item.key === 'opening_hours') newSettings.opening_hours = item.value;
+            if (item.key === 'instagram_url') newSettings.instagram_url = item.value;
+            if (item.key === 'facebook_url') newSettings.facebook_url = item.value;
             if (item.key === 'store_description') newSettings.store_description = item.value;
              if (item.key === 'points_multiplier' || item.key === 'points_ratio') {
                const val = item.value;
@@ -354,12 +361,15 @@
          { key: 'site_name', value: settings.site_name },
          { key: 'logo_url', value: settings.logo_url },
          { key: 'color_palette', value: settings.colors },
+         { key: 'logo_height_mobile', value: settings.logo_height_mobile },
+         { key: 'logo_height_desktop', value: settings.logo_height_desktop },
+         { key: 'logo_offset_y', value: settings.logo_offset_y },
          { key: 'address', value: settings.address },
          { key: 'whatsapp', value: settings.whatsapp },
          { key: 'opening_hours', value: settings.opening_hours },
          { key: 'instagram_url', value: settings.instagram_url },
          { key: 'facebook_url', value: settings.facebook_url },
-          { key: 'store_description', value: settings.store_description },
+         { key: 'store_description', value: settings.store_description },
           { key: 'points_multiplier', value: { points_per_real: parseFloat(settings.points_ratio) || 0.5 } },
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
@@ -513,6 +523,52 @@
                       </div>
                     )}
                     </div>
+                    {settings.logo_url && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-zinc-100">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Mobile)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_height_mobile}px</span>
+                          </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_height_mobile) || 40]} 
+                            min={20} 
+                            max={150} 
+                            step={1} 
+                            onValueChange={([val]: number[]) => setSettings({ ...settings, logo_height_mobile: val.toString() })} 
+                          />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Altura Logo (Desktop)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_height_desktop}px</span>
+                          </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_height_desktop) || 64]} 
+                            min={30} 
+                            max={300} 
+                            step={1} 
+                            onValueChange={([val]: number[]) => setSettings({ ...settings, logo_height_desktop: val.toString() })} 
+                          />
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase text-zinc-500">Ajuste Vertical (Sobreposição)</label>
+                            <span className="text-[10px] font-black text-primary">{settings.logo_offset_y}px</span>
+                          </div>
+                          <Slider 
+                            value={[parseInt(settings.logo_offset_y) || 0]} 
+                            min={-50} 
+                            max={100} 
+                            step={1} 
+                            onValueChange={([val]: number[]) => setSettings({ ...settings, logo_offset_y: val.toString() })} 
+                          />
+                          <p className="text-[8px] text-zinc-400 font-medium italic">
+                            Valores positivos descem a logo, criando o efeito de sobreposição.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                 </CardContent>
               </Card>
   
