@@ -177,7 +177,8 @@ export const Route = createFileRoute('/admin')({
             .eq('key', 'panel_alert_config')
             .maybeSingle()
           
-          const config = latest?.value || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
+          const config = (latest?.value as any) || { order_visual_pulse: true, order_sound_enabled: true, order_sound_volume: 80, notification_sound_url: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3' }
+
 
            if (config.order_visual_pulse !== false) {
              setHasNewOrder(true)
