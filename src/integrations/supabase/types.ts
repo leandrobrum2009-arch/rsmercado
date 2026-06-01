@@ -522,59 +522,39 @@ export type Database = {
       }
       purchase_order_items: {
         Row: {
-          brand_name: string | null
           created_at: string | null
           defective_quantity: number | null
           expiry_date: string | null
           id: string
-          notes: string | null
           product_id: string | null
           purchase_order_id: string | null
           quantity: number
           received_quantity: number | null
-          unit_price: number | null
+          unit_price: number
         }
         Insert: {
-          brand_name?: string | null
           created_at?: string | null
           defective_quantity?: number | null
           expiry_date?: string | null
           id?: string
-          notes?: string | null
           product_id?: string | null
           purchase_order_id?: string | null
           quantity: number
           received_quantity?: number | null
-          unit_price?: number | null
+          unit_price: number
         }
         Update: {
-          brand_name?: string | null
           created_at?: string | null
           defective_quantity?: number | null
           expiry_date?: string | null
           id?: string
-          notes?: string | null
           product_id?: string | null
           purchase_order_id?: string | null
           quantity?: number
           received_quantity?: number | null
-          unit_price?: number | null
+          unit_price?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_purchase_order_items_order"
-            columns: ["purchase_order_id"]
-            isOneToOne: false
-            referencedRelation: "purchase_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_purchase_order_items_product"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "purchase_order_items_product_id_fkey"
             columns: ["product_id"]
@@ -599,10 +579,9 @@ export type Database = {
           id: string
           notes: string | null
           payment_status: string | null
-          status: string
+          status: string | null
           supplier_id: string | null
           total_amount: number | null
-          updated_at: string | null
         }
         Insert: {
           actual_delivery_date?: string | null
@@ -611,10 +590,9 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
-          status?: string
+          status?: string | null
           supplier_id?: string | null
           total_amount?: number | null
-          updated_at?: string | null
         }
         Update: {
           actual_delivery_date?: string | null
@@ -623,19 +601,11 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
-          status?: string
+          status?: string | null
           supplier_id?: string | null
           total_amount?: number | null
-          updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_purchase_orders_supplier"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "purchase_orders_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -817,22 +787,22 @@ export type Database = {
       }
       supplier_products: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          product_id: string
-          supplier_id: string
+          product_id: string | null
+          supplier_id: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          product_id: string
-          supplier_id: string
+          product_id?: string | null
+          supplier_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          product_id?: string
-          supplier_id?: string
+          product_id?: string | null
+          supplier_id?: string | null
         }
         Relationships: [
           {
