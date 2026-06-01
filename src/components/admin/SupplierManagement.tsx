@@ -165,6 +165,7 @@ export function SupplierManagement() {
   }
 
   const handleAddSupplier = async () => {
+    setSaveError(null)
     console.log('Iniciando cadastro de fornecedor:', newSupplier)
     if (!newSupplier.name) return toast.error('Nome é obrigatório')
     
