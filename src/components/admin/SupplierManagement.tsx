@@ -115,7 +115,6 @@ export function SupplierManagement() {
     setLoading(true)
     console.log('SupplierManagement: Buscando dados...')
     try {
-      // Use clean queries without redundant hints to see if PostgREST resolves correctly
       const { data: suppliersData, error: sError } = await supabase
         .from('suppliers')
         .select(`
@@ -127,11 +126,10 @@ export function SupplierManagement() {
       
       if (sError) {
         console.error('Erro ao buscar fornecedores:', sError)
-        // If it's a schema cache error, we want to inform the user
-        if (sError.message.includes('schema cache')) {
-          toast.error('Erro de cache no banco de dados. Por favor, use a aba "Saúde do Sistema" para recarregar o esquema.')
+        if (sError.message.includes('schema cache') || sError.message.includes('could not find the table')) {
+          toast.error('O sistema está atualizando o cache do banco de dados. Por favor, aguarde 5 segundos e recarregue a página.')
         } else {
-          throw sError
+          toast.error('Erro ao buscar fornecedores: ' + sError.message)
         }
       }
 
@@ -207,7 +205,11 @@ export function SupplierManagement() {
       const { data, error } = await supabase.from('suppliers').insert([supplierData]).select().single()
       
       if (error) {
-        console.error('Erro detalhado do Supabase:', error)
+        console.error('Erro detalhado do Supabase ao inserir:', error)
+        if (error.message.includes('schema cache') || error.message.includes('could not find the table')) {
+          toast.error('Erro de sincronização. O cache do banco de dados está sendo atualizado. Tente novamente em alguns segundos.')
+          // Trigger a silent reload attempt via RPC if available or just wait
+        }
         throw error
       }
 
