@@ -340,6 +340,7 @@ export type Database = {
           customer_phone: string | null
           delivery_address: Json | null
           delivery_fee: number | null
+          delivery_neighborhood_id: string | null
           discount_amount: number | null
           id: string
           payment_method: string | null
@@ -361,6 +362,7 @@ export type Database = {
           customer_phone?: string | null
           delivery_address?: Json | null
           delivery_fee?: number | null
+          delivery_neighborhood_id?: string | null
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
@@ -382,6 +384,7 @@ export type Database = {
           customer_phone?: string | null
           delivery_address?: Json | null
           delivery_fee?: number | null
+          delivery_neighborhood_id?: string | null
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
