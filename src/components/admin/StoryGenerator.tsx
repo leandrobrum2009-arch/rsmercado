@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
 import { supabase as oldSupabase } from '@/lib/supabase'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase } from '@/lib/supabase'
 
 interface Product {
   id: string
