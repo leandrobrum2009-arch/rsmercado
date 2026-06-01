@@ -352,6 +352,7 @@ export type Database = {
           tracking_status: string | null
           updated_at: string
           user_id: string | null
+          whatsapp_notified_at: string | null
         }
         Insert: {
           change_for?: number | null
@@ -374,6 +375,7 @@ export type Database = {
           tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp_notified_at?: string | null
         }
         Update: {
           change_for?: number | null
@@ -396,6 +398,7 @@ export type Database = {
           tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp_notified_at?: string | null
         }
         Relationships: []
       }
