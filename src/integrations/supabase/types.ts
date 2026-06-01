@@ -334,6 +334,7 @@ export type Database = {
         Row: {
           change_for: number | null
           coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
@@ -343,6 +344,7 @@ export type Database = {
           id: string
           payment_method: string | null
           points_earned: number | null
+          points_used: number | null
           status: string | null
           total_amount: number
           updated_at: string
@@ -351,6 +353,7 @@ export type Database = {
         Insert: {
           change_for?: number | null
           coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
@@ -360,6 +363,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           points_earned?: number | null
+          points_used?: number | null
           status?: string | null
           total_amount: number
           updated_at?: string
@@ -368,6 +372,7 @@ export type Database = {
         Update: {
           change_for?: number | null
           coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
@@ -377,6 +382,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           points_earned?: number | null
+          points_used?: number | null
           status?: string | null
           total_amount?: number
           updated_at?: string
@@ -511,6 +517,8 @@ export type Database = {
           household_status: string | null
           id: string
           is_admin: boolean | null
+          loyalty_points: number | null
+          loyalty_tier: string | null
           points_balance: number | null
           updated_at: string
           whatsapp: string | null
@@ -526,6 +534,8 @@ export type Database = {
           household_status?: string | null
           id: string
           is_admin?: boolean | null
+          loyalty_points?: number | null
+          loyalty_tier?: string | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
@@ -541,6 +551,8 @@ export type Database = {
           household_status?: string | null
           id?: string
           is_admin?: boolean | null
+          loyalty_points?: number | null
+          loyalty_tier?: string | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
