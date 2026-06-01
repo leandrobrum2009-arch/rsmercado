@@ -23,7 +23,8 @@ import {
   CheckSquare,
   Square,
   Filter,
-  Package
+  Package,
+  Loader2
 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
