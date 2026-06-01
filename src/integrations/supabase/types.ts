@@ -343,6 +343,7 @@ export type Database = {
           discount_amount: number | null
           id: string
           payment_method: string | null
+          payment_status: string | null
           points_earned: number | null
           points_used: number | null
           status: string | null
@@ -362,6 +363,7 @@ export type Database = {
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
+          payment_status?: string | null
           points_earned?: number | null
           points_used?: number | null
           status?: string | null
@@ -381,6 +383,7 @@ export type Database = {
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
+          payment_status?: string | null
           points_earned?: number | null
           points_used?: number | null
           status?: string | null
