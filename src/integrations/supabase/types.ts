@@ -334,53 +334,71 @@ export type Database = {
         Row: {
           change_for: number | null
           coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           customer_name: string | null
           customer_phone: string | null
           delivery_address: Json | null
           delivery_fee: number | null
+          delivery_neighborhood_id: string | null
           discount_amount: number | null
           id: string
           payment_method: string | null
+          payment_status: string | null
           points_earned: number | null
+          points_used: number | null
           status: string | null
           total_amount: number
+          tracking_status: string | null
           updated_at: string
           user_id: string | null
+          whatsapp_notified_at: string | null
         }
         Insert: {
           change_for?: number | null
           coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_address?: Json | null
           delivery_fee?: number | null
+          delivery_neighborhood_id?: string | null
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
+          payment_status?: string | null
           points_earned?: number | null
+          points_used?: number | null
           status?: string | null
           total_amount: number
+          tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp_notified_at?: string | null
         }
         Update: {
           change_for?: number | null
           coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           customer_name?: string | null
           customer_phone?: string | null
           delivery_address?: Json | null
           delivery_fee?: number | null
+          delivery_neighborhood_id?: string | null
           discount_amount?: number | null
           id?: string
           payment_method?: string | null
+          payment_status?: string | null
           points_earned?: number | null
+          points_used?: number | null
           status?: string | null
           total_amount?: number
+          tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp_notified_at?: string | null
         }
         Relationships: []
       }
@@ -511,6 +529,8 @@ export type Database = {
           household_status: string | null
           id: string
           is_admin: boolean | null
+          loyalty_points: number | null
+          loyalty_tier: string | null
           points_balance: number | null
           updated_at: string
           whatsapp: string | null
@@ -526,6 +546,8 @@ export type Database = {
           household_status?: string | null
           id: string
           is_admin?: boolean | null
+          loyalty_points?: number | null
+          loyalty_tier?: string | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
@@ -541,6 +563,8 @@ export type Database = {
           household_status?: string | null
           id?: string
           is_admin?: boolean | null
+          loyalty_points?: number | null
+          loyalty_tier?: string | null
           points_balance?: number | null
           updated_at?: string
           whatsapp?: string | null
