@@ -167,11 +167,16 @@ export function SupplierManagement() {
 
   const handleAddSupplier = async () => {
     setSaveError(null)
+    setIsSaving(true)
     console.log('Iniciando cadastro de fornecedor:', newSupplier)
-    if (!newSupplier.name) return toast.error('Nome é obrigatório')
+    if (!newSupplier.name) {
+      setIsSaving(false)
+      return toast.error('Nome é obrigatório')
+    }
     
     // Basic validation
     if (newSupplier.email && !newSupplier.email.includes('@')) {
+      setIsSaving(false)
       return toast.error('E-mail inválido')
     }
 
