@@ -13,14 +13,6 @@ def json_to_sql(table_name, json_file):
         return ""
     
     sql = []
-    # Special handling for profiles and orders to avoid FK issues
-    if table_name == 'profiles':
-        sql.append("ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;")
-    if table_name == 'orders':
-        sql.append("ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_user_id_fkey;")
-    if table_name == 'recipes':
-        sql.append("ALTER TABLE public.recipes DROP CONSTRAINT IF EXISTS recipes_author_id_fkey;")
-
     for item in data:
         columns = []
         values = []
