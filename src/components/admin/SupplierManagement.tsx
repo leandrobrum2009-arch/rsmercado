@@ -206,10 +206,13 @@ export function SupplierManagement() {
       
       if (error) {
         console.error('Erro detalhado do Supabase ao inserir:', error)
+        let errorMsg = error.message
         if (error.message.includes('schema cache') || error.message.includes('could not find the table')) {
-          toast.error('Erro de sincronização. O cache do banco de dados está sendo atualizado. Tente novamente em alguns segundos.')
-          // Trigger a silent reload attempt via RPC if available or just wait
+          errorMsg = 'Erro de sincronização. O cache do banco de dados está sendo atualizado. Tente novamente em alguns segundos.'
+        } else if (error.code === '42501') {
+          errorMsg = 'Acesso Negado: Você não tem permissão para realizar esta operação (RLS).'
         }
+        toast.error(errorMsg)
         throw error
       }
 
