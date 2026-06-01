@@ -210,16 +210,18 @@ export function SupplierManagement() {
         console.error('Erro detalhado do Supabase ao inserir:', error)
         let errorMsg = error.message
         if (error.message.includes('schema cache') || error.message.includes('could not find the table')) {
-          errorMsg = 'Erro de sincronização. O cache do banco de dados está sendo atualizado. Tente novamente em alguns segundos.'
+          errorMsg = 'Erro de sincronização. O cache do banco de dados está sendo atualizado.'
         } else if (error.code === '42501') {
           errorMsg = 'Acesso Negado: Você não tem permissão para realizar esta operação (RLS).'
         }
+        setSaveError(errorMsg)
         toast.error(errorMsg)
         throw error
       }
 
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
+      setSaveError(null)
       setNewSupplier({ name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
       
