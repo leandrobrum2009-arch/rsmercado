@@ -481,6 +481,12 @@ export function SupplierManagement() {
               <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
               <Input type="email" value={newSupplier.email || ""} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
             </div>
+            {saveError && (
+              <div className="md:col-span-2 bg-red-50 border border-red-100 p-4 rounded-xl">
+                <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-1">Erro ao Salvar</p>
+                <p className="text-xs text-red-800 font-medium">{saveError}</p>
+              </div>
+            )}
           </div>
           <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
         </DialogContent>
