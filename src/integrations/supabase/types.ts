@@ -348,6 +348,7 @@ export type Database = {
           points_used: number | null
           status: string | null
           total_amount: number
+          tracking_status: string | null
           updated_at: string
           user_id: string | null
         }
@@ -368,6 +369,7 @@ export type Database = {
           points_used?: number | null
           status?: string | null
           total_amount: number
+          tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -388,6 +390,7 @@ export type Database = {
           points_used?: number | null
           status?: string | null
           total_amount?: number
+          tracking_status?: string | null
           updated_at?: string
           user_id?: string | null
         }
