@@ -1,0 +1,9 @@
+Migrating 5 profiles...
+SET search_path = public;
+BEGIN;
+INSERT INTO public.profiles (id, full_name, whatsapp, household_status, points_balance, avatar_url) VALUES ('3d75149c-a573-4e86-ae2a-db0c1358e7b9', 'ncbrasil gomes', '21996509905', 'couple', 0, '') ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, whatsapp = EXCLUDED.whatsapp, points_balance = EXCLUDED.points_balance;
+INSERT INTO public.profiles (id, full_name, whatsapp, household_status, points_balance, avatar_url) VALUES ('ccb9a67f-9817-4c17-b267-18e17ac64161', 'ncbrasil02@gmail.com', NULL, NULL, 0, NULL) ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, whatsapp = EXCLUDED.whatsapp, points_balance = EXCLUDED.points_balance;
+INSERT INTO public.profiles (id, full_name, whatsapp, household_status, points_balance, avatar_url) VALUES ('016bac9e-08b1-4f5d-bfcb-5bf435238521', 'lovabletest', NULL, NULL, 0, NULL) ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, whatsapp = EXCLUDED.whatsapp, points_balance = EXCLUDED.points_balance;
+INSERT INTO public.profiles (id, full_name, whatsapp, household_status, points_balance, avatar_url) VALUES ('987f818d-40ef-4835-9a75-89a7e05bccf9', 'luane-lua', NULL, NULL, 0, NULL) ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, whatsapp = EXCLUDED.whatsapp, points_balance = EXCLUDED.points_balance;
+INSERT INTO public.profiles (id, full_name, whatsapp, household_status, points_balance, avatar_url) VALUES ('47c981d3-ef57-420f-9d99-71c76b3b7d09', 'Camillee', '21996509905', 'couple', 9, 'https://woelvkuxkkhvausaoudk.supabase.co/storage/v1/object/public/avatars/47c981d3-ef57-420f-9d99-71c76b3b7d09/yycwhjf55ut.jpg') ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, whatsapp = EXCLUDED.whatsapp, points_balance = EXCLUDED.points_balance;
+COMMIT;
