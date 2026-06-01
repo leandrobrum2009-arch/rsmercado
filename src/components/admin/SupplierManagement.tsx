@@ -238,7 +238,11 @@ export function SupplierManagement() {
       }
     } catch (error: any) { 
       console.error('Erro ao cadastrar fornecedor:', error)
-      toast.error('Erro ao cadastrar fornecedor: ' + (error.message || 'Erro desconhecido')) 
+      const msg = error.message || 'Erro desconhecido'
+      setSaveError(msg)
+      toast.error('Erro ao cadastrar fornecedor: ' + msg) 
+    } finally {
+      setIsSaving(false)
     }
   }
 
