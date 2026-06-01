@@ -498,7 +498,19 @@ export function SupplierManagement() {
               </div>
             )}
           </div>
-          <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
+          <DialogFooter>
+            <Button 
+              onClick={handleAddSupplier} 
+              disabled={isSaving}
+              className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary"
+            >
+              {isSaving ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</>
+              ) : (
+                'Salvar'
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
