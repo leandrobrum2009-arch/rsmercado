@@ -23,7 +23,8 @@ import {
   CheckSquare,
   Square,
   Filter,
-  Package
+  Package,
+  Loader2
 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -96,6 +97,8 @@ export function SupplierManagement() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('suppliers')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
     name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
@@ -164,11 +167,17 @@ export function SupplierManagement() {
   }
 
   const handleAddSupplier = async () => {
+    setSaveError(null)
+    setIsSaving(true)
     console.log('Iniciando cadastro de fornecedor:', newSupplier)
-    if (!newSupplier.name) return toast.error('Nome é obrigatório')
+    if (!newSupplier.name) {
+      setIsSaving(false)
+      return toast.error('Nome é obrigatório')
+    }
     
     // Basic validation
     if (newSupplier.email && !newSupplier.email.includes('@')) {
+      setIsSaving(false)
       return toast.error('E-mail inválido')
     }
 
@@ -206,15 +215,20 @@ export function SupplierManagement() {
       
       if (error) {
         console.error('Erro detalhado do Supabase ao inserir:', error)
+        let errorMsg = error.message
         if (error.message.includes('schema cache') || error.message.includes('could not find the table')) {
-          toast.error('Erro de sincronização. O cache do banco de dados está sendo atualizado. Tente novamente em alguns segundos.')
-          // Trigger a silent reload attempt via RPC if available or just wait
+          errorMsg = 'Erro de sincronização. O cache do banco de dados está sendo atualizado.'
+        } else if (error.code === '42501') {
+          errorMsg = 'Acesso Negado: Você não tem permissão para realizar esta operação (RLS).'
         }
+        setSaveError(errorMsg)
+        toast.error(errorMsg)
         throw error
       }
 
       toast.success('Fornecedor cadastrado!')
       setIsAddingSupplier(false)
+      setSaveError(null)
       setNewSupplier({ name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true })
       fetchData()
       
@@ -225,7 +239,11 @@ export function SupplierManagement() {
       }
     } catch (error: any) { 
       console.error('Erro ao cadastrar fornecedor:', error)
-      toast.error('Erro ao cadastrar fornecedor: ' + (error.message || 'Erro desconhecido')) 
+      const msg = error.message || 'Erro desconhecido'
+      setSaveError(msg)
+      toast.error('Erro ao cadastrar fornecedor: ' + msg) 
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -474,8 +492,26 @@ export function SupplierManagement() {
               <Label className="text-[10px] font-black uppercase text-zinc-400">E-mail</Label>
               <Input type="email" value={newSupplier.email || ""} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} className="h-12 rounded-xl" placeholder="vendas@empresa.com" />
             </div>
+            {saveError && (
+              <div className="md:col-span-2 bg-red-50 border border-red-100 p-4 rounded-xl">
+                <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-1">Erro ao Salvar</p>
+                <p className="text-xs text-red-800 font-medium">{saveError}</p>
+              </div>
+            )}
           </div>
-          <DialogFooter><Button onClick={handleAddSupplier} className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary">Salvar</Button></DialogFooter>
+          <DialogFooter>
+            <Button 
+              onClick={handleAddSupplier} 
+              disabled={isSaving}
+              className="rounded-xl font-black uppercase tracking-wider text-xs bg-primary"
+            >
+              {isSaving ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</>
+              ) : (
+                'Salvar'
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
