@@ -97,6 +97,7 @@ export function SupplierManagement() {
   const [activeTab, setActiveTab] = useState('suppliers')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const [newSupplier, setNewSupplier] = useState<Partial<Supplier>>({
     name: '', cnpj: '', contact_person: '', phone: '', whatsapp: '', email: '', address: '', notes: '', is_active: true
