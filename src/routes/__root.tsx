@@ -236,8 +236,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
     const isAdminPage = location.pathname.startsWith('/admin');
     // Check for keys in environment or localStorage
     const [supabaseConfig] = useState({
-      url: (typeof window !== 'undefined' ? localStorage.getItem('supabase_url') : null) || import.meta.env.VITE_SUPABASE_URL || '',
-      key: (typeof window !== 'undefined' ? localStorage.getItem('supabase_anon_key') : null) || import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+      url: import.meta.env.VITE_SUPABASE_URL || '',
+      key: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     });
     
      const isSupabaseMissing = isConnected === false || (!supabaseConfig.url || supabaseConfig.url.includes('placeholder') || !supabaseConfig.key || supabaseConfig.key === 'placeholder');
