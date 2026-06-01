@@ -1,19 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// ATENÇÃO: este cliente aponta para um projeto Supabase ANTIGO
-// (woelvkuxkkhvausaoudk), não para o Lovable Cloud atual
-// (yymtipgsskvepufugfub). Foi mantido assim porque todo o código legado
-// (feedback, alerts, loyalty, RPCs admin) depende do schema antigo.
-// Para migrar tudo para o Cloud novo é necessário recriar tabelas/funcoes
-// e refatorar dezenas de arquivos.
-const OLD_PROJECT_URL = 'https://woelvkuxkkhvausaoudk.supabase.co';
-const OLD_PROJECT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvZWx2a3V4a2todmF1c2FvdWRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTIwNDgsImV4cCI6MjA5MzI2ODA0OH0.iHYGTa13pGmmtkVNce6JIKCWgQrUUnuruilOffM_oSo';
+// Agora utilizando o projeto Lovable Cloud atual (yymtipgsskvepufugfub)
+// Isso garante que novas funcionalidades como Fornecedores e Pedidos de Compra funcionem.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(OLD_PROJECT_URL, OLD_PROJECT_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-  },
-});
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Supabase URL or Anon Key is missing from environment variables.');
+}
+
+export const supabase = createClient(
+  SUPABASE_URL || '',
+  SUPABASE_ANON_KEY || '',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  }
+);
