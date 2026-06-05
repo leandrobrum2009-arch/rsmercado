@@ -104,6 +104,9 @@ export const Route = createFileRoute("/")({
           }
           if (data && Array.isArray(data.value)) {
             setLayout(data.value);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('home_layout_cache', JSON.stringify(data.value));
+            }
           }
         } catch (e) {
           console.warn('Home layout fetch failed', e);
