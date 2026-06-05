@@ -38,7 +38,7 @@ import { InstagramFeed } from "@/components/home/InstagramFeed";
       </Link>
     )
   }
-import { Link } from "@tanstack/react-router";
+
  import { useEffect, useState } from "react";
  import { supabase } from "@/lib/supabase";
 
