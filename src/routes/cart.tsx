@@ -64,12 +64,20 @@ function CartPage() {
 
   useEffect(() => {
     const fetchNeighborhoods = async () => {
-      const { data } = await supabase
-        .from("delivery_neighborhoods")
-        .select("*")
-        .eq("active", true)
-        .order("name");
-      setNeighborhoods(data || []);
+      try {
+        const { data, error } = await supabase
+          .from("delivery_neighborhoods")
+          .select("*")
+          .eq("active", true)
+          .order("name");
+        if (error) throw error;
+        setNeighborhoods(data || []);
+      } catch (err: any) {
+        console.error("Neighborhoods error:", err);
+        if (err.message?.includes('fetch') || err.message?.includes('network')) {
+          toast.error("Erro de conexão ao carregar bairros.");
+        }
+      }
     };
     fetchNeighborhoods();
   }, []);
