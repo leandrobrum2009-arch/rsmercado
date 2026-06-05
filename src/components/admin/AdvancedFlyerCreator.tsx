@@ -2683,9 +2683,19 @@ export function AdvancedFlyerCreator() {
                       <div className="flex-1">
                         <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
                         <label htmlFor="bg-upload" className="flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors bg-zinc-50/50">
-                          <div className="flex flex-col items-center">
-                            {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Upload className="w-5 h-5 mb-1 text-zinc-400" />}
-                            <span className="text-[10px] font-bold uppercase text-zinc-600">{uploading ? 'Enviando...' : 'Adicionar Novo Fundo à Galeria'}</span>
+                          <div className="flex flex-col items-center w-full">
+                            {uploading ? (
+                              <div className="w-full space-y-2 flex flex-col items-center">
+                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                <Progress value={uploadProgress} className="h-1 w-full max-w-[150px]" />
+                                <span className="text-[10px] font-bold uppercase text-zinc-600">Enviando {uploadProgress}%</span>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="w-5 h-5 mb-1 text-zinc-400" />
+                                <span className="text-[10px] font-bold uppercase text-zinc-600">Adicionar Novo Fundo à Galeria</span>
+                              </>
+                            )}
                           </div>
                         </label>
                       </div>
