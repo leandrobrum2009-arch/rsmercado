@@ -1,12 +1,13 @@
  import { supabase } from "./supabase";
  
- export type LogEventType = 
-   | 'login_attempt' 
-   | 'registration_attempt' 
-   | 'payment_attempt' 
-   | 'profile_update'
-   | 'password_reset_request'
-   | 'admin_access';
+export type LogEventType = 
+  | 'login_attempt' 
+  | 'registration_attempt' 
+  | 'payment_attempt' 
+  | 'profile_update'
+  | 'password_reset_request'
+  | 'admin_access'
+  | 'system_error';
  
  export interface LogDetails {
    [key: string]: any;
