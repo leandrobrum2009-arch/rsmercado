@@ -1342,10 +1342,11 @@ export function AdvancedFlyerCreator() {
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
-        logStep('ERRO: flyer-content não encontrado');
-        toast.error('Conteúdo do encarte não encontrado');
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM');
+        toast.error('Erro técnico: O elemento do encarte sumiu da página. Tente recarregar.');
         return;
       }
+
 
       setIsPreparingPrint(true);
       setGenerationProgress(5);
