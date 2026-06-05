@@ -63,6 +63,9 @@ export function useStoreSettings() {
               }
             })
             setSettings(newSettings)
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('store_settings_cache', JSON.stringify(newSettings));
+            }
           }
         } catch (error) {
          console.error('Error fetching store settings:', error)
