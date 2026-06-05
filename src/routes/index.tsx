@@ -61,27 +61,37 @@ export const Route = createFileRoute("/")({
        });
      };
 
-    const [layout, setLayout] = useState<any[]>([
-      { id: 'search', visible: true },
-      { id: 'delivery_check', visible: true },
-      { id: 'prod_destaque', visible: true, title: 'Destaques para Você', tag: 'DESTAQUE' },
-      { id: 'offers_btn', visible: true },
-      { id: 'flyer', visible: true },
-      { id: 'banner_carousel', visible: true },
-      { id: 'home_banners', visible: true },
-      { id: 'category_bar', visible: true },
-      { id: 'category_banners', visible: true },
-      { id: 'prod_horti', visible: true, title: 'Hortifruti Fresquinho', category: 'Hortifruti' },
-      { id: 'pwa', visible: true },
-      { id: 'prod_mercearia', visible: true, title: 'Destaques da Mercearia', category: 'Mercearia' },
-      { id: 'digital_flyers', visible: true },
-      { id: 'prod_bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
-      { id: 'recipes', visible: true },
-      { id: 'ai_recipes', visible: true },
-      { id: 'instagram', visible: true },
-      { id: 'coupon', visible: true },
-      { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
-    ]);
+    const [layout, setLayout] = useState<any[]>(() => {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('home_layout_cache');
+        if (cached) {
+          try {
+            return JSON.parse(cached);
+          } catch (e) {}
+        }
+      }
+      return [
+        { id: 'search', visible: true },
+        { id: 'delivery_check', visible: true },
+        { id: 'prod_destaque', visible: true, title: 'Destaques para Você', tag: 'DESTAQUE' },
+        { id: 'offers_btn', visible: true },
+        { id: 'flyer', visible: true },
+        { id: 'banner_carousel', visible: true },
+        { id: 'home_banners', visible: true },
+        { id: 'category_bar', visible: true },
+        { id: 'category_banners', visible: true },
+        { id: 'prod_horti', visible: true, title: 'Hortifruti Fresquinho', category: 'Hortifruti' },
+        { id: 'pwa', visible: true },
+        { id: 'prod_mercearia', visible: true, title: 'Destaques da Mercearia', category: 'Mercearia' },
+        { id: 'digital_flyers', visible: true },
+        { id: 'prod_bebidas', visible: true, title: 'Bebidas Mais Vendidas', category: 'Bebidas' },
+        { id: 'recipes', visible: true },
+        { id: 'ai_recipes', visible: true },
+        { id: 'instagram', visible: true },
+        { id: 'coupon', visible: true },
+        { id: 'prod_limpeza', visible: true, title: 'Ofertas de Limpeza', category: 'Limpeza' }
+      ];
+    });
 
     useEffect(() => {
       const fetchLayout = async () => {
