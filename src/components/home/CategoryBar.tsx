@@ -63,7 +63,10 @@ export const CategoryBar = () => {
           return a.name.localeCompare(b.name);
         });
         setCategories(sorted);
-      } else {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('categories_cache', JSON.stringify(sorted));
+        }
+      } else if (categories.length === 0) {
         setCategories(fallbackCategories);
       }
     };
