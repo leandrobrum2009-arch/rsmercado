@@ -74,6 +74,12 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
     defaultPendingComponent: DefaultPendingComponent,
+    defaultNotFoundComponent: () => {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+      return null;
+    },
   });
 
    return router;
