@@ -1372,10 +1372,10 @@ export function AdvancedFlyerCreator() {
               return await html2canvas(flyerElement, {
                 useCORS: true,
                 scale: customScale, 
-                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+                backgroundColor: getHtml2CanvasBackground(),
                 logging: true,
                 imageTimeout: 30000,
-                allowTaint: false,
+                allowTaint: true,
                 onclone: (clonedDoc) => {
                   sanitizeClonedDocColors(clonedDoc);
                   logStep('onclone: Ajustando estilos no clone');
@@ -1395,6 +1395,7 @@ export function AdvancedFlyerCreator() {
                     clonedFlyer.style.visibility = 'visible';
                     clonedFlyer.style.width = '794px';
                     clonedFlyer.style.height = '1123px';
+                    Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
                     
                     const allElements = clonedFlyer.querySelectorAll('*');
                     allElements.forEach((el: any) => {
