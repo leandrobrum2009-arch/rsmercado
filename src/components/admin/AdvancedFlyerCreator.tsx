@@ -1592,9 +1592,9 @@ export function AdvancedFlyerCreator() {
           const canvasPromise = html2canvas(flyerElement, {
             useCORS: true,
             scale: 1.2, 
-            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            backgroundColor: getHtml2CanvasBackground(),
             logging: true,
-            allowTaint: false,
+            allowTaint: true,
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
               sanitizeClonedDocColors(clonedDoc);
@@ -1609,6 +1609,7 @@ export function AdvancedFlyerCreator() {
                 clonedFlyer.style.flexDirection = 'column';
                 clonedFlyer.style.width = '794px';
                 clonedFlyer.style.height = '1123px';
+                Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
 
                 clonedFlyer.querySelectorAll('*').forEach((el: any) => {
                   el.style.setProperty('transition', 'none', 'important');
@@ -1640,7 +1641,8 @@ export function AdvancedFlyerCreator() {
             const canvasPromiseScale1 = html2canvas(flyerElement, {
               useCORS: true,
               scale: 1, 
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              backgroundColor: getHtml2CanvasBackground(),
+              allowTaint: true,
               imageTimeout: 10000,
               onclone: (clonedDoc) => {
                 sanitizeClonedDocColors(clonedDoc);
@@ -1648,6 +1650,7 @@ export function AdvancedFlyerCreator() {
                 if (clonedFlyer) {
                   clonedFlyer.style.width = '794px';
                   clonedFlyer.style.height = '1123px';
+                  Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
                   clonedFlyer.querySelectorAll('*').forEach((el: any) => {
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('transition', 'none', 'important');
