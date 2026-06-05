@@ -1093,9 +1093,10 @@ export function AdvancedFlyerCreator() {
     const applyTemplate = (config: any) => {
       if (config.layout) setLayout(config.layout)
       if (config.backgroundType) setBackgroundType(config.backgroundType)
-      if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+      if (config.backgroundUrl !== undefined) setBackgroundUrl(ensureAbsoluteUrl(config.backgroundUrl))
       if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
       if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+
       if (config.columns) setColumns(config.columns)
       if (config.gridGap !== undefined) setGridGap(config.gridGap)
       if (config.showLogo !== undefined) setShowLogo(config.showLogo)
