@@ -74,12 +74,14 @@ export function ThemeSettingsManager() {
         value: { primary: settings.colors.primary, secondary: settings.colors.secondary }
       }, { onConflict: 'key' })
 
+      logAttempt('admin_access', 'success', { panel: 'theme', action: 'save', colors: settings.colors });
       toast.success('Tema atualizado com sucesso!')
       
       // Apply immediately to current session
       applyTheme(settings)
     } catch (err: any) {
       console.error('Save error:', err)
+      logAttempt('admin_access', 'failure', { panel: 'theme', action: 'save_attempt', error: err.message });
       toast.error('Erro ao salvar tema: ' + err.message)
     } finally {
       setIsSaving(false)
