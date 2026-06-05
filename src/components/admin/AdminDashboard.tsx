@@ -1,25 +1,26 @@
-  import { useState, useEffect, useMemo } from 'react'
- import { supabase } from '@/lib/supabase'
- import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { toast } from '@/lib/toast'
- import { 
-   TrendingUp, 
-   Users, 
-   ShoppingBag, 
-   Clock, 
-   ArrowUpRight, 
-    ArrowDownRight, 
-    BarChart3, 
-    PieChart as PieChartIcon, 
-    Package, 
-    Calendar,
-    Filter,
-    Bell,
-    Download,
-    Sparkles,
-    Layout as LayoutIcon,
-    ClipboardList as ClipboardIcon
- } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
+import { 
+  TrendingUp, 
+  Users, 
+  ShoppingBag, 
+  Clock, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  BarChart3, 
+  PieChart as PieChartIcon, 
+  Package, 
+  Calendar,
+  Filter,
+  Bell,
+  Download,
+  Sparkles,
+  Layout as LayoutIcon,
+  ClipboardList as ClipboardIcon
+} from 'lucide-react'
    const exportReport = async () => {
      try {
        const { data: orders, error } = await supabase
