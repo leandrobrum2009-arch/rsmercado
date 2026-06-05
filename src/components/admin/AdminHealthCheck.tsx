@@ -87,9 +87,11 @@ export function AdminSecurityVerification() {
       // 5. Edge Functions (Basic check)
       updateResult('edge-functions', { status: 'success', message: 'Infraestrutura de Edge Functions operacional.' })
 
+      logAttempt('admin_access', 'success', { panel: 'system_health', action: 'diagnostic_complete' });
       toast.success('Verificação concluída!')
     } catch (error: any) {
       console.error('Verification error:', error)
+      logAttempt('admin_access', 'failure', { panel: 'system_health', action: 'diagnostic_attempt', error: error.message });
       toast.error('Erro durante a verificação automática')
     } finally {
       setIsRunning(false)
