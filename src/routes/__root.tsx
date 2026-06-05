@@ -36,28 +36,10 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-       { title: "RS SUPERMERCADO" },
-      { name: "description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "RS SUPERMERCADO" },
-      { property: "og:description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "RS SUPERMERCADO" },
-      { name: "twitter:description", content: "Super Mercado Lovable is an e-commerce app for grocery sales and delivery on iOS, Android, and web." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/WxJErcW45VZ2hRNnVqaobidOD5A3/social-images/social-1777718786716-WhatsApp_Image_2026-03-29_at_10.37.22.webp" },
-    ],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
+
 
 
 
