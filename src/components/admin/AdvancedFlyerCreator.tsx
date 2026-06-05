@@ -1342,10 +1342,11 @@ export function AdvancedFlyerCreator() {
 
       const flyerElement = document.getElementById('flyer-content');
       if (!flyerElement) {
-        logStep('ERRO: flyer-content não encontrado');
-        toast.error('Conteúdo do encarte não encontrado');
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM');
+        toast.error('Erro técnico: O elemento do encarte sumiu da página. Tente recarregar.');
         return;
       }
+
 
       setIsPreparingPrint(true);
       setGenerationProgress(5);
@@ -1555,9 +1556,11 @@ export function AdvancedFlyerCreator() {
         logStep('Iniciando handleGeneratePreview');
         const flyerElement = document.getElementById('flyer-content');
         if (!flyerElement) {
-          logStep('ERRO: flyer-content não encontrado para prévia');
+          logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para prévia');
+          toast.error('O elemento do encarte não foi encontrado para gerar a prévia.');
           return;
         }
+
         
         setIsPreparingPrint(true);
         setGenerationProgress(5);
@@ -2024,9 +2027,11 @@ export function AdvancedFlyerCreator() {
     const handleDownloadPDF = async () => {
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Conteúdo do encarte não encontrado')
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para PDF');
+        toast.error('O elemento do encarte não foi encontrado para gerar o PDF.')
         return
       }
+
 
       logStep('Iniciando handleDownloadPDF');
       setUploading(true)
