@@ -141,13 +141,7 @@ import {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
           // Log access to dashboard for audit
-          await supabase.from('security_logs').insert({
-            user_id: session.user.id,
-            event_type: 'admin_access',
-            status: 'success',
-            details: { panel: 'dashboard', action: 'view' },
-            user_agent: navigator.userAgent
-          });
+          logAttempt('admin_access', 'success', { panel: 'dashboard', action: 'view' });
         }
 
         // 1. Get stats from orders
