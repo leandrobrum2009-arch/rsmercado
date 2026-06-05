@@ -64,8 +64,11 @@ import { Link } from "@tanstack/react-router";
           }
 
          setProducts(filteredData);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching products:', err);
+        if (err.message?.includes('fetch') || err.message?.includes('network')) {
+          toast.error('Erro ao carregar produtos. Verifique sua conexão.');
+        }
         setProducts([]);
       } finally {
         setLoading(false);
