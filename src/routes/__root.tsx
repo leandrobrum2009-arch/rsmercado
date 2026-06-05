@@ -36,6 +36,14 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "RS SUPERMERCADO" },
+    ],
+  }),
+  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
@@ -43,13 +51,21 @@ export const Route = createRootRoute({
 
 
 
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      {children}
-    </>
+    <html lang="pt-BR">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
   );
 }
+
 
 
 

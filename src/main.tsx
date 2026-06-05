@@ -1,15 +1,14 @@
-// Main entry point
+// App bootstrap
 import { StrictMode } from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider } from '@tanstack/react-router'
+import { getRouter } from './router'
+import './styles.css'
 
- import ReactDOM from 'react-dom/client'
- import { RouterProvider } from '@tanstack/react-router'
- import { getRouter } from './router'
- import './styles.css'
- 
 try {
   const router = getRouter()
-  
   const rootElement = document.getElementById('root')!
+  
   if (rootElement) {
     const root = ReactDOM.createRoot(rootElement)
     root.render(
@@ -17,11 +16,7 @@ try {
         <RouterProvider router={router} />
       </StrictMode>,
     )
-
-
     
-    // Ensure initial loader is removed
-
     const removeLoader = () => {
       const loader = document.getElementById('initial-loader');
       if (loader) {
@@ -33,17 +28,22 @@ try {
       }
     };
 
-    // Remove after a short delay to ensure React has started rendering
-    setTimeout(removeLoader, 200);
-    // Also remove on window load as a fallback
+    // Remove quickly
+    setTimeout(removeLoader, 100);
     window.addEventListener('load', removeLoader);
+    
+    // Safety fallback
+    setTimeout(removeLoader, 3000);
   }
 } catch (error) {
   console.error('Fatal error during app initialization:', error);
-  // Fallback to remove loader so user isn't stuck forever
   const loader = document.getElementById('initial-loader');
   if (loader) {
     const loaderText = loader.querySelector('.loader-text');
-    if (loaderText) loaderText.textContent = 'Erro ao carregar o aplicativo. Tente recarregar.';
+    if (loaderText) loaderText.textContent = 'Erro de carregamento. Tente recarregar.';
+    setTimeout(() => {
+      loader.style.opacity = '0';
+      loader.style.visibility = 'hidden';
+    }, 2000);
   }
 }
