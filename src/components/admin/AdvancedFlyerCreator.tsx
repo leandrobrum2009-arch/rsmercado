@@ -2614,10 +2614,23 @@ export function AdvancedFlyerCreator() {
                             )}
                             onClick={() => setBackgroundUrl(bg)}
                           >
-                            <img src={bg} className="w-full h-full object-cover" alt={`User BG ${idx}`} />
+                            <img 
+                              src={bg} 
+                              className="w-full h-full object-cover" 
+                              alt={`User BG ${idx}`}
+                              onError={(e) => {
+                                // Fallback if image fails to load
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x400?text=Erro+Imagem';
+                              }}
+                            />
+                            {backgroundUrl === bg && (
+                              <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                                <CheckSquare className="w-6 h-6 text-primary" />
+                              </div>
+                            )}
                           </button>
                           <button 
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-100 transition-opacity shadow-lg z-10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setCustomBackgrounds(prev => prev.filter(u => u !== bg));
