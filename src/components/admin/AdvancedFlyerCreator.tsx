@@ -1743,9 +1743,11 @@ export function AdvancedFlyerCreator() {
 
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para download de imagem');
+        toast.error('Erro: O elemento do encarte sumiu da página.')
         return
       }
+
 
       logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
