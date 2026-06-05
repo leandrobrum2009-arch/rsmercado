@@ -2197,13 +2197,14 @@ export function AdvancedFlyerCreator() {
         const isPDFError = err.message === 'PDF_GENERATION_FAILED';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isPDFError ? 'Erro crítico ao montar o arquivo PDF.' : 'Erro ao gerar PDF.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
+          description: 'Consulte os logs para ver detalhes técnicos.',
           duration: 10000,
           action: {
-            label: 'Imprimir Direto',
-            onClick: () => handleDirectPrint()
+            label: 'Ver Logs',
+            onClick: () => setShowLogViewer(true)
           }
         });
+
       } finally {
         setUploading(false)
       }
