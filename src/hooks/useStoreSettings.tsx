@@ -31,9 +31,19 @@
     instagram_items: []
   }
  
- export function useStoreSettings() {
-   const [settings, setSettings] = useState<StoreSettings>(defaultSettings)
-   const [isLoading, setIsLoading] = useState(true)
+export function useStoreSettings() {
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('store_settings_cache');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return defaultSettings;
+  })
+  const [isLoading, setIsLoading] = useState(true)
  
    useEffect(() => {
       const fetchSettings = async () => {
