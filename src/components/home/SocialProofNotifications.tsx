@@ -122,6 +122,17 @@
   
     useEffect(() => {
       const fetchConfig = async () => {
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem('social_proof_config_cache');
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              setConfig(parsed);
+              setIsEnabled(parsed.enabled);
+            } catch (e) {}
+          }
+        }
+
         const { data: spData } = await supabase.from('store_settings').select('*').eq('key', 'social_proof_settings').maybeSingle();
         const { data: pointsData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle();
         
@@ -137,6 +148,10 @@
   
         setConfig(mergedConfig);
         setIsEnabled(mergedConfig.enabled);
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('social_proof_config_cache', JSON.stringify(mergedConfig));
+        }
       };
       fetchConfig();
     }, []);
