@@ -1370,21 +1370,28 @@ export function AdvancedFlyerCreator() {
         
         await Promise.all([
           ...images.map((img, i) => {
-            if (img.complete) {
+            if (img.complete && img.naturalWidth !== 0) {
               logStep(`Imagem ${i+1} já carregada: ${img.src.substring(0, 50)}...`);
               return Promise.resolve();
             }
             return new Promise((resolve) => {
+              const timeout = setTimeout(() => {
+                logStep(`TIMEOUT: Imagem ${i+1} demorou muito para carregar`);
+                resolve(null);
+              }, 10000);
               img.onload = () => {
+                clearTimeout(timeout);
                 logStep(`Imagem ${i+1} carregada com sucesso`);
                 resolve(null);
               };
               img.onerror = () => {
+                clearTimeout(timeout);
                 logStep(`ERRO: Falha ao carregar imagem ${i+1}: ${img.src.substring(0, 50)}...`);
                 resolve(null);
               };
             });
           }),
+
           document.fonts?.ready.then(() => logStep('Fontes carregadas e prontas')) || Promise.resolve()
         ]);
 
