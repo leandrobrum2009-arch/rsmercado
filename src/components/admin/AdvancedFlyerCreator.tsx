@@ -1269,15 +1269,17 @@ export function AdvancedFlyerCreator() {
         return
       }
       
-      let imageUrl = product.image_url
-      const newProduct: FlyerProduct = {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        original_price: product.old_price,
-        image_url: imageUrl,
-        unit: product.unit,
-        removeBg: globalRemoveBg
+       let imageUrl = product.image_url || ''
+       const newProduct: FlyerProduct = {
+         id: product.id,
+         name: product.name,
+         price: product.price,
+         original_price: product.old_price,
+         image_url: imageUrl,
+         unit: product.unit,
+         removeBg: globalRemoveBg
+
+
       }
 
       // Diagnostic CORS check
@@ -1369,21 +1371,28 @@ export function AdvancedFlyerCreator() {
         
         await Promise.all([
           ...images.map((img, i) => {
-            if (img.complete) {
+            if (img.complete && img.naturalWidth !== 0) {
               logStep(`Imagem ${i+1} já carregada: ${img.src.substring(0, 50)}...`);
               return Promise.resolve();
             }
             return new Promise((resolve) => {
+              const timeout = setTimeout(() => {
+                logStep(`TIMEOUT: Imagem ${i+1} demorou muito para carregar`);
+                resolve(null);
+              }, 10000);
               img.onload = () => {
+                clearTimeout(timeout);
                 logStep(`Imagem ${i+1} carregada com sucesso`);
                 resolve(null);
               };
               img.onerror = () => {
+                clearTimeout(timeout);
                 logStep(`ERRO: Falha ao carregar imagem ${i+1}: ${img.src.substring(0, 50)}...`);
                 resolve(null);
               };
             });
           }),
+
           document.fonts?.ready.then(() => logStep('Fontes carregadas e prontas')) || Promise.resolve()
         ]);
 
@@ -1735,9 +1744,11 @@ export function AdvancedFlyerCreator() {
 
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Erro: Conteúdo do encarte não encontrado no navegador.')
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para download de imagem');
+        toast.error('Erro: O elemento do encarte sumiu da página.')
         return
       }
+
 
       logStep(`Iniciando handleDownloadImage (${format.toUpperCase()})`);
       setUploading(true)
