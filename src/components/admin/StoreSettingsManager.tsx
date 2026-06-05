@@ -329,7 +329,6 @@ import { logAttempt } from '@/lib/logs'
     }
 
      const handleSave = async () => {
-      // Validate social proof templates
       const spTemplates = [
         settings.social_proof?.purchase_template,
         settings.social_proof?.viewers_template,
@@ -388,10 +387,12 @@ import { logAttempt } from '@/lib/logs'
          throw error;
        }
  
+       logAttempt('admin_access', 'success', { panel: 'settings', action: 'save', keys: updates.map(u => u.key) });
        toast.success('Configurações salvas com sucesso!');
        fetchSettings();
      } catch (error: any) {
        console.error('Save error:', error)
+       logAttempt('admin_access', 'failure', { panel: 'settings', action: 'save_attempt', error: error.message });
        toast.error('Erro ao salvar: ' + (error.message || 'Erro desconhecido'))
      } finally {
        setIsSaving(false)
