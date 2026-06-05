@@ -1,4 +1,6 @@
- import { StrictMode } from 'react'
+console.log('[App] Initializing main.tsx...');
+import { StrictMode } from 'react'
+
  import ReactDOM from 'react-dom/client'
  import { RouterProvider } from '@tanstack/react-router'
  import { getRouter } from './router'
