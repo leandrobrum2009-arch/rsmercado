@@ -1279,6 +1279,7 @@ export function AdvancedFlyerCreator() {
          unit: product.unit,
          removeBg: globalRemoveBg
 
+
       }
 
       // Diagnostic CORS check
