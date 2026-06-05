@@ -6,12 +6,12 @@
  
  const router = getRouter()
  
- const rootElement = document.getElementById('root')!
- if (!rootElement.innerHTML) {
-   const root = ReactDOM.createRoot(rootElement)
-   root.render(
-     <StrictMode>
-       <RouterProvider router={router} />
-     </StrictMode>,
-   )
- }
+const rootElement = document.getElementById('root')!
+if (rootElement && !rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement)
+  root.render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>,
+  )
+}
