@@ -134,23 +134,38 @@
      fetchDashboardData()
    }, [timeRange])
  
-   const fetchDashboardData = async () => {
-     setLoading(true)
-     try {
-       // 1. Get stats from orders
-       const now = new Date()
-       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-       const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
- 
-         const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-           .select('total_amount, created_at, status, delivery_address')
-          .neq('status', 'cancelled')
-
-        if (ordersError) {
-          console.error('Error fetching orders for dashboard:', ordersError)
+    const fetchDashboardData = async () => {
+      setLoading(true)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          // Log access to dashboard for audit
+          await supabase.from('security_logs').insert({
+            user_id: session.user.id,
+            event_type: 'admin_access',
+            status: 'success',
+            details: { panel: 'dashboard', action: 'view' },
+            user_agent: navigator.userAgent
+          });
         }
+
+        // 1. Get stats from orders
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
+  
+          const { data: orders, error: ordersError } = await supabase
+           .from('orders')
+            .select('total_amount, created_at, status, delivery_address')
+           .neq('status', 'cancelled')
+ 
+         if (ordersError) {
+           console.error('Error fetching orders for dashboard:', ordersError)
+           if (ordersError.message?.includes('fetch') || ordersError.message?.includes('network')) {
+             toast.error('Erro de conexão ao carregar estatísticas.');
+           }
+         }
   
         if (orders && Array.isArray(orders)) {
           // Neighborhood stats
