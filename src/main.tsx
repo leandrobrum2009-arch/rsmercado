@@ -1,4 +1,4 @@
-// App init
+// Main entry
 import { StrictMode } from 'react'
 
  import ReactDOM from 'react-dom/client'
