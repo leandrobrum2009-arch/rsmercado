@@ -15,15 +15,21 @@
      fetchFeedback()
    }, [])
  
-   const fetchFeedback = async () => {
-     const { data, error } = await supabase
-       .from('app_feedback')
-       .select('*')
-       .order('created_at', { ascending: false })
-     
-     if (!error) setFeedbacks(data || [])
-     setLoading(false)
-   }
+    const fetchFeedback = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_feedback')
+          .select('*')
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        setFeedbacks(data || [])
+      } catch (err: any) {
+        console.error('Error fetching feedback:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
  
    const deleteFeedback = async (id: string) => {
      const { error } = await supabase.from('app_feedback').delete().eq('id', id)
