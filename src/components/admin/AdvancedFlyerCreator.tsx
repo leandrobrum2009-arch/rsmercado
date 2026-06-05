@@ -3325,6 +3325,14 @@ export function AdvancedFlyerCreator() {
                       <Button className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg bg-green-600 hover:bg-green-700 text-white" onClick={handleShareWhatsApp}>
                         <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
                       </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-sm border-zinc-200" 
+                        onClick={() => setShowLogViewer(true)}
+                      >
+                        <Clock className="w-4 h-4 mr-2" /> Ver Histórico de Logs
+                      </Button>
+
                       <div className="col-span-2 mt-2">
                         <Button 
                           className="w-full h-14 rounded-xl font-black uppercase tracking-widest text-sm shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white" 
