@@ -86,7 +86,12 @@ export const Route = createFileRoute("/")({
     useEffect(() => {
       const fetchLayout = async () => {
         try {
-          const { data } = await supabase.from('store_settings').select('value').eq('key', 'home_layout').maybeSingle();
+          const { data, error } = await supabase.from('store_settings').select('value').eq('key', 'home_layout').maybeSingle();
+          if (error) {
+            console.error('Error fetching home layout:', error);
+            // Non-critical, keep default layout
+            return;
+          }
           if (data && Array.isArray(data.value)) {
             setLayout(data.value);
           }
