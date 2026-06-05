@@ -505,10 +505,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
    );
  }
  
- function RootComponent() {
-   return (
-     <CartProvider>
-       <Layout />
-     </CartProvider>
-   );
- }
+function RootComponent() {
+  return (
+    <CartProvider>
+      <div id="app-root">
+        <Layout />
+      </div>
+    </CartProvider>
+  );
+}
