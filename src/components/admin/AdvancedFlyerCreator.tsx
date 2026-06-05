@@ -1232,22 +1232,23 @@ export function AdvancedFlyerCreator() {
        if (error) throw error
  
         setUploadProgress(80)
-        const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
-        
-        // Test if URL is accessible
-        const img = new Image();
-        img.src = publicUrl;
-        img.onload = () => {
-          setBackgroundUrl(publicUrl)
-          setCustomBackgrounds(prev => [...prev, publicUrl])
-          setUploadProgress(100)
-          toast.success('Fundo carregado com sucesso!')
-          setUploading(false)
-          setUploadProgress(0)
-        };
-        img.onerror = () => {
-          throw new Error('A imagem foi enviada mas não pôde ser carregada. Verifique as permissões do storage.');
-        }
+         const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
+         
+         // Test if URL is accessible
+         const isValid = await validateImageUrl(publicUrl);
+         
+         if (isValid) {
+           setBackgroundUrl(publicUrl)
+           setCustomBackgrounds(prev => [...prev, publicUrl])
+           setUploadProgress(100)
+           toast.success('Fundo carregado com sucesso!')
+         } else {
+           throw new Error('A imagem foi enviada mas não pôde ser carregada. Verifique as permissões do storage.');
+         }
+         
+         setUploading(false)
+         setUploadProgress(0)
+
      } catch (error: any) {
        console.error('Erro no upload:', error);
        toast.error('Erro no upload: ' + (error.message || 'Erro desconhecido'))
