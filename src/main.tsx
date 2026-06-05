@@ -1,4 +1,4 @@
-// App Initializing main.tsx
+// App entry point
 import { StrictMode } from 'react'
 
  import ReactDOM from 'react-dom/client'
