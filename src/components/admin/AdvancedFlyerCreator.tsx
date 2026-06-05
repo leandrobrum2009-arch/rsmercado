@@ -1833,7 +1833,7 @@ export function AdvancedFlyerCreator() {
               useCORS: true,
               allowTaint: true, 
               scale: customScale,
-              backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+              backgroundColor: getHtml2CanvasBackground(format),
               logging: true, 
               imageTimeout: 60000,
               width: 794,
@@ -1863,6 +1863,7 @@ export function AdvancedFlyerCreator() {
                   clonedElement.style.position = 'relative';
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
+                  Object.assign(clonedElement.style, getFlyerBackgroundStyle());
 
                   const allElements = clonedElement.querySelectorAll('*');
                   
