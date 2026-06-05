@@ -3489,7 +3489,7 @@ export function AdvancedFlyerCreator() {
                   style={{
                     width: '794px', // A4 em 96dpi
                     height: '1123px',
-                    backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                    ...getFlyerBackgroundStyle(),
                     transform: `scale(${flyerScale})`,
                     marginBottom: `${(1123 * (flyerScale - 1))}px`,
                     marginRight: `${(794 * (flyerScale - 1)) / 2}px`,
