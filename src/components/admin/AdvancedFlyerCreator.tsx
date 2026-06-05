@@ -2691,7 +2691,9 @@ export function AdvancedFlyerCreator() {
                               src={bg} 
                               className="w-full h-full object-cover" 
                               alt={`User BG ${idx}`}
+                              crossOrigin="anonymous"
                               onError={(e) => {
+
                                 // Fallback if image fails to load
                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x400?text=Erro+Imagem';
                               }}
