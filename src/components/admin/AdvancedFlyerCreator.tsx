@@ -2040,9 +2040,9 @@ export function AdvancedFlyerCreator() {
           logStep(`Iniciando html2canvas para PDF (Escala: ${customScale})`);
           return await html2canvas(element, {
             useCORS: true,
-            allowTaint: false,
+            allowTaint: true,
             scale: customScale,
-            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            backgroundColor: getHtml2CanvasBackground(),
             imageTimeout: 30000,
             onclone: (clonedDoc) => {
               sanitizeClonedDocColors(clonedDoc);
@@ -2058,6 +2058,7 @@ export function AdvancedFlyerCreator() {
                 clonedElement.style.visibility = 'visible';
                 clonedElement.style.width = '794px';
                 clonedElement.style.height = '1123px';
+                Object.assign(clonedElement.style, getFlyerBackgroundStyle());
 
                 const allElements = clonedElement.querySelectorAll('*');
                 allElements.forEach((el: any) => {
