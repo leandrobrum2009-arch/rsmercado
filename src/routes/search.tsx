@@ -96,7 +96,6 @@ export const Route = createFileRoute('/search')({
       } catch (err) {
         console.error('Search error:', err)
       } finally {
-        setLoading(true) // Just to show loader for a bit longer if needed? No, false.
         setLoading(false)
       }
     }
