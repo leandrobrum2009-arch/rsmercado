@@ -80,6 +80,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   };
 
+  const ensureAbsoluteUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    // If it's just a filename, it's likely from the flyer-backgrounds bucket
+    return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/flyer-backgrounds/${url}`;
+  };
+
+
 interface ValidityBannerProps {
   isLine?: boolean;
   validityBgColor: string;
@@ -262,9 +270,10 @@ export function AdvancedFlyerCreator() {
             // Manually apply without toast to avoid annoying on mount
             if (config.layout) setLayout(config.layout)
             if (config.backgroundType) setBackgroundType(config.backgroundType)
-            if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+            if (config.backgroundUrl !== undefined) setBackgroundUrl(ensureAbsoluteUrl(config.backgroundUrl))
             if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
             if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+
             if (config.columns) setColumns(config.columns)
             if (config.gridGap !== undefined) setGridGap(config.gridGap)
             if (config.showLogo !== undefined) setShowLogo(config.showLogo)
@@ -306,7 +315,7 @@ export function AdvancedFlyerCreator() {
             if (config.imageOffsetY !== undefined) setImageOffsetY(config.imageOffsetY)
             if (config.imageOffsetX !== undefined) setImageOffsetX(config.imageOffsetX)
             if (config.blurAmount !== undefined) setBlurAmount(config.blurAmount)
-            if (config.customBackgrounds) setCustomBackgrounds(config.customBackgrounds)
+            if (config.customBackgrounds) setCustomBackgrounds(config.customBackgrounds.map(ensureAbsoluteUrl))
           } catch (e) {
             console.error('Error loading last flyer config:', e)
           }
@@ -1084,9 +1093,10 @@ export function AdvancedFlyerCreator() {
     const applyTemplate = (config: any) => {
       if (config.layout) setLayout(config.layout)
       if (config.backgroundType) setBackgroundType(config.backgroundType)
-      if (config.backgroundUrl !== undefined) setBackgroundUrl(config.backgroundUrl)
+      if (config.backgroundUrl !== undefined) setBackgroundUrl(ensureAbsoluteUrl(config.backgroundUrl))
       if (config.backgroundColor) setBackgroundColor(config.backgroundColor)
       if (config.backgroundGradient) setBackgroundGradient(config.backgroundGradient)
+
       if (config.columns) setColumns(config.columns)
       if (config.gridGap !== undefined) setGridGap(config.gridGap)
       if (config.showLogo !== undefined) setShowLogo(config.showLogo)
@@ -2681,7 +2691,9 @@ export function AdvancedFlyerCreator() {
                               src={bg} 
                               className="w-full h-full object-cover" 
                               alt={`User BG ${idx}`}
+                              crossOrigin="anonymous"
                               onError={(e) => {
+
                                 // Fallback if image fails to load
                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x400?text=Erro+Imagem';
                               }}
@@ -2715,7 +2727,7 @@ export function AdvancedFlyerCreator() {
                           )}
                           onClick={() => setBackgroundUrl(bg)}
                         >
-                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} />
+                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
                         </button>
                       ))}
                     </div>
