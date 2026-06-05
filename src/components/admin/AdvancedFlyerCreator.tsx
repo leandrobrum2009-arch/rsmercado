@@ -87,6 +87,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/flyer-backgrounds/${url}`;
   };
 
+  const validateImageUrl = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+      // Timeout after 5s
+      setTimeout(() => resolve(false), 5000);
+    });
+  };
+
+
 
 interface ValidityBannerProps {
   isLine?: boolean;
