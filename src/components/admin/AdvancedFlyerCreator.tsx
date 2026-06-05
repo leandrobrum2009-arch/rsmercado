@@ -1556,9 +1556,11 @@ export function AdvancedFlyerCreator() {
         logStep('Iniciando handleGeneratePreview');
         const flyerElement = document.getElementById('flyer-content');
         if (!flyerElement) {
-          logStep('ERRO: flyer-content não encontrado para prévia');
+          logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para prévia');
+          toast.error('O elemento do encarte não foi encontrado para gerar a prévia.');
           return;
         }
+
         
         setIsPreparingPrint(true);
         setGenerationProgress(5);
