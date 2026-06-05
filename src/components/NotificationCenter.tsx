@@ -145,10 +145,16 @@
    }, [])
  
    const markAsRead = async (id: string) => {
-     const { error } = await supabase
-       .from('notifications')
-       .update({ is_read: true })
-       .eq('id', id)
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error marking notification as read:', error)
+      toast.error('Erro ao marcar como lida')
+      return
+    }
  
     if (!error) {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
