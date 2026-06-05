@@ -113,7 +113,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         try {
           const { data, error } = await supabase.from('store_settings').select('*');
           if (error) {
-            console.warn('Store settings error:', error.message);
+            console.error('Error fetching store settings:', error);
             setIsConnected(true); 
             return;
           }
