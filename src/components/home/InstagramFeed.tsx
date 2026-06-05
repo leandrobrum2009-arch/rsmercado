@@ -27,15 +27,19 @@ import { toast } from '@/lib/toast'
    const instagramItems = settings.instagram_items || defaultItems;
    const reels = instagramItems.slice(0, postCount);
  
-   const handleFollow = async () => {
-     const { data: { user } } = await supabase.auth.getUser();
-     await supabase.from('site_visits').insert({
-       user_id: user?.id || null,
-       path: 'action:instagram_follow',
-       user_agent: navigator.userAgent
-     });
-     window.open(settings.instagram_url, '_blank')
-   }
+  const handleFollow = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('site_visits').insert({
+        user_id: user?.id || null,
+        path: 'action:instagram_follow',
+        user_agent: navigator.userAgent
+      });
+    } catch (e) {
+      console.warn('Silent fail for tracking visit');
+    }
+    window.open(settings.instagram_url, '_blank')
+  }
  
     const handleShare = async (item: any) => {
       const text = `Confira esse ${item.type} da nossa loja!`;
