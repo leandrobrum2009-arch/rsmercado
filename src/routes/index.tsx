@@ -260,8 +260,12 @@ export const Route = createFileRoute("/")({
     };
 
     return (
-      <div className="bg-gray-50 pb-10">
-        {layout.map(section => renderSection(section))}
+      <div className="bg-gray-50 pb-10 min-h-screen">
+        {layout && Array.isArray(layout) ? layout.map((section, idx) => (
+          <div key={section.id || idx}>
+            {renderSection(section)}
+          </div>
+        )) : null}
       </div>
     );
   }
