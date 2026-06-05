@@ -1,5 +1,6 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { toast } from "./lib/toast";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -83,11 +84,29 @@ export const getRouter = () => {
     },
   });
 
-   return router;
- };
- 
-  declare module '@tanstack/react-router' {
-   interface Register {
-     router: ReturnType<typeof getRouter>
-   }
- }
+  // Global error handler
+  if (typeof window !== 'undefined') {
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      if (event.reason?.message?.includes('fetch') || event.reason?.message?.includes('network')) {
+        toast.error('Erro de conexão. Verifique sua internet.');
+      }
+    });
+
+    window.addEventListener('error', (event) => {
+      console.error('Global error:', event.error);
+      if (event.message?.includes('Script error')) {
+        // Ignore cross-origin script errors
+        return;
+      }
+    });
+  }
+
+  return router;
+};
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: ReturnType<typeof getRouter>
+  }
+}
