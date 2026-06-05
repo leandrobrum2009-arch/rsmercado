@@ -2027,9 +2027,11 @@ export function AdvancedFlyerCreator() {
     const handleDownloadPDF = async () => {
       const element = document.getElementById('flyer-content')
       if (!element) {
-        toast.error('Conteúdo do encarte não encontrado')
+        logStep('ERRO CRÍTICO: Elemento #flyer-content não encontrado no DOM para PDF');
+        toast.error('O elemento do encarte não foi encontrado para gerar o PDF.')
         return
       }
+
 
       logStep('Iniciando handleDownloadPDF');
       setUploading(true)
