@@ -1,4 +1,4 @@
-// Main entry point
+// App entry point
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
