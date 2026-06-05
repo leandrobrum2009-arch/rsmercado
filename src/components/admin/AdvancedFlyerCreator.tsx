@@ -417,7 +417,7 @@ export function AdvancedFlyerCreator() {
     // Helper: estilo de fundo do encarte conforme tipo selecionado.
     // Aplicado no #flyer-content e também usado para decidir se devemos
     // forçar backgroundColor branco no html2canvas (só para tipo 'color').
-    const getFlyerBackgroundStyle = (): React.CSSProperties => {
+    const getFlyerBackgroundStyle = (): Record<string, string> => {
       if (removeFlyerBg) {
         return { backgroundColor: 'rgba(0,0,0,0)' };
       }
