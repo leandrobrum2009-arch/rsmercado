@@ -414,6 +414,40 @@ export function AdvancedFlyerCreator() {
        return () => document.body.classList.remove('no-animations');
      }, [isPreparingPrint, uploading]);
 
+    // Helper: estilo de fundo do encarte conforme tipo selecionado.
+    // Aplicado no #flyer-content e também usado para decidir se devemos
+    // forçar backgroundColor branco no html2canvas (só para tipo 'color').
+    const getFlyerBackgroundStyle = (): Record<string, string> => {
+      if (removeFlyerBg) {
+        return { backgroundColor: 'rgba(0,0,0,0)' };
+      }
+      switch (backgroundType) {
+        case 'image':
+          return backgroundUrl
+            ? {
+                backgroundImage: `url("${backgroundUrl}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }
+            : { backgroundColor: '#ffffff' };
+        case 'gradient':
+          return { background: backgroundGradient };
+        case 'color':
+        default:
+          return { backgroundColor: backgroundColor || '#ffffff' };
+      }
+    };
+
+    // Cor de fundo para passar ao html2canvas. Quando o fundo é imagem ou
+    // gradiente, retornamos null para que o html2canvas NÃO pinte por cima.
+    const getHtml2CanvasBackground = (format?: string): string | null => {
+      if (removeFlyerBg) return format === 'png' ? null : 'rgba(0,0,0,0)';
+      if (backgroundType === 'image' && backgroundUrl) return null;
+      if (backgroundType === 'gradient') return null;
+      return backgroundColor || '#ffffff';
+    };
+
     // Extract content to a reusable component
     const FlyerContentInner = () => {
       return (
@@ -1338,10 +1372,10 @@ export function AdvancedFlyerCreator() {
               return await html2canvas(flyerElement, {
                 useCORS: true,
                 scale: customScale, 
-                backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+                backgroundColor: getHtml2CanvasBackground(),
                 logging: true,
                 imageTimeout: 30000,
-                allowTaint: false,
+                allowTaint: true,
                 onclone: (clonedDoc) => {
                   sanitizeClonedDocColors(clonedDoc);
                   logStep('onclone: Ajustando estilos no clone');
@@ -1361,6 +1395,7 @@ export function AdvancedFlyerCreator() {
                     clonedFlyer.style.visibility = 'visible';
                     clonedFlyer.style.width = '794px';
                     clonedFlyer.style.height = '1123px';
+                    Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
                     
                     const allElements = clonedFlyer.querySelectorAll('*');
                     allElements.forEach((el: any) => {
@@ -1557,9 +1592,9 @@ export function AdvancedFlyerCreator() {
           const canvasPromise = html2canvas(flyerElement, {
             useCORS: true,
             scale: 1.2, 
-            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            backgroundColor: getHtml2CanvasBackground(),
             logging: true,
-            allowTaint: false,
+            allowTaint: true,
             imageTimeout: 10000,
             onclone: (clonedDoc) => {
               sanitizeClonedDocColors(clonedDoc);
@@ -1574,6 +1609,7 @@ export function AdvancedFlyerCreator() {
                 clonedFlyer.style.flexDirection = 'column';
                 clonedFlyer.style.width = '794px';
                 clonedFlyer.style.height = '1123px';
+                Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
 
                 clonedFlyer.querySelectorAll('*').forEach((el: any) => {
                   el.style.setProperty('transition', 'none', 'important');
@@ -1605,7 +1641,8 @@ export function AdvancedFlyerCreator() {
             const canvasPromiseScale1 = html2canvas(flyerElement, {
               useCORS: true,
               scale: 1, 
-              backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+              backgroundColor: getHtml2CanvasBackground(),
+              allowTaint: true,
               imageTimeout: 10000,
               onclone: (clonedDoc) => {
                 sanitizeClonedDocColors(clonedDoc);
@@ -1613,6 +1650,7 @@ export function AdvancedFlyerCreator() {
                 if (clonedFlyer) {
                   clonedFlyer.style.width = '794px';
                   clonedFlyer.style.height = '1123px';
+                  Object.assign(clonedFlyer.style, getFlyerBackgroundStyle());
                   clonedFlyer.querySelectorAll('*').forEach((el: any) => {
                     el.style.setProperty('animation', 'none', 'important');
                     el.style.setProperty('transition', 'none', 'important');
@@ -1795,7 +1833,7 @@ export function AdvancedFlyerCreator() {
               useCORS: true,
               allowTaint: true, 
               scale: customScale,
-              backgroundColor: (format === 'png' && removeFlyerBg) ? null : '#ffffff',
+              backgroundColor: getHtml2CanvasBackground(format),
               logging: true, 
               imageTimeout: 60000,
               width: 794,
@@ -1825,6 +1863,7 @@ export function AdvancedFlyerCreator() {
                   clonedElement.style.position = 'relative';
                   clonedElement.style.left = '0';
                   clonedElement.style.top = '0';
+                  Object.assign(clonedElement.style, getFlyerBackgroundStyle());
 
                   const allElements = clonedElement.querySelectorAll('*');
                   
@@ -2001,9 +2040,9 @@ export function AdvancedFlyerCreator() {
           logStep(`Iniciando html2canvas para PDF (Escala: ${customScale})`);
           return await html2canvas(element, {
             useCORS: true,
-            allowTaint: false,
+            allowTaint: true,
             scale: customScale,
-            backgroundColor: removeFlyerBg ? 'rgba(0,0,0,0)' : '#ffffff',
+            backgroundColor: getHtml2CanvasBackground(),
             imageTimeout: 30000,
             onclone: (clonedDoc) => {
               sanitizeClonedDocColors(clonedDoc);
@@ -2019,6 +2058,7 @@ export function AdvancedFlyerCreator() {
                 clonedElement.style.visibility = 'visible';
                 clonedElement.style.width = '794px';
                 clonedElement.style.height = '1123px';
+                Object.assign(clonedElement.style, getFlyerBackgroundStyle());
 
                 const allElements = clonedElement.querySelectorAll('*');
                 allElements.forEach((el: any) => {
@@ -3455,7 +3495,7 @@ export function AdvancedFlyerCreator() {
                   style={{
                     width: '794px', // A4 em 96dpi
                     height: '1123px',
-                    backgroundColor: backgroundType === 'color' ? backgroundColor : (backgroundType === 'image' && !removeFlyerBg ? '#ffffff' : 'transparent'),
+                    ...getFlyerBackgroundStyle(),
                     transform: `scale(${flyerScale})`,
                     marginBottom: `${(1123 * (flyerScale - 1))}px`,
                     marginRight: `${(794 * (flyerScale - 1)) / 2}px`,
