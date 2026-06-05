@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/whatsapp'
+import { toast } from '@/lib/toast'
 
 export const Route = createFileRoute('/delivery')({
   component: DeliveryPage,
@@ -21,13 +22,23 @@ function DeliveryPage() {
   }, [])
 
   const fetchNeighborhoods = async () => {
-    setLoading(true)
-    const { data } = await supabase
-      .from('delivery_neighborhoods')
-      .select('*')
-      .order('name')
-    setNeighborhoods(data || [])
-    setLoading(false)
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('delivery_neighborhoods')
+        .select('*')
+        .order('name')
+      
+      if (error) throw error
+      setNeighborhoods(data || [])
+    } catch (err: any) {
+      console.error('Error fetching neighborhoods:', err)
+      if (err.message?.includes('fetch') || err.message?.includes('network')) {
+        toast.error('Erro de conexão ao carregar bairros.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filtered = neighborhoods.filter(n => 

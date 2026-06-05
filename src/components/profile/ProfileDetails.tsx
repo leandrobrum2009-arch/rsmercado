@@ -83,7 +83,12 @@ import { Checkbox } from '@/components/ui/checkbox'
           .eq('id', profile.id);
  
        if (error) {
-         toast.error('Erro ao atualizar perfil: ' + error.message);
+         console.error('Profile update error:', error);
+         if (error.message?.includes('fetch') || error.message?.includes('network')) {
+           toast.error('Erro de conexão! Verifique sua internet.');
+         } else {
+           toast.error('Erro ao atualizar perfil: ' + error.message);
+         }
        } else {
          toast.success('Perfil atualizado com sucesso!');
          onUpdate();

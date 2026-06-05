@@ -22,16 +22,26 @@ import { Badge } from '@/components/ui/badge'
    const [loading, setLoading] = useState(true)
  
    useEffect(() => {
-     const fetchOrder = async () => {
-       const { data, error } = await supabase
-         .from('orders')
-         .select('*, order_items(*, products(name, image_url))')
-         .eq('id', orderId)
-         .maybeSingle()
-       
-       if (data) setOrder(data)
-       setLoading(false)
-     }
+    const fetchOrder = async () => {
+      try {
+        setLoading(true)
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*, order_items(*, products(name, image_url))')
+          .eq('id', orderId)
+          .maybeSingle()
+        
+        if (error) throw error
+        if (data) setOrder(data)
+      } catch (err: any) {
+        console.error('Fetch order error:', err)
+        if (err.message?.includes('fetch') || err.message?.includes('network')) {
+          toast.error('Erro de conexão ao carregar seu pedido.')
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
  
      fetchOrder()
  

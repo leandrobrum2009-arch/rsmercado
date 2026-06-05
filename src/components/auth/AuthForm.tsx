@@ -127,14 +127,17 @@ export function AuthForm() {
     } catch (error: any) {
       console.error('Auth Error:', error)
       let msg = error.message || 'Erro na autenticação'
-      if (msg === 'email rate limit exceeded' || msg.includes('rate limit')) {
+      
+      if (msg.includes('fetch') || msg.includes('network')) {
+        msg = 'ERRO DE CONEXÃO: Não foi possível alcançar o servidor. Verifique sua internet.'
+      } else if (msg === 'email rate limit exceeded' || msg.includes('rate limit')) {
         msg = 'LIMITE DE TENTATIVAS EXCEDIDO: O sistema bloqueou novas tentativas temporariamente por segurança. Tente novamente em alguns minutos.'
-       } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
-          msg = 'ERRO: Sua conta ainda não foi ativada. Tente entrar novamente.'
-       } else if (msg.includes('Invalid login credentials')) {
+      } else if (msg.toLowerCase().includes('confirm your email') || msg.toLowerCase().includes('email_not_confirmed')) {
+        msg = 'ERRO: Sua conta ainda não foi ativada. Verifique seu e-mail.'
+      } else if (msg.includes('Invalid login credentials')) {
         msg = 'DADOS INCORRETOS: E-mail ou senha inválidos. Verifique os dados e tente novamente.'
-      } else if (msg.toLowerCase().includes('apikey') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api inválida') || msg.toLowerCase().includes('failed to fetch')) {
-        msg = 'ERRO DE CONFIGURAÇÃO (API INVÁLIDA): As chaves de conexão com o banco de dados (Supabase) não foram encontradas ou são inválidas. Por favor, verifique as "Configurações do Projeto" no Lovable.'
+      } else if (msg.toLowerCase().includes('apikey') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('api inválida')) {
+        msg = 'ERRO DE CONFIGURAÇÃO: As chaves de conexão (Supabase) são inválidas. Contate o suporte.'
       }
 
       setErrorMsg(msg)
