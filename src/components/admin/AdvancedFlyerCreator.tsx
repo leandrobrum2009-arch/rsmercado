@@ -1269,15 +1269,16 @@ export function AdvancedFlyerCreator() {
         return
       }
       
-      let imageUrl = product.image_url
-      const newProduct: FlyerProduct = {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        original_price: product.old_price,
-        image_url: imageUrl,
-        unit: product.unit,
-        removeBg: globalRemoveBg
+       let imageUrl = product.image_url || ''
+       const newProduct: FlyerProduct = {
+         id: product.id,
+         name: product.name,
+         price: product.price,
+         original_price: product.old_price,
+         image_url: imageUrl,
+         unit: product.unit,
+         removeBg: globalRemoveBg
+
       }
 
       // Diagnostic CORS check
