@@ -429,8 +429,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
                     <ExternalLink size={12} className="shrink-0" />
                   </a>
                 </div>
+                <div className="pt-2">
+                  <span className="text-[9px] text-zinc-300 font-mono uppercase tracking-widest">
+                    Versão 2.1.0-stable
+                  </span>
+                </div>
               </div>
             </footer>
+
           )}
 
        {/* Mobile Bottom Navigation */}
