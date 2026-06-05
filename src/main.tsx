@@ -14,4 +14,14 @@ if (rootElement && !rootElement.innerHTML) {
       <RouterProvider router={router} />
     </StrictMode>,
   )
+  
+  // Remove initial loader after app mounts
+  setTimeout(() => {
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.visibility = 'hidden';
+      setTimeout(() => loader.remove(), 500);
+    }
+  }, 100);
 }

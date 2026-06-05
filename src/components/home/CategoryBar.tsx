@@ -31,7 +31,17 @@ const fallbackCategories = [
 ];
 
 export const CategoryBar = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('categories_cache');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -53,7 +63,10 @@ export const CategoryBar = () => {
           return a.name.localeCompare(b.name);
         });
         setCategories(sorted);
-      } else {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('categories_cache', JSON.stringify(sorted));
+        }
+      } else if (categories.length === 0) {
         setCategories(fallbackCategories);
       }
     };
