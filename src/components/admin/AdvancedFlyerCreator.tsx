@@ -3435,8 +3435,12 @@ export function AdvancedFlyerCreator() {
                     <img
                       src={backgroundUrl}
                       crossOrigin="anonymous"
-                      className="absolute inset-0 w-full h-full object-cover bg-layer-print"
+                      className="absolute inset-0 w-full h-full object-fill bg-layer-print"
                       alt="Background"
+                      onError={(e) => {
+                        console.error('Falha ao carregar imagem de fundo:', backgroundUrl);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div 
