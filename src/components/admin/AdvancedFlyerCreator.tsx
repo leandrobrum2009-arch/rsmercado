@@ -138,7 +138,8 @@ export function AdvancedFlyerCreator() {
    const [footerText, setFooterText] = useState('')
    const [showFooter, setShowFooter] = useState(false)
    const [footerFontSize, setFooterFontSize] = useState(10)
-   const [uploading, setUploading] = useState(false)
+    const [uploading, setUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState(0)
    const [selectedProducts, setSelectedProducts] = useState<FlyerProduct[]>([])
      const [allProducts, setAllProducts] = useState<any[]>([])
      const [categories, setCategories] = useState<any[]>([])
@@ -1156,22 +1157,45 @@ export function AdvancedFlyerCreator() {
      const file = e.target.files?.[0]
      if (!file) return
  
+     if (file.size > 5 * 1024 * 1024) {
+       toast.error('Imagem muito grande. O limite é 5MB.')
+       return
+     }
+
      setUploading(true)
+     setUploadProgress(10)
      try {
        const fileExt = file.name.split('.').pop()
        const fileName = `flyer-bg-${Math.random().toString(36).substring(2)}.${fileExt}`
-       const { data, error } = await supabase.storage.from('banners').upload(fileName, file)
+       const bucketName = 'flyer-backgrounds'
+       
+       setUploadProgress(30)
+       const { data, error } = await supabase.storage.from(bucketName).upload(fileName, file)
        
        if (error) throw error
  
-        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
-        setBackgroundUrl(publicUrl)
-        setCustomBackgrounds(prev => [...prev, publicUrl])
-        toast.success('Fundo carregado com sucesso!')
+        setUploadProgress(80)
+        const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
+        
+        // Test if URL is accessible
+        const img = new Image();
+        img.src = publicUrl;
+        img.onload = () => {
+          setBackgroundUrl(publicUrl)
+          setCustomBackgrounds(prev => [...prev, publicUrl])
+          setUploadProgress(100)
+          toast.success('Fundo carregado com sucesso!')
+          setUploading(false)
+          setUploadProgress(0)
+        };
+        img.onerror = () => {
+          throw new Error('A imagem foi enviada mas não pôde ser carregada. Verifique as permissões do storage.');
+        }
      } catch (error: any) {
-       toast.error('Erro no upload: ' + error.message)
-     } finally {
+       console.error('Erro no upload:', error);
+       toast.error('Erro no upload: ' + (error.message || 'Erro desconhecido'))
        setUploading(false)
+       setUploadProgress(0)
      }
    }
  
@@ -2613,10 +2637,23 @@ export function AdvancedFlyerCreator() {
                             )}
                             onClick={() => setBackgroundUrl(bg)}
                           >
-                            <img src={bg} className="w-full h-full object-cover" alt={`User BG ${idx}`} />
+                            <img 
+                              src={bg} 
+                              className="w-full h-full object-cover" 
+                              alt={`User BG ${idx}`}
+                              onError={(e) => {
+                                // Fallback if image fails to load
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x400?text=Erro+Imagem';
+                              }}
+                            />
+                            {backgroundUrl === bg && (
+                              <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                                <CheckSquare className="w-6 h-6 text-primary" />
+                              </div>
+                            )}
                           </button>
                           <button 
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-100 transition-opacity shadow-lg z-10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setCustomBackgrounds(prev => prev.filter(u => u !== bg));
@@ -2646,9 +2683,19 @@ export function AdvancedFlyerCreator() {
                       <div className="flex-1">
                         <Input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="bg-upload" />
                         <label htmlFor="bg-upload" className="flex items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors bg-zinc-50/50">
-                          <div className="flex flex-col items-center">
-                            {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Upload className="w-5 h-5 mb-1 text-zinc-400" />}
-                            <span className="text-[10px] font-bold uppercase text-zinc-600">{uploading ? 'Enviando...' : 'Adicionar Novo Fundo à Galeria'}</span>
+                          <div className="flex flex-col items-center w-full">
+                            {uploading ? (
+                              <div className="w-full space-y-2 flex flex-col items-center">
+                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                <Progress value={uploadProgress} className="h-1 w-full max-w-[150px]" />
+                                <span className="text-[10px] font-bold uppercase text-zinc-600">Enviando {uploadProgress}%</span>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="w-5 h-5 mb-1 text-zinc-400" />
+                                <span className="text-[10px] font-bold uppercase text-zinc-600">Adicionar Novo Fundo à Galeria</span>
+                              </>
+                            )}
                           </div>
                         </label>
                       </div>
@@ -3421,8 +3468,12 @@ export function AdvancedFlyerCreator() {
                     <img
                       src={backgroundUrl}
                       crossOrigin="anonymous"
-                      className="absolute inset-0 w-full h-full object-cover bg-layer-print"
+                      className="absolute inset-0 w-full h-full object-fill bg-layer-print"
                       alt="Background"
+                      onError={(e) => {
+                        console.error('Falha ao carregar imagem de fundo:', backgroundUrl);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div 
