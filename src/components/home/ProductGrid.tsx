@@ -1,8 +1,9 @@
 import { ProductCard } from "../ProductCard";
- import { useEffect, useState } from "react";
- import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "@/lib/toast";
  
    export const ProductGrid = ({ title, categoryName, tag }: { title: string, categoryName?: string, tag?: string }) => {
     const [products, setProducts] = useState<any[]>([]);
