@@ -143,25 +143,42 @@ function CartPage() {
       }
     };
     const fetchData = async () => {
-      const {
-        data: { session: currentSession },
-      } = await supabase.auth.getSession();
-      setSession(currentSession);
-      if (currentSession) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", currentSession.user.id)
-          .maybeSingle();
-        setProfile(profileData);
-        const { data: addrData } = await supabase
-          .from("user_addresses")
-          .select("*")
-          .eq("user_id", currentSession.user.id)
-          .order("created_at", { ascending: false });
-        setAddresses(addrData || []);
-        if (addrData && addrData.length > 0) {
-          setSelectedAddress(addrData.find((a) => a.is_default) || addrData[0]);
+      try {
+        const {
+          data: { session: currentSession },
+          error: sessionError
+        } = await supabase.auth.getSession();
+        
+        if (sessionError) throw sessionError;
+        setSession(currentSession);
+        
+        if (currentSession) {
+          const { data: profileData, error: profError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", currentSession.user.id)
+            .maybeSingle();
+          
+          if (profError) console.error("Profile fetch error:", profError);
+          setProfile(profileData);
+          
+          const { data: addrData, error: addrError } = await supabase
+            .from("user_addresses")
+            .select("*")
+            .eq("user_id", currentSession.user.id)
+            .order("created_at", { ascending: false });
+          
+          if (addrError) throw addrError;
+          setAddresses(addrData || []);
+          
+          if (addrData && addrData.length > 0) {
+            setSelectedAddress(addrData.find((a) => a.is_default) || addrData[0]);
+          }
+        }
+      } catch (err: any) {
+        console.error("Cart data fetch error:", err);
+        if (err.message?.includes('fetch') || err.message?.includes('network')) {
+          toast.error("Erro de conexão ao carregar seus dados.");
         }
       }
     };
