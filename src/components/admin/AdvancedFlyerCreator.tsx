@@ -87,6 +87,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/flyer-backgrounds/${url}`;
   };
 
+  const validateImageUrl = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+      // Timeout after 5s
+      setTimeout(() => resolve(false), 5000);
+    });
+  };
+
+
 
 interface ValidityBannerProps {
   isLine?: boolean;
@@ -432,14 +444,14 @@ export function AdvancedFlyerCreator() {
       }
       switch (backgroundType) {
         case 'image':
-          return backgroundUrl
-            ? {
-                backgroundImage: `url("${backgroundUrl}")`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }
-            : { backgroundColor: '#ffffff' };
+          if (!backgroundUrl) return { backgroundColor: '#ffffff' };
+          return {
+            backgroundImage: `url("${backgroundUrl}"), url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000")`,
+            backgroundSize: 'cover, cover',
+            backgroundPosition: 'center, center',
+            backgroundRepeat: 'no-repeat, no-repeat',
+            backgroundColor: '#ffffff'
+          };
         case 'gradient':
           return { background: backgroundGradient };
         case 'color':
@@ -447,6 +459,7 @@ export function AdvancedFlyerCreator() {
           return { backgroundColor: backgroundColor || '#ffffff' };
       }
     };
+
 
     // Cor de fundo para passar ao html2canvas. Quando o fundo é imagem ou
     // gradiente, retornamos null para que o html2canvas NÃO pinte por cima.
@@ -1219,22 +1232,23 @@ export function AdvancedFlyerCreator() {
        if (error) throw error
  
         setUploadProgress(80)
-        const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
-        
-        // Test if URL is accessible
-        const img = new Image();
-        img.src = publicUrl;
-        img.onload = () => {
-          setBackgroundUrl(publicUrl)
-          setCustomBackgrounds(prev => [...prev, publicUrl])
-          setUploadProgress(100)
-          toast.success('Fundo carregado com sucesso!')
-          setUploading(false)
-          setUploadProgress(0)
-        };
-        img.onerror = () => {
-          throw new Error('A imagem foi enviada mas não pôde ser carregada. Verifique as permissões do storage.');
-        }
+         const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
+         
+         // Test if URL is accessible
+         const isValid = await validateImageUrl(publicUrl);
+         
+         if (isValid) {
+           setBackgroundUrl(publicUrl)
+           setCustomBackgrounds(prev => [...prev, publicUrl])
+           setUploadProgress(100)
+           toast.success('Fundo carregado com sucesso!')
+         } else {
+           throw new Error('A imagem foi enviada mas não pôde ser carregada. Verifique as permissões do storage.');
+         }
+         
+         setUploading(false)
+         setUploadProgress(0)
+
      } catch (error: any) {
        console.error('Erro no upload:', error);
        toast.error('Erro no upload: ' + (error.message || 'Erro desconhecido'))
