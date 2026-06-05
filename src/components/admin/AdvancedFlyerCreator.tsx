@@ -1528,13 +1528,14 @@ export function AdvancedFlyerCreator() {
         const isTimeout = error.message === 'Tempo limite excedido ao preparar impressão';
         
         toast.error(isCORS ? 'Problema de segurança nas imagens (CORS).' : (isTimeout ? 'O processamento demorou muito.' : 'Erro na geração da imagem.'), {
-          description: 'Deseja tentar a Impressão Direta (Modo HTML)?',
+          description: 'Deseja abrir os logs para diagnosticar?',
           duration: 10000,
           action: {
-            label: 'Imprimir Direto',
-            onClick: () => handleDirectPrint()
+            label: 'Ver Logs',
+            onClick: () => setShowLogViewer(true)
           }
         });
+
        } finally {
          setIsPreparingPrint(false);
          setTimeout(() => {
