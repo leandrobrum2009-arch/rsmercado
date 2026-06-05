@@ -100,7 +100,7 @@ import { Link } from "@tanstack/react-router";
         {products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
            {products.map((p) => (
-             <ProductCard key={p.id} product={p} multiplier={multiplier} />
+             <ProductCard key={p.id || Math.random().toString()} product={p} multiplier={multiplier} />
            ))}
           </div>
         ) : (
