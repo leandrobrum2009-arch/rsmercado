@@ -1,13 +1,13 @@
- import { Truck } from "lucide-react";
-   import { createFileRoute, useNavigate } from "@tanstack/react-router";
-  import { BannerCarousel } from "@/components/home/BannerCarousel";
-   import { HomeBanners } from "@/components/home/HomeBanners";
-   import { CategoryBar } from "@/components/home/CategoryBar";
-   import { CategoryBanners } from "@/components/home/CategoryBanners";
- import { ProductGrid } from "@/components/home/ProductGrid";
-  import { RecipeFeed } from "@/components/home/RecipeFeed";
-  import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
-  import { InstagramFeed } from "@/components/home/InstagramFeed";
+import { Truck, Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { BannerCarousel } from "@/components/home/BannerCarousel";
+import { HomeBanners } from "@/components/home/HomeBanners";
+import { CategoryBar } from "@/components/home/CategoryBar";
+import { CategoryBanners } from "@/components/home/CategoryBanners";
+import { ProductGrid } from "@/components/home/ProductGrid";
+import { RecipeFeed } from "@/components/home/RecipeFeed";
+import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
+import { InstagramFeed } from "@/components/home/InstagramFeed";
     import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
  import { Badge } from "@/components/ui/badge";
  
