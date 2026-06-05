@@ -22,18 +22,10 @@ export const Route = createFileRoute('/recipes')({
       
       if (error) {
         console.error('Error fetching recipes:', error);
-        const isMissingTable = error.message?.includes('relation "recipes" does not exist') || 
-                             error.message?.includes('schema cache') || 
-                             error.message?.includes('404');
-        if (isMissingTable) {
-           toast.error('A estrutura de receitas ainda não foi criada no banco de dados. Use o Reparador Admin.');
-        }
         return { recipes: [] };
       }
       
-      // Filter empty strings too
       const filteredRecipes = (data || []).filter(r => r.image_url && r.image_url.trim() !== '');
-      
       return { recipes: filteredRecipes }
     } catch (err) {
       console.error('Unexpected error in recipes loader:', err)

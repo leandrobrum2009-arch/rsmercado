@@ -89,9 +89,9 @@ export const CategoryBar = () => {
                    const { IconComponent, strokeWidth } = getIconConfig(cat);
                  return (
                     <Link
-                      key={cat.id || cat.slug}
+                      key={cat.id || cat.slug || Math.random()}
                       to="/search"
-                      search={{ category: cat.slug }}
+                      search={{ category: cat.slug || cat.name }}
                       className="flex flex-col items-center gap-3 group border-0 bg-transparent p-0 cursor-pointer w-20 no-underline"
                     >
                       <div className="w-16 h-16 rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-sm relative overflow-hidden">

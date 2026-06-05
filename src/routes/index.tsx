@@ -1,14 +1,14 @@
- import { Truck } from "lucide-react";
-   import { createFileRoute, useNavigate } from "@tanstack/react-router";
-  import { BannerCarousel } from "@/components/home/BannerCarousel";
-   import { HomeBanners } from "@/components/home/HomeBanners";
-   import { CategoryBar } from "@/components/home/CategoryBar";
-   import { CategoryBanners } from "@/components/home/CategoryBanners";
- import { ProductGrid } from "@/components/home/ProductGrid";
-  import { RecipeFeed } from "@/components/home/RecipeFeed";
-  import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
-  import { InstagramFeed } from "@/components/home/InstagramFeed";
-    import { Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
+import { Truck, Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { BannerCarousel } from "@/components/home/BannerCarousel";
+import { HomeBanners } from "@/components/home/HomeBanners";
+import { CategoryBar } from "@/components/home/CategoryBar";
+import { CategoryBanners } from "@/components/home/CategoryBanners";
+import { ProductGrid } from "@/components/home/ProductGrid";
+import { RecipeFeed } from "@/components/home/RecipeFeed";
+import { AiRecipeBanner } from "@/components/home/AiRecipeBanner";
+import { InstagramFeed } from "@/components/home/InstagramFeed";
+    
  import { Badge } from "@/components/ui/badge";
  
   function DailyFlyer() {
@@ -38,7 +38,7 @@
       </Link>
     )
   }
-import { Link } from "@tanstack/react-router";
+
  import { useEffect, useState } from "react";
  import { supabase } from "@/lib/supabase";
 
@@ -85,9 +85,13 @@ export const Route = createFileRoute("/")({
 
     useEffect(() => {
       const fetchLayout = async () => {
-        const { data } = await supabase.from('store_settings').select('value').eq('key', 'home_layout').maybeSingle();
-        if (data && Array.isArray(data.value)) {
-          setLayout(data.value);
+        try {
+          const { data } = await supabase.from('store_settings').select('value').eq('key', 'home_layout').maybeSingle();
+          if (data && Array.isArray(data.value)) {
+            setLayout(data.value);
+          }
+        } catch (e) {
+          console.warn('Home layout fetch failed', e);
         }
       };
       fetchLayout();
@@ -256,8 +260,12 @@ export const Route = createFileRoute("/")({
     };
 
     return (
-      <div className="bg-gray-50 pb-10">
-        {layout.map(section => renderSection(section))}
+      <div className="bg-gray-50 pb-10 min-h-screen">
+        {layout && Array.isArray(layout) ? layout.map((section, idx) => (
+          <div key={section.id || idx}>
+            {renderSection(section)}
+          </div>
+        )) : null}
       </div>
     );
   }
