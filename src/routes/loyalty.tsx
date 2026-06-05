@@ -33,44 +33,48 @@
      fetchData()
    }, [])
  
-   const fetchData = async () => {
-     setLoading(true)
-     try {
-       const { data: { user } } = await supabase.auth.getUser()
-       if (!user) return
- 
-       const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-       setProfile(prof)
- 
-        // Fetch Settings
-        const { data: sData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle()
-        if (sData?.value) {
-          setSettings(sData.value)
-        }
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-       const { data: cData } = await supabase.from('weekly_challenges').select('*').eq('active', true)
-        const { data: rData } = await supabase.from('loyalty_rewards').select('*').eq('active', true)
- 
-        // Fetch Points History
-        const { data: histData } = await supabase.from('points_history').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10)
-        setHistory(histData || [])
-       
-       // Try to fetch redemptions if table exists
-       try {
-         const { data: redData } = await supabase.from('loyalty_redemptions').select('*, loyalty_rewards(title)').eq('user_id', user.id).order('created_at', { ascending: false })
-         setRedemptions(redData || [])
-       } catch (e) {
-         console.log('Redemptions table might not exist yet')
-       }
- 
-       setChallenges(cData || [])
-       setRewards(rData || [])
-     } catch (error) {
-       console.error('Error fetching data:', error)
-     } finally {
-       setLoading(false)
-     }
-   }
+      const { data: prof, error: profError } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
+      if (profError) throw profError
+      setProfile(prof)
+
+      // Fetch Settings
+      const { data: sData } = await supabase.from('store_settings').select('*').eq('key', 'points_multiplier').maybeSingle()
+      if (sData?.value) {
+        setSettings(sData.value)
+      }
+
+      const { data: cData } = await supabase.from('weekly_challenges').select('*').eq('active', true)
+      const { data: rData } = await supabase.from('loyalty_rewards').select('*').eq('active', true)
+
+      // Fetch Points History
+      const { data: histData } = await supabase.from('points_history').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10)
+      setHistory(histData || [])
+      
+      // Try to fetch redemptions
+      try {
+        const { data: redData } = await supabase.from('loyalty_redemptions').select('*, loyalty_rewards(title)').eq('user_id', user.id).order('created_at', { ascending: false })
+        setRedemptions(redData || [])
+      } catch (e) {
+        console.log('Redemptions fetch issue')
+      }
+
+      setChallenges(cData || [])
+      setRewards(rData || [])
+    } catch (error: any) {
+      console.error('Error fetching loyalty data:', error)
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        toast.error('Erro de conexão ao carregar dados de fidelidade.')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
  
    const handleCancelRedemption = async (redemptionId: string) => {
      if (!confirm('Deseja cancelar este resgate e receber seus pontos de volta?')) return;
