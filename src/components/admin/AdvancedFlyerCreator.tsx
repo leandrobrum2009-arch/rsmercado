@@ -1158,13 +1158,14 @@ export function AdvancedFlyerCreator() {
  
      setUploading(true)
      try {
-       const fileExt = file.name.split('.').pop()
-       const fileName = `flyer-bg-${Math.random().toString(36).substring(2)}.${fileExt}`
-       const { data, error } = await supabase.storage.from('banners').upload(fileName, file)
-       
-       if (error) throw error
- 
-        const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName)
+        const fileExt = file.name.split('.').pop()
+        const fileName = `flyer-bg-${Math.random().toString(36).substring(2)}.${fileExt}`
+        const bucketName = 'flyer-backgrounds'
+        const { data, error } = await supabase.storage.from(bucketName).upload(fileName, file)
+        
+        if (error) throw error
+  
+         const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
         setBackgroundUrl(publicUrl)
         setCustomBackgrounds(prev => [...prev, publicUrl])
         toast.success('Fundo carregado com sucesso!')
