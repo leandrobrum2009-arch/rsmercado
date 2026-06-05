@@ -59,9 +59,11 @@ export const Route = createRootRoute({
   notFoundComponent: NotFoundComponent,
 });
 
+
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
@@ -72,6 +74,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
+
+
 
  function Layout() {
    const location = useLocation();

@@ -1,4 +1,4 @@
-console.log('[App] Initializing main.tsx...');
+// App init
 import { StrictMode } from 'react'
 
  import ReactDOM from 'react-dom/client'
@@ -17,8 +17,10 @@ try {
         <RouterProvider router={router} />
       </StrictMode>,
     )
+
     
     // Ensure initial loader is removed
+
     const removeLoader = () => {
       const loader = document.getElementById('initial-loader');
       if (loader) {
