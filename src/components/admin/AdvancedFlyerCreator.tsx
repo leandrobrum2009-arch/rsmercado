@@ -2727,7 +2727,7 @@ export function AdvancedFlyerCreator() {
                           )}
                           onClick={() => setBackgroundUrl(bg)}
                         >
-                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} />
+                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
                         </button>
                       ))}
                     </div>
