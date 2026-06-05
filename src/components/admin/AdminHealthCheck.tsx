@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle, RefreshCcw, Database, Lock, UserCheck } from 'lucide-react'
 import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
 
 interface CheckResult {
   id: string
