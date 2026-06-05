@@ -1,4 +1,4 @@
-// App init
+// Main entry point
 import { StrictMode } from 'react'
 
  import ReactDOM from 'react-dom/client'
@@ -17,6 +17,7 @@ try {
         <RouterProvider router={router} />
       </StrictMode>,
     )
+
 
     
     // Ensure initial loader is removed
