@@ -19,29 +19,5 @@ export const supabase = createClient(
       detectSessionInUrl: true,
       flowType: 'pkce',
     },
-    db: {
-      schema: 'public',
-    },
-    global: {
-      headers: { 'x-application-name': 'rs-supermercado' },
-    },
   }
 );
-
-// Monitoramento global de erros do Supabase
-if (typeof window !== 'undefined') {
-  const originalFrom = supabase.from.bind(supabase);
-  // @ts-ignore - Interceptador simples para logs de erro em tabelas críticas
-  supabase.from = (table: string) => {
-    const queryBuilder = originalFrom(table);
-    const originalSelect = queryBuilder.select.bind(queryBuilder);
-    
-    queryBuilder.select = (...args: any[]) => {
-      const result = originalSelect(...args);
-      // Aqui poderíamos interceptar a Promise e logar erros automáticos
-      return result;
-    };
-    
-    return queryBuilder;
-  };
-}
