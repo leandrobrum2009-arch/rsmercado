@@ -1,11 +1,12 @@
- import { useState, useEffect } from 'react'
- import { supabase } from '@/lib/supabase'
- import { Button } from '@/components/ui/button'
- import { Input } from '@/components/ui/input'
-  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet, Copy, ExternalLink, Info, QrCode } from 'lucide-react'
- import { toast } from '@/lib/toast'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Loader2, Save, Palette, Globe, Image as ImageIcon, Upload, Play, Instagram, Trash2, Plus, Type, ArrowUp, ArrowDown, TrendingUp, ShoppingBag, AlertTriangle, PhoneCall, MessageSquare, Smartphone, Zap, List, Clock, CreditCard, Share2, Settings, Wallet, Copy, ExternalLink, Info, QrCode } from 'lucide-react'
+import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
  
     import { Badge } from '@/components/ui/badge'
     import { Switch } from '@/components/ui/switch'
@@ -328,7 +329,6 @@
     }
 
      const handleSave = async () => {
-      // Validate social proof templates
       const spTemplates = [
         settings.social_proof?.purchase_template,
         settings.social_proof?.viewers_template,
@@ -387,10 +387,12 @@
          throw error;
        }
  
+       logAttempt('admin_access', 'success', { panel: 'settings', action: 'save', keys: updates.map(u => u.key) });
        toast.success('Configurações salvas com sucesso!');
        fetchSettings();
      } catch (error: any) {
        console.error('Save error:', error)
+       logAttempt('admin_access', 'failure', { panel: 'settings', action: 'save_attempt', error: error.message });
        toast.error('Erro ao salvar: ' + (error.message || 'Erro desconhecido'))
      } finally {
        setIsSaving(false)

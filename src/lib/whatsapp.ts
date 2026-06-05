@@ -33,21 +33,30 @@
    return hash.toString();
  }
  
- export const checkDuplicateMessage = async (phone: string, message: string, hours: number = 24) => {
-   const cleanPhone = phone.replace(/\D/g, '');
-   const hash = generateMessageHash(message);
-   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
- 
-   const { data, error } = await supabase
-     .from('whatsapp_logs')
-     .select('id')
-     .eq('phone', cleanPhone)
-     .eq('message_hash', hash)
-     .gt('sent_at', cutoff)
-     .maybeSingle();
- 
-   return !!data;
- }
+  export const checkDuplicateMessage = async (phone: string, message: string, hours: number = 24) => {
+    try {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const hash = generateMessageHash(message);
+      const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+    
+      const { data, error } = await supabase
+        .from('whatsapp_logs')
+        .select('id')
+        .eq('phone', cleanPhone)
+        .eq('message_hash', hash)
+        .gt('sent_at', cutoff)
+        .maybeSingle();
+    
+      if (error) {
+        console.error('Error checking duplicate WhatsApp message:', error);
+        return false;
+      }
+      return !!data;
+    } catch (err) {
+      console.warn('Failed to check duplicates:', err);
+      return false;
+    }
+  }
  
    export const logSentMessage = async (phone: string, message: string, campaignId?: string, status: string = 'sent', errorMessage?: string, method: string = 'api', orderId?: string) => {
     const cleanPhone = phone.replace(/\D/g, '');

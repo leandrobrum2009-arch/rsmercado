@@ -1,25 +1,26 @@
-  import { useState, useEffect, useMemo } from 'react'
- import { supabase } from '@/lib/supabase'
- import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { toast } from '@/lib/toast'
- import { 
-   TrendingUp, 
-   Users, 
-   ShoppingBag, 
-   Clock, 
-   ArrowUpRight, 
-    ArrowDownRight, 
-    BarChart3, 
-    PieChart as PieChartIcon, 
-    Package, 
-    Calendar,
-    Filter,
-    Bell,
-    Download,
-    Sparkles,
-    Layout as LayoutIcon,
-    ClipboardList as ClipboardIcon
- } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
+import { 
+  TrendingUp, 
+  Users, 
+  ShoppingBag, 
+  Clock, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  BarChart3, 
+  PieChart as PieChartIcon, 
+  Package, 
+  Calendar,
+  Filter,
+  Bell,
+  Download,
+  Sparkles,
+  Layout as LayoutIcon,
+  ClipboardList as ClipboardIcon
+} from 'lucide-react'
    const exportReport = async () => {
      try {
        const { data: orders, error } = await supabase
@@ -134,23 +135,32 @@
      fetchDashboardData()
    }, [timeRange])
  
-   const fetchDashboardData = async () => {
-     setLoading(true)
-     try {
-       // 1. Get stats from orders
-       const now = new Date()
-       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-       const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
- 
-         const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-           .select('total_amount, created_at, status, delivery_address')
-          .neq('status', 'cancelled')
-
-        if (ordersError) {
-          console.error('Error fetching orders for dashboard:', ordersError)
+    const fetchDashboardData = async () => {
+      setLoading(true)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          // Log access to dashboard for audit
+          logAttempt('admin_access', 'success', { panel: 'dashboard', action: 'view' });
         }
+
+        // 1. Get stats from orders
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString()
+  
+          const { data: orders, error: ordersError } = await supabase
+           .from('orders')
+            .select('total_amount, created_at, status, delivery_address')
+           .neq('status', 'cancelled')
+ 
+         if (ordersError) {
+           console.error('Error fetching orders for dashboard:', ordersError)
+           if (ordersError.message?.includes('fetch') || ordersError.message?.includes('network')) {
+             toast.error('Erro de conexão ao carregar estatísticas.');
+           }
+         }
   
         if (orders && Array.isArray(orders)) {
           // Neighborhood stats

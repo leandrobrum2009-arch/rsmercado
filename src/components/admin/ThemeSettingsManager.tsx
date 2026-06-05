@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Loader2, Save, Palette, Type, Square, RefreshCcw } from 'lucide-react'
 import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -73,12 +74,14 @@ export function ThemeSettingsManager() {
         value: { primary: settings.colors.primary, secondary: settings.colors.secondary }
       }, { onConflict: 'key' })
 
+      logAttempt('admin_access', 'success', { panel: 'theme', action: 'save', colors: settings.colors });
       toast.success('Tema atualizado com sucesso!')
       
       // Apply immediately to current session
       applyTheme(settings)
     } catch (err: any) {
       console.error('Save error:', err)
+      logAttempt('admin_access', 'failure', { panel: 'theme', action: 'save_attempt', error: err.message });
       toast.error('Erro ao salvar tema: ' + err.message)
     } finally {
       setIsSaving(false)

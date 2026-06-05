@@ -1,13 +1,14 @@
- import { useState, useEffect } from 'react'
- import { supabase } from '@/lib/supabase'
- import { Bell, Send, Users, User, Eye, Smartphone, Search, Check, Calendar, Clock, Loader2 } from 'lucide-react'
- import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
- import { Button } from '@/components/ui/button'
- import { Input } from '@/components/ui/input'
- import { Textarea } from '@/components/ui/textarea'
- import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
- import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
- import { toast } from '@/lib/toast'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Bell, Send, Users, User, Eye, Smartphone, Search, Check, Calendar, Clock, Loader2 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
  
  export function NotificationManager() {
    const [target, setTarget] = useState<'all' | 'specific'>('all')
@@ -45,56 +46,79 @@
        .replace(/{{data}}/g, new Date().toLocaleDateString())
    }
  
-   const sendNotification = async () => {
-     if (!title || !message) {
-       toast.error('Preencha o título e a mensagem')
-       return
-     }
- 
-     setLoading(true)
-     try {
-         const scheduledDate = scheduledAt ? new Date(scheduledAt).toISOString() : null;
- 
-         if (target === 'all') {
-            const { error } = await supabase.rpc('notify_all_users', {
-              p_title: title,
-              p_message: message,
-              p_type: type,
-              p_scheduled_at: scheduledDate
-            })
-           
-           if (error) throw error
-           toast.success(scheduledDate ? 'Notificação agendada para todos!' : 'Notificação enviada para todos!');
-         } else {
-           if (!userId) {
-             toast.error('Selecione um usuário')
-             setLoading(false)
-             return
-           }
- 
-           const { error } = await supabase
-             .from('notifications')
-             .insert({
-               user_id: userId,
-               title,
-               message,
-               type,
-               scheduled_at: scheduledDate
+    const sendNotification = async () => {
+      if (!title || !message) {
+        toast.error('Preencha o título e a mensagem')
+        return
+      }
+  
+      setLoading(true)
+      try {
+          const scheduledDate = scheduledAt ? new Date(scheduledAt).toISOString() : null;
+  
+          if (target === 'all') {
+             const { error } = await supabase.rpc('notify_all_users', {
+               p_title: title,
+               p_message: message,
+               p_type: type,
+               p_scheduled_at: scheduledDate
              })
- 
-           if (error) throw error
-           toast.success(scheduledDate ? 'Notificação agendada!' : 'Notificação enviada!');
-         }
- 
-       setTitle('')
-       setMessage('')
-     } catch (error: any) {
-       console.error('Error sending notification:', error)
-       toast.error('Erro ao enviar: ' + error.message)
-     } finally {
-       setLoading(false)
-     }
-   }
+            
+            if (error) throw error
+            
+            // Log admin action
+            logAttempt('admin_access', 'success', { 
+              panel: 'notifications', 
+              action: 'send_all', 
+              title, 
+              scheduled: !!scheduledDate 
+            });
+
+            toast.success(scheduledDate ? 'Notificação agendada para todos!' : 'Notificação enviada para todos!');
+          } else {
+            if (!userId) {
+              toast.error('Selecione um usuário')
+              setLoading(false)
+              return
+            }
+  
+            const { error } = await supabase
+              .from('notifications')
+              .insert({
+                user_id: userId,
+                title,
+                message,
+                type,
+                scheduled_at: scheduledDate
+              })
+  
+            if (error) throw error
+
+            // Log admin action
+            logAttempt('admin_access', 'success', { 
+              panel: 'notifications', 
+              action: 'send_specific', 
+              target_user: userId,
+              title 
+            });
+
+            toast.success(scheduledDate ? 'Notificação agendada!' : 'Notificação enviada!');
+          }
+  
+        setTitle('')
+        setMessage('')
+      } catch (error: any) {
+        console.error('Error sending notification:', error)
+        logAttempt('admin_access', 'failure', { 
+          panel: 'notifications', 
+          action: 'send_attempt', 
+          error: error.message 
+        });
+        toast.error('Erro ao enviar: ' + error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
  
    return (
      <Card>

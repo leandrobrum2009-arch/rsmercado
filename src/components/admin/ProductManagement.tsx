@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
- import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog'
- import { Save } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+import { Save } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import * as LucideIcons from 'lucide-react'
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon, AlertTriangle, Upload, SearchCheck, Zap, Eye, EyeOff, ShoppingBag, CheckCircle, Database, Tag, LayoutGrid, Instagram, Search, ExternalLink, Camera } from 'lucide-react'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { SmartImage } from '@/components/ui/SmartImage'
- import { Switch } from '@/components/ui/switch'
- import { toast } from '@/lib/toast'
+import { Switch } from '@/components/ui/switch'
+import { toast } from '@/lib/toast'
+import { logAttempt } from '@/lib/logs'
 const getIconComponent = (name: string) => {
   // @ts-ignore
   return LucideIcons[name] || LucideIcons.ShoppingBag;
@@ -391,7 +392,6 @@ export function ProductManagement() {
         is_available: newProduct.is_available ?? true
       };
 
-      // Only add SKU if it's provided to avoid issues with schema cache or empty strings
       if (newProduct.sku && newProduct.sku.trim() !== '') {
         productData.sku = newProduct.sku.trim();
       }
@@ -403,17 +403,25 @@ export function ProductManagement() {
          .update(productData)
          .eq('id', newProduct.id)
        error = updateError;
+       if (!error) {
+         logAttempt('admin_access', 'success', { panel: 'products', action: 'edit', product_id: newProduct.id, name: newProduct.name });
+       }
      } else {
-       const { error: insertError } = await supabase
+       const { data, error: insertError } = await supabase
          .from('products')
          .insert([productData])
+         .select()
        error = insertError;
+       if (!error && data?.[0]) {
+         logAttempt('admin_access', 'success', { panel: 'products', action: 'create', product_id: data[0].id, name: newProduct.name });
+       }
      }
      
      setIsSubmitting(false)
      
      if (error) {
        console.error('Save product error:', error)
+       logAttempt('admin_access', 'failure', { panel: 'products', action: 'save_attempt', error: error.message });
        setDiagnosticInfo({
          error,
          data: productData,
