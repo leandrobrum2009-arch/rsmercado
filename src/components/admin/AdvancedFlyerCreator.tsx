@@ -1166,7 +1166,7 @@ export function AdvancedFlyerCreator() {
      setUploadProgress(10)
      try {
        const fileExt = file.name.split('.').pop()
-       const fileName = `flyer-bg-${Math.random().toString(36).substring(2)}.${fileExt}`
+       const fileName = `flyer-bg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
        const bucketName = 'flyer-backgrounds'
        
        setUploadProgress(30)
