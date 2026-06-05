@@ -1166,7 +1166,7 @@ export function AdvancedFlyerCreator() {
      setUploadProgress(10)
      try {
        const fileExt = file.name.split('.').pop()
-       const fileName = `flyer-bg-${Math.random().toString(36).substring(2)}.${fileExt}`
+       const fileName = `flyer-bg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
        const bucketName = 'flyer-backgrounds'
        
        setUploadProgress(30)
@@ -3468,8 +3468,9 @@ export function AdvancedFlyerCreator() {
                     <img
                       src={backgroundUrl}
                       crossOrigin="anonymous"
-                      className="absolute inset-0 w-full h-full object-fill bg-layer-print"
+                      className="absolute inset-0 w-full h-full object-cover bg-layer-print"
                       alt="Background"
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                       onError={(e) => {
                         console.error('Falha ao carregar imagem de fundo:', backgroundUrl);
                         (e.target as HTMLImageElement).style.display = 'none';
