@@ -392,7 +392,6 @@ export function ProductManagement() {
         is_available: newProduct.is_available ?? true
       };
 
-      // Only add SKU if it's provided to avoid issues with schema cache or empty strings
       if (newProduct.sku && newProduct.sku.trim() !== '') {
         productData.sku = newProduct.sku.trim();
       }
@@ -404,17 +403,25 @@ export function ProductManagement() {
          .update(productData)
          .eq('id', newProduct.id)
        error = updateError;
+       if (!error) {
+         logAttempt('admin_access', 'success', { panel: 'products', action: 'edit', product_id: newProduct.id, name: newProduct.name });
+       }
      } else {
-       const { error: insertError } = await supabase
+       const { data, error: insertError } = await supabase
          .from('products')
          .insert([productData])
+         .select()
        error = insertError;
+       if (!error && data?.[0]) {
+         logAttempt('admin_access', 'success', { panel: 'products', action: 'create', product_id: data[0].id, name: newProduct.name });
+       }
      }
      
      setIsSubmitting(false)
      
      if (error) {
        console.error('Save product error:', error)
+       logAttempt('admin_access', 'failure', { panel: 'products', action: 'save_attempt', error: error.message });
        setDiagnosticInfo({
          error,
          data: productData,
