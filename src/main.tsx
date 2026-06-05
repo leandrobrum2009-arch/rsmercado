@@ -11,14 +11,15 @@ try {
   
   const rootElement = document.getElementById('root')!
   if (rootElement) {
-    const root = ReactDOM.createRoot(rootElement)
-    root.render(
+    const root = ReactDOM.hydrateRoot(
+      rootElement,
       <StrictMode>
         <RouterProvider router={router} />
       </StrictMode>,
     )
     
     // Ensure initial loader is removed
+
     const removeLoader = () => {
       const loader = document.getElementById('initial-loader');
       if (loader) {
