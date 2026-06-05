@@ -414,6 +414,40 @@ export function AdvancedFlyerCreator() {
        return () => document.body.classList.remove('no-animations');
      }, [isPreparingPrint, uploading]);
 
+    // Helper: estilo de fundo do encarte conforme tipo selecionado.
+    // Aplicado no #flyer-content e também usado para decidir se devemos
+    // forçar backgroundColor branco no html2canvas (só para tipo 'color').
+    const getFlyerBackgroundStyle = (): React.CSSProperties => {
+      if (removeFlyerBg) {
+        return { backgroundColor: 'rgba(0,0,0,0)' };
+      }
+      switch (backgroundType) {
+        case 'image':
+          return backgroundUrl
+            ? {
+                backgroundImage: `url("${backgroundUrl}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }
+            : { backgroundColor: '#ffffff' };
+        case 'gradient':
+          return { background: backgroundGradient };
+        case 'color':
+        default:
+          return { backgroundColor: backgroundColor || '#ffffff' };
+      }
+    };
+
+    // Cor de fundo para passar ao html2canvas. Quando o fundo é imagem ou
+    // gradiente, retornamos null para que o html2canvas NÃO pinte por cima.
+    const getHtml2CanvasBackground = (format?: string): string | null => {
+      if (removeFlyerBg) return format === 'png' ? null : 'rgba(0,0,0,0)';
+      if (backgroundType === 'image' && backgroundUrl) return null;
+      if (backgroundType === 'gradient') return null;
+      return backgroundColor || '#ffffff';
+    };
+
     // Extract content to a reusable component
     const FlyerContentInner = () => {
       return (
