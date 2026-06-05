@@ -444,14 +444,14 @@ export function AdvancedFlyerCreator() {
       }
       switch (backgroundType) {
         case 'image':
-          return backgroundUrl
-            ? {
-                backgroundImage: `url("${backgroundUrl}")`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }
-            : { backgroundColor: '#ffffff' };
+          if (!backgroundUrl) return { backgroundColor: '#ffffff' };
+          return {
+            backgroundImage: `url("${backgroundUrl}"), url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000")`,
+            backgroundSize: 'cover, cover',
+            backgroundPosition: 'center, center',
+            backgroundRepeat: 'no-repeat, no-repeat',
+            backgroundColor: '#ffffff'
+          };
         case 'gradient':
           return { background: backgroundGradient };
         case 'color':
@@ -459,6 +459,7 @@ export function AdvancedFlyerCreator() {
           return { backgroundColor: backgroundColor || '#ffffff' };
       }
     };
+
 
     // Cor de fundo para passar ao html2canvas. Quando o fundo é imagem ou
     // gradiente, retornamos null para que o html2canvas NÃO pinte por cima.
