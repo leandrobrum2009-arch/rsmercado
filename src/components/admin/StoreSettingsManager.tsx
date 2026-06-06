@@ -308,15 +308,28 @@ import { logAttempt } from '@/lib/logs'
         const fileExt = file.name.split('.').pop()
         const fileName = `insta-${id}-${Math.random().toString(36).substring(2)}.${fileExt}`
         const filePath = `instagram/${fileName}`
+        const buckets = ['products', 'banners']
+        let bucketName = buckets[0]
+        let uploadError: any = null
 
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(filePath, file, { cacheControl: '3600', upsert: true });
+        for (const bucket of buckets) {
+          const { error } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+          if (!error) {
+            bucketName = bucket
+            uploadError = null
+            break
+          }
+
+          uploadError = error
+        }
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-          .from('products')
+          .from(bucketName)
           .getPublicUrl(filePath)
 
         updateInstagramItem(id, 'thumbnail', publicUrl)

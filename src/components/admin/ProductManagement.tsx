@@ -343,15 +343,28 @@ export function ProductManagement() {
       const fileExt = file.name.split('.').pop()
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
       const filePath = `${fileName}`
+      const buckets = ['products', 'banners', 'categories']
+      let bucketName = buckets[0]
+      let uploadError: any = null
 
-      const { data, error } = await supabase.storage
-        .from('products')
-        .upload(filePath, file)
+      for (const bucket of buckets) {
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, file)
 
-      if (error) throw error
+        if (!error) {
+          bucketName = bucket
+          uploadError = null
+          break
+        }
+
+        uploadError = error
+      }
+
+      if (uploadError) throw uploadError
 
       const { data: { publicUrl } } = supabase.storage
-        .from('products')
+        .from(bucketName)
         .getPublicUrl(filePath)
 
       setNewProduct({ ...newProduct, image_url: publicUrl })

@@ -26,3 +26,19 @@ DROP POLICY IF EXISTS "Auth Delete Flyer Backgrounds" ON storage.objects;
 CREATE POLICY "Auth Delete Flyer Backgrounds"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'flyer-backgrounds' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Auth Upload Products" ON storage.objects;
+CREATE POLICY "Auth Upload Products"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'products' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Auth Update Products" ON storage.objects;
+CREATE POLICY "Auth Update Products"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'products' AND auth.role() = 'authenticated')
+WITH CHECK (bucket_id = 'products' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Auth Delete Products" ON storage.objects;
+CREATE POLICY "Auth Delete Products"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'products' AND auth.role() = 'authenticated');
