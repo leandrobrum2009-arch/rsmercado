@@ -46,8 +46,6 @@ export function BannerManager() {
 
         if (!success) throw uploadError || new Error('Não foi possível fazer o upload em nenhum bucket.');
   
-        if (uploadError) throw uploadError;
-  
         const { data: { publicUrl } } = supabase.storage
           .from(bucketName)
           .getPublicUrl(filePath)

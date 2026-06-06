@@ -1224,12 +1224,23 @@ export function AdvancedFlyerCreator() {
      try {
        const fileExt = file.name.split('.').pop()
        const fileName = `flyer-bg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
-       const bucketName = 'flyer-backgrounds'
+       const buckets = ['flyer-backgrounds', 'banners', 'products']
+       let bucketName = buckets[0]
+       let uploadError: any = null
        
        setUploadProgress(30)
-       const { data, error } = await supabase.storage.from(bucketName).upload(fileName, file)
+       for (const bucket of buckets) {
+         const { error } = await supabase.storage.from(bucket).upload(fileName, file)
+         if (!error) {
+           bucketName = bucket
+           uploadError = null
+           break
+         }
+
+         uploadError = error
+       }
        
-       if (error) throw error
+       if (uploadError) throw uploadError
  
         setUploadProgress(80)
          const { data: { publicUrl } } = supabase.storage.from(bucketName).getPublicUrl(fileName)
