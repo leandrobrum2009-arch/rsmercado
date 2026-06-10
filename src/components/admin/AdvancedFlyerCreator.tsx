@@ -84,7 +84,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     if (!url) return '';
     if (url.startsWith('http') || url.startsWith('data:')) return url;
     // If it's just a filename, it's likely from the flyer-backgrounds bucket
-    return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/flyer-backgrounds/${url}`;
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://yymtipgsskvepufugfub.supabase.co';
+    return `${baseUrl}/storage/v1/object/public/flyer-backgrounds/${url}`;
   };
 
   const validateImageUrl = (url: string): Promise<boolean> => {
