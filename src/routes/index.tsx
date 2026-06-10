@@ -1,4 +1,4 @@
-import { Truck, Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight } from "lucide-react";
+import { Truck, Search, BookOpen, Smartphone, PlusSquare, Sparkles, Loader2, Bell, Zap, ChevronRight, Trophy } from "lucide-react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { BannerCarousel } from "@/components/home/BannerCarousel";
 import { HomeBanners } from "@/components/home/HomeBanners";
@@ -121,28 +121,53 @@ export const Route = createFileRoute("/")({
       switch (section.id) {
         case 'search':
           return (
-            <div key="search" className="bg-green-600 px-4 pt-6 pb-10 md:pb-16 rounded-b-[40px] shadow-lg">
-              <div className="container mx-auto">
-                <h1 className="text-white text-2xl font-bold mb-4">Olá, o que você busca hoje?</h1>
+            <div key="search" className="bg-[#009c3b] px-4 pt-6 pb-10 md:pb-16 rounded-b-[40px] shadow-lg relative overflow-hidden">
+              {/* Brazil Flag Inspired Background Elements */}
+              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ffdf00] rounded-full blur-[60px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#002776] rounded-full blur-[80px]" />
+              </div>
+              
+              {/* Animated Brazil Flags (Bandeirinhas) */}
+              <div className="absolute top-0 left-0 w-full flex justify-around opacity-40 pointer-events-none px-4 pt-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div key={i} className={`animate-bounce`} style={{ animationDelay: `${i * 0.15}s`, animationDuration: '3s' }}>
+                    <div className={`w-3 h-4 ${i % 2 === 0 ? 'bg-[#ffdf00]' : 'bg-[#002776]'} clip-path-flag shadow-sm`} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="container mx-auto relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="text-[#ffdf00] animate-pulse" size={24} />
+                  <h1 className="text-white text-2xl font-black uppercase italic tracking-tighter drop-shadow-md">
+                    Rumo ao Hexa! O que você busca?
+                  </h1>
+                </div>
                  <form onSubmit={handleSearch} className="relative">
                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                    <input 
                      type="text" 
-                     placeholder="Busque por produtos, marcas..."
+                     placeholder="Ofertas campeãs esperam por você..."
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
-                     className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-inner outline-none text-gray-800 font-medium"
+                     className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-xl outline-none text-gray-800 font-medium border-2 border-transparent focus:border-[#ffdf00] transition-colors"
                    />
                    {searchQuery && (
                      <button 
                        type="submit"
-                       className="absolute right-3 top-1/2 -translate-y-1/2 bg-green-600 text-white px-4 py-1.5 rounded-xl font-black uppercase text-[10px] shadow-lg active:scale-95 transition-transform"
+                       className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#009c3b] text-white px-4 py-1.5 rounded-xl font-black uppercase text-[10px] shadow-lg active:scale-95 transition-transform border border-[#ffdf00]/30"
                      >
                        Buscar
                      </button>
                    )}
                  </form>
               </div>
+              <style>{`
+                .clip-path-flag {
+                  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);
+                }
+              `}</style>
             </div>
           );
         case 'delivery_check':
