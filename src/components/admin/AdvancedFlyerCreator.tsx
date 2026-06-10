@@ -90,12 +90,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
   const validateImageUrl = (url: string): Promise<boolean> => {
     return new Promise((resolve) => {
+      // In development/preview, skip validation if it causes issues
+      if (import.meta.env.DEV) {
+        console.log('Skipping image validation in dev mode for:', url);
+        return resolve(true);
+      }
       const img = new Image();
       img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
+      img.onerror = () => {
+        console.error('Image validation failed for:', url);
+        resolve(false);
+      };
       img.src = url;
-      // Timeout after 5s
-      setTimeout(() => resolve(false), 5000);
+      // Timeout after 10s
+      setTimeout(() => resolve(false), 10000);
     });
   };
 
