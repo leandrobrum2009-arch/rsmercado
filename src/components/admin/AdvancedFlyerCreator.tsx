@@ -459,10 +459,10 @@ export function AdvancedFlyerCreator() {
         case 'image':
           if (!backgroundUrl) return { backgroundColor: '#ffffff' };
           return {
-            backgroundImage: `url("${backgroundUrl}"), url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000")`,
-            backgroundSize: 'cover, cover',
-            backgroundPosition: 'center, center',
-            backgroundRepeat: 'no-repeat, no-repeat',
+            backgroundImage: `url("${backgroundUrl}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             backgroundColor: '#ffffff'
           };
         case 'gradient':
@@ -1265,9 +1265,10 @@ export function AdvancedFlyerCreator() {
          // Test if URL is accessible
          const isValid = await validateImageUrl(publicUrl);
          
-         if (isValid) {
-           setBackgroundUrl(publicUrl)
-           setCustomBackgrounds(prev => [...prev, publicUrl])
+          if (isValid) {
+            setBackgroundType('image')
+            setBackgroundUrl(publicUrl)
+            setCustomBackgrounds(prev => [...prev, publicUrl])
            setUploadProgress(100)
            toast.success('Fundo carregado com sucesso!')
          } else {
