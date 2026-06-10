@@ -25,7 +25,7 @@ try {
     
     const removeLoader = () => {
       console.log('Removing loader...');
-      const loader = document.getElementById('initial-loader');
+      const loader = document.getElementById('initial-loader') as HTMLElement | null;
       if (loader) {
         loader.style.opacity = '0';
         loader.style.visibility = 'hidden';
@@ -47,9 +47,9 @@ try {
   }
 } catch (error) {
   console.error('Fatal error during app initialization:', error);
-  const loader = document.getElementById('initial-loader');
+  const loader = document.getElementById('initial-loader') as HTMLElement | null;
   if (loader) {
-    const loaderText = loader.querySelector('.loader-text');
+    const loaderText = loader.querySelector('.loader-text') as HTMLElement | null;
     if (loaderText) {
       loaderText.textContent = 'Erro de carregamento. Tente recarregar.';
       loaderText.style.color = 'red';
