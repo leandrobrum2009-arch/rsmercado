@@ -2773,7 +2773,10 @@ export function AdvancedFlyerCreator() {
                             "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all hover:opacity-100",
                             backgroundUrl === ensureAbsoluteUrl(bg) ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent opacity-60 hover:border-zinc-300"
                           )}
-                          onClick={() => setBackgroundUrl(ensureAbsoluteUrl(bg))}
+                          onClick={() => {
+                            setBackgroundType('image');
+                            setBackgroundUrl(ensureAbsoluteUrl(bg));
+                          }}
                         >
                           <img src={ensureAbsoluteUrl(bg)} className="w-full h-full object-cover" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
                         </button>
