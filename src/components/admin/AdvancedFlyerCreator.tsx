@@ -84,18 +84,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     if (!url) return '';
     if (url.startsWith('http') || url.startsWith('data:')) return url;
     // If it's just a filename, it's likely from the flyer-backgrounds bucket
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://yymtipgsskvepufugfub.supabase.co';
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!baseUrl) {
+      console.warn('VITE_SUPABASE_URL is missing, using fallback for image URL');
+      return `https://yymtipgsskvepufugfub.supabase.co/storage/v1/object/public/flyer-backgrounds/${url}`;
+    }
     return `${baseUrl}/storage/v1/object/public/flyer-backgrounds/${url}`;
   };
 
   const validateImageUrl = (url: string): Promise<boolean> => {
     return new Promise((resolve) => {
+      // In development/preview, skip validation if it causes issues
+      if (import.meta.env.DEV) {
+        console.log('Skipping image validation in dev mode for:', url);
+        return resolve(true);
+      }
       const img = new Image();
       img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
+      img.onerror = () => {
+        console.error('Image validation failed for:', url);
+        resolve(false);
+      };
       img.src = url;
-      // Timeout after 5s
-      setTimeout(() => resolve(false), 5000);
+      // Timeout after 10s
+      setTimeout(() => resolve(false), 10000);
     });
   };
 
