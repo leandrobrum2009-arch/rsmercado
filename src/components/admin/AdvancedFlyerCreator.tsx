@@ -1265,9 +1265,10 @@ export function AdvancedFlyerCreator() {
          // Test if URL is accessible
          const isValid = await validateImageUrl(publicUrl);
          
-         if (isValid) {
-           setBackgroundUrl(publicUrl)
-           setCustomBackgrounds(prev => [...prev, publicUrl])
+          if (isValid) {
+            setBackgroundType('image')
+            setBackgroundUrl(publicUrl)
+            setCustomBackgrounds(prev => [...prev, publicUrl])
            setUploadProgress(100)
            toast.success('Fundo carregado com sucesso!')
          } else {
