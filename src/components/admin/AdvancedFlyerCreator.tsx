@@ -2764,17 +2764,17 @@ export function AdvancedFlyerCreator() {
                         </div>
                       ))}
                       
-                      {/* Only show defaults if user has few or no custom backgrounds */}
-                      {(customBackgrounds.length < 4) && PREDEFINED_BGS.map((bg, idx) => (
+                      {/* Show predefined backgrounds */}
+                      {PREDEFINED_BGS.map((bg, idx) => (
                         <button
                           key={`default-${idx}`}
                           className={cn(
-                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-40 hover:opacity-100",
-                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent hover:border-zinc-300"
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all hover:opacity-100",
+                            backgroundUrl === ensureAbsoluteUrl(bg) ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent opacity-60 hover:border-zinc-300"
                           )}
-                          onClick={() => setBackgroundUrl(bg)}
+                          onClick={() => setBackgroundUrl(ensureAbsoluteUrl(bg))}
                         >
-                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
+                          <img src={ensureAbsoluteUrl(bg)} className="w-full h-full object-cover" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
                         </button>
                       ))}
                     </div>
