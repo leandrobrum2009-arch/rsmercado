@@ -121,42 +121,45 @@ export const Route = createFileRoute("/")({
       switch (section.id) {
         case 'search':
           return (
-            <div key="search" className="bg-[#009c3b] px-4 pt-6 pb-10 md:pb-16 rounded-b-[40px] shadow-lg relative overflow-hidden">
-              {/* Brazil Flag Inspired Background Elements */}
-              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ffdf00] rounded-full blur-[60px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#002776] rounded-full blur-[80px]" />
+            <div key="search" className="bg-[#009c3b] px-4 pt-8 pb-12 md:pb-16 rounded-b-[40px] shadow-lg relative overflow-hidden isolate">
+              {/* Brazil Flag Inspired Background Elements - Optimized with transform: translateZ(0) for mobile GPU acceleration */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none -z-10" style={{ transform: 'translateZ(0)' }}>
+                <div className="absolute top-[-15%] left-[-15%] w-[50%] aspect-square bg-[#ffdf00] rounded-full blur-[60px] animate-pulse" style={{ animationDuration: '4s' }} />
+                <div className="absolute bottom-[-15%] right-[-15%] w-[60%] aspect-square bg-[#002776] rounded-full blur-[80px]" />
               </div>
               
-              {/* Animated Brazil Flags (Bandeirinhas) */}
-              <div className="absolute top-0 left-0 w-full flex justify-around opacity-40 pointer-events-none px-4 pt-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className={`animate-bounce`} style={{ animationDelay: `${i * 0.15}s`, animationDuration: '3s' }}>
-                    <div className={`w-3 h-4 ${i % 2 === 0 ? 'bg-[#ffdf00]' : 'bg-[#002776]'} clip-path-flag shadow-sm`} />
+              {/* Animated Brazil Flags (Bandeirinhas) - Reduced count and optimized for mobile performance */}
+              <div className="absolute top-0 left-0 w-full flex justify-around opacity-60 pointer-events-none px-6 pt-1" style={{ transform: 'translateZ(0)' }}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="animate-flag-wave" style={{ animationDelay: `${i * 0.2}s` }}>
+                    <div className={`w-3.5 h-5 ${i % 2 === 0 ? 'bg-[#ffdf00]' : 'bg-[#002776]'} clip-path-flag shadow-sm`} />
                   </div>
                 ))}
               </div>
 
               <div className="container mx-auto relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="text-[#ffdf00] animate-pulse" size={24} />
-                  <h1 className="text-white text-2xl font-black uppercase italic tracking-tighter drop-shadow-md">
-                    Rumo ao Hexa! O que você busca?
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="bg-[#ffdf00] p-2 rounded-xl shadow-lg transform rotate-3 active:scale-95 transition-transform">
+                    <Trophy className="text-[#002776]" size={22} />
+                  </div>
+                  <h1 className="text-white text-xl md:text-2xl font-black uppercase italic tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] leading-tight">
+                    Rumo ao Hexa!<br className="xs:hidden" /> O que você busca?
                   </h1>
                 </div>
-                 <form onSubmit={handleSearch} className="relative">
-                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                 <form onSubmit={handleSearch} className="relative group">
+                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#009c3b] transition-colors" size={20} />
                    <input 
                      type="text" 
+                     inputMode="search"
                      placeholder="Ofertas campeãs esperam por você..."
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
-                     className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 shadow-xl outline-none text-gray-800 font-medium border-2 border-transparent focus:border-[#ffdf00] transition-colors"
+                     className="w-full bg-white rounded-2xl py-4.5 pl-12 pr-4 shadow-xl outline-none text-gray-800 font-medium border-2 border-transparent focus:border-[#ffdf00] transition-all placeholder:text-zinc-400 text-base"
                    />
                    {searchQuery && (
                      <button 
                        type="submit"
-                       className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#009c3b] text-white px-4 py-1.5 rounded-xl font-black uppercase text-[10px] shadow-lg active:scale-95 transition-transform border border-[#ffdf00]/30"
+                       className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#009c3b] text-white px-5 py-2 rounded-xl font-black uppercase text-[11px] shadow-lg active:scale-90 transition-all border border-[#ffdf00]/30"
                      >
                        Buscar
                      </button>
@@ -166,6 +169,14 @@ export const Route = createFileRoute("/")({
               <style>{`
                 .clip-path-flag {
                   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%);
+                }
+                @keyframes flag-wave {
+                  0%, 100% { transform: translateY(0) rotate(0deg); }
+                  50% { transform: translateY(6px) rotate(5deg); }
+                }
+                .animate-flag-wave {
+                  animation: flag-wave 3s ease-in-out infinite;
+                  will-change: transform;
                 }
               `}</style>
             </div>
