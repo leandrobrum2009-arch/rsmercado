@@ -759,11 +759,15 @@ export function AdvancedFlyerCreator() {
       }
     }, [globalRemoveBg])
 
-   const PREDEFINED_BGS = [
-     'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
+    const PREDEFINED_BGS = [
+      '1_1.jpg',
+      '2_1.jpg',
+      '3_1.jpg',
+      '4_1.jpg',
+      '5_1.jpg',
+      '6_1.jpg',
+      '7_1.jpg',
+      '8.jpg'
     ];
 
     const PRESET_TEMPLATES = [
@@ -2760,17 +2764,17 @@ export function AdvancedFlyerCreator() {
                         </div>
                       ))}
                       
-                      {/* Only show defaults if user has few or no custom backgrounds */}
-                      {(customBackgrounds.length < 4) && PREDEFINED_BGS.map((bg, idx) => (
+                      {/* Show predefined backgrounds */}
+                      {PREDEFINED_BGS.map((bg, idx) => (
                         <button
                           key={`default-${idx}`}
                           className={cn(
-                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all opacity-40 hover:opacity-100",
-                            backgroundUrl === bg ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent hover:border-zinc-300"
+                            "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all hover:opacity-100",
+                            backgroundUrl === ensureAbsoluteUrl(bg) ? "border-primary scale-95 shadow-lg opacity-100" : "border-transparent opacity-60 hover:border-zinc-300"
                           )}
-                          onClick={() => setBackgroundUrl(bg)}
+                          onClick={() => setBackgroundUrl(ensureAbsoluteUrl(bg))}
                         >
-                          <img src={bg} className="w-full h-full object-cover grayscale-[50%] hover:grayscale-0" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
+                          <img src={ensureAbsoluteUrl(bg)} className="w-full h-full object-cover" alt={`Default BG ${idx}`} crossOrigin="anonymous" />
                         </button>
                       ))}
                     </div>
