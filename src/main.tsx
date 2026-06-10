@@ -29,11 +29,11 @@ try {
     };
 
     // Remove quickly
-    setTimeout(removeLoader, 100);
+    setTimeout(removeLoader, 2000);
     window.addEventListener('load', removeLoader);
     
     // Safety fallback
-    setTimeout(removeLoader, 3000);
+    setTimeout(removeLoader, 5000);
   }
 } catch (error) {
   console.error('Fatal error during app initialization:', error);
