@@ -1246,16 +1246,24 @@ export function AdvancedFlyerCreator() {
        let uploadError: any = null
        
        setUploadProgress(30)
-       for (const bucket of buckets) {
-         const { error } = await supabase.storage.from(bucket).upload(fileName, file)
-         if (!error) {
-           bucketName = bucket
-           uploadError = null
-           break
-         }
-
-         uploadError = error
-       }
+        // Try specifically to the flyer-backgrounds bucket first
+        const { error: primaryError } = await supabase.storage.from('flyer-backgrounds').upload(fileName, file)
+        
+        if (primaryError) {
+          console.warn('Failed to upload to flyer-backgrounds, trying fallbacks:', primaryError.message)
+          for (const bucket of ['banners', 'products']) {
+            const { error: fallbackError } = await supabase.storage.from(bucket).upload(fileName, file)
+            if (!fallbackError) {
+              bucketName = bucket
+              uploadError = null
+              break
+            }
+            uploadError = fallbackError
+          }
+        } else {
+          bucketName = 'flyer-backgrounds'
+          uploadError = null
+        }
        
        if (uploadError) throw uploadError
  
