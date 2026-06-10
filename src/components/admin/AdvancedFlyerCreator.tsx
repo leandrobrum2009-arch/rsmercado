@@ -759,11 +759,15 @@ export function AdvancedFlyerCreator() {
       }
     }, [globalRemoveBg])
 
-   const PREDEFINED_BGS = [
-     'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1506617564039-2f3b650ad701?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000'
+    const PREDEFINED_BGS = [
+      '1_1.jpg',
+      '2_1.jpg',
+      '3_1.jpg',
+      '4_1.jpg',
+      '5_1.jpg',
+      '6_1.jpg',
+      '7_1.jpg',
+      '8.jpg'
     ];
 
     const PRESET_TEMPLATES = [
