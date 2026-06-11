@@ -87,9 +87,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
     const baseUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!baseUrl) {
       console.warn('VITE_SUPABASE_URL is missing, using fallback for image URL');
-      return `https://yymtipgsskvepufugfub.supabase.co/storage/v1/object/public/flyer-backgrounds/${url}`;
+      return `https://yymtipgsskvepufugfub.supabase.co/storage/v1/object/public/banners/${url}`;
     }
-    return `${baseUrl}/storage/v1/object/public/flyer-backgrounds/${url}`;
+    return `${baseUrl}/storage/v1/object/public/banners/${url}`;
   };
 
   const validateImageUrl = (url: string): Promise<boolean> => {
@@ -1241,17 +1241,17 @@ export function AdvancedFlyerCreator() {
      try {
        const fileExt = file.name.split('.').pop()
        const fileName = `flyer-bg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`
-       const buckets = ['flyer-backgrounds', 'banners', 'products']
+       const buckets = ['banners', 'products']
        let bucketName = buckets[0]
        let uploadError: any = null
-       
+
        setUploadProgress(30)
-        // Try specifically to the flyer-backgrounds bucket first
-        const { error: primaryError } = await supabase.storage.from('flyer-backgrounds').upload(fileName, file)
-        
+        // Upload to the public 'banners' bucket (exists and is public on the production backend)
+        const { error: primaryError } = await supabase.storage.from('banners').upload(fileName, file)
+
         if (primaryError) {
-          console.warn('Failed to upload to flyer-backgrounds, trying fallbacks:', primaryError.message)
-          for (const bucket of ['banners', 'products']) {
+          console.warn('Failed to upload to banners, trying fallbacks:', primaryError.message)
+          for (const bucket of ['products']) {
             const { error: fallbackError } = await supabase.storage.from(bucket).upload(fileName, file)
             if (!fallbackError) {
               bucketName = bucket
@@ -1261,7 +1261,7 @@ export function AdvancedFlyerCreator() {
             uploadError = fallbackError
           }
         } else {
-          bucketName = 'flyer-backgrounds'
+          bucketName = 'banners'
           uploadError = null
         }
        
