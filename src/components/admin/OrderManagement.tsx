@@ -13,6 +13,8 @@ import { useNavigate } from '@tanstack/react-router'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
  import { ScrollArea } from '@/components/ui/scroll-area'
+ import { Input } from '@/components/ui/input'
+ import { X } from 'lucide-react'
  
  export function OrderManagement() {
   const navigate = useNavigate()
@@ -21,6 +23,13 @@ import { useNavigate } from '@tanstack/react-router'
    const [selectedOrder, setSelectedOrder] = useState<any>(null)
    const [orderItems, setOrderItems] = useState<any[]>([])
    const [loadingItems, setLoadingItems] = useState(false)
+   // Filtros
+   const [filterStatus, setFilterStatus] = useState<string>('all')
+   const [filterCustomer, setFilterCustomer] = useState('')
+   const [filterDateFrom, setFilterDateFrom] = useState('')
+   const [filterDateTo, setFilterDateTo] = useState('')
+   const [filterMinValue, setFilterMinValue] = useState('')
+   const [filterMaxValue, setFilterMaxValue] = useState('')
    const fetchOrderDetails = async (order: any) => {
      setSelectedOrder(order)
      setLoadingItems(true)
@@ -197,6 +206,33 @@ import { useNavigate } from '@tanstack/react-router'
 
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
 
+  const filteredOrders = orders.filter((o) => {
+    if (filterStatus !== 'all' && o.status !== filterStatus) return false
+    if (filterCustomer) {
+      const q = filterCustomer.toLowerCase()
+      const name = (o.profiles?.full_name || o.customer_name || '').toLowerCase()
+      const phone = (o.profiles?.whatsapp || o.customer_phone || '').toLowerCase()
+      const id = o.id.toLowerCase()
+      if (!name.includes(q) && !phone.includes(q) && !id.includes(q)) return false
+    }
+    if (filterDateFrom && new Date(o.created_at) < new Date(filterDateFrom)) return false
+    if (filterDateTo) {
+      const to = new Date(filterDateTo); to.setHours(23,59,59,999)
+      if (new Date(o.created_at) > to) return false
+    }
+    const total = Number(o.total_amount) || 0
+    if (filterMinValue && total < Number(filterMinValue)) return false
+    if (filterMaxValue && total > Number(filterMaxValue)) return false
+    return true
+  })
+
+  const clearFilters = () => {
+    setFilterStatus('all'); setFilterCustomer(''); setFilterDateFrom('')
+    setFilterDateTo(''); setFilterMinValue(''); setFilterMaxValue('')
+  }
+
+  const hasFilters = filterStatus !== 'all' || filterCustomer || filterDateFrom || filterDateTo || filterMinValue || filterMaxValue
+
   return (
     <Card>
       <CardHeader>
@@ -205,6 +241,43 @@ import { useNavigate } from '@tanstack/react-router'
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Filtros */}
+        <div className="mb-4 p-3 bg-zinc-50 border border-zinc-200 rounded-xl grid grid-cols-2 md:grid-cols-6 gap-2">
+          <Input
+            placeholder="Cliente, telefone ou #ID"
+            value={filterCustomer}
+            onChange={(e) => setFilterCustomer(e.target.value)}
+            className="col-span-2 h-9 text-xs"
+          />
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos status</SelectItem>
+              <SelectItem value="pending">Pendente</SelectItem>
+              <SelectItem value="approved">Aprovado</SelectItem>
+              <SelectItem value="collecting">Separando</SelectItem>
+              <SelectItem value="collected">Pronto</SelectItem>
+              <SelectItem value="waiting_courier">Entregador</SelectItem>
+              <SelectItem value="out_for_delivery">Em Rota</SelectItem>
+              <SelectItem value="delivered">Entregue</SelectItem>
+              <SelectItem value="cancelled">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} className="h-9 text-xs" title="Data de" />
+          <Input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} className="h-9 text-xs" title="Data até" />
+          <div className="flex gap-1">
+            <Input type="number" placeholder="R$ min" value={filterMinValue} onChange={(e) => setFilterMinValue(e.target.value)} className="h-9 text-xs" />
+            <Input type="number" placeholder="R$ máx" value={filterMaxValue} onChange={(e) => setFilterMaxValue(e.target.value)} className="h-9 text-xs" />
+          </div>
+          <div className="col-span-2 md:col-span-6 flex items-center justify-between text-xs text-muted-foreground">
+            <span>{filteredOrders.length} de {orders.length} pedidos</span>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+                <X size={12} className="mr-1" /> Limpar filtros
+              </Button>
+            )}
+          </div>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -217,14 +290,14 @@ import { useNavigate } from '@tanstack/react-router'
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  Nenhum pedido encontrado.
+                  {orders.length === 0 ? 'Nenhum pedido encontrado.' : 'Nenhum pedido corresponde aos filtros.'}
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((order) => (
+              filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-xs">#{order.id.substring(0, 8)}</TableCell>
                   <TableCell>
