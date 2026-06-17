@@ -13,6 +13,8 @@ import { useNavigate } from '@tanstack/react-router'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Separator } from '@/components/ui/separator'
  import { ScrollArea } from '@/components/ui/scroll-area'
+ import { Input } from '@/components/ui/input'
+ import { X } from 'lucide-react'
  
  export function OrderManagement() {
   const navigate = useNavigate()
@@ -21,6 +23,13 @@ import { useNavigate } from '@tanstack/react-router'
    const [selectedOrder, setSelectedOrder] = useState<any>(null)
    const [orderItems, setOrderItems] = useState<any[]>([])
    const [loadingItems, setLoadingItems] = useState(false)
+   // Filtros
+   const [filterStatus, setFilterStatus] = useState<string>('all')
+   const [filterCustomer, setFilterCustomer] = useState('')
+   const [filterDateFrom, setFilterDateFrom] = useState('')
+   const [filterDateTo, setFilterDateTo] = useState('')
+   const [filterMinValue, setFilterMinValue] = useState('')
+   const [filterMaxValue, setFilterMaxValue] = useState('')
    const fetchOrderDetails = async (order: any) => {
      setSelectedOrder(order)
      setLoadingItems(true)
