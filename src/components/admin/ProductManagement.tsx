@@ -460,7 +460,7 @@ export function ProductManagement() {
    }
  
    const resetForm = () => {
-    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '' })
+    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '', cashback_percent: '' })
      setIsEditing(false)
    }
  
