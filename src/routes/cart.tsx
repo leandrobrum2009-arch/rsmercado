@@ -709,6 +709,25 @@ function CartPage() {
                   {formatCurrency(total - discount + deliveryFee)}
                 </span>
               </div>
+              {(() => {
+                const globalPct = Number(
+                  (typeof window !== 'undefined' &&
+                    JSON.parse(localStorage.getItem('store_settings_cache') || '{}')?.cashback_default_percent) || 0
+                )
+                const cashback = items.reduce((acc, it: any) => {
+                  const pct = Number(it.cashback_percent ?? globalPct) || 0
+                  return acc + (Number(it.price) * Number(it.quantity) * pct) / 100
+                }, 0)
+                if (cashback <= 0) return null
+                return (
+                  <div className="mt-2 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+                    <span className="text-[11px] font-black uppercase text-emerald-700 tracking-widest">
+                      💰 Você vai ganhar de cashback
+                    </span>
+                    <span className="text-lg font-black text-emerald-700">{formatCurrency(cashback)}</span>
+                  </div>
+                )
+              })()}
             </div>
             <div className="space-y-3">
               {isValidDeliveryArea === false && (

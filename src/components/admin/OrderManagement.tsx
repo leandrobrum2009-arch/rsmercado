@@ -201,6 +201,23 @@ import { useNavigate } from '@tanstack/react-router'
           }, 2000);
         }
       }
+
+      // Notify cashback credit (created by DB trigger on delivery)
+      if (isDelivered) {
+        setTimeout(async () => {
+          const { data: cb } = await supabase
+            .from('cashback_history')
+            .select('amount')
+            .eq('order_id', orderId)
+            .eq('type', 'earn')
+            .maybeSingle()
+          if (cb && Number(cb.amount) > 0) {
+            const amount = Number(cb.amount).toFixed(2)
+            const msg = `💰 Olá ${customerName || 'Cliente'}! Você acabou de ganhar *R$ ${amount}* de cashback pela compra #${orderId.substring(0, 8)}.\n\nO valor já está disponível no seu saldo para usar na próxima compra. Obrigado! 🛒`
+            await sendWhatsAppMessage(customerPhone, msg, undefined, orderId)
+          }
+        }, 3500)
+      }
     }
   }
 
