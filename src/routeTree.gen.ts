@@ -17,6 +17,7 @@ import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as HighlightsRouteImport } from './routes/highlights'
 import { Route as DeliveryRouteImport } from './routes/delivery'
+import { Route as CashbackRouteImport } from './routes/cashback'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AdminFixRouteImport } from './routes/admin-fix'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -63,6 +64,11 @@ const DeliveryRoute = DeliveryRouteImport.update({
   path: '/delivery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CashbackRoute = CashbackRouteImport.update({
+  id: '/cashback',
+  path: '/cashback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/admin-fix': typeof AdminFixRoute
   '/cart': typeof CartRoute
+  '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/cashback'
     | '/delivery'
     | '/highlights'
     | '/install'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/cashback'
     | '/delivery'
     | '/highlights'
     | '/install'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-fix'
     | '/cart'
+    | '/cashback'
     | '/delivery'
     | '/highlights'
     | '/install'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AdminFixRoute: typeof AdminFixRoute
   CartRoute: typeof CartRoute
+  CashbackRoute: typeof CashbackRoute
   DeliveryRoute: typeof DeliveryRoute
   HighlightsRoute: typeof HighlightsRoute
   InstallRoute: typeof InstallRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cashback': {
+      id: '/cashback'
+      path: '/cashback'
+      fullPath: '/cashback'
+      preLoaderRoute: typeof CashbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AdminFixRoute: AdminFixRoute,
   CartRoute: CartRoute,
+  CashbackRoute: CashbackRoute,
   DeliveryRoute: DeliveryRoute,
   HighlightsRoute: HighlightsRoute,
   InstallRoute: InstallRoute,
