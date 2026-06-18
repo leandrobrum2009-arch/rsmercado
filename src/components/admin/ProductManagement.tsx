@@ -481,7 +481,7 @@ export function ProductManagement() {
         unit: product.unit || 'un',
         is_weight_based: !!product.is_weight_based,
         sku: product.sku || '',
-        cashback_percent: product.cashback_percent ?? ''
+        cashback_percent: product.cashback_percent != null ? String(product.cashback_percent) : ''
       })
       setIsEditing(true)
       setIsProductDialogOpen(true)
