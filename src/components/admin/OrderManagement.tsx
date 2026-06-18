@@ -390,6 +390,23 @@ import { useNavigate } from '@tanstack/react-router'
                            <Eye size={14} />
                          </Button>
                        </DialogTrigger>
+                      {order.delivery_address && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          title="Abrir rota no Google Maps"
+                          className="h-8 w-8 ml-1 text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const a = order.delivery_address || {}
+                            const parts = [a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code].filter(Boolean).join(', ')
+                            if (!parts) { toast.error('Endereço de entrega indisponível'); return }
+                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts)}`, '_blank')
+                          }}
+                        >
+                          <MapPin size={14} />
+                        </Button>
+                      )}
                        <DialogContent className="max-w-2xl rounded-3xl p-0 overflow-hidden border-0 shadow-2xl">
                          <DialogHeader className="bg-zinc-900 text-white p-6">
                            <div className="flex justify-between items-center pr-6">
