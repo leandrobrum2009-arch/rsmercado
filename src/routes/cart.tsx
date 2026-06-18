@@ -725,16 +725,28 @@ function CartPage() {
                 </span>
               </div>
               {totalCashback > 0 && (
-                <div className="mt-2 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl px-4 py-3 shadow-md">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-90">
-                      💰 Cashback desta compra
-                    </span>
-                    <span className="text-[9px] font-bold opacity-75">
-                      Creditado após a entrega
-                    </span>
+                <div className="mt-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl px-4 py-3 shadow-md space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-90">
+                        💰 Cashback desta compra
+                      </span>
+                      <span className="text-[9px] font-bold opacity-75">
+                        Creditado no seu saldo após a entrega
+                      </span>
+                    </div>
+                    <span className="text-xl font-black">{formatCurrency(totalCashback)}</span>
                   </div>
-                  <span className="text-xl font-black">{formatCurrency(totalCashback)}</span>
+                  <div className="pt-2 border-t border-white/20 space-y-1 max-h-32 overflow-y-auto">
+                    {items.filter((it: any) => cashbackPerItem(it) > 0).map((it: any) => (
+                      <div key={it.id} className="flex items-center justify-between text-[10px] font-bold">
+                        <span className="truncate opacity-90 flex-1 mr-2">
+                          {it.name} <span className="opacity-70">({cashbackPctFor(it)}%)</span>
+                        </span>
+                        <span className="font-black">+{formatCurrency(cashbackPerItem(it))}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
