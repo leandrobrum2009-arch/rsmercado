@@ -730,6 +730,16 @@ export function ProductManagement() {
                        <Input type="number" step="1" placeholder="0" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
                      </div>
                    </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-emerald-600">% Cashback (opcional)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 2 (vazio = usa padrão global)"
+                      value={(newProduct as any).cashback_percent ?? ''}
+                      onChange={(e) => setNewProduct({...newProduct, cashback_percent: e.target.value} as any)}
+                    />
+                  </div>
                   <div className="space-y-2 col-span-2">
                     <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
