@@ -206,8 +206,8 @@ export function ProductManagement() {
    const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean))).sort()
  
   const [isSubmitting, setIsSubmitting] = useState(false)
-    const [newProduct, setNewProduct] = useState({
-        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: ''
+    const [newProduct, setNewProduct] = useState<any>({
+        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '', cashback_percent: ''
     })
     const [isEditing, setIsEditing] = useState(false)
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
