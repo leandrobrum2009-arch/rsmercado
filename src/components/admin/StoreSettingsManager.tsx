@@ -191,6 +191,7 @@ import { logAttempt } from '@/lib/logs'
              }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
+              if (item.key === 'cashback_default_percent') newSettings.cashback_default_percent = String(item.value ?? '0');
                if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
                if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
                 if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
