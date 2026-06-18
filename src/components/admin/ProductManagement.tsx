@@ -405,6 +405,9 @@ export function ProductManagement() {
         is_available: newProduct.is_available ?? true
       };
 
+      const cb = (newProduct as any).cashback_percent
+      productData.cashback_percent = (cb === '' || cb === null || cb === undefined) ? null : Number(cb)
+
       if (newProduct.sku && newProduct.sku.trim() !== '') {
         productData.sku = newProduct.sku.trim();
       }
@@ -477,7 +480,8 @@ export function ProductManagement() {
         tags: (product.tags || []).join(', '),
         unit: product.unit || 'un',
         is_weight_based: !!product.is_weight_based,
-        sku: product.sku || ''
+        sku: product.sku || '',
+        cashback_percent: product.cashback_percent ?? ''
       })
       setIsEditing(true)
       setIsProductDialogOpen(true)
