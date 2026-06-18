@@ -76,6 +76,47 @@ export type Database = {
           },
         ]
       }
+      cashback_history: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          status?: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cashback_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           banner_url: string | null
@@ -451,6 +492,7 @@ export type Database = {
       products: {
         Row: {
           brand: string | null
+          cashback_percent: number | null
           category_id: string | null
           created_at: string
           deleted_at: string | null
@@ -473,6 +515,7 @@ export type Database = {
         }
         Insert: {
           brand?: string | null
+          cashback_percent?: number | null
           category_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -495,6 +538,7 @@ export type Database = {
         }
         Update: {
           brand?: string | null
+          cashback_percent?: number | null
           category_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -530,6 +574,7 @@ export type Database = {
           accept_marketing: boolean | null
           avatar_url: string | null
           birth_date: string | null
+          cashback_balance: number
           created_at: string
           email: string | null
           full_name: string | null
@@ -547,6 +592,7 @@ export type Database = {
           accept_marketing?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
+          cashback_balance?: number
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -564,6 +610,7 @@ export type Database = {
           accept_marketing?: boolean | null
           avatar_url?: string | null
           birth_date?: string | null
+          cashback_balance?: number
           created_at?: string
           email?: string | null
           full_name?: string | null

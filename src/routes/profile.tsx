@@ -1,4 +1,5 @@
  import { LoyaltyStatus } from '@/components/profile/LoyaltyStatus'
+import { CashbackStatus } from '@/components/profile/CashbackStatus'
  import { createFileRoute, Link } from '@tanstack/react-router'
  import { useState, useEffect } from 'react'
  import { supabase } from '@/lib/supabase'
@@ -300,6 +301,7 @@ export const Route = createFileRoute('/profile')({
           
            <div className="space-y-6">
              <LoyaltyStatus userId={session.user.id} />
+             <CashbackStatus userId={session.user.id} />
              {isAdmin && <AdminSetup />}
            </div>
         </div>

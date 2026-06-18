@@ -14,6 +14,7 @@
     store_description: string
     instagram_post_count: string
     instagram_items?: any[]
+   cashback_default_percent?: number | string
   }
  
  const defaultSettings: StoreSettings = {
@@ -28,7 +29,8 @@
    facebook_url: '',
     store_description: '',
     instagram_post_count: '6',
-    instagram_items: []
+    instagram_items: [],
+    cashback_default_percent: 0
   }
  
 export function useStoreSettings() {

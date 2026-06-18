@@ -47,6 +47,7 @@ import { logAttempt } from '@/lib/logs'
      instagram_post_count: '6',
      instagram_items: [],
      admin_whatsapp: '',
+    cashback_default_percent: '0',
                         social_proof: {
                           enabled: true,
                           interval: 15000,
@@ -190,6 +191,7 @@ import { logAttempt } from '@/lib/logs'
              }
              if (item.key === 'instagram_post_count') newSettings.instagram_post_count = item.value;
              if (item.key === 'instagram_items') newSettings.instagram_items = item.value;
+              if (item.key === 'cashback_default_percent') newSettings.cashback_default_percent = String(item.value ?? '0');
                if (item.key === 'admin_whatsapp') newSettings.admin_whatsapp = item.value;
                if (item.key === 'social_proof_settings') newSettings.social_proof = { ...newSettings.social_proof, ...item.value };
                 if (item.key === 'external_notification_config') newSettings.notifications = { ...newSettings.notifications, ...item.value };
@@ -387,6 +389,7 @@ import { logAttempt } from '@/lib/logs'
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
             { key: 'admin_whatsapp', value: settings.admin_whatsapp },
+           { key: 'cashback_default_percent', value: parseFloat(settings.cashback_default_percent) || 0 },
              { key: 'social_proof_settings', value: settings.social_proof },
              { key: 'external_notification_config', value: settings.notifications },
              { key: 'sipag_config', value: settings.sipag },
@@ -614,6 +617,22 @@ import { logAttempt } from '@/lib/logs'
                       </div>
                       <p className="text-[9px] text-zinc-400 font-medium">
                         Configuração atual: R$ 5,00 = {(parseFloat(settings.points_ratio) * 5).toFixed(1)} pontos.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pb-4 border-b">
+                    <label className="text-xs font-black uppercase text-emerald-600">💰 Cashback Padrão (%)</label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={settings.cashback_default_percent}
+                        onChange={(e) => setSettings({ ...settings, cashback_default_percent: e.target.value })}
+                        placeholder="Ex: 2"
+                        className="rounded-xl border-zinc-200 w-24 font-bold"
+                      />
+                      <p className="text-[10px] text-zinc-500 font-bold italic">
+                        Aplicado a todos os produtos sem % próprio. Creditado quando o pedido é entregue.
                       </p>
                     </div>
                   </div>

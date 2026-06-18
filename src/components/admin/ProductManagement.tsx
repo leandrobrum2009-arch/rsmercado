@@ -207,7 +207,7 @@ export function ProductManagement() {
  
   const [isSubmitting, setIsSubmitting] = useState(false)
     const [newProduct, setNewProduct] = useState({
-        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: ''
+        id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '' as string | string[], unit: 'un', is_weight_based: false, sku: '', cashback_percent: '' as string
     })
     const [isEditing, setIsEditing] = useState(false)
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
@@ -405,6 +405,9 @@ export function ProductManagement() {
         is_available: newProduct.is_available ?? true
       };
 
+      const cb = (newProduct as any).cashback_percent
+      productData.cashback_percent = (cb === '' || cb === null || cb === undefined) ? null : Number(cb)
+
       if (newProduct.sku && newProduct.sku.trim() !== '') {
         productData.sku = newProduct.sku.trim();
       }
@@ -457,7 +460,7 @@ export function ProductManagement() {
    }
  
    const resetForm = () => {
-    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '' })
+    setNewProduct({ id: '', name: '', description: '', price: '', old_price: '', category_id: '', image_url: '', stock: '0', is_available: true, points_value: '0', brand: '', tags: '', unit: 'un', is_weight_based: false, sku: '', cashback_percent: '' })
      setIsEditing(false)
    }
  
@@ -477,7 +480,8 @@ export function ProductManagement() {
         tags: (product.tags || []).join(', '),
         unit: product.unit || 'un',
         is_weight_based: !!product.is_weight_based,
-        sku: product.sku || ''
+        sku: product.sku || '',
+        cashback_percent: product.cashback_percent != null ? String(product.cashback_percent) : ''
       })
       setIsEditing(true)
       setIsProductDialogOpen(true)
@@ -730,6 +734,16 @@ export function ProductManagement() {
                        <Input type="number" step="1" placeholder="0" value={newProduct.stock} onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})} />
                      </div>
                    </div>
+                  <div className="space-y-2 col-span-2 md:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-emerald-600">% Cashback (opcional)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 2 (vazio = usa padrão global)"
+                      value={(newProduct as any).cashback_percent ?? ''}
+                      onChange={(e) => setNewProduct({...newProduct, cashback_percent: e.target.value} as any)}
+                    />
+                  </div>
                   <div className="space-y-2 col-span-2">
                     <Label className="text-[10px] uppercase font-bold">Bags / Etiquetas de Destaque</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
