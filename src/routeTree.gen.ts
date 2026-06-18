@@ -16,6 +16,7 @@ import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as HighlightsRouteImport } from './routes/highlights'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CashbackRouteImport } from './routes/cashback'
 import { Route as CartRouteImport } from './routes/cart'
@@ -57,6 +58,11 @@ const InstallRoute = InstallRouteImport.update({
 const HighlightsRoute = HighlightsRouteImport.update({
   id: '/highlights',
   path: '/highlights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeliveryRoute = DeliveryRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/cashback': typeof CashbackRoute
   '/delivery': typeof DeliveryRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/highlights': typeof HighlightsRoute
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/cashback'
     | '/delivery'
+    | '/diagnostico'
     | '/highlights'
     | '/install'
     | '/loyalty'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/cashback'
     | '/delivery'
+    | '/diagnostico'
     | '/highlights'
     | '/install'
     | '/loyalty'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/cashback'
     | '/delivery'
+    | '/diagnostico'
     | '/highlights'
     | '/install'
     | '/loyalty'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CashbackRoute: typeof CashbackRoute
   DeliveryRoute: typeof DeliveryRoute
+  DiagnosticoRoute: typeof DiagnosticoRoute
   HighlightsRoute: typeof HighlightsRoute
   InstallRoute: typeof InstallRoute
   LoyaltyRoute: typeof LoyaltyRoute
@@ -263,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HighlightsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/delivery': {
       id: '/delivery'
       path: '/delivery'
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CashbackRoute: CashbackRoute,
   DeliveryRoute: DeliveryRoute,
+  DiagnosticoRoute: DiagnosticoRoute,
   HighlightsRoute: HighlightsRoute,
   InstallRoute: InstallRoute,
   LoyaltyRoute: LoyaltyRoute,
@@ -334,12 +355,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
