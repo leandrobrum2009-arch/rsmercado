@@ -389,6 +389,7 @@ import { logAttempt } from '@/lib/logs'
            { key: 'instagram_post_count', value: settings.instagram_post_count },
            { key: 'instagram_items', value: settings.instagram_items || [] },
             { key: 'admin_whatsapp', value: settings.admin_whatsapp },
+           { key: 'cashback_default_percent', value: parseFloat(settings.cashback_default_percent) || 0 },
              { key: 'social_proof_settings', value: settings.social_proof },
              { key: 'external_notification_config', value: settings.notifications },
              { key: 'sipag_config', value: settings.sipag },
