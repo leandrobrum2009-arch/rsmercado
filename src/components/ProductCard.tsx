@@ -17,6 +17,7 @@
    import { useState, useRef } from "react";
    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
    import { Input } from "@/components/ui/input";
+import { useStoreSettings } from "@/hooks/useStoreSettings";
  
   interface ProductProps {
      product: any;
@@ -25,6 +26,7 @@
  
     export const ProductCard = ({ product, multiplier = 1 }: ProductProps) => {
      const { addToCart, items, updateQuantity } = useCart();
+    const { settings } = useStoreSettings();
      const cartItem = items.find(i => i.id === product.id);
      const [selectedWeight, setSelectedWeight] = useState(product.is_weight_based ? "0.100" : "1");
      const [isCustomWeight, setIsCustomWeight] = useState(false);
@@ -152,17 +154,18 @@
                 </span>
               )}
                 {(() => {
-                  const globalPct = Number(
-                    (typeof window !== 'undefined' &&
-                      JSON.parse(localStorage.getItem('store_settings_cache') || '{}')?.cashback_default_percent) || 0
-                  )
+                  const globalPct = Number(settings?.cashback_default_percent || 0)
                   const pct = Number(product.cashback_percent ?? globalPct) || 0
                   if (pct <= 0) return null
                   const value = (Number(product.price || 0) * pct) / 100
                   return (
-                    <span className="text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full w-fit uppercase tracking-tighter border border-emerald-200">
-                      💰 Ganhe R$ {value.toFixed(2)} de cashback
-                    </span>
+                    <div className="mt-1 flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-2 py-1 rounded-lg w-fit shadow-sm">
+                      <span className="text-sm">💰</span>
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-[8px] font-black uppercase tracking-widest opacity-90">Cashback {pct}%</span>
+                        <span className="text-[11px] font-black">Ganhe R$ {value.toFixed(2)}</span>
+                      </div>
+                    </div>
                   )
                 })()}
             </div>
