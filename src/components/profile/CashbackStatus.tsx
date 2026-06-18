@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Wallet, TrendingUp } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 export function CashbackStatus({ userId }: { userId: string }) {
   const [balance, setBalance] = useState(0)
@@ -56,6 +57,12 @@ export function CashbackStatus({ userId }: { userId: string }) {
             ))}
           </ul>
         )}
+        <Link
+          to="/cashback"
+          className="block mt-3 text-center text-[10px] font-black uppercase tracking-widest text-emerald-700 hover:text-emerald-900 py-2 border-t border-zinc-100"
+        >
+          Ver extrato completo →
+        </Link>
       </CardContent>
     </Card>
   )
