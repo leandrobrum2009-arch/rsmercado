@@ -151,6 +151,20 @@
                   Venda Fracionada
                 </span>
               )}
+                {(() => {
+                  const globalPct = Number(
+                    (typeof window !== 'undefined' &&
+                      JSON.parse(localStorage.getItem('store_settings_cache') || '{}')?.cashback_default_percent) || 0
+                  )
+                  const pct = Number(product.cashback_percent ?? globalPct) || 0
+                  if (pct <= 0) return null
+                  const value = (Number(product.price || 0) * pct) / 100
+                  return (
+                    <span className="text-[9px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full w-fit uppercase tracking-tighter border border-emerald-200">
+                      💰 Ganhe R$ {value.toFixed(2)} de cashback
+                    </span>
+                  )
+                })()}
             </div>
  
             <div className="mt-3 space-y-2">
