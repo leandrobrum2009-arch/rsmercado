@@ -32,6 +32,7 @@ import { toast } from "@/lib/toast";
 import { logAttempt } from "@/lib/logs";
 import { RecipeSuggestions } from "@/components/RecipeSuggestions";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { useStoreSettings } from "@/hooks/useStoreSettings";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -39,6 +40,13 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const { items, total, totalPoints, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { settings } = useStoreSettings();
+  const globalCashbackPct = Number(settings?.cashback_default_percent || 0);
+  const cashbackPerItem = (it: any) => {
+    const pct = Number(it.cashback_percent ?? globalCashbackPct) || 0;
+    return (Number(it.price) * Number(it.quantity) * pct) / 100;
+  };
+  const totalCashback = items.reduce((acc, it: any) => acc + cashbackPerItem(it), 0);
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [activeCoupon, setActiveCoupon] = useState<string | null>(null);
@@ -434,6 +442,11 @@ function CartPage() {
                         {formatCurrency(item.price * item.quantity)}
                       </p>
                     </div>
+                    {cashbackPerItem(item) > 0 && (
+                      <div className="mt-1 inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        💰 Cashback {formatCurrency(cashbackPerItem(item))}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center bg-gray-100 rounded-lg p-1">
                         <button
@@ -709,25 +722,19 @@ function CartPage() {
                   {formatCurrency(total - discount + deliveryFee)}
                 </span>
               </div>
-              {(() => {
-                const globalPct = Number(
-                  (typeof window !== 'undefined' &&
-                    JSON.parse(localStorage.getItem('store_settings_cache') || '{}')?.cashback_default_percent) || 0
-                )
-                const cashback = items.reduce((acc, it: any) => {
-                  const pct = Number(it.cashback_percent ?? globalPct) || 0
-                  return acc + (Number(it.price) * Number(it.quantity) * pct) / 100
-                }, 0)
-                if (cashback <= 0) return null
-                return (
-                  <div className="mt-2 flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
-                    <span className="text-[11px] font-black uppercase text-emerald-700 tracking-widest">
-                      💰 Você vai ganhar de cashback
+              {totalCashback > 0 && (
+                <div className="mt-2 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl px-4 py-3 shadow-md">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-90">
+                      💰 Cashback desta compra
                     </span>
-                    <span className="text-lg font-black text-emerald-700">{formatCurrency(cashback)}</span>
+                    <span className="text-[9px] font-bold opacity-75">
+                      Creditado após a entrega
+                    </span>
                   </div>
-                )
-              })()}
+                  <span className="text-xl font-black">{formatCurrency(totalCashback)}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-3">
               {isValidDeliveryArea === false && (
