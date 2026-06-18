@@ -11,6 +11,7 @@
    unit?: string;
    is_weight_based?: boolean;
    stock?: number;
+  cashback_percent?: number | null;
  }
  
  interface CartContextType {
