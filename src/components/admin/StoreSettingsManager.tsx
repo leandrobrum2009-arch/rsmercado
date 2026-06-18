@@ -47,6 +47,7 @@ import { logAttempt } from '@/lib/logs'
      instagram_post_count: '6',
      instagram_items: [],
      admin_whatsapp: '',
+    cashback_default_percent: '0',
                         social_proof: {
                           enabled: true,
                           interval: 15000,
