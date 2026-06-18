@@ -46,6 +46,7 @@ function CartPage() {
     const pct = Number(it.cashback_percent ?? globalCashbackPct) || 0;
     return (Number(it.price) * Number(it.quantity) * pct) / 100;
   };
+  const cashbackPctFor = (it: any) => Number(it.cashback_percent ?? globalCashbackPct) || 0;
   const totalCashback = items.reduce((acc, it: any) => acc + cashbackPerItem(it), 0);
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -443,8 +444,9 @@ function CartPage() {
                       </p>
                     </div>
                     {cashbackPerItem(item) > 0 && (
-                      <div className="mt-1 inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                        💰 Cashback {formatCurrency(cashbackPerItem(item))}
+                      <div className="mt-1 inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        💰 {cashbackPctFor(item)}% cashback ={" "}
+                        <span className="text-emerald-800">{formatCurrency(cashbackPerItem(item))}</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between mt-2">
