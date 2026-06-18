@@ -620,6 +620,22 @@ import { logAttempt } from '@/lib/logs'
                       </p>
                     </div>
                   </div>
+                  <div className="space-y-2 pb-4 border-b">
+                    <label className="text-xs font-black uppercase text-emerald-600">💰 Cashback Padrão (%)</label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={settings.cashback_default_percent}
+                        onChange={(e) => setSettings({ ...settings, cashback_default_percent: e.target.value })}
+                        placeholder="Ex: 2"
+                        className="rounded-xl border-zinc-200 w-24 font-bold"
+                      />
+                      <p className="text-[10px] text-zinc-500 font-bold italic">
+                        Aplicado a todos os produtos sem % próprio. Creditado quando o pedido é entregue.
+                      </p>
+                    </div>
+                  </div>
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                      <label className="text-xs font-black uppercase text-zinc-500">Cor Primária</label>
