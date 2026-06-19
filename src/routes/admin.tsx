@@ -60,6 +60,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SupplierManagement } from '@/components/admin/SupplierManagement'
 import { AdminSecurityVerification } from '@/components/admin/AdminHealthCheck'
+import { ApiIntegrationManager } from '@/components/admin/api/ApiIntegrationManager'
 
 
 
@@ -321,6 +322,7 @@ export const Route = createFileRoute('/admin')({
               { id: 'theme', label: 'Tema Visual', icon: Palette },
               { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
             { id: 'webhooks', label: 'Webhooks', icon: Webhook }
+            ,{ id: 'api_integration', label: 'API & Integrações', icon: KeyIcon }
           ]
         },
         {
@@ -493,6 +495,9 @@ export const Route = createFileRoute('/admin')({
                 </TabsContent>
                 <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
                   <WebhookManager />
+                </TabsContent>
+                <TabsContent value="api_integration" className="mt-0 focus-visible:ring-0">
+                  <ApiIntegrationManager />
                 </TabsContent>
                 <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
                   <NotificationManager />
