@@ -32,6 +32,7 @@ import {
   Send,
   UserCog
 } from 'lucide-react'
+import { KeyRound as KeyIcon } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
@@ -60,6 +61,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SupplierManagement } from '@/components/admin/SupplierManagement'
 import { AdminSecurityVerification } from '@/components/admin/AdminHealthCheck'
+import { ApiIntegrationManager } from '@/components/admin/api/ApiIntegrationManager'
 
 
 
@@ -229,7 +231,7 @@ export const Route = createFileRoute('/admin')({
                 "loyalty", "layout", "categories", "organizer", "importer", 
                 "offers", "banners", "flyers", "recipes", "notifications", 
                 "alerts", "settings", "theme", "whatsapp", "webhooks", 
-                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback", "system_health"
+                "admin_roles", "admin_account", "suppliers", "activity_logs", "sending_logs", "feedback", "system_health", "api_integration"
               ])
             }
          }
@@ -321,6 +323,7 @@ export const Route = createFileRoute('/admin')({
               { id: 'theme', label: 'Tema Visual', icon: Palette },
               { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
             { id: 'webhooks', label: 'Webhooks', icon: Webhook }
+            ,{ id: 'api_integration', label: 'API & Integrações', icon: KeyIcon }
           ]
         },
         {
@@ -493,6 +496,9 @@ export const Route = createFileRoute('/admin')({
                 </TabsContent>
                 <TabsContent value="webhooks" className="mt-0 focus-visible:ring-0">
                   <WebhookManager />
+                </TabsContent>
+                <TabsContent value="api_integration" className="mt-0 focus-visible:ring-0">
+                  <ApiIntegrationManager />
                 </TabsContent>
                 <TabsContent value="notifications" className="mt-0 focus-visible:ring-0">
                   <NotificationManager />
