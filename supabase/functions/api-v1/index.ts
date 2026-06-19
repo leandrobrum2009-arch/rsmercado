@@ -472,6 +472,12 @@ async function uploadProductImage(req: Request, productId: string, requestId: st
   }).select().single();
   if (error) return errorResponse(500, "db_error", error.message, requestId);
   dispatchEvent("image.created", data);
+  // Processa em background: WEBP + miniaturas
+  fetch(`${SUPABASE_URL}/functions/v1/image-processor`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+    body: JSON.stringify({ image_id: data.id }),
+  }).catch(() => {});
   return json({ data }, { status: 201 }, requestId);
 }
 
