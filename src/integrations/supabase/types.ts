@@ -14,6 +14,193 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_key_logs: {
+        Row: {
+          api_key_id: string | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          method: string
+          path: string
+          request_id: string | null
+          status_code: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method: string
+          path: string
+          request_id?: string | null
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          method?: string
+          path?: string
+          request_id?: string | null
+          status_code?: number | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_key_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_keys: {
+        Row: {
+          allowed_ips: string[] | null
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          permissions: string[]
+          rate_limit_per_min: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_ips?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          permissions?: string[]
+          rate_limit_per_min?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_ips?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          permissions?: string[]
+          rate_limit_per_min?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_webhook_deliveries: {
+        Row: {
+          attempt: number
+          created_at: string
+          delivered_at: string | null
+          event_type: string
+          id: string
+          last_error: string | null
+          last_status_code: number | null
+          next_retry_at: string | null
+          payload: Json
+          status: string
+          webhook_id: string | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type: string
+          id?: string
+          last_error?: string | null
+          last_status_code?: number | null
+          next_retry_at?: string | null
+          payload: Json
+          status?: string
+          webhook_id?: string | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          last_status_code?: number | null
+          next_retry_at?: string | null
+          payload?: Json
+          status?: string
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "api_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_webhooks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          events: string[]
+          id: string
+          is_active: boolean
+          max_retries: number
+          name: string
+          secret: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          max_retries?: number
+          name: string
+          secret: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          max_retries?: number
+          name?: string
+          secret?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       app_feedback: {
         Row: {
           comment: string | null
@@ -568,73 +755,103 @@ export type Database = {
       }
       products: {
         Row: {
+          active: boolean
+          barcode: string | null
           brand: string | null
           cashback_percent: number | null
           category_id: string | null
+          code: string | null
+          cost: number | null
           created_at: string
           deleted_at: string | null
           description: string | null
+          height: number | null
           id: string
           image_url: string | null
           is_approved: boolean
           is_available: boolean
           is_featured: boolean
           is_weight_based: boolean | null
+          length: number | null
           name: string
           old_price: number | null
           points_value: number
           price: number
+          promo_price: number | null
           size: string | null
           sku: string | null
           stock: number
           tags: string[]
           unit: string | null
+          updated_at: string
+          weight: number | null
+          width: number | null
         }
         Insert: {
+          active?: boolean
+          barcode?: string | null
           brand?: string | null
           cashback_percent?: number | null
           category_id?: string | null
+          code?: string | null
+          cost?: number | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          height?: number | null
           id?: string
           image_url?: string | null
           is_approved?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_weight_based?: boolean | null
+          length?: number | null
           name: string
           old_price?: number | null
           points_value?: number
           price?: number
+          promo_price?: number | null
           size?: string | null
           sku?: string | null
           stock?: number
           tags?: string[]
           unit?: string | null
+          updated_at?: string
+          weight?: number | null
+          width?: number | null
         }
         Update: {
+          active?: boolean
+          barcode?: string | null
           brand?: string | null
           cashback_percent?: number | null
           category_id?: string | null
+          code?: string | null
+          cost?: number | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          height?: number | null
           id?: string
           image_url?: string | null
           is_approved?: boolean
           is_available?: boolean
           is_featured?: boolean
           is_weight_based?: boolean | null
+          length?: number | null
           name?: string
           old_price?: number | null
           points_value?: number
           price?: number
+          promo_price?: number | null
           size?: string | null
           sku?: string | null
           stock?: number
           tags?: string[]
           unit?: string | null
+          updated_at?: string
+          weight?: number | null
+          width?: number | null
         }
         Relationships: [
           {
