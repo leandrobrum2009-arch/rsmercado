@@ -222,6 +222,27 @@ export type Database = {
         }
         Relationships: []
       }
+      image_deletions: {
+        Row: {
+          deleted_at: string
+          id: string
+          image_id: string
+          product_id: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          id?: string
+          image_id: string
+          product_id?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          id?: string
+          image_id?: string
+          product_id?: string | null
+        }
+        Relationships: []
+      }
       loyalty_redemptions: {
         Row: {
           created_at: string | null
@@ -485,6 +506,62 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_images: {
+        Row: {
+          created_at: string
+          file_hash: string | null
+          file_name: string | null
+          file_size: number | null
+          height: number | null
+          id: string
+          is_main: boolean
+          mime_type: string | null
+          position: number
+          product_id: string
+          updated_at: string
+          url: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          file_hash?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_main?: boolean
+          mime_type?: string | null
+          position?: number
+          product_id: string
+          updated_at?: string
+          url: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          file_hash?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_main?: boolean
+          mime_type?: string | null
+          position?: number
+          product_id?: string
+          updated_at?: string
+          url?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
