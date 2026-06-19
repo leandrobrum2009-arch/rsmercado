@@ -32,6 +32,7 @@ import {
   Send,
   UserCog
 } from 'lucide-react'
+import { KeyRound as KeyIcon } from 'lucide-react'
  import { AdminRoleManager } from '@/components/admin/AdminRoleManager'
  import { OfferManager } from '@/components/admin/OfferManager'
 import { createFileRoute, redirect, useSearch, useNavigate, ErrorComponent, ErrorComponentProps } from '@tanstack/react-router'
