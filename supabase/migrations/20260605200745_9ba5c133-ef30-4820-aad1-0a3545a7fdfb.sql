@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Criação da tabela de logs de segurança
 CREATE TABLE IF NOT EXISTS public.security_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

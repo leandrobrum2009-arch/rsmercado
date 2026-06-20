@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Create app_feedback table
 CREATE TABLE IF NOT EXISTS public.app_feedback (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
