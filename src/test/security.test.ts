@@ -46,9 +46,11 @@ describe('Security: hardcoded secrets', () => {
 
 describe('Security: service-role key never reaches client bundle', () => {
   it('SUPABASE_SERVICE_ROLE_KEY is not referenced in src/', () => {
-    const offenders = srcFiles.filter((f) =>
-      readFileSync(f, 'utf8').includes('SUPABASE_SERVICE_ROLE_KEY')
-    );
+    const offenders = srcFiles
+      .filter((f) => !f.includes('/test/'))
+      .filter((f) =>
+        readFileSync(f, 'utf8').includes('SUPABASE_SERVICE_ROLE_KEY')
+      );
     expect(offenders, `Found in: ${offenders.join(', ')}`).toEqual([]);
   });
 });
