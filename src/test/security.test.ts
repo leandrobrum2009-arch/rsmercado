@@ -74,6 +74,20 @@ describe('Security: SQL migrations', () => {
 
 describe('Security: Edge Functions', () => {
   const fnDir = join(ROOT, 'supabase/functions');
+  const config = (() => {
+    try {
+      return readFileSync(join(ROOT, 'supabase/config.toml'), 'utf8');
+    } catch {
+      return '';
+    }
+  })();
+  const jwtVerified = (fn: string): boolean => {
+    const re = new RegExp(
+      `\\[functions\\.${fn}\\][^\\[]*verify_jwt\\s*=\\s*true`,
+      'i'
+    );
+    return re.test(config);
+  };
   const functions = (() => {
     try {
       return readdirSync(fnDir).filter((d) =>
@@ -94,7 +108,8 @@ describe('Security: Edge Functions', () => {
     }
     const hasWildcard = /Access-Control-Allow-Origin['"]?\s*[:=]\s*['"]\*/.test(src);
     const hasAuthCheck =
-      /getClaims|getUser|verify_jwt|webhook|signature/i.test(src);
+      jwtVerified(fn) ||
+      /getClaims|getUser|webhook|signature|x-signature|hmac/i.test(src);
     if (hasWildcard) {
       expect(
         hasAuthCheck,
