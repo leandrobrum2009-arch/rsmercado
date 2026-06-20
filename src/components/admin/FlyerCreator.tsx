@@ -634,10 +634,10 @@ designStyle === 'elegante' ? 'rounded-none border-x-0 border-t-0 border-b' :
 }`}
 style={{ borderColor: `${primaryColor}20` }}
 >
-<img src={p.image_url} alt={p.name} className="w-32 h-32 object-contain mb-2" />
-<h3 className={`font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2 ${designStyle === 'elegante' ? 'font-serif italic' : ''}`}>{p.name}</h3>
+<img src={p.image_url} alt={p.name} className="w-32 h-32 object-contain mb-2" style={{ transform: `translateY(${imageOffsetY}px)` }} />
+<h3 className={`font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2 ${designStyle === 'elegante' ? 'font-serif italic' : ''}`} style={{ transform: `translateY(${nameOffsetY}px)` }}>{p.name}</h3>
 
-<div className="mt-2 w-full">
+<div className="mt-2 w-full" style={{ transform: `translateY(${priceOffsetY}px)` }}>
 {designStyle !== 'minimal' && <p className="text-[10px] text-gray-400 line-through">De: R$ {p.original_price.toFixed(2)}</p>}
 <div
 className={`bg-yellow-400 text-black rounded-lg py-1 px-4 inline-block font-black text-xl shadow-sm ${
