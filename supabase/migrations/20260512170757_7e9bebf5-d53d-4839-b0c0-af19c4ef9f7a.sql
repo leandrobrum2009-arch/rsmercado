@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Fix orders policies
 DROP POLICY IF EXISTS "Anyone can insert orders" ON public.orders;
 DROP POLICY IF EXISTS "Users can insert own orders" ON public.orders;

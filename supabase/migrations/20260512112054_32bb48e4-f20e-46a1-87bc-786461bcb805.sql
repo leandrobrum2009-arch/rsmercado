@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 1. Tabela de notificações
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

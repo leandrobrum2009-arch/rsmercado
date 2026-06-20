@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Drop existing overly broad policy if it exists and create specific ones
 DROP POLICY IF EXISTS "Admins can manage suppliers" ON public.suppliers;
 
