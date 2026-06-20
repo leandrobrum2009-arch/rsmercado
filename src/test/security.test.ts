@@ -48,6 +48,8 @@ describe('Security: service-role key never reaches client bundle', () => {
   it('SUPABASE_SERVICE_ROLE_KEY is not referenced in src/', () => {
     const offenders = srcFiles
       .filter((f) => !f.includes('/test/'))
+      // server-only files are not bundled to the client
+      .filter((f) => !/\.server\.(ts|tsx|js|jsx)$/.test(f))
       .filter((f) =>
         readFileSync(f, 'utf8').includes('SUPABASE_SERVICE_ROLE_KEY')
       );
