@@ -29,3 +29,50 @@ jobs:
 
     - name: Build
       run: bun run build:dev
+
+  security:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Dependency audit (high/critical)
+        run: bun audit --audit-level=high
+
+      - name: Scan for hardcoded secrets
+        run: |
+          set -e
+          PATTERN='(SUPABASE_SERVICE_ROLE_KEY|BEGIN RSA PRIVATE KEY|BEGIN OPENSSH PRIVATE KEY|sk_live_[0-9a-zA-Z]{16,}|AKIA[0-9A-Z]{16}|ghp_[0-9A-Za-z]{20,}|xox[baprs]-[0-9A-Za-z-]{10,})'
+          if grep -RInE "$PATTERN" \
+               --exclude-dir=node_modules \
+               --exclude-dir=.git \
+               --exclude-dir=dist \
+               --exclude-dir=.github \
+               .; then
+            echo "::error::Potential secret committed to repo"
+            exit 1
+          fi
+
+      - name: Block service-role key usage in client code
+        run: |
+          set -e
+          if grep -RInE 'SUPABASE_SERVICE_ROLE_KEY' src/ 2>/dev/null; then
+            echo "::error::service_role key must never be referenced from client code"
+            exit 1
+          fi
+
+      - name: Forbid permissive RLS (WITH CHECK (true)) in migrations
+        run: |
+          set -e
+          if grep -RInE "with check[[:space:]]*\\(true\\)" supabase/migrations 2>/dev/null; then
+            echo "::error::Migration contains WITH CHECK (true) — tighten the policy"
+            exit 1
+          fi
