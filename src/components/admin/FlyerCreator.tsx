@@ -31,6 +31,13 @@ const [title, setTitle] = useState('Ofertas Especiais')
 const [printImage, setPrintImage] = useState<string | null>(null)
 const [previewImage, setPreviewImage] = useState<string | null>(null)
 const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+const [imageOffsetY, setImageOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_image_offset_y') || 0))
+const [nameOffsetY, setNameOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_name_offset_y') || 0))
+const [priceOffsetY, setPriceOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_price_offset_y') || 0))
+
+useEffect(() => { localStorage.setItem('last_flyer_image_offset_y', String(imageOffsetY)) }, [imageOffsetY])
+useEffect(() => { localStorage.setItem('last_flyer_name_offset_y', String(nameOffsetY)) }, [nameOffsetY])
+useEffect(() => { localStorage.setItem('last_flyer_price_offset_y', String(priceOffsetY)) }, [priceOffsetY])
 
 useEffect(() => {
 if (printImage) {
@@ -373,6 +380,41 @@ alt="Print Preview"
 <Input value={title} onChange={(e) => setTitle(e.target.value)} />
 </div>
 
+<div className="space-y-3 pt-2 border-t">
+<Label className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Posição Vertical (por elemento)</Label>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Foto do Produto</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{imageOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setImageOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={imageOffsetY} onChange={(e) => setImageOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Nome do Produto</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{nameOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setNameOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={nameOffsetY} onChange={(e) => setNameOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Bloco de Preço</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{priceOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setPriceOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={priceOffsetY} onChange={(e) => setPriceOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<p className="text-[9px] text-zinc-400 leading-tight">Use os controles para ajustar individualmente a posição vertical da foto, do nome e do preço em cada card do encarte.</p>
+</div>
+
 <div className="grid grid-cols-2 gap-4">
 <div className="space-y-2">
 <Label>Cor Principal</Label>
@@ -592,10 +634,10 @@ designStyle === 'elegante' ? 'rounded-none border-x-0 border-t-0 border-b' :
 }`}
 style={{ borderColor: `${primaryColor}20` }}
 >
-<img src={p.image_url} alt={p.name} className="w-32 h-32 object-contain mb-2" />
-<h3 className={`font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2 ${designStyle === 'elegante' ? 'font-serif italic' : ''}`}>{p.name}</h3>
+<img src={p.image_url} alt={p.name} className="w-32 h-32 object-contain mb-2" style={{ transform: `translateY(${imageOffsetY}px)` }} />
+<h3 className={`font-bold text-sm leading-tight h-10 overflow-hidden line-clamp-2 ${designStyle === 'elegante' ? 'font-serif italic' : ''}`} style={{ transform: `translateY(${nameOffsetY}px)` }}>{p.name}</h3>
 
-<div className="mt-2 w-full">
+<div className="mt-2 w-full" style={{ transform: `translateY(${priceOffsetY}px)` }}>
 {designStyle !== 'minimal' && <p className="text-[10px] text-gray-400 line-through">De: R$ {p.original_price.toFixed(2)}</p>}
 <div
 className={`bg-yellow-400 text-black rounded-lg py-1 px-4 inline-block font-black text-xl shadow-sm ${
