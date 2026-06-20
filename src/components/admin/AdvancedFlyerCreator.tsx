@@ -3051,9 +3051,9 @@ export function AdvancedFlyerCreator() {
                       <Slider value={[imageSize]} min={50} max={400} step={1} onValueChange={([val]) => setImageSize(val)} />
                     </div>
 
-                    {layout === 'single' && (
-                      <div className="space-y-4 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95 duration-300">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Modelo Único)</Label>
+                    {(
+                       <div className="space-y-4 p-3 bg-primary/5 rounded-xl border border-primary/10 animate-in zoom-in-95 duration-300">
+                         <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Ajuste de Posição (Foto / Nome / Preço)</Label>
                         <div className="space-y-3">
                           <div className="space-y-1">
                              <div className="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase">
