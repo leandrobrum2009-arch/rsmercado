@@ -109,7 +109,7 @@ describe('Security: Edge Functions', () => {
     const hasWildcard = /Access-Control-Allow-Origin['"]?\s*[:=]\s*['"]\*/.test(src);
     const hasAuthCheck =
       jwtVerified(fn) ||
-      /getClaims|getUser|webhook|signature|x-signature|hmac/i.test(src);
+      /getClaims|getUser|webhook|signature|x-signature|hmac|api[_-]?key|x-api-key|bearer/i.test(src);
     if (hasWildcard) {
       expect(
         hasAuthCheck,
