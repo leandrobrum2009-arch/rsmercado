@@ -31,6 +31,13 @@ const [title, setTitle] = useState('Ofertas Especiais')
 const [printImage, setPrintImage] = useState<string | null>(null)
 const [previewImage, setPreviewImage] = useState<string | null>(null)
 const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+const [imageOffsetY, setImageOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_image_offset_y') || 0))
+const [nameOffsetY, setNameOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_name_offset_y') || 0))
+const [priceOffsetY, setPriceOffsetY] = useState(() => Number(localStorage.getItem('last_flyer_price_offset_y') || 0))
+
+useEffect(() => { localStorage.setItem('last_flyer_image_offset_y', String(imageOffsetY)) }, [imageOffsetY])
+useEffect(() => { localStorage.setItem('last_flyer_name_offset_y', String(nameOffsetY)) }, [nameOffsetY])
+useEffect(() => { localStorage.setItem('last_flyer_price_offset_y', String(priceOffsetY)) }, [priceOffsetY])
 
 useEffect(() => {
 if (printImage) {
