@@ -380,6 +380,41 @@ alt="Print Preview"
 <Input value={title} onChange={(e) => setTitle(e.target.value)} />
 </div>
 
+<div className="space-y-3 pt-2 border-t">
+<Label className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Posição Vertical (por elemento)</Label>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Foto do Produto</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{imageOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setImageOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={imageOffsetY} onChange={(e) => setImageOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Nome do Produto</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{nameOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setNameOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={nameOffsetY} onChange={(e) => setNameOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<div className="space-y-1">
+<div className="flex items-center justify-between text-[10px] font-bold uppercase">
+<span>Bloco de Preço</span>
+<div className="flex items-center gap-1">
+<span className="text-zinc-500 w-10 text-right">{priceOffsetY}px</span>
+<Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setPriceOffsetY(0)}>0</Button>
+</div>
+</div>
+<input type="range" min={-60} max={60} step={1} value={priceOffsetY} onChange={(e) => setPriceOffsetY(Number(e.target.value))} className="w-full accent-indigo-600" />
+</div>
+<p className="text-[9px] text-zinc-400 leading-tight">Use os controles para ajustar individualmente a posição vertical da foto, do nome e do preço em cada card do encarte.</p>
+</div>
+
 <div className="grid grid-cols-2 gap-4">
 <div className="space-y-2">
 <Label>Cor Principal</Label>
