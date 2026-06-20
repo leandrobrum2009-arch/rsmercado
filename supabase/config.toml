@@ -5,3 +5,29 @@ verify_jwt = false
 
 [functions.image-processor]
 verify_jwt = false
+
+# Public webhooks: signature validated in code, JWT not applicable
+[functions.mercadopago-webhook]
+verify_jwt = false
+
+[functions.sipag-webhook]
+verify_jwt = false
+
+# Authenticated-only endpoints
+[functions.cors-proxy]
+verify_jwt = true
+
+[functions.generate-pix-qr]
+verify_jwt = true
+
+[functions.process-mercadopago-payment]
+verify_jwt = true
+
+[functions.process-sipag-payment]
+verify_jwt = true
+
+[functions.send-push]
+verify_jwt = true
+
+[functions.text-to-speech]
+verify_jwt = true
