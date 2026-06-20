@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Add author_id to recipes to track who created them
 ALTER TABLE public.recipes ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES auth.users(id) DEFAULT auth.uid();
 

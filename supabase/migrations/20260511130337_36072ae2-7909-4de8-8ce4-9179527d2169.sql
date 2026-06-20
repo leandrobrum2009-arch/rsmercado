@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Create profiles table
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,

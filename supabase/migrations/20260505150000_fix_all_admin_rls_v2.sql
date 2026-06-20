@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- Fix Banners RLS
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can manage banners" ON public.banners;

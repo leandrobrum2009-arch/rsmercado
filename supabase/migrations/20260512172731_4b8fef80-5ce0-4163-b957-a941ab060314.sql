@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 1. Security Hardening: Revoke Public Execute on all functions in public schema
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM anon;

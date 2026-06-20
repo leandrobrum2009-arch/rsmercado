@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 1. Atualizar função is_admin com bypass e segurança correta
 CREATE OR REPLACE FUNCTION public.is_admin() 
 RETURNS BOOLEAN 

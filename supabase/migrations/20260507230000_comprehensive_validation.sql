@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 🏆 COMPREHENSIVE SYSTEM VALIDATION & SECURITY HARDENING v2
 -- Consolidates schema, security, and advanced triggers (stock, loyalty, notifications).
 

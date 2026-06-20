@@ -30,6 +30,9 @@ jobs:
     - name: Build
       run: bun run build:dev
 
+    - name: Security tests
+      run: bunx vitest run src/test/security.test.ts
+
   security:
     name: Security Gate
     runs-on: ubuntu-latest

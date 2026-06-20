@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 1. Drop existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Admins manage suppliers" ON public.suppliers;
 DROP POLICY IF EXISTS "Anyone authenticated can view suppliers" ON public.suppliers;

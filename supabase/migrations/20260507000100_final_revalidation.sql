@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 🛠️ FINAL REVALIDATION & CONSOLIDATION MIGRATION
 
 -- 1. SECURITY DEFINER FUNCTIONS (Bypassing RLS safely)

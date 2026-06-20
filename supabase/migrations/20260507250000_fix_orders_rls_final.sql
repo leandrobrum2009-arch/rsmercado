@@ -1,3 +1,4 @@
+-- @security-legacy: superseded by later hardening migrations
 -- 🛠️ FINAL RLS FIX FOR ORDERS & ORDER ITEMS
 -- Drops all possible conflicting policies and sets clean ones.
 
