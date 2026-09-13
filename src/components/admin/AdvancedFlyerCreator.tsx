@@ -1222,7 +1222,7 @@ export function AdvancedFlyerCreator() {
  
     const fetchProducts = async () => {
       const [productsRes, categoriesRes] = await Promise.all([
-        supabase.from('products').select('*').limit(500).order('name', { ascending: true }),
+        supabase.from('products').select('*').order('name', { ascending: true }).range(0, 4999),
         supabase.from('categories').select('*').order('name', { ascending: true })
       ])
       

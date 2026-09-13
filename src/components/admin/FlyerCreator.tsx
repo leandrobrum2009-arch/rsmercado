@@ -112,7 +112,7 @@ fetchProducts()
 }, [])
 
 const fetchProducts = async () => {
-const { data } = await supabase.from('products').select('*').limit(500).order('name', { ascending: true })
+const { data } = await supabase.from('products').select('*').order('name', { ascending: true }).range(0, 4999)
 setAllProducts(data || [])
 }
 
