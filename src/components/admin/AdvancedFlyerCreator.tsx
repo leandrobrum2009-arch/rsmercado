@@ -3622,8 +3622,63 @@ export function AdvancedFlyerCreator() {
                   {isPreparingPrint ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
                   Imprimir
                 </Button>
+
+                <Button
+                  size="sm"
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl transition-all active:scale-95"
+                  onClick={() => setAiPromptOpen(true)}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Gerar por IA (A4)
+                </Button>
               </div>
             </div>
+
+            <Dialog open={aiPromptOpen} onOpenChange={setAiPromptOpen}>
+              <DialogContent className="max-w-2xl print:hidden">
+                <DialogHeader>
+                  <DialogTitle className="font-black uppercase italic tracking-tighter">Gerar encarte A4 com IA</DialogTitle>
+                </DialogHeader>
+                <p className="text-xs font-bold text-zinc-500">
+                  Copie o texto abaixo e cole no ChatGPT (ou outra IA de imagens). Ele já vem com os dados da loja, a lista de produtos na ordem e os preços.
+                </p>
+                <textarea
+                  readOnly
+                  value={aiPrompt}
+                  className="w-full h-72 text-[11px] font-mono p-3 rounded-2xl border-2 border-zinc-200 bg-zinc-50 outline-none focus:border-emerald-500"
+                />
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-2xl font-black uppercase text-[10px]"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(aiPrompt)
+                        toast.success('Texto copiado!')
+                      } catch {
+                        toast.error('Não foi possível copiar. Selecione o texto manualmente.')
+                      }
+                    }}
+                  >
+                    Copiar texto
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(aiPrompt)
+                        toast.success('Texto copiado! Agora cole no ChatGPT.')
+                      } catch {}
+                      window.open('https://chat.openai.com/', '_blank')
+                    }}
+                  >
+                    Copiar e abrir ChatGPT
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="w-full flex justify-center print:block p-0 md:p-2 flyer-print-wrapper">
 
