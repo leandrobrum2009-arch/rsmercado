@@ -232,7 +232,7 @@ export function AdvancedFlyerCreator() {
          storeAddress ? `- Endereço: ${storeAddress}` : '',
          storeWhats ? `- WhatsApp: ${storeWhats}` : '',
          siteUrl ? `- Site para pedidos: ${siteUrl}` : '',
-         storeLogo ? `- Logotipo (use esta imagem no topo): ${storeLogo}` : '',
+         storeLogo ? `- Logotipo: a imagem anexada nesta conversa é o logotipo oficial. Reproduza-o fielmente (mesmas cores e mesmo texto), nítido e bem visível no cabeçalho. Referência: ${storeLogo}` : '',
          ``,
          `TÍTULO DO ENCARTE: ${subtitleText || 'SUPER OFERTAS'}`,
          ``,
