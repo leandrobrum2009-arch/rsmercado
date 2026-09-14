@@ -185,6 +185,7 @@ export function AdvancedFlyerCreator() {
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
      const [templateName, setTemplateName] = useState('')
      const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
+     const [aiPromptOpen, setAiPromptOpen] = useState(false)
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
