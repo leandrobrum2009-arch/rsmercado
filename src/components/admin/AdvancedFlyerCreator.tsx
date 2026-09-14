@@ -245,6 +245,7 @@ export function AdvancedFlyerCreator() {
          `- Cabeçalho com o logotipo e o título; rodapé com endereço, WhatsApp e site.`,
          `- Grade organizada (3 colunas), sem cortar nomes nem preços.`,
          `- Não invente produtos, preços ou promoções que não estão na lista.`,
+         `- Acabamento profissional de gráfica: contraste forte, tipografia limpa, alinhamento perfeito e nenhum texto borrado ou cortado.`,
          `- Entregue a imagem final em alta resolução para impressão A4.`
        ]
          .filter(Boolean)
