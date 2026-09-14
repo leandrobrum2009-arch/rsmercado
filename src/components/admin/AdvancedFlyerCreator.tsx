@@ -186,6 +186,10 @@ export function AdvancedFlyerCreator() {
      const [templateName, setTemplateName] = useState('')
      const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
      const [aiPromptOpen, setAiPromptOpen] = useState(false)
+     const [aiSearch, setAiSearch] = useState('')
+     const [aiExtra, setAiExtra] = useState('')
+     const [aiGenerating, setAiGenerating] = useState(false)
+     const [aiImage, setAiImage] = useState<string | null>(null)
 
      const aiPrompt = useMemo(() => {
        const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
