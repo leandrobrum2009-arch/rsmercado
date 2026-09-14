@@ -2372,6 +2372,14 @@ export function AdvancedFlyerCreator() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
        {/* Controls Sidebar */}
         <div className="lg:col-span-4 space-y-6 print:hidden lg:sticky lg:top-8 pb-20 max-h-[calc(100vh-2rem)] min-h-[600px] overflow-y-auto no-scrollbar">
+         <Button
+           size="lg"
+           className="w-full h-14 rounded-[24px] font-black uppercase text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl transition-all active:scale-95"
+           onClick={() => setAiPromptOpen(true)}
+         >
+           <Sparkles className="w-5 h-5 mr-2" />
+           Gerar Encarte por IA (A4)
+         </Button>
          <Card className="rounded-[24px] border-2 border-zinc-100 shadow-xl">
            <CardHeader className="bg-zinc-50 border-b border-zinc-100">
              <div className="flex items-center justify-between">
