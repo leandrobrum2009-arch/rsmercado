@@ -11,7 +11,7 @@ import { jsPDF } from 'jspdf'
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
  import { Slider } from '@/components/ui/slider'
  import { Progress } from '@/components/ui/progress'
-import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X, Camera } from 'lucide-react'
+import { Loader2, Plus, Trash2, Printer, Download, ImageIcon, Upload, Type, Palette, Layout, Settings2, AlignLeft, AlignCenter, AlignRight, Eraser, Save, FolderOpen, RefreshCcw, History, Clock, Calendar, CheckSquare, Share2, MessageCircle, Eye, X, Camera, Sparkles } from 'lucide-react'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
 import { StoryGenerator } from './StoryGenerator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -185,6 +185,53 @@ export function AdvancedFlyerCreator() {
     const [flyerHistory, setFlyerHistory] = useState<any[]>([])
      const [templateName, setTemplateName] = useState('')
      const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
+     const [aiPromptOpen, setAiPromptOpen] = useState(false)
+
+     const aiPrompt = useMemo(() => {
+       const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
+       const storeAddress = storeSettings?.address || ''
+       const storeWhats = storeSettings?.whatsapp || ''
+       const storeLogo = storeSettings?.logo_url || ''
+       const siteUrl = typeof window !== 'undefined' ? window.location.origin : ''
+       const list = selectedProducts.length > 0
+         ? selectedProducts
+             .map((p, i) => {
+               const price = `R$ ${Number(p.price || 0).toFixed(2).replace('.', ',')}`
+               const unit = p.unit ? ` (${p.unit})` : ''
+               const before = p.original_price
+                 ? ` — preço antigo: R$ ${Number(p.original_price).toFixed(2).replace('.', ',')}`
+                 : ''
+               return `${i + 1}. ${p.name} — ${price}${unit}${before}`
+             })
+             .join('\n')
+         : '(adicione aqui a lista de produtos e preços)'
+
+       return [
+         `Crie a IMAGEM de um encarte de ofertas de supermercado em folha A4 vertical (210 x 297 mm, 300 dpi), pronta para impressão.`,
+         ``,
+         `LOJA`,
+         `- Nome: ${storeName}`,
+         storeAddress ? `- Endereço: ${storeAddress}` : '',
+         storeWhats ? `- WhatsApp: ${storeWhats}` : '',
+         siteUrl ? `- Site para pedidos: ${siteUrl}` : '',
+         storeLogo ? `- Logotipo (use esta imagem no topo): ${storeLogo}` : '',
+         ``,
+         `TÍTULO DO ENCARTE: ${subtitleText || 'SUPER OFERTAS'}`,
+         ``,
+         `PRODUTOS (nesta ordem, com estes preços exatos):`,
+         list,
+         ``,
+         `REGRAS DE ARTE`,
+         `- Use fotos reais dos produtos com as marcas citadas, fundo branco/recortado.`,
+         `- Preços em destaque, grandes, em vermelho ou amarelo, alta legibilidade.`,
+         `- Cabeçalho com o logotipo e o título; rodapé com endereço, WhatsApp e site.`,
+         `- Grade organizada (3 colunas), sem cortar nomes nem preços.`,
+         `- Não invente produtos, preços ou promoções que não estão na lista.`,
+         `- Entregue a imagem final em alta resolução para impressão A4.`
+       ]
+         .filter(Boolean)
+         .join('\n')
+     }, [selectedProducts, storeSettings, subtitleText])
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
@@ -3575,8 +3622,63 @@ export function AdvancedFlyerCreator() {
                   {isPreparingPrint ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4 mr-2" />}
                   Imprimir
                 </Button>
+
+                <Button
+                  size="sm"
+                  className="h-10 px-6 rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl transition-all active:scale-95"
+                  onClick={() => setAiPromptOpen(true)}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Gerar por IA (A4)
+                </Button>
               </div>
             </div>
+
+            <Dialog open={aiPromptOpen} onOpenChange={setAiPromptOpen}>
+              <DialogContent className="max-w-2xl print:hidden">
+                <DialogHeader>
+                  <DialogTitle className="font-black uppercase italic tracking-tighter">Gerar encarte A4 com IA</DialogTitle>
+                </DialogHeader>
+                <p className="text-xs font-bold text-zinc-500">
+                  Copie o texto abaixo e cole no ChatGPT (ou outra IA de imagens). Ele já vem com os dados da loja, a lista de produtos na ordem e os preços.
+                </p>
+                <textarea
+                  readOnly
+                  value={aiPrompt}
+                  className="w-full h-72 text-[11px] font-mono p-3 rounded-2xl border-2 border-zinc-200 bg-zinc-50 outline-none focus:border-emerald-500"
+                />
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-2xl font-black uppercase text-[10px]"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(aiPrompt)
+                        toast.success('Texto copiado!')
+                      } catch {
+                        toast.error('Não foi possível copiar. Selecione o texto manualmente.')
+                      }
+                    }}
+                  >
+                    Copiar texto
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(aiPrompt)
+                        toast.success('Texto copiado! Agora cole no ChatGPT.')
+                      } catch {}
+                      window.open('https://chat.openai.com/', '_blank')
+                    }}
+                  >
+                    Copiar e abrir ChatGPT
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="w-full flex justify-center print:block p-0 md:p-2 flyer-print-wrapper">
 
