@@ -186,6 +186,52 @@ export function AdvancedFlyerCreator() {
      const [templateName, setTemplateName] = useState('')
      const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
      const [aiPromptOpen, setAiPromptOpen] = useState(false)
+
+     const aiPrompt = useMemo(() => {
+       const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
+       const storeAddress = storeSettings?.address || ''
+       const storeWhats = storeSettings?.whatsapp || ''
+       const storeLogo = storeSettings?.logo_url || ''
+       const siteUrl = typeof window !== 'undefined' ? window.location.origin : ''
+       const list = selectedProducts.length > 0
+         ? selectedProducts
+             .map((p, i) => {
+               const price = `R$ ${Number(p.price || 0).toFixed(2).replace('.', ',')}`
+               const unit = p.unit ? ` (${p.unit})` : ''
+               const before = p.original_price
+                 ? ` — preço antigo: R$ ${Number(p.original_price).toFixed(2).replace('.', ',')}`
+                 : ''
+               return `${i + 1}. ${p.name} — ${price}${unit}${before}`
+             })
+             .join('\n')
+         : '(adicione aqui a lista de produtos e preços)'
+
+       return [
+         `Crie a IMAGEM de um encarte de ofertas de supermercado em folha A4 vertical (210 x 297 mm, 300 dpi), pronta para impressão.`,
+         ``,
+         `LOJA`,
+         `- Nome: ${storeName}`,
+         storeAddress ? `- Endereço: ${storeAddress}` : '',
+         storeWhats ? `- WhatsApp: ${storeWhats}` : '',
+         siteUrl ? `- Site para pedidos: ${siteUrl}` : '',
+         storeLogo ? `- Logotipo (use esta imagem no topo): ${storeLogo}` : '',
+         ``,
+         `TÍTULO DO ENCARTE: ${subtitleText || 'SUPER OFERTAS'}`,
+         ``,
+         `PRODUTOS (nesta ordem, com estes preços exatos):`,
+         list,
+         ``,
+         `REGRAS DE ARTE`,
+         `- Use fotos reais dos produtos com as marcas citadas, fundo branco/recortado.`,
+         `- Preços em destaque, grandes, em vermelho ou amarelo, alta legibilidade.`,
+         `- Cabeçalho com o logotipo e o título; rodapé com endereço, WhatsApp e site.`,
+         `- Grade organizada (3 colunas), sem cortar nomes nem preços.`,
+         `- Não invente produtos, preços ou promoções que não estão na lista.`,
+         `- Entregue a imagem final em alta resolução para impressão A4.`
+       ]
+         .filter(Boolean)
+         .join('\n')
+     }, [selectedProducts, storeSettings, subtitleText])
    
    // Styling states
    const [titleColor, setTitleColor] = useState('#000000')
