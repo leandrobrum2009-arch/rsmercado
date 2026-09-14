@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import html2canvas from 'html2canvas-pro'
 import { jsPDF } from 'jspdf'
  import { useStoreSettings } from '@/hooks/useStoreSettings'
+ import { generateFlyerImage } from '@/lib/ai-flyer.functions'
  import { supabase } from '@/lib/supabase'
  import { Button } from '@/components/ui/button'
  import { Input } from '@/components/ui/input'
@@ -186,6 +187,10 @@ export function AdvancedFlyerCreator() {
      const [templateName, setTemplateName] = useState('')
      const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false)
      const [aiPromptOpen, setAiPromptOpen] = useState(false)
+     const [aiSearch, setAiSearch] = useState('')
+     const [aiExtra, setAiExtra] = useState('')
+     const [aiGenerating, setAiGenerating] = useState(false)
+     const [aiImage, setAiImage] = useState<string | null>(null)
 
      const aiPrompt = useMemo(() => {
        const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
@@ -3643,47 +3648,209 @@ export function AdvancedFlyerCreator() {
             </div>
 
             <Dialog open={aiPromptOpen} onOpenChange={setAiPromptOpen}>
-              <DialogContent className="max-w-2xl print:hidden">
-                <DialogHeader>
+              <DialogContent className="max-w-5xl w-[96vw] h-[92vh] p-0 gap-0 flex flex-col print:hidden">
+                <DialogHeader className="p-5 pb-3 border-b bg-zinc-50 text-left shrink-0">
                   <DialogTitle className="font-black uppercase italic tracking-tighter">Gerar encarte A4 com IA</DialogTitle>
                 </DialogHeader>
-                <p className="text-xs font-bold text-zinc-500">
-                  Copie o texto abaixo e cole no ChatGPT (ou outra IA de imagens). Ele já vem com os dados da loja, a lista de produtos na ordem e os preços.
-                </p>
-                <textarea
-                  readOnly
-                  value={aiPrompt}
-                  className="w-full h-72 text-[11px] font-mono p-3 rounded-2xl border-2 border-zinc-200 bg-zinc-50 outline-none focus:border-emerald-500"
-                />
-                <div className="flex flex-wrap gap-2 justify-end">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-2xl font-black uppercase text-[10px]"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(aiPrompt)
-                        toast.success('Texto copiado!')
-                      } catch {
-                        toast.error('Não foi possível copiar. Selecione o texto manualmente.')
-                      }
-                    }}
-                  >
-                    Copiar texto
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="rounded-2xl font-black uppercase text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(aiPrompt)
-                        toast.success('Texto copiado! Agora cole no ChatGPT.')
-                      } catch {}
-                      window.open('https://chat.openai.com/', '_blank')
-                    }}
-                  >
-                    Copiar e abrir ChatGPT
-                  </Button>
+
+                <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-0">
+                  {/* Coluna 1: escolha dos produtos */}
+                  <div className="p-5 space-y-3 border-r">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        Produtos no encarte ({selectedProducts.length})
+                      </Label>
+                      {selectedProducts.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-[10px] font-black uppercase text-zinc-400 hover:text-red-500"
+                          onClick={() => setSelectedProducts([])}
+                        >
+                          Limpar
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProducts.map((p, idx) => (
+                        <span
+                          key={`${p.id}-${idx}`}
+                          className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full pl-3 pr-1.5 py-1 text-[10px] font-bold"
+                        >
+                          {idx + 1}. {p.name} — R$ {Number(p.price || 0).toFixed(2).replace('.', ',')}
+                          <button
+                            className="rounded-full hover:bg-emerald-200 p-0.5"
+                            onClick={() => removeProduct(idx)}
+                            title="Remover"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                      {selectedProducts.length === 0 && (
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300">
+                          Clique nos produtos abaixo para adicionar
+                        </p>
+                      )}
+                    </div>
+
+                    <Input
+                      placeholder="Buscar produto para adicionar..."
+                      value={aiSearch}
+                      onChange={(e) => setAiSearch(e.target.value)}
+                      className="h-9 text-xs"
+                    />
+
+                    <div className="max-h-[38vh] overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 pr-1">
+                      {allProducts
+                        .filter((p) =>
+                          !aiSearch.trim()
+                            ? true
+                            : String(p.name || '').toLowerCase().includes(aiSearch.trim().toLowerCase())
+                        )
+                        .slice(0, 60)
+                        .map((p) => {
+                          const already = selectedProducts.some((s) => s.id === p.id)
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => !already && addProductToFlyer(p)}
+                              className={cn(
+                                'border rounded-xl p-2 text-center space-y-1 transition-colors',
+                                already ? 'border-emerald-400 bg-emerald-50' : 'hover:bg-zinc-50'
+                              )}
+                            >
+                              <img src={p.image_url} className="w-12 h-12 object-contain mx-auto" alt={p.name} />
+                              <p className="text-[9px] font-bold leading-tight line-clamp-2 h-6">{p.name}</p>
+                              <p className="text-[10px] font-black text-primary">
+                                R$ {Number(p.price || 0).toFixed(2).replace('.', ',')}
+                              </p>
+                            </button>
+                          )
+                        })}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        Ajustes / correções para a IA
+                      </Label>
+                      <textarea
+                        value={aiExtra}
+                        onChange={(e) => setAiExtra(e.target.value)}
+                        placeholder="Ex: fundo verde e amarelo, deixar o arroz maior, título SUPER OFERTAS DA SEMANA..."
+                        className="w-full h-20 text-[11px] p-3 rounded-2xl border-2 border-zinc-200 outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full h-12 rounded-2xl font-black uppercase text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                      disabled={aiGenerating || selectedProducts.length === 0}
+                      onClick={async () => {
+                        setAiGenerating(true)
+                        try {
+                          const fullPrompt = aiExtra.trim()
+                            ? `${aiPrompt}\n\nAJUSTES PEDIDOS PELA LOJA:\n${aiExtra.trim()}`
+                            : aiPrompt
+                          const res = await generateFlyerImage({ data: { prompt: fullPrompt } })
+                          setAiImage(res.imageUrl)
+                          toast.success('Encarte gerado!')
+                        } catch (e: any) {
+                          const msg = String(e?.message || '')
+                          if (msg.includes('AI_RATE_LIMIT')) toast.error('Muitas gerações seguidas. Tente em alguns instantes.')
+                          else if (msg.includes('AI_NO_CREDITS')) toast.error('Créditos de IA esgotados no espaço de trabalho.')
+                          else toast.error('Não foi possível gerar o encarte agora. Tente novamente.')
+                        } finally {
+                          setAiGenerating(false)
+                        }
+                      }}
+                    >
+                      {aiGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando encarte...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" /> {aiImage ? 'Gerar novamente com os ajustes' : 'Gerar encarte agora'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Coluna 2: resultado */}
+                  <div className="p-5 space-y-3 bg-zinc-50/60">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Resultado</Label>
+                    <div className="rounded-2xl border-2 border-dashed border-zinc-200 bg-white min-h-[45vh] flex items-center justify-center overflow-hidden">
+                      {aiImage ? (
+                        <img src={aiImage} alt="Encarte gerado por IA" className="w-full h-auto object-contain" />
+                      ) : (
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 p-8 text-center">
+                          {aiGenerating ? 'A IA está desenhando seu encarte...' : 'O encarte aparecerá aqui'}
+                        </p>
+                      )}
+                    </div>
+
+                    {aiImage && (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          className="rounded-2xl font-black uppercase text-[10px] bg-zinc-900 hover:bg-black text-white"
+                          onClick={() => {
+                            const a = document.createElement('a')
+                            a.href = aiImage
+                            a.download = `encarte-ia-${Date.now()}.png`
+                            a.click()
+                          }}
+                        >
+                          <Download className="w-4 h-4 mr-2" /> Baixar imagem
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-2xl font-black uppercase text-[10px]"
+                          onClick={() => {
+                            const w = window.open('', '_blank')
+                            if (w) {
+                              w.document.write(
+                                `<img src="${aiImage}" style="width:210mm;height:297mm;object-fit:contain" onload="window.print()" />`
+                              )
+                              w.document.close()
+                            }
+                          }}
+                        >
+                          <Printer className="w-4 h-4 mr-2" /> Imprimir A4
+                        </Button>
+                      </div>
+                    )}
+
+                    <details className="rounded-2xl border border-zinc-200 bg-white p-3">
+                      <summary className="text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer">
+                        Ver texto enviado para a IA
+                      </summary>
+                      <textarea
+                        readOnly
+                        value={aiPrompt}
+                        className="mt-2 w-full h-40 text-[10px] font-mono p-3 rounded-xl border border-zinc-200 bg-zinc-50 outline-none"
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-2xl font-black uppercase text-[10px]"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(aiPrompt)
+                              toast.success('Texto copiado!')
+                            } catch {
+                              toast.error('Não foi possível copiar.')
+                            }
+                          }}
+                        >
+                          Copiar texto
+                        </Button>
+                      </div>
+                    </details>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
