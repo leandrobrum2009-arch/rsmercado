@@ -191,6 +191,19 @@ export function AdvancedFlyerCreator() {
      const [aiExtra, setAiExtra] = useState('')
      const [aiGenerating, setAiGenerating] = useState(false)
      const [aiImage, setAiImage] = useState<string | null>(null)
+     type AiEngine = 'gemini-flash' | 'gemini-pro' | 'chatgpt' | 'gemini-web' | 'copilot'
+     const [aiEngine, setAiEngine] = useState<AiEngine>(() => {
+       try { return (localStorage.getItem('adv_flyer_ai_engine') as AiEngine) || 'gemini-pro' } catch { return 'gemini-pro' }
+     })
+     useEffect(() => { try { localStorage.setItem('adv_flyer_ai_engine', aiEngine) } catch {} }, [aiEngine])
+     const [aiUseBase, setAiUseBase] = useState(true)
+     const AI_ENGINES: { id: AiEngine; label: string; hint: string; external?: string }[] = [
+       { id: 'gemini-pro', label: 'Gemini (alta qualidade)', hint: 'Gera aqui no site, melhor acabamento' },
+       { id: 'gemini-flash', label: 'Gemini (rápido)', hint: 'Gera aqui no site, mais rápido' },
+       { id: 'chatgpt', label: 'ChatGPT (site externo)', hint: 'Copia o texto e abre o ChatGPT', external: 'https://chat.openai.com/' },
+       { id: 'gemini-web', label: 'Gemini no navegador', hint: 'Copia o texto e abre o Gemini', external: 'https://gemini.google.com/app' },
+       { id: 'copilot', label: 'Microsoft Copilot', hint: 'Copia o texto e abre o Copilot', external: 'https://copilot.microsoft.com/' },
+     ]
 
      const aiPrompt = useMemo(() => {
        const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
@@ -219,7 +232,7 @@ export function AdvancedFlyerCreator() {
          storeAddress ? `- Endereço: ${storeAddress}` : '',
          storeWhats ? `- WhatsApp: ${storeWhats}` : '',
          siteUrl ? `- Site para pedidos: ${siteUrl}` : '',
-         storeLogo ? `- Logotipo (use esta imagem no topo): ${storeLogo}` : '',
+         storeLogo ? `- Logotipo: a imagem anexada nesta conversa é o logotipo oficial. Reproduza-o fielmente (mesmas cores e mesmo texto), nítido e bem visível no cabeçalho. Referência: ${storeLogo}` : '',
          ``,
          `TÍTULO DO ENCARTE: ${subtitleText || 'SUPER OFERTAS'}`,
          ``,
@@ -232,6 +245,7 @@ export function AdvancedFlyerCreator() {
          `- Cabeçalho com o logotipo e o título; rodapé com endereço, WhatsApp e site.`,
          `- Grade organizada (3 colunas), sem cortar nomes nem preços.`,
          `- Não invente produtos, preços ou promoções que não estão na lista.`,
+         `- Acabamento profissional de gráfica: contraste forte, tipografia limpa, alinhamento perfeito e nenhum texto borrado ou cortado.`,
          `- Entregue a imagem final em alta resolução para impressão A4.`
        ]
          .filter(Boolean)
@@ -3743,22 +3757,75 @@ export function AdvancedFlyerCreator() {
                       />
                     </div>
 
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        Onde gerar a imagem
+                      </Label>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {AI_ENGINES.map((eng) => (
+                          <button
+                            key={eng.id}
+                            onClick={() => setAiEngine(eng.id)}
+                            className={cn(
+                              'text-left border-2 rounded-2xl px-3 py-2 transition-colors',
+                              aiEngine === eng.id ? 'border-emerald-500 bg-emerald-50' : 'border-zinc-200 hover:bg-zinc-50'
+                            )}
+                          >
+                            <p className="text-[11px] font-black uppercase tracking-tight text-zinc-800">{eng.label}</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">{eng.hint}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {aiImage && (aiEngine === 'gemini-pro' || aiEngine === 'gemini-flash') && (
+                      <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        <input type="checkbox" checked={aiUseBase} onChange={(e) => setAiUseBase(e.target.checked)} />
+                        Corrigir a imagem já gerada
+                      </label>
+                    )}
+
                     <Button
                       className="w-full h-12 rounded-2xl font-black uppercase text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
                       disabled={aiGenerating || selectedProducts.length === 0}
                       onClick={async () => {
+                        const fullPrompt = aiExtra.trim()
+                          ? `${aiPrompt}\n\nAJUSTES PEDIDOS PELA LOJA:\n${aiExtra.trim()}`
+                          : aiPrompt
+
+                        const engine = AI_ENGINES.find((e) => e.id === aiEngine)
+                        if (engine?.external) {
+                          try {
+                            await navigator.clipboard.writeText(fullPrompt)
+                            toast.success('Texto copiado! Cole na IA que abriu.')
+                          } catch {
+                            toast.error('Copie o texto no campo abaixo e cole na IA.')
+                          }
+                          window.open(engine.external, '_blank')
+                          return
+                        }
+
                         setAiGenerating(true)
                         try {
-                          const fullPrompt = aiExtra.trim()
-                            ? `${aiPrompt}\n\nAJUSTES PEDIDOS PELA LOJA:\n${aiExtra.trim()}`
-                            : aiPrompt
-                          const res = await generateFlyerImage({ data: { prompt: fullPrompt } })
+                          const logo = String(storeSettings?.logo_url || '')
+                          const res = await generateFlyerImage({
+                            data: {
+                              prompt: fullPrompt,
+                              model:
+                                aiEngine === 'gemini-pro'
+                                  ? 'google/gemini-3-pro-image-preview'
+                                  : 'google/gemini-2.5-flash-image-preview',
+                              ...(logo.startsWith('http') ? { logoUrl: logo } : {}),
+                              ...(aiImage && aiUseBase ? { baseImage: aiImage } : {}),
+                            },
+                          })
                           setAiImage(res.imageUrl)
                           toast.success('Encarte gerado!')
                         } catch (e: any) {
                           const msg = String(e?.message || '')
                           if (msg.includes('AI_RATE_LIMIT')) toast.error('Muitas gerações seguidas. Tente em alguns instantes.')
                           else if (msg.includes('AI_NO_CREDITS')) toast.error('Créditos de IA esgotados no espaço de trabalho.')
+                          else if (msg.includes('AI_NO_IMAGE')) toast.error('A IA não devolveu imagem. Tente de novo ou escolha outra IA.')
                           else toast.error('Não foi possível gerar o encarte agora. Tente novamente.')
                         } finally {
                           setAiGenerating(false)
@@ -3771,7 +3838,12 @@ export function AdvancedFlyerCreator() {
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 mr-2" /> {aiImage ? 'Gerar novamente com os ajustes' : 'Gerar encarte agora'}
+                          <Sparkles className="w-4 h-4 mr-2" />{' '}
+                          {AI_ENGINES.find((e) => e.id === aiEngine)?.external
+                            ? 'Copiar texto e abrir a IA'
+                            : aiImage
+                              ? 'Gerar novamente com os ajustes'
+                              : 'Gerar encarte agora'}
                         </>
                       )}
                     </Button>
