@@ -191,6 +191,19 @@ export function AdvancedFlyerCreator() {
      const [aiExtra, setAiExtra] = useState('')
      const [aiGenerating, setAiGenerating] = useState(false)
      const [aiImage, setAiImage] = useState<string | null>(null)
+     type AiEngine = 'gemini-flash' | 'gemini-pro' | 'chatgpt' | 'gemini-web' | 'copilot'
+     const [aiEngine, setAiEngine] = useState<AiEngine>(() => {
+       try { return (localStorage.getItem('adv_flyer_ai_engine') as AiEngine) || 'gemini-pro' } catch { return 'gemini-pro' }
+     })
+     useEffect(() => { try { localStorage.setItem('adv_flyer_ai_engine', aiEngine) } catch {} }, [aiEngine])
+     const [aiUseBase, setAiUseBase] = useState(true)
+     const AI_ENGINES: { id: AiEngine; label: string; hint: string; external?: string }[] = [
+       { id: 'gemini-pro', label: 'Gemini (alta qualidade)', hint: 'Gera aqui no site, melhor acabamento' },
+       { id: 'gemini-flash', label: 'Gemini (rápido)', hint: 'Gera aqui no site, mais rápido' },
+       { id: 'chatgpt', label: 'ChatGPT (site externo)', hint: 'Copia o texto e abre o ChatGPT', external: 'https://chat.openai.com/' },
+       { id: 'gemini-web', label: 'Gemini no navegador', hint: 'Copia o texto e abre o Gemini', external: 'https://gemini.google.com/app' },
+       { id: 'copilot', label: 'Microsoft Copilot', hint: 'Copia o texto e abre o Copilot', external: 'https://copilot.microsoft.com/' },
+     ]
 
      const aiPrompt = useMemo(() => {
        const storeName = storeSettings?.site_name || 'RS SUPERMERCADO'
