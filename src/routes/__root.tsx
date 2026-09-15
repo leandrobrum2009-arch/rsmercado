@@ -91,6 +91,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
        registerServiceWorker();
      }
  
+     // Apply cached settings after hydration to avoid SSR/CSR mismatch
+     try {
+       const cached = localStorage.getItem('store_settings_cache');
+       if (cached) {
+         const parsed = JSON.parse(cached);
+         setStoreSettings((prev: any) => ({
+           ...prev,
+           site_name: parsed.site_name || prev.site_name,
+           logo_url: parsed.logo_url || '',
+           colors: parsed.colors || prev.colors,
+           logo_height_mobile: parsed.logo_height_mobile || prev.logo_height_mobile,
+           logo_height_desktop: parsed.logo_height_desktop || prev.logo_height_desktop,
+           logo_offset_y: parsed.logo_offset_y || prev.logo_offset_y
+         }));
+       }
+     } catch (e) {}
+
      const trackVisit = async () => {
        try {
          const { data: { user } } = await supabase.auth.getUser();
