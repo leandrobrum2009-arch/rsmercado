@@ -74,32 +74,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
    const location = useLocation();
    const { items } = useCart();
    const [isAdmin, setIsAdmin] = useState(false);
-    const [storeSettings, setStoreSettings] = useState<any>(() => {
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('store_settings_cache');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            return {
-              site_name: parsed.site_name || 'RS SUPERMERCADO',
-              logo_url: parsed.logo_url || '',
-              colors: parsed.colors || { primary: '#16a34a', secondary: '#facc15' },
-              logo_height_mobile: parsed.logo_height_mobile || 40,
-              logo_height_desktop: parsed.logo_height_desktop || 64,
-              logo_offset_y: parsed.logo_offset_y || 0
-            };
-          } catch (e) {}
-        }
-      }
-      return {
-        site_name: 'RS SUPERMERCADO',
-        logo_url: '',
-        colors: { primary: '#16a34a', secondary: '#facc15' },
-        logo_height_mobile: 40,
-        logo_height_desktop: 64,
-        logo_offset_y: 0
-      };
-    });
+     const [storeSettings, setStoreSettings] = useState<any>(() => ({
+       site_name: 'RS SUPERMERCADO',
+       logo_url: '',
+       colors: { primary: '#16a34a', secondary: '#facc15' },
+       logo_height_mobile: 40,
+       logo_height_desktop: 64,
+       logo_offset_y: 0
+     }));
    const cartCount = items.length;
  
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
@@ -109,6 +91,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
        registerServiceWorker();
      }
  
+     // Apply cached settings after hydration to avoid SSR/CSR mismatch
+     try {
+       const cached = localStorage.getItem('store_settings_cache');
+       if (cached) {
+         const parsed = JSON.parse(cached);
+         setStoreSettings((prev: any) => ({
+           ...prev,
+           site_name: parsed.site_name || prev.site_name,
+           logo_url: parsed.logo_url || '',
+           colors: parsed.colors || prev.colors,
+           logo_height_mobile: parsed.logo_height_mobile || prev.logo_height_mobile,
+           logo_height_desktop: parsed.logo_height_desktop || prev.logo_height_desktop,
+           logo_offset_y: parsed.logo_offset_y || prev.logo_offset_y
+         }));
+       }
+     } catch (e) {}
+
      const trackVisit = async () => {
        try {
          const { data: { user } } = await supabase.auth.getUser();
