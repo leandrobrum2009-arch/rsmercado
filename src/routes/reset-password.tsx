@@ -41,7 +41,7 @@ function ResetPasswordPage() {
     const verifyRecovery = async () => {
       const { data, error } = await supabase.auth.getSession()
       if (!active) return
-      setHasRecoverySession(Boolean(data.session) && (isRecoveryLink || Boolean(data.session)))
+      setHasRecoverySession(Boolean(data.session) && isRecoveryLink)
       if (error || !data.session) {
         setMessage('Este link é inválido ou expirou. Solicite um novo link em Minha Conta.')
       }
