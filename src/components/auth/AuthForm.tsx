@@ -52,6 +52,7 @@ export function AuthForm() {
 
    const handleAuth = async (e: React.FormEvent) => {
      e.preventDefault()
+     const normalizedEmail = email.trim().toLowerCase()
      
      if (isSignUp) {
        if (!fullName || !whatsapp || !householdStatus || !address || !neighborhood) {
@@ -66,9 +67,10 @@ export function AuthForm() {
      try {
        if (isSignUp) {
          const { data: authData, error } = await supabase.auth.signUp({ 
-           email, 
+            email: normalizedEmail,
            password,
            options: {
+              emailRedirectTo: window.location.origin,
              data: { 
                full_name: fullName,
                whatsapp: whatsapp,
@@ -77,11 +79,11 @@ export function AuthForm() {
            }
          })
          if (error) {
-           logAttempt('registration_attempt', 'failure', { email, error: error.message });
+            logAttempt('registration_attempt', 'failure', { email: normalizedEmail, error: error.message });
            throw error
          }
          
-         logAttempt('registration_attempt', 'success', { email });
+          logAttempt('registration_attempt', 'success', { email: normalizedEmail });
  
          if (authData?.user) {
            const userId = authData.user.id
@@ -108,20 +110,22 @@ export function AuthForm() {
                label: 'Principal'
              })
          }
-         toast.success('CADASTRO REALIZADO COM SUCESSO!')
-         // Com auto-confirm habilitado, o usuário já está logado. 
-         // Recarregamos para atualizar o estado global da aplicação.
-         setTimeout(() => {
-           window.location.reload()
-         }, 1500)
+          if (authData.session) {
+            toast.success('CADASTRO REALIZADO COM SUCESSO!')
+            setTimeout(() => window.location.reload(), 1500)
+          } else {
+            toast.success('Cadastro realizado! Confirme sua conta pelo link enviado ao e-mail.')
+            setIsSignUp(false)
+            setPassword('')
+          }
       } else {
-         const { error } = await supabase.auth.signInWithPassword({ email, password })
+          const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
          if (error) {
-           logAttempt('login_attempt', 'failure', { email, error: error.message });
+            logAttempt('login_attempt', 'failure', { email: normalizedEmail, error: error.message });
            throw error
          }
          
-         logAttempt('login_attempt', 'success', { email });
+          logAttempt('login_attempt', 'success', { email: normalizedEmail });
         window.location.reload()
       }
     } catch (error: any) {
@@ -147,22 +151,23 @@ export function AuthForm() {
   }
 
   const handleResetPassword = async () => {
-    if (!email) {
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) {
       setErrorMsg('DIGITE SEU E-MAIL PRIMEIRO para receber o link de recuperação.')
       return
     }
     setResetting(true)
     setErrorMsg('')
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/profile`,
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+         redirectTo: `${window.location.origin}/reset-password`,
       })
        if (error) {
-         logAttempt('password_reset_request', 'failure', { email, error: error.message });
+         logAttempt('password_reset_request', 'failure', { email: normalizedEmail, error: error.message });
          throw error
        }
        
-       logAttempt('password_reset_request', 'success', { email });
+       logAttempt('password_reset_request', 'success', { email: normalizedEmail });
       alert('LINK ENVIADO!\n\nVerifique seu e-mail (incluindo spam) para redefinir sua senha.')
       setCountdown(60)
     } catch (error: any) {
@@ -229,14 +234,15 @@ export function AuthForm() {
           </Button>
 
           {!isSignUp && (
-            <button 
+            <Button
               type="button" 
+              variant="ghost"
               onClick={handleResetPassword}
               disabled={resetting || countdown > 0}
-              className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors disabled:opacity-50"
+              className="w-full text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors disabled:opacity-50"
             >
               {resetting ? 'ENVIANDO...' : countdown > 0 ? `AGUARDE ${countdown}s` : 'ESQUECI MINHA SENHA / RECUPERAR ACESSO'}
-            </button>
+            </Button>
           )}
 
           {errorMsg.includes('E-MAIL') && (
