@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OffersRouteImport } from './routes/offers'
@@ -28,6 +29,11 @@ import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesRoute = RecipesRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/offers': typeof OffersRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/profile'
     | '/recipes'
+    | '/reset-password'
     | '/search'
     | '/track/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/profile'
     | '/recipes'
+    | '/reset-password'
     | '/search'
     | '/track/$orderId'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/profile'
     | '/recipes'
+    | '/reset-password'
     | '/search'
     | '/track/$orderId'
   fileRoutesById: FileRoutesById
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   OffersRoute: typeof OffersRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   TrackOrderIdRoute: typeof TrackOrderIdRoute
 }
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recipes': {
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   OffersRoute: OffersRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   TrackOrderIdRoute: TrackOrderIdRoute,
 }

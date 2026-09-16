@@ -89,7 +89,7 @@ function ResetPasswordPage() {
     }
 
     setComplete(true)
-    setTimeout(() => navigate({ to: '/admin' }), 1800)
+    setTimeout(() => navigate({ to: '/admin', search: { tab: 'dashboard' } }), 1800)
   }
 
   return (
