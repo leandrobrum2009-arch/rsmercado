@@ -69,6 +69,7 @@ export function AuthForm() {
            email, 
            password,
            options: {
+              emailRedirectTo: window.location.origin,
              data: { 
                full_name: fullName,
                whatsapp: whatsapp,
@@ -108,12 +109,14 @@ export function AuthForm() {
                label: 'Principal'
              })
          }
-         toast.success('CADASTRO REALIZADO COM SUCESSO!')
-         // Com auto-confirm habilitado, o usuário já está logado. 
-         // Recarregamos para atualizar o estado global da aplicação.
-         setTimeout(() => {
-           window.location.reload()
-         }, 1500)
+          if (authData.session) {
+            toast.success('CADASTRO REALIZADO COM SUCESSO!')
+            setTimeout(() => window.location.reload(), 1500)
+          } else {
+            toast.success('Cadastro realizado! Confirme sua conta pelo link enviado ao e-mail.')
+            setIsSignUp(false)
+            setPassword('')
+          }
       } else {
          const { error } = await supabase.auth.signInWithPassword({ email, password })
          if (error) {
@@ -155,7 +158,7 @@ export function AuthForm() {
     setErrorMsg('')
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/profile`,
+         redirectTo: `${window.location.origin}/reset-password`,
       })
        if (error) {
          logAttempt('password_reset_request', 'failure', { email, error: error.message });
@@ -229,14 +232,15 @@ export function AuthForm() {
           </Button>
 
           {!isSignUp && (
-            <button 
+            <Button
               type="button" 
+              variant="ghost"
               onClick={handleResetPassword}
               disabled={resetting || countdown > 0}
-              className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors disabled:opacity-50"
+              className="w-full text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors disabled:opacity-50"
             >
               {resetting ? 'ENVIANDO...' : countdown > 0 ? `AGUARDE ${countdown}s` : 'ESQUECI MINHA SENHA / RECUPERAR ACESSO'}
-            </button>
+            </Button>
           )}
 
           {errorMsg.includes('E-MAIL') && (
