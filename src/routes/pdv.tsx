@@ -265,6 +265,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
         <span className={online ? 'text-primary' : 'text-destructive'}>● {online ? 'Conectado' : 'Sem conexão'}</span>
         <span className="text-muted-foreground">Fiscal: não configurado (cupom não fiscal)</span>
         <div className="ml-auto flex gap-2">
+          <button onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})} className="rounded border border-border px-2 py-1">Tela cheia</button>
           <button onClick={() => setModal('movement')} className="rounded border border-border px-2 py-1">Sangria / Suprimento</button>
           {supervisor && <button onClick={() => setModal('barcode')} className="rounded border border-border px-2 py-1">Vincular código</button>}
           {supervisor && <Link to="/retaguarda" className="rounded border border-border px-2 py-1">Retaguarda</Link>}
