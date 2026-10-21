@@ -42,7 +42,7 @@ function PdvPage() {
   const [session, setSession] = useState<any>(null)
 
   const loadSession = useCallback(async (uid: string) => {
-    const { data } = await db.from('pos_sessions').select('*, pos_terminals(code,name)').eq('status', 'open').eq('operator_id', uid).maybeSingle()
+    const { data } = await db.from('pos_sessions').select('*, pos_terminals(code,name,is_test)').eq('status', 'open').eq('operator_id', uid).maybeSingle()
     setSession(data || null)
   }, [])
 
@@ -95,7 +95,7 @@ function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onO
         <p className="mb-6 text-sm text-muted-foreground">RS Supermercado — Matriz</p>
         <label className="mb-1 block text-sm font-medium">Terminal</label>
         <select className="mb-4 w-full rounded-md border border-input bg-background p-2" value={terminal} onChange={(e) => setTerminal(e.target.value)}>
-          {terminals.map((t) => <option key={t.id} value={t.id}>{t.code} — {t.name}</option>)}
+          {terminals.map((t) => <option key={t.id} value={t.id}>{t.code} — {t.name}{t.is_test ? ' [PILOTO / TESTES]' : !t.production_enabled ? ' (aguardando ativação)' : ''}</option>)}
         </select>
         <label className="mb-1 block text-sm font-medium">Fundo de troco (R$)</label>
         <input autoFocus className="mb-6 w-full rounded-md border border-input bg-background p-2 text-lg" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && open()} placeholder="0,00" />
@@ -215,6 +215,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
 
   const finalize = async (payments: Pay[]) => {
     if (busy.current) return
+    if (!navigator.onLine) { toast.error('Sem conexão: a venda não pode ser finalizada offline. Os itens continuam na tela — aguarde a conexão voltar ou suspenda a venda (F3).'); return }
     busy.current = true
     try {
       const needPin = itemDisc + saleDiscount > 0
@@ -249,6 +250,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-background text-foreground">
+      {session.pos_terminals?.is_test && <div className="bg-accent px-4 py-1 text-center text-sm font-bold text-accent-foreground">MODO PILOTO / TESTES — vendas separadas das reais e sem baixa de estoque</div>}
       <header className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-border bg-card px-4 py-2 text-sm">
         <strong className="text-base text-primary">RS Supermercado · Matriz</strong>
         <span>Terminal <b>{session.pos_terminals?.code}</b></span>
@@ -564,7 +566,7 @@ function ReceiptModal({ r, onClose }: { r: any; onClose: () => void }) {
   const print = () => {
     const w = window.open('', '_blank', 'width=360,height=640'); if (!w) return
     const lines = r.items.map((i: Item) => `<tr><td colspan=2>${i.name.replace(/</g, '')}</td></tr><tr><td>${i.quantity} x ${brl(i.unit_price)}${i.discount ? ' -' + brl(i.discount) : ''}</td><td style="text-align:right">${brl(i.unit_price * i.quantity - i.discount)}</td></tr>`).join('')
-    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${METHOD_LABEL[p.method]}${p.transaction_id ? ' NSU ' + p.transaction_id : ''}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center><b>DOCUMENTO SEM VALOR FISCAL</b><br/>NFC-e não emitida</center><hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
+    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>${r.is_test ? '*** VENDA DE TESTE — PILOTO ***<br/>' : ''}Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${METHOD_LABEL[p.method]}${p.transaction_id ? ' NSU ' + p.transaction_id : ''}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center><b>DOCUMENTO SEM VALOR FISCAL</b><br/>NFC-e não emitida</center><hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
     w.document.close()
   }
   return <ModalShell title={`Venda nº ${r.sale_number} finalizada`} onClose={onClose}>

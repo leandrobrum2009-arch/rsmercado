@@ -1012,6 +1012,7 @@ export type Database = {
           finalized_at: string | null
           fiscal_status: string
           id: string
+          is_test: boolean
           operator_id: string
           paid: number
           sale_number: number
@@ -1030,6 +1031,7 @@ export type Database = {
           finalized_at?: string | null
           fiscal_status?: string
           id?: string
+          is_test?: boolean
           operator_id: string
           paid?: number
           sale_number?: number
@@ -1048,6 +1050,7 @@ export type Database = {
           finalized_at?: string | null
           fiscal_status?: string
           id?: string
+          is_test?: boolean
           operator_id?: string
           paid?: number
           sale_number?: number
@@ -1154,25 +1157,37 @@ export type Database = {
       }
       pos_terminals: {
         Row: {
+          activated_at: string | null
+          activated_by: string | null
           active: boolean
           code: string
           created_at: string
           id: string
+          is_test: boolean
           name: string
+          production_enabled: boolean
         }
         Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
           active?: boolean
           code: string
           created_at?: string
           id?: string
+          is_test?: boolean
           name: string
+          production_enabled?: boolean
         }
         Update: {
+          activated_at?: string | null
+          activated_by?: string | null
           active?: boolean
           code?: string
           created_at?: string
           id?: string
+          is_test?: boolean
           name?: string
+          production_enabled?: boolean
         }
         Relationships: []
       }
@@ -2257,6 +2272,8 @@ export type Database = {
         Returns: undefined
       }
       pos_assert_session: { Args: { p_session: string }; Returns: undefined }
+      pos_can_audit: { Args: never; Returns: boolean }
+      pos_can_fiscal: { Args: never; Returns: boolean }
       pos_can_operate: { Args: never; Returns: boolean }
       pos_check_pin: { Args: { p_pin: string }; Returns: boolean }
       pos_close_session: {
@@ -2289,6 +2306,7 @@ export type Database = {
         }
         Returns: Json
       }
+      pos_has: { Args: { p_perm: string }; Returns: boolean }
       pos_is_supervisor: { Args: never; Returns: boolean }
       pos_log: {
         Args: {
@@ -2299,6 +2317,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      pos_log_access: { Args: { p_area: string }; Returns: undefined }
       pos_open_session: {
         Args: { p_amount: number; p_terminal: string }
         Returns: string
@@ -2320,6 +2339,10 @@ export type Database = {
         Returns: undefined
       }
       pos_set_supervisor_pin: { Args: { p_pin: string }; Returns: undefined }
+      pos_set_terminal_production: {
+        Args: { p_enabled: boolean; p_terminal: string }
+        Returns: undefined
+      }
       pos_stock_adjust: {
         Args: {
           p_product: string
