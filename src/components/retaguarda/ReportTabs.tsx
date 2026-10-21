@@ -30,7 +30,7 @@ export function ReportsTab() {
     setBusy(true)
     const start = `${from}T00:00:00-03:00`, end = `${to}T23:59:59.999-03:00`
     try {
-      let q = db.from('pos_sales').select('id,status,total,discount,operator_id,is_test,created_at,session_id,pos_sessions(terminal_id,pos_terminals(code)),pos_sale_items(name,quantity,total,product_id,products(cost,category_id,categories(name))),pos_payments(method,amount)').gte('created_at', start).lte('created_at', end).in('status', ['completed', 'cancelled', 'returned', 'partially_returned']).limit(5000)
+      let q = db.from('pos_sales').select('id,status,total,discount,operator_id,is_test,created_at,session_id,pos_sessions(terminal_id,pos_terminals(code)),pos_sale_items(name,quantity,total,product_id),pos_payments(method,amount)').gte('created_at', start).lte('created_at', end).in('status', ['completed', 'cancelled', 'returned', 'partially_returned']).limit(5000)
       if (!tests) q = q.eq('is_test', false)
       const [sales, sess, mov, ret, fisc, tax] = await Promise.all([
         q,
@@ -41,6 +41,13 @@ export function ReportsTab() {
         db.from('tax_obligations').select('doc_type,due_date,total,status').gte('due_date', from).order('due_date').limit(50),
       ])
       if (sales.error) throw sales.error
+      const pids = [...new Set((sales.data || []).flatMap((x: any) => (x.pos_sale_items || []).map((i: any) => i.product_id)).filter(Boolean))]
+      const pmap: Record<string, any> = {}
+      for (let i = 0; i < pids.length; i += 200) {
+        const { data: ps } = await db.from('products').select('id,cost,categories(name)').in('id', pids.slice(i, i + 200))
+        ;(ps || []).forEach((p: any) => { pmap[p.id] = p })
+      }
+      ;(sales.data || []).forEach((x: any) => (x.pos_sale_items || []).forEach((i: any) => { i.products = pmap[i.product_id] || null }))
       const sessions = (sess.data || []).filter((s: any) => tests || !s.pos_terminals?.is_test)
       setData({ sum: summarizeSales(sales.data || []), sessions, mov: mov.data || [], ret: ret.data || [], fisc: fisc.data || [], tax: tax.data || [] })
     } catch (e: any) { toast.error(e?.message || String(e)) } finally { setBusy(false) }
