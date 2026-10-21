@@ -67,7 +67,7 @@ function PdvPage() {
 }
 
 function Center({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center text-foreground">{children}</div>
+  return <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-auto bg-background p-6 text-center text-foreground">{children}</div>
 }
 
 function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onOpened: () => void; supervisor: boolean }) {
@@ -108,7 +108,7 @@ function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onO
 
 function ModalShell({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`max-h-[90vh] w-full overflow-auto rounded-xl border border-border bg-card p-5 text-left text-card-foreground shadow-xl ${wide ? 'max-w-3xl' : 'max-w-md'}`}>
         <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><button onClick={onClose} className="text-sm text-muted-foreground">ESC ✕</button></div>
         {children}
@@ -242,7 +242,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
   })
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-background text-foreground">
       <header className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-border bg-card px-4 py-2 text-sm">
         <strong className="text-base text-primary">RS Supermercado · Matriz</strong>
         <span>Terminal <b>{session.pos_terminals?.code}</b></span>
