@@ -5,7 +5,8 @@ import { toast } from 'sonner'
 import { parseCsv, matchImportRows, type ImportRow } from '@/lib/pos-import'
 import { FiscalCompanyCard, ProductTaxCard } from '@/components/retaguarda/FiscalRJ'
 import { InventoryTab } from '@/components/retaguarda/InventoryTab'
-import { ReportsTab, AuditTab, TerminalsTab } from '@/components/retaguarda/ReportTabs'
+import { ReportsTab, AuditTab } from '@/components/retaguarda/ReportTabs'
+import { TerminalsTab } from '@/components/retaguarda/TerminalsAdmin'
 
 export const Route = createFileRoute('/retaguarda')({
   ssr: false,
@@ -72,7 +73,8 @@ function Retaguarda() {
       <header className="flex flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-2">
         <strong className="mr-4 text-primary">Retaguarda · RS Supermercado</strong>
         {TABS.filter(([, , f]) => f(perms)).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`rounded px-3 py-1 text-sm ${tab === k ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>{l}</button>)}
-        <Link to="/pdv" className={`ml-auto ${btn2}`}>Voltar ao caixa</Link>
+        <Link to="/preparacao-caixa" className={`ml-auto ${btn2}`}>Preparação do Caixa</Link>
+        <Link to="/pdv" className={btn2}>Voltar ao caixa</Link>
       </header>
       <main className="flex-1 overflow-auto p-4">
         {tab === 'rel' && <ReportsTab />}

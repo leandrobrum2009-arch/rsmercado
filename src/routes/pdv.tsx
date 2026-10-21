@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { getDeviceHash } from '@/lib/pos-device'
 
 export const Route = createFileRoute('/pdv')({
   ssr: false,
@@ -40,6 +41,7 @@ function PdvPage() {
   const [supervisor, setSupervisor] = useState(false)
   const [terminals, setTerminals] = useState<any[]>([])
   const [session, setSession] = useState<any>(null)
+  const [thisDevice, setThisDevice] = useState<any>(null)
 
   const loadSession = useCallback(async (uid: string) => {
     const { data } = await db.from('pos_sessions').select('*, pos_terminals(code,name,is_test)').eq('status', 'open').eq('operator_id', uid).maybeSingle()
@@ -56,6 +58,8 @@ function PdvPage() {
       setSupervisor(!!sup)
       const { data: t } = await db.from('pos_terminals').select('*').eq('active', true).order('code')
       setTerminals(t || [])
+      const { data: me } = await db.rpc('pos_whoami_device', { p_device_hash: await getDeviceHash() })
+      setThisDevice(me || null)
       await loadSession(user.id)
       setState('ready')
     })()
@@ -64,7 +68,7 @@ function PdvPage() {
   if (state === 'loading') return <Center>Carregando caixa…</Center>
   if (state === 'signedout') return <Center><p className="mb-4">Entre com sua conta de operador para usar o caixa.</p><Link to="/profile" className="rounded-md bg-primary px-4 py-2 text-primary-foreground">Entrar</Link></Center>
   if (state === 'denied') return <Center><p>Sua conta não tem permissão de operador de caixa.</p><p className="mt-2 text-sm text-muted-foreground">Peça a um administrador para liberar a permissão “pos” (ou “pos_supervisor”).</p></Center>
-  if (!session) return <OpenScreen terminals={terminals} onOpened={() => loadSession(user.id)} supervisor={supervisor} />
+  if (!session) return <OpenScreen device={thisDevice} terminals={terminals} onOpened={() => loadSession(user.id)} supervisor={supervisor} />
   return <SaleScreen session={session} user={user} supervisor={supervisor} onClosed={() => loadSession(user.id)} />
 }
 
@@ -72,8 +76,8 @@ function Center({ children }: { children: React.ReactNode }) {
   return <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-auto bg-background p-6 text-center text-foreground">{children}</div>
 }
 
-function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onOpened: () => void; supervisor: boolean }) {
-  const [terminal, setTerminal] = useState(terminals[0]?.id || '')
+function OpenScreen({ device, terminals, onOpened, supervisor }: { device: any; terminals: any[]; onOpened: () => void; supervisor: boolean }) {
+  const [terminal, setTerminal] = useState(device?.id || terminals.find((t) => t.is_test)?.id || terminals[0]?.id || '')
   const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
   const [settings, setSettings] = useState(false)
@@ -82,7 +86,7 @@ function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onO
     if (!terminal) return toast.error('Selecione o terminal')
     if (isNaN(v) || v < 0) return toast.error('Fundo de troco inválido')
     setBusy(true)
-    const { error } = await db.rpc('pos_open_session', { p_terminal: terminal, p_amount: v })
+    const { error } = await db.rpc('pos_open_session_device', { p_terminal: terminal, p_amount: v, p_device_hash: await getDeviceHash() })
     setBusy(false)
     if (error) return toast.error(errMsg(error))
     toast.success('Caixa aberto')
@@ -92,7 +96,8 @@ function OpenScreen({ terminals, onOpened, supervisor }: { terminals: any[]; onO
     <Center>
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 text-left shadow">
         <h1 className="mb-1 text-2xl font-bold">Abertura de caixa</h1>
-        <p className="mb-6 text-sm text-muted-foreground">RS Supermercado — Matriz</p>
+        <p className="mb-2 text-sm text-muted-foreground">RS Supermercado — Matriz</p>
+        <p className={`mb-6 rounded p-2 text-sm ${device ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>{device ? <>Este computador: <b>{device.code}</b> — {device.name}</> : 'Este computador não está vinculado a um terminal. Só o caixa piloto pode ser aberto aqui.'}</p>
         <label className="mb-1 block text-sm font-medium">Terminal</label>
         <select className="mb-4 w-full rounded-md border border-input bg-background p-2" value={terminal} onChange={(e) => setTerminal(e.target.value)}>
           {terminals.map((t) => <option key={t.id} value={t.id}>{t.code} — {t.name}{t.is_test ? ' [PILOTO / TESTES]' : !t.production_enabled ? ' (aguardando ativação)' : ''}</option>)}
@@ -260,6 +265,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
         <span className={online ? 'text-primary' : 'text-destructive'}>● {online ? 'Conectado' : 'Sem conexão'}</span>
         <span className="text-muted-foreground">Fiscal: não configurado (cupom não fiscal)</span>
         <div className="ml-auto flex gap-2">
+          <button onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})} className="rounded border border-border px-2 py-1">Tela cheia</button>
           <button onClick={() => setModal('movement')} className="rounded border border-border px-2 py-1">Sangria / Suprimento</button>
           {supervisor && <button onClick={() => setModal('barcode')} className="rounded border border-border px-2 py-1">Vincular código</button>}
           {supervisor && <Link to="/retaguarda" className="rounded border border-border px-2 py-1">Retaguarda</Link>}

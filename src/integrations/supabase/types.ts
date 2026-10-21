@@ -1359,34 +1359,52 @@ export type Database = {
           activated_at: string | null
           activated_by: string | null
           active: boolean
+          authorized_operators: string[]
+          branch: string
           code: string
           created_at: string
+          device_bound_at: string | null
+          device_hash: string | null
           id: string
           is_test: boolean
+          last_activity_at: string | null
           name: string
           production_enabled: boolean
+          setup_checks: Json
         }
         Insert: {
           activated_at?: string | null
           activated_by?: string | null
           active?: boolean
+          authorized_operators?: string[]
+          branch?: string
           code: string
           created_at?: string
+          device_bound_at?: string | null
+          device_hash?: string | null
           id?: string
           is_test?: boolean
+          last_activity_at?: string | null
           name: string
           production_enabled?: boolean
+          setup_checks?: Json
         }
         Update: {
           activated_at?: string | null
           activated_by?: string | null
           active?: boolean
+          authorized_operators?: string[]
+          branch?: string
           code?: string
           created_at?: string
+          device_bound_at?: string | null
+          device_hash?: string | null
           id?: string
           is_test?: boolean
+          last_activity_at?: string | null
           name?: string
           production_enabled?: boolean
+          setup_checks?: Json
         }
         Relationships: []
       }
@@ -2477,6 +2495,10 @@ export type Database = {
         Returns: Json
       }
       pos_assert_session: { Args: { p_session: string }; Returns: undefined }
+      pos_bind_device: {
+        Args: { p_device_hash: string; p_terminal: string }
+        Returns: undefined
+      }
       pos_can_audit: { Args: never; Returns: boolean }
       pos_can_fiscal: { Args: never; Returns: boolean }
       pos_can_operate: { Args: never; Returns: boolean }
@@ -2484,6 +2506,15 @@ export type Database = {
       pos_close_session: {
         Args: { p_counted: number; p_justification: string; p_session: string }
         Returns: Json
+      }
+      pos_create_terminal: {
+        Args: {
+          p_branch: string
+          p_code: string
+          p_is_test: boolean
+          p_name: string
+        }
+        Returns: string
       }
       pos_discard_suspended: { Args: { p_sale: string }; Returns: undefined }
       pos_finalize_sale: {
@@ -2527,6 +2558,19 @@ export type Database = {
       pos_open_session: {
         Args: { p_amount: number; p_terminal: string }
         Returns: string
+      }
+      pos_open_session_device: {
+        Args: { p_amount: number; p_device_hash: string; p_terminal: string }
+        Returns: string
+      }
+      pos_record_setup_check: {
+        Args: {
+          p_key: string
+          p_note: string
+          p_ok: boolean
+          p_terminal: string
+        }
+        Returns: undefined
       }
       pos_return_sale: {
         Args: {
@@ -2583,6 +2627,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      pos_update_terminal: {
+        Args: {
+          p_active: boolean
+          p_branch: string
+          p_name: string
+          p_operators: string[]
+          p_terminal: string
+        }
+        Returns: undefined
+      }
+      pos_whoami_device: { Args: { p_device_hash: string }; Returns: Json }
       promote_to_admin: { Args: { secret_key?: string }; Returns: Json }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }

@@ -30,7 +30,7 @@ export function ReportsTab() {
     setBusy(true)
     const start = `${from}T00:00:00-03:00`, end = `${to}T23:59:59.999-03:00`
     try {
-      let q = db.from('pos_sales').select('id,status,total,discount,operator_id,is_test,created_at,session_id,pos_sessions(terminal_id,pos_terminals(code)),pos_sale_items(name,quantity,total,product_id,products(cost,category_id,categories(name))),pos_payments(method,amount)').gte('created_at', start).lte('created_at', end).in('status', ['completed', 'cancelled', 'returned', 'partially_returned']).limit(5000)
+      let q = db.from('pos_sales').select('id,status,total,discount,operator_id,is_test,created_at,session_id,pos_sessions(terminal_id,pos_terminals(code)),pos_sale_items(name,quantity,total,product_id),pos_payments(method,amount)').gte('created_at', start).lte('created_at', end).in('status', ['completed', 'cancelled', 'returned', 'partially_returned']).limit(5000)
       if (!tests) q = q.eq('is_test', false)
       const [sales, sess, mov, ret, fisc, tax] = await Promise.all([
         q,
@@ -41,6 +41,13 @@ export function ReportsTab() {
         db.from('tax_obligations').select('doc_type,due_date,total,status').gte('due_date', from).order('due_date').limit(50),
       ])
       if (sales.error) throw sales.error
+      const pids = [...new Set((sales.data || []).flatMap((x: any) => (x.pos_sale_items || []).map((i: any) => i.product_id)).filter(Boolean))]
+      const pmap: Record<string, any> = {}
+      for (let i = 0; i < pids.length; i += 200) {
+        const { data: ps } = await db.from('products').select('id,cost,categories(name)').in('id', pids.slice(i, i + 200))
+        ;(ps || []).forEach((p: any) => { pmap[p.id] = p })
+      }
+      ;(sales.data || []).forEach((x: any) => (x.pos_sale_items || []).forEach((i: any) => { i.products = pmap[i.product_id] || null }))
       const sessions = (sess.data || []).filter((s: any) => tests || !s.pos_terminals?.is_test)
       setData({ sum: summarizeSales(sales.data || []), sessions, mov: mov.data || [], ret: ret.data || [], fisc: fisc.data || [], tax: tax.data || [] })
     } catch (e: any) { toast.error(e?.message || String(e)) } finally { setBusy(false) }
@@ -96,24 +103,6 @@ export function AuditTab() {
         {['abertura', 'fechamento', 'venda_finalizada', 'cancelamento', 'devolucao', 'desconto', 'sangria', 'suprimento', 'alteracao_preco', 'alteracao_fiscal', 'acesso_admin', 'terminal_ativado', 'terminal_desativado'].map((a) => <option key={a}>{a}</option>)}
       </select>
       <Table head={['Data', 'Ação', 'Usuário', 'Detalhes']} rows={rows.map((r) => [new Date(r.created_at).toLocaleString('pt-BR'), r.action, String(r.user_id || '').slice(0, 8), JSON.stringify(r.details || {}).slice(0, 160)])} />
-    </Card>
-  )
-}
-
-export function TerminalsTab() {
-  const [rows, setRows] = useState<any[]>([])
-  const load = useCallback(() => db.from('pos_terminals').select('*').order('code').then(({ data }: any) => setRows(data || [])), [])
-  useEffect(() => { load() }, [load])
-  const toggle = async (t: any) => {
-    if (!t.production_enabled && !confirm(`Autorizar o terminal ${t.code} para vendas REAIS em produção?`)) return
-    const { error } = await db.rpc('pos_set_terminal_production', { p_terminal: t.id, p_enabled: !t.production_enabled })
-    error ? toast.error(error.message) : (toast.success('Terminal atualizado'), load())
-  }
-  return (
-    <Card title="Terminais de caixa e ambiente piloto">
-      <p className="mb-3 text-sm text-muted-foreground">O terminal piloto serve para testes: as vendas ficam marcadas como teste, não baixam estoque e não entram nos relatórios. Terminais reais só abrem caixa depois da autorização expressa de um administrador.</p>
-      <Table head={['Código', 'Nome', 'Tipo', 'Produção', '']} rows={rows.map((t) => [t.code, t.name, t.is_test ? 'PILOTO / TESTES' : 'Real', t.is_test ? '—' : t.production_enabled ? 'Autorizado' : 'Aguardando autorização',
-        (t.is_test ? '' : <button key={t.id} className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => toggle(t)}>{t.production_enabled ? 'Suspender' : 'Autorizar produção'}</button>) as any])} />
     </Card>
   )
 }

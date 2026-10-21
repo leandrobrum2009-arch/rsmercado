@@ -50,6 +50,13 @@
       "when": 1792615989515,
       "tag": "0006_fix_product_tax_vars",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792616426190,
+      "tag": "0007_pos_terminal_devices",
+      "breakpoints": true
     }
   ]
 }
