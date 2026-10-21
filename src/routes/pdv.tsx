@@ -26,7 +26,9 @@ const errMsg = (e: any) => e?.message || String(e)
 
 type Product = { id: string; name: string; price: number; promo_price: number | null; barcode: string | null; code: string | null; sku: string | null; stock: number; is_weight_based: boolean | null; active: boolean; is_available: boolean; unit: string | null }
 type Item = { key: string; product_id: string; name: string; code: string; unit_price: number; quantity: number; discount: number; weight: boolean }
-type Pay = { method: 'dinheiro' | 'pix' | 'debito' | 'credito'; amount: number }
+type Method = 'dinheiro' | 'pix' | 'debito' | 'credito' | 'voucher' | 'convenio'
+type Pay = { method: Method; amount: number; transaction_id?: string; card_last4?: string }
+const METHOD_LABEL: Record<Method, string> = { dinheiro: 'Dinheiro', pix: 'PIX', debito: 'Débito', credito: 'Crédito', voucher: 'Voucher/VA', convenio: 'Convênio' }
 type Modal = null | 'help' | 'search' | 'suspended' | 'customer' | 'price' | 'qty' | 'discount' | 'payment' | 'cancelItem' | 'movement' | 'close' | 'barcode' | 'settings' | 'receipt'
 
 const unitPrice = (p: Product) => (p.promo_price && p.promo_price > 0 && p.promo_price < p.price ? Number(p.promo_price) : Number(p.price))
@@ -132,6 +134,9 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
   const [receipt, setReceipt] = useState<any>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const busy = useRef(false)
+  const clientId = useRef<string>(crypto.randomUUID())
+  const [methods, setMethods] = useState<Method[]>(['dinheiro'])
+  useEffect(() => { db.from('pos_settings').select('enabled_methods').eq('id', 1).maybeSingle().then(({ data }: any) => data?.enabled_methods && setMethods(data.enabled_methods)) }, [])
 
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t) }, [])
   useEffect(() => {
@@ -169,7 +174,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
 
   const findByCode = async (c: string): Promise<Product | null> => {
     const v = c.trim()
-    const { data } = await db.from('products').select(PRODUCT_COLS).is('deleted_at', null).or(`barcode.eq.${v},code.eq.${v},sku.eq.${v}`).limit(1)
+    const { data } = await db.from('products').select(PRODUCT_COLS).is('deleted_at', null).or(`barcode.eq.${v},code.eq.${v},sku.eq.${v},alt_barcodes.cs.{${v}}`).limit(1)
     return data?.[0] || null
   }
 
@@ -213,14 +218,15 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
     busy.current = true
     try {
       const needPin = itemDisc + saleDiscount > 0
-      const { data, error } = await db.rpc('pos_finalize_sale', {
-        p_session: session.id,
+      const { data, error } = await db.rpc('pos_finalize_sale_v2', {
+        p_session: session.id, p_client_id: clientId.current,
         p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, discount: i.discount })),
         p_sale_discount: saleDiscount, p_payments: payments, p_customer_doc: customer || null,
         p_pin: needPin && !supervisor ? pin : null, p_suspended_id: suspendedId,
       })
       if (error) { toast.error(errMsg(error)); return }
       setReceipt({ ...data, items: [...items], payments, customer, operator: user.email, terminal: session.pos_terminals?.code, at: new Date() })
+      clientId.current = crypto.randomUUID()
       resetSale(); setPin(null); setModal('receipt')
     } finally { busy.current = false }
   }
@@ -254,6 +260,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
         <div className="ml-auto flex gap-2">
           <button onClick={() => setModal('movement')} className="rounded border border-border px-2 py-1">Sangria / Suprimento</button>
           {supervisor && <button onClick={() => setModal('barcode')} className="rounded border border-border px-2 py-1">Vincular código</button>}
+          {supervisor && <Link to="/retaguarda" className="rounded border border-border px-2 py-1">Retaguarda</Link>}
           {supervisor && <button onClick={() => setModal('settings')} className="rounded border border-border px-2 py-1">Config.</button>}
           <button onClick={() => (items.length ? toast.error('Finalize ou suspenda a venda antes de fechar') : setModal('close'))} className="rounded bg-destructive px-2 py-1 text-destructive-foreground">Fechar caixa</button>
         </div>
@@ -334,7 +341,7 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
           setItems((prev) => prev.filter((i) => i.key !== current.key)); setSelected(null); setModal(null)
         }}>Confirmar cancelamento</button>
       </ModalShell>}
-      {modal === 'payment' && <PaymentModal total={total} onClose={() => setModal(null)} onFinish={finalize} />}
+      {modal === 'payment' && <PaymentModal methods={methods} total={total} onClose={() => setModal(null)} onFinish={finalize} />}
       {modal === 'suspended' && <SuspendedModal session={session} onClose={() => setModal(null)} onPick={(s) => {
         const d = s.draft || {}; setItems(d.items || []); setSaleDiscount(d.saleDiscount || 0); setCustomer(d.customer || ''); setSuspendedId(s.id); setModal(null); toast.success('Venda recuperada')
       }} />}
@@ -419,9 +426,11 @@ function DiscountModal({ current, subtotal, onClose, onApply }: { current?: Item
   </ModalShell>
 }
 
-function PaymentModal({ total, onClose, onFinish }: { total: number; onClose: () => void; onFinish: (p: Pay[]) => void }) {
+function PaymentModal({ methods, total, onClose, onFinish }: { methods: Method[]; total: number; onClose: () => void; onFinish: (p: Pay[]) => void }) {
   const [pays, setPays] = useState<Pay[]>([])
-  const [method, setMethod] = useState<Pay['method']>('dinheiro')
+  const [method, setMethod] = useState<Method>(methods[0] || 'dinheiro')
+  const [tx, setTx] = useState('')
+  const [last4, setLast4] = useState('')
   const paid = pays.reduce((s, p) => s + p.amount, 0)
   const remaining = Math.max(0, Math.round((total - paid) * 100) / 100)
   const [v, setV] = useState(remaining.toFixed(2).replace('.', ','))
@@ -433,16 +442,21 @@ function PaymentModal({ total, onClose, onFinish }: { total: number; onClose: ()
     const n = parseNum(v)
     if (!(n > 0)) return toast.error('Valor inválido')
     if (method !== 'dinheiro' && n > remaining + 0.001) return toast.error('Somente dinheiro pode exceder o valor (troco)')
-    setPays((p) => [...p, { method, amount: Math.round(n * 100) / 100 }])
+    if (method !== 'dinheiro' && tx.trim().length < 4) return toast.error('Informe o código de autorização/NSU impresso pela maquininha ou app do PIX')
+    if (last4 && !/^\d{4}$/.test(last4)) return toast.error('Informe apenas os 4 últimos dígitos do cartão')
+    if (method !== 'dinheiro' && pays.some((p) => p.transaction_id === tx.trim())) return toast.error('Este código de autorização já foi lançado')
+    setPays((p) => [...p, { method, amount: Math.round(n * 100) / 100, ...(method !== 'dinheiro' ? { transaction_id: tx.trim(), card_last4: last4 || undefined } : {}) }]); setTx(''); setLast4('')
   }
   const done = paid + 0.001 >= total && change <= cash + 0.001
   const finish = async () => { if (!done || busy) return; setBusy(true); await onFinish(pays); setBusy(false) }
   return <ModalShell title={`Pagamento — total ${brl(total)}`} onClose={onClose}>
-    <div className="mb-3 grid grid-cols-4 gap-2">{(['dinheiro', 'pix', 'debito', 'credito'] as const).map((m) => <button key={m} onClick={() => setMethod(m)} className={`rounded border p-2 text-sm capitalize ${method === m ? 'border-primary bg-primary/10' : 'border-border'}`}>{m === 'debito' ? 'Débito' : m === 'credito' ? 'Crédito' : m === 'pix' ? 'PIX' : 'Dinheiro'}</button>)}</div>
+    <p className="mb-3 rounded bg-accent px-2 py-1 text-xs text-accent-foreground">AMBIENTE SEM INTEGRAÇÃO (TEF/PIX não conectados): pagamentos eletrônicos só são aceitos com o código de autorização/NSU da maquininha.</p>
+    <div className="mb-3 grid grid-cols-3 gap-2">{methods.map((m) => <button key={m} onClick={() => setMethod(m)} className={`rounded border p-2 text-sm ${method === m ? 'border-primary bg-primary/10' : 'border-border'}`}>{METHOD_LABEL[m]}</button>)}</div>
+    {method !== 'dinheiro' && <div className="mb-2 flex gap-2"><input value={tx} onChange={(e) => setTx(e.target.value)} placeholder="Código de autorização / NSU" className="flex-1 rounded-md border border-input bg-background p-2" />{(method === 'debito' || method === 'credito' || method === 'voucher') && <input value={last4} maxLength={4} onChange={(e) => setLast4(e.target.value.replace(/\D/g, ''))} placeholder="4 últ. díg." className="w-24 rounded-md border border-input bg-background p-2" />}</div>}
     <div className="mb-3 flex gap-2"><input autoFocus value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { if (done) finish(); else add() } }} className="flex-1 rounded-md border border-input bg-background p-2 text-lg" /><button onClick={add} className="rounded-md border border-border px-3">Adicionar</button></div>
-    <ul className="mb-3 space-y-1 text-sm">{pays.map((p, i) => <li key={i} className="flex justify-between"><span className="capitalize">{p.method}</span><span>{brl(p.amount)} <button className="ml-2 text-destructive" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>✕</button></span></li>)}</ul>
+    <ul className="mb-3 space-y-1 text-sm">{pays.map((p, i) => <li key={i} className="flex justify-between"><span>{METHOD_LABEL[p.method]}{p.transaction_id ? ` · NSU ${p.transaction_id}` : ''}</span><span>{brl(p.amount)} <button className="ml-2 text-destructive" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>✕</button></span></li>)}</ul>
     <Row l="Pago" r={brl(paid)} /><Row l="Falta" r={brl(remaining)} /><Row l="Troco" r={brl(change)} />
-    {method !== 'dinheiro' && <p className="mt-2 text-xs text-muted-foreground">Cartão/PIX: confirme a aprovação na maquininha antes de finalizar.</p>}
+    
     <button disabled={!done || busy} onClick={finish} className="mt-4 w-full rounded-md bg-primary py-3 font-bold text-primary-foreground disabled:opacity-40">{busy ? 'Finalizando…' : 'Finalizar venda (Enter)'}</button>
   </ModalShell>
 }
@@ -550,12 +564,13 @@ function ReceiptModal({ r, onClose }: { r: any; onClose: () => void }) {
   const print = () => {
     const w = window.open('', '_blank', 'width=360,height=640'); if (!w) return
     const lines = r.items.map((i: Item) => `<tr><td colspan=2>${i.name.replace(/</g, '')}</td></tr><tr><td>${i.quantity} x ${brl(i.unit_price)}${i.discount ? ' -' + brl(i.discount) : ''}</td><td style="text-align:right">${brl(i.unit_price * i.quantity - i.discount)}</td></tr>`).join('')
-    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${p.method}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
+    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${METHOD_LABEL[p.method]}${p.transaction_id ? ' NSU ' + p.transaction_id : ''}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center><b>DOCUMENTO SEM VALOR FISCAL</b><br/>NFC-e não emitida</center><hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
     w.document.close()
   }
   return <ModalShell title={`Venda nº ${r.sale_number} finalizada`} onClose={onClose}>
     <p className="mb-1 text-3xl font-black">{brl(r.total)}</p>
-    <p className="mb-4 text-lg">Troco: <b>{brl(r.change)}</b></p>
+    <p className="mb-1 text-lg">Troco: <b>{brl(r.change)}</b></p>
+    <p className="mb-4 text-xs text-muted-foreground">Documento fiscal: não emitido (cupom não fiscal).{r.duplicate ? ' Esta venda já havia sido registrada — nada foi cobrado em dobro.' : ''}</p>
     <div className="flex gap-2"><button onClick={print} className="flex-1 rounded-md border border-border py-2">Imprimir cupom</button><button autoFocus onClick={onClose} className="flex-1 rounded-md bg-primary py-2 text-primary-foreground">Próxima venda (Enter)</button></div>
   </ModalShell>
 }
