@@ -20,3 +20,18 @@ Arquitetura: a aplicação web nunca fala direto com dispositivos; integrações
 ## Sem internet
 - Finalização bloqueada offline com aviso ao operador; itens permanecem na tela; suspender (F3) após a volta da conexão.
 - Não há venda fiscal offline (contingência legal não implementada). Nenhum dado sensível é guardado no navegador.
+
+## Etapa 2A — resultado da auditoria (caixa piloto)
+Testes executados no CX-PILOTO, com dados marcados como teste: abertura, abertura duplicada, venda em dinheiro com vários produtos e troco, clique repetido e envio simultâneo (uma única venda), PIX sem NSU recusado, troco sobre cartão recusado, pagamento insuficiente, cartão com NSU manual, NSU repetido recusado, suspensão e recuperação, desconto validado no servidor, sangria e suprimento com motivo, reimpressão registrada como 2ª via, devolução, estoque real inalterado, coerência venda = pagamento − troco, fechamento com diferença e justificativa, sessão fechada imutável, acesso sem login recusado, inventário exige confirmação.
+Não testado no piloto: bloqueio por falta de estoque (o piloto ignora o estoque de propósito; a regra continua valendo nos caixas reais).
+
+Pagamentos eletrônicos são **confirmados manualmente** (NSU digitado pelo operador): não há integração automática com maquininha nem banco.
+
+### Antes de liberar o primeiro caixa real
+1. Cadastrar o PIN do supervisor (ainda não definido).
+2. Fazer o inventário físico (aba Inventário) — 679 de 751 produtos estão com estoque zero e nenhum tem custo cadastrado.
+3. Cadastrar os operadores com o perfil "Operador de Caixa".
+4. Testar a impressora térmica e a gaveta no computador do caixa.
+5. Decidir se os cartões/PIX continuam com NSU manual ou contratar a integração TEF/PIX.
+6. NFC-e: escolher o emissor fiscal, providenciar certificado A1, CSC e homologação na SEFAZ (sem isso o cupom é apenas não fiscal).
+7. Um administrador autoriza o CX01 em Retaguarda → Terminais / Piloto.
