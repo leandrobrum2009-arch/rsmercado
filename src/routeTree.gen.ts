@@ -14,6 +14,7 @@ import { Route as RetaguardaRouteImport } from './routes/retaguarda'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PreparacaoCaixaRouteImport } from './routes/preparacao-caixa'
 import { Route as PdvRouteImport } from './routes/pdv'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
@@ -51,6 +52,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreparacaoCaixaRoute = PreparacaoCaixaRouteImport.update({
+  id: '/preparacao-caixa',
+  path: '/preparacao-caixa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PdvRoute = PdvRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
   '/pdv': typeof PdvRoute
+  '/preparacao-caixa': typeof PreparacaoCaixaRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
   '/pdv': typeof PdvRoute
+  '/preparacao-caixa': typeof PreparacaoCaixaRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
   '/pdv': typeof PdvRoute
+  '/preparacao-caixa': typeof PreparacaoCaixaRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/offers'
     | '/pdv'
+    | '/preparacao-caixa'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/offers'
     | '/pdv'
+    | '/preparacao-caixa'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/loyalty'
     | '/offers'
     | '/pdv'
+    | '/preparacao-caixa'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -256,6 +268,7 @@ export interface RootRouteChildren {
   LoyaltyRoute: typeof LoyaltyRoute
   OffersRoute: typeof OffersRoute
   PdvRoute: typeof PdvRoute
+  PreparacaoCaixaRoute: typeof PreparacaoCaixaRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preparacao-caixa': {
+      id: '/preparacao-caixa'
+      path: '/preparacao-caixa'
+      fullPath: '/preparacao-caixa'
+      preLoaderRoute: typeof PreparacaoCaixaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pdv': {
@@ -408,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoyaltyRoute: LoyaltyRoute,
   OffersRoute: OffersRoute,
   PdvRoute: PdvRoute,
+  PreparacaoCaixaRoute: PreparacaoCaixaRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
