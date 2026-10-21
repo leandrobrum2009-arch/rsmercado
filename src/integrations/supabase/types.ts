@@ -697,6 +697,313 @@ export type Database = {
           },
         ]
       }
+      pos_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          sale_id: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          sale_id?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          sale_id?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      pos_cash_movements: {
+        Row: {
+          amount: number
+          authorized: boolean
+          created_at: string
+          id: string
+          operator_id: string
+          reason: string
+          session_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          authorized?: boolean
+          created_at?: string
+          id?: string
+          operator_id: string
+          reason: string
+          session_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          authorized?: boolean
+          created_at?: string
+          id?: string
+          operator_id?: string
+          reason?: string
+          session_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_cash_movements_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          sale_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          method: string
+          sale_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_sale_items: {
+        Row: {
+          code: string | null
+          discount: number
+          id: string
+          name: string
+          product_id: string | null
+          quantity: number
+          sale_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          code?: string | null
+          discount?: number
+          id?: string
+          name: string
+          product_id?: string | null
+          quantity: number
+          sale_id: string
+          total: number
+          unit_price: number
+        }
+        Update: {
+          code?: string | null
+          discount?: number
+          id?: string
+          name?: string
+          product_id?: string | null
+          quantity?: number
+          sale_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_sales: {
+        Row: {
+          change_amount: number
+          created_at: string
+          customer_doc: string | null
+          discount: number
+          draft: Json | null
+          finalized_at: string | null
+          id: string
+          operator_id: string
+          paid: number
+          sale_number: number
+          session_id: string
+          status: string
+          subtotal: number
+          total: number
+        }
+        Insert: {
+          change_amount?: number
+          created_at?: string
+          customer_doc?: string | null
+          discount?: number
+          draft?: Json | null
+          finalized_at?: string | null
+          id?: string
+          operator_id: string
+          paid?: number
+          sale_number?: number
+          session_id: string
+          status: string
+          subtotal?: number
+          total?: number
+        }
+        Update: {
+          change_amount?: number
+          created_at?: string
+          customer_doc?: string | null
+          discount?: number
+          draft?: Json | null
+          finalized_at?: string | null
+          id?: string
+          operator_id?: string
+          paid?: number
+          sale_number?: number
+          session_id?: string
+          status?: string
+          subtotal?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sales_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_sessions: {
+        Row: {
+          closed_at: string | null
+          counted_cash: number | null
+          difference: number | null
+          expected_cash: number | null
+          id: string
+          justification: string | null
+          opened_at: string
+          opening_amount: number
+          operator_id: string
+          status: string
+          summary: Json | null
+          terminal_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          counted_cash?: number | null
+          difference?: number | null
+          expected_cash?: number | null
+          id?: string
+          justification?: string | null
+          opened_at?: string
+          opening_amount?: number
+          operator_id: string
+          status?: string
+          summary?: Json | null
+          terminal_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          counted_cash?: number | null
+          difference?: number | null
+          expected_cash?: number | null
+          id?: string
+          justification?: string | null
+          opened_at?: string
+          opening_amount?: number
+          operator_id?: string
+          status?: string
+          summary?: Json | null
+          terminal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sessions_terminal_id_fkey"
+            columns: ["terminal_id"]
+            isOneToOne: false
+            referencedRelation: "pos_terminals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_settings: {
+        Row: {
+          blind_close: boolean
+          divergence_tolerance: number
+          id: number
+          supervisor_pin_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          blind_close?: boolean
+          divergence_tolerance?: number
+          id?: number
+          supervisor_pin_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blind_close?: boolean
+          divergence_tolerance?: number
+          id?: number
+          supervisor_pin_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_terminals: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           created_at: string
@@ -1137,6 +1444,36 @@ export type Database = {
           id?: string
           path?: string | null
           user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          ref_id: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity: number
+          ref_id?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          ref_id?: string | null
+          type?: string
           user_id?: string | null
         }
         Relationships: []
@@ -1590,6 +1927,65 @@ export type Database = {
             }
             Returns: undefined
           }
+      pos_add_movement: {
+        Args: {
+          p_amount: number
+          p_pin: string
+          p_reason: string
+          p_session: string
+          p_type: string
+        }
+        Returns: undefined
+      }
+      pos_assert_session: { Args: { p_session: string }; Returns: undefined }
+      pos_can_operate: { Args: never; Returns: boolean }
+      pos_check_pin: { Args: { p_pin: string }; Returns: boolean }
+      pos_close_session: {
+        Args: { p_counted: number; p_justification: string; p_session: string }
+        Returns: Json
+      }
+      pos_discard_suspended: { Args: { p_sale: string }; Returns: undefined }
+      pos_finalize_sale: {
+        Args: {
+          p_customer_doc: string
+          p_items: Json
+          p_payments: Json
+          p_pin: string
+          p_sale_discount: number
+          p_session: string
+          p_suspended_id?: string
+        }
+        Returns: Json
+      }
+      pos_is_supervisor: { Args: never; Returns: boolean }
+      pos_log: {
+        Args: {
+          p_action: string
+          p_details: Json
+          p_sale: string
+          p_session: string
+        }
+        Returns: undefined
+      }
+      pos_open_session: {
+        Args: { p_amount: number; p_terminal: string }
+        Returns: string
+      }
+      pos_session_summary: { Args: { p_session: string }; Returns: Json }
+      pos_session_totals: { Args: { p_session: string }; Returns: Json }
+      pos_set_barcode: {
+        Args: { p_barcode: string; p_product: string }
+        Returns: undefined
+      }
+      pos_set_supervisor_pin: { Args: { p_pin: string }; Returns: undefined }
+      pos_suspend_sale: {
+        Args: { p_draft: Json; p_session: string }
+        Returns: string
+      }
+      pos_unit_price: {
+        Args: { p: Database["public"]["Tables"]["products"]["Row"] }
+        Returns: number
+      }
       promote_to_admin: { Args: { secret_key?: string }; Returns: Json }
       reduce_stock: {
         Args: { p_product_id: string; p_quantity: number }
