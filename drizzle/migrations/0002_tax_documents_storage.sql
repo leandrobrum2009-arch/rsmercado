@@ -1,0 +1,2 @@
+CREATE POLICY "admin tax docs read" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'tax-documents' AND public.is_admin());
+CREATE POLICY "admin tax docs insert" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'tax-documents' AND public.is_admin());

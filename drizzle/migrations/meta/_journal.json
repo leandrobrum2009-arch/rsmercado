@@ -15,6 +15,13 @@
       "when": 1792614678342,
       "tag": "0001_pos_phase2",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792614729123,
+      "tag": "0002_tax_documents_storage",
+      "breakpoints": true
     }
   ]
 }
