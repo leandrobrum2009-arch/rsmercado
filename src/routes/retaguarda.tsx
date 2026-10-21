@@ -272,16 +272,12 @@ function ReturnsTab() {
 }
 
 function FiscalTab() {
-  const [cfg, setCfg] = useState<any>({})
   const [docs, setDocs] = useState<any[]>([])
   const [pending, setPending] = useState<any[]>([])
   useEffect(() => {
-    db.from('fiscal_config').select('*').eq('id', 1).maybeSingle().then(({ data }: any) => setCfg(data || { id: 1, environment: 'homologacao' }))
     db.from('fiscal_documents').select('*').order('created_at', { ascending: false }).limit(100).then(({ data }: any) => setDocs(data || []))
     db.from('pos_sales').select('id,sale_number,total,finalized_at,fiscal_status').eq('status', 'completed').eq('fiscal_status', 'nao_emitido').order('finalized_at', { ascending: false }).limit(100).then(({ data }: any) => setPending(data || []))
   }, [])
-  const save = async () => { const { id: _i, updated_at: _u, ...rest } = cfg; const { error } = await db.from('fiscal_config').upsert({ id: 1, ...rest, environment: 'homologacao', updated_at: new Date().toISOString() }); error ? err(error) : toast.success('Dados fiscais salvos') }
-  const F = ({ k, l }: { k: string; l: string }) => <label className="text-xs">{l}<input className={input} value={cfg[k] ?? ''} onChange={(e) => setCfg({ ...cfg, [k]: e.target.value })} /></label>
   return <div className="grid gap-4 lg:grid-cols-2">
     <div><FiscalCompanyCard /></div>
     <div><ProductTaxCard />
