@@ -1,1 +1,1 @@
-- PDV (/pdv): all money/stock writes go through SECURITY DEFINER `pos_*` SQL functions that recompute prices from `products`; pos tables are read-only to clients. Why: totals must be validated server-side and sessions closed cannot be edited.
+- PDV (/pdv) and back office (/retaguarda): all money/stock/product-admin writes go through SECURITY DEFINER `pos_*` SQL functions that recompute prices from `products`; sales are idempotent by `client_id`. Why: totals must be validated server-side and closed sessions/sales are never edited, only compensated.
