@@ -77,6 +77,8 @@
      { id: 'settings', label: 'Configurações Loja', group: 'Sistêmico' },
      { id: 'whatsapp', label: 'WhatsApp', group: 'Sistêmico' },
       { id: 'webhooks', label: 'Webhooks', group: 'Sistêmico' },
+      { id: 'pos', label: 'Operador de Caixa (PDV)', group: 'Caixa' },
+      { id: 'pos_supervisor', label: 'Supervisor de Caixa (PDV)', group: 'Caixa' },
       { id: 'theme', label: 'Tema Visual', group: 'Sistêmico' },
       { id: 'admin_roles', label: 'Gestão de Cargos', group: 'Controle de Acesso' },
       { id: 'activity_logs', label: 'Logs de Auditoria', group: 'Controle de Acesso' },
