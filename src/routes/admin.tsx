@@ -110,8 +110,8 @@ export const Route = createFileRoute('/admin')({
        </p>
        
        <div className="bg-white/50 p-4 rounded-2xl mb-8 w-full max-w-lg border border-red-100 overflow-auto max-h-40">
-         <p className="text-[10px] font-mono text-red-800 break-all">{error.message || 'Erro desconhecido'}</p>
-         {error.stack && <pre className="text-[8px] text-red-600/60 mt-2">{error.stack.substring(0, 500)}...</pre>}
+         <p className="text-[10px] font-mono text-red-800 break-all">{(error as Error)?.message || 'Erro desconhecido'}</p>
+         {(error as Error)?.stack && <pre className="text-[8px] text-red-600/60 mt-2">{(error as Error).stack!.substring(0, 500)}...</pre>}
        </div>
 
        <div className="flex gap-4">
