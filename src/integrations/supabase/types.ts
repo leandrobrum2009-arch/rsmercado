@@ -531,6 +531,53 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_counts: {
+        Row: {
+          adjustment: number
+          batch_id: string
+          counted_qty: number
+          created_at: string
+          id: string
+          product_id: string
+          reason: string
+          system_qty: number
+          unit_cost: number | null
+          user_id: string
+        }
+        Insert: {
+          adjustment: number
+          batch_id: string
+          counted_qty: number
+          created_at?: string
+          id?: string
+          product_id: string
+          reason: string
+          system_qty: number
+          unit_cost?: number | null
+          user_id: string
+        }
+        Update: {
+          adjustment?: number
+          batch_id?: string
+          counted_qty?: number
+          created_at?: string
+          id?: string
+          product_id?: string
+          reason?: string
+          system_qty?: number
+          unit_cost?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_counts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_redemptions: {
         Row: {
           created_at: string | null
@@ -2271,6 +2318,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      pos_apply_inventory: {
+        Args: { p_confirm: string; p_items: Json; p_reason: string }
+        Returns: Json
+      }
       pos_assert_session: { Args: { p_session: string }; Returns: undefined }
       pos_can_audit: { Args: never; Returns: boolean }
       pos_can_fiscal: { Args: never; Returns: boolean }
@@ -2318,6 +2369,7 @@ export type Database = {
         Returns: undefined
       }
       pos_log_access: { Args: { p_area: string }; Returns: undefined }
+      pos_log_reprint: { Args: { p_sale: string }; Returns: number }
       pos_open_session: {
         Args: { p_amount: number; p_terminal: string }
         Returns: string
