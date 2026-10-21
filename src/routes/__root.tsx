@@ -246,7 +246,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
      navItems.splice(4, 0, { name: "Admin", path: "/admin", icon: ShieldCheck });
    }
  
-    const isAdminPage = location.pathname.startsWith('/admin');
+    const isAdminPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/pdv');
     // Check for keys in environment or localStorage
     const [supabaseConfig] = useState({
       url: import.meta.env.VITE_SUPABASE_URL || '',

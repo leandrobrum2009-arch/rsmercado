@@ -13,6 +13,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PdvRouteImport } from './routes/pdv'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as InstallRouteImport } from './routes/install'
@@ -44,6 +45,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PdvRoute = PdvRouteImport.update({
+  id: '/pdv',
+  path: '/pdv',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OffersRoute = OffersRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
+  '/pdv': typeof PdvRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
+  '/pdv': typeof PdvRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/install': typeof InstallRoute
   '/loyalty': typeof LoyaltyRoute
   '/offers': typeof OffersRoute
+  '/pdv': typeof PdvRoute
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/loyalty'
     | '/offers'
+    | '/pdv'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/loyalty'
     | '/offers'
+    | '/pdv'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/loyalty'
     | '/offers'
+    | '/pdv'
     | '/profile'
     | '/recipes'
     | '/reset-password'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   InstallRoute: typeof InstallRoute
   LoyaltyRoute: typeof LoyaltyRoute
   OffersRoute: typeof OffersRoute
+  PdvRoute: typeof PdvRoute
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pdv': {
+      id: '/pdv'
+      path: '/pdv'
+      fullPath: '/pdv'
+      preLoaderRoute: typeof PdvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/offers': {
@@ -367,6 +387,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstallRoute: InstallRoute,
   LoyaltyRoute: LoyaltyRoute,
   OffersRoute: OffersRoute,
+  PdvRoute: PdvRoute,
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
