@@ -99,21 +99,3 @@ export function AuditTab() {
     </Card>
   )
 }
-
-export function TerminalsTab() {
-  const [rows, setRows] = useState<any[]>([])
-  const load = useCallback(() => db.from('pos_terminals').select('*').order('code').then(({ data }: any) => setRows(data || [])), [])
-  useEffect(() => { load() }, [load])
-  const toggle = async (t: any) => {
-    if (!t.production_enabled && !confirm(`Autorizar o terminal ${t.code} para vendas REAIS em produção?`)) return
-    const { error } = await db.rpc('pos_set_terminal_production', { p_terminal: t.id, p_enabled: !t.production_enabled })
-    error ? toast.error(error.message) : (toast.success('Terminal atualizado'), load())
-  }
-  return (
-    <Card title="Terminais de caixa e ambiente piloto">
-      <p className="mb-3 text-sm text-muted-foreground">O terminal piloto serve para testes: as vendas ficam marcadas como teste, não baixam estoque e não entram nos relatórios. Terminais reais só abrem caixa depois da autorização expressa de um administrador.</p>
-      <Table head={['Código', 'Nome', 'Tipo', 'Produção', '']} rows={rows.map((t) => [t.code, t.name, t.is_test ? 'PILOTO / TESTES' : 'Real', t.is_test ? '—' : t.production_enabled ? 'Autorizado' : 'Aguardando autorização',
-        (t.is_test ? '' : <button key={t.id} className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => toggle(t)}>{t.production_enabled ? 'Suspender' : 'Autorizar produção'}</button>) as any])} />
-    </Card>
-  )
-}
