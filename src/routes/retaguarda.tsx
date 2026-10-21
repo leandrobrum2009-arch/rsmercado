@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { parseCsv, matchImportRows, type ImportRow } from '@/lib/pos-import'
+import { FiscalCompanyCard, ProductTaxCard } from '@/components/retaguarda/FiscalRJ'
 import { InventoryTab } from '@/components/retaguarda/InventoryTab'
 import { ReportsTab, AuditTab, TerminalsTab } from '@/components/retaguarda/ReportTabs'
 
@@ -271,29 +272,21 @@ function ReturnsTab() {
 }
 
 function FiscalTab() {
-  const [cfg, setCfg] = useState<any>({})
   const [docs, setDocs] = useState<any[]>([])
   const [pending, setPending] = useState<any[]>([])
   useEffect(() => {
-    db.from('fiscal_config').select('*').eq('id', 1).maybeSingle().then(({ data }: any) => setCfg(data || { id: 1, environment: 'homologacao' }))
     db.from('fiscal_documents').select('*').order('created_at', { ascending: false }).limit(100).then(({ data }: any) => setDocs(data || []))
     db.from('pos_sales').select('id,sale_number,total,finalized_at,fiscal_status').eq('status', 'completed').eq('fiscal_status', 'nao_emitido').order('finalized_at', { ascending: false }).limit(100).then(({ data }: any) => setPending(data || []))
   }, [])
-  const save = async () => { const { id: _i, updated_at: _u, ...rest } = cfg; const { error } = await db.from('fiscal_config').upsert({ id: 1, ...rest, environment: 'homologacao', updated_at: new Date().toISOString() }); error ? err(error) : toast.success('Dados fiscais salvos') }
-  const F = ({ k, l }: { k: string; l: string }) => <label className="text-xs">{l}<input className={input} value={cfg[k] ?? ''} onChange={(e) => setCfg({ ...cfg, [k]: e.target.value })} /></label>
   return <div className="grid gap-4 lg:grid-cols-2">
-    <Card title="Fiscal e Documentos Fiscais">
-      <p className="mb-3 rounded bg-destructive/10 p-2 text-sm text-destructive"><b>Emissão NFC-e/NF-e NÃO integrada.</b> Nenhum documento fiscal é emitido ou simulado. As vendas do caixa geram apenas cupom não fiscal até a contratação do emissor e o envio do certificado A1 e do CSC.</p>
-      <div className="grid grid-cols-2 gap-2"><F k="cnpj" l="CNPJ" /><F k="ie" l="Inscrição estadual" /><F k="uf" l="UF" /><F k="regime" l="Regime tributário" /><F k="nfce_series" l="Série NFC-e" /><F k="nfce_next_number" l="Próximo número" /><F k="provider" l="Emissor escolhido" /></div>
-      <label className="mt-2 block text-xs">Observações do contador<textarea className={input} value={cfg.notes ?? ''} onChange={(e) => setCfg({ ...cfg, notes: e.target.value })} /></label>
-      <p className="mt-2 text-xs">Ambiente: <b>Homologação</b> (produção só após configuração e autorização expressa).</p>
-      <button className={`${btn} mt-2`} onClick={save}>Salvar</button>
-    </Card>
+    <div><FiscalCompanyCard /></div>
+    <div><ProductTaxCard />
+    </div>
     <Card title={`Vendas sem documento fiscal (${pending.length})`}>
       <button className={`${btn2} mb-2`} onClick={() => download('vendas-sem-nfce.csv', [['venda', 'data', 'total'], ...pending.map((s) => [s.sale_number, new Date(s.finalized_at).toLocaleString('pt-BR'), s.total])])}>Exportar para contabilidade</button>
       <div className="max-h-64 overflow-auto text-sm">{pending.map((s) => <div key={s.id} className="flex justify-between border-b border-border py-1"><span>Venda {s.sale_number} · {new Date(s.finalized_at).toLocaleString('pt-BR')}</span><span>{brl(s.total)} · <span className="text-muted-foreground">não emitido</span></span></div>)}</div>
     </Card>
-    <Card title="Documentos fiscais emitidos">{docs.length ? docs.map((d) => <div key={d.id} className="text-sm">Mod. {d.model} · série {d.series} nº {d.number} · {d.status} {d.protocol ? `· prot. ${d.protocol}` : ''}</div>) : <p className="text-sm text-muted-foreground">Nenhum documento emitido.</p>}</Card>
+    <Card title="Documentos fiscais emitidos">{docs.length ? docs.map((d) => <div key={d.id} className="text-sm">Mod. {d.model} · série {d.series} nº {d.number} · {d.status}{d.protocol ? ` · prot. ${d.protocol}` : ''}{d.rejection_code ? ` · rejeição ${d.rejection_code}: ${d.rejection}` : ''} · tentativas {d.attempts}</div>) : <p className="text-sm text-muted-foreground">Nenhum documento emitido.</p>}</Card>
   </div>
 }
 

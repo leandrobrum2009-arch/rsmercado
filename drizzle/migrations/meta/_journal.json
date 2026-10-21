@@ -36,6 +36,20 @@
       "when": 1792615445858,
       "tag": "0004_pos_stage2a_inventory_reprint",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792615966593,
+      "tag": "0005_fiscal_rj_preparation",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792615989515,
+      "tag": "0006_fix_product_tax_vars",
+      "breakpoints": true
     }
   ]
 }
