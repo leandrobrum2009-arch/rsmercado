@@ -1,6 +1,7 @@
 # Roadmap PDV
-- [x] Etapa 1 — Abertura, movimentações e fechamento de caixa
-- [x] Etapa 2 — Tela de venda com atalhos F1–F10
-- [x] Etapa 3 — Pagamento, baixa de estoque, cupom não fiscal
-- [ ] Etapa 4 — Relatórios de retaguarda e importação de códigos por planilha (aguarda planilha do usuário)
-- [ ] Etapa 5 — NFC-e (aguarda emissor fiscal, certificado A1 e CSC)
+- [x] Caixa: abertura, movimentações, fechamento, venda, atalhos
+- [x] Pagamentos configuráveis, NSU obrigatório, venda não duplicada
+- [x] Retaguarda: produtos (fiscal, códigos, histórico de preço), importação CSV, estoque, devoluções
+- [x] Fiscal (área preparada, sem emissão) e obrigações tributárias
+- [ ] Emissão NFC-e/NF-e real (aguarda emissor fiscal, certificado A1, CSC)
+- [ ] TEF / PIX integrados (aguarda credenciais do adquirente/banco)
