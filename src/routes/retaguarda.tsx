@@ -32,31 +32,46 @@ const download = (name: string, rows: any[][]) => {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv' })); a.download = name; a.click()
 }
 
-const TABS = [['pag', 'Pagamentos'], ['prod', 'Produtos'], ['imp', 'Importar planilha'], ['est', 'Estoque'], ['dev', 'Devoluções'], ['fis', 'Fiscal'], ['trib', 'Obrigações tributárias']] as const
+type Perms = { admin: boolean; sup: boolean; fiscal: boolean; stock: boolean; audit: boolean }
+const TABS: [string, string, (p: Perms) => boolean][] = [
+  ['rel', 'Relatórios', (p) => p.audit],
+  ['pag', 'Pagamentos', (p) => p.admin],
+  ['prod', 'Produtos', (p) => p.admin],
+  ['imp', 'Importar planilha', (p) => p.admin],
+  ['est', 'Estoque', (p) => p.sup || p.stock],
+  ['dev', 'Devoluções', (p) => p.sup],
+  ['fis', 'Fiscal', (p) => p.fiscal],
+  ['trib', 'Obrigações tributárias', (p) => p.fiscal],
+  ['term', 'Terminais / Piloto', (p) => p.admin],
+  ['aud', 'Auditoria', (p) => p.audit],
+]
 
 function Retaguarda() {
   const [state, setState] = useState<'loading' | 'out' | 'denied' | 'ok'>('loading')
-  const [admin, setAdmin] = useState(false)
-  const [tab, setTab] = useState<string>('pag')
+  const [perms, setPerms] = useState<Perms>({ admin: false, sup: false, fiscal: false, stock: false, audit: false })
+  const [tab, setTab] = useState<string>('')
   useEffect(() => {
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return setState('out')
-      const [{ data: sup }, { data: adm }] = await Promise.all([db.rpc('pos_is_supervisor'), db.rpc('is_admin')])
-      if (!sup) return setState('denied')
-      setAdmin(!!adm); setState('ok')
+      const r = await Promise.all([db.rpc('is_admin'), db.rpc('pos_is_supervisor'), db.rpc('pos_can_fiscal'), db.rpc('pos_has', { p_perm: 'pos_stock' }), db.rpc('pos_can_audit')])
+      const p: Perms = { admin: !!r[0].data, sup: !!r[1].data, fiscal: !!r[2].data, stock: !!r[3].data, audit: !!r[4].data }
+      const first = TABS.find(([, , f]) => f(p))
+      if (!first) return setState('denied')
+      setPerms(p); setTab(first[0]); setState('ok')
+      db.rpc('pos_log_access', { p_area: 'retaguarda' }).then(() => {})
     })()
   }, [])
-  if (state !== 'ok') return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background p-6 text-center">{state === 'loading' ? 'Carregando…' : state === 'out' ? <Link to="/profile" className={btn}>Entrar</Link> : 'Acesso restrito a supervisores e administradores.'}</div>
-  const adminOnly = ['pag', 'prod', 'imp', 'fis', 'trib']
+  if (state !== 'ok') return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background p-6 text-center">{state === 'loading' ? 'Carregando…' : state === 'out' ? <Link to="/profile" className={btn}>Entrar</Link> : 'Acesso restrito a perfis autorizados da retaguarda.'}</div>
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-background text-foreground">
       <header className="flex flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-2">
         <strong className="mr-4 text-primary">Retaguarda · RS Supermercado</strong>
-        {TABS.filter(([k]) => admin || !adminOnly.includes(k)).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`rounded px-3 py-1 text-sm ${tab === k ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>{l}</button>)}
+        {TABS.filter(([, , f]) => f(perms)).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`rounded px-3 py-1 text-sm ${tab === k ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>{l}</button>)}
         <Link to="/pdv" className={`ml-auto ${btn2}`}>Voltar ao caixa</Link>
       </header>
       <main className="flex-1 overflow-auto p-4">
+        {tab === 'rel' && <ReportsTab />}
         {tab === 'pag' && <PaymentsTab />}
         {tab === 'prod' && <ProductsTab />}
         {tab === 'imp' && <ImportTab />}
@@ -64,6 +79,8 @@ function Retaguarda() {
         {tab === 'dev' && <ReturnsTab />}
         {tab === 'fis' && <FiscalTab />}
         {tab === 'trib' && <TaxTab />}
+        {tab === 'term' && <TerminalsTab />}
+        {tab === 'aud' && <AuditTab />}
       </main>
     </div>
   )
