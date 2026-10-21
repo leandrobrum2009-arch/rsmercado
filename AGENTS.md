@@ -1,0 +1,1 @@
+- PDV (/pdv): all money/stock writes go through SECURITY DEFINER `pos_*` SQL functions that recompute prices from `products`; pos tables are read-only to clients. Why: totals must be validated server-side and sessions closed cannot be edited.
