@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { parseCsv, matchImportRows, type ImportRow } from '@/lib/pos-import'
+import { ReportsTab, AuditTab, TerminalsTab } from '@/components/retaguarda/ReportTabs'
 
 export const Route = createFileRoute('/retaguarda')({
   ssr: false,
