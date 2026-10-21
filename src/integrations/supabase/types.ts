@@ -360,41 +360,125 @@ export type Database = {
       }
       fiscal_config: {
         Row: {
+          accountant_validated_at: string | null
+          bairro: string | null
+          cep: string | null
+          certificate_expires_at: string | null
+          certificate_type: string | null
+          cnae: string | null
           cnpj: string | null
+          cod_municipio_ibge: string | null
+          complemento: string | null
+          credenciamento_nfce: string
+          credenciamento_nfe: string
+          credenciamento_verified_at: string | null
+          crt: string | null
+          csc_id: string | null
           environment: string
+          homolog_tested_at: string | null
           id: number
           ie: string | null
+          im: string | null
+          logradouro: string | null
+          municipio: string | null
           nfce_next_number: number | null
+          nfce_next_number_homolog: number | null
           nfce_series: number | null
+          nfce_series_homolog: number | null
+          nfe_next_number: number | null
+          nfe_series: number | null
+          nome_fantasia: string | null
           notes: string | null
+          numero: string | null
+          production_approved_at: string | null
+          production_approved_by: string | null
           provider: string | null
+          provider_config: Json
+          razao_social: string | null
           regime: string | null
+          telefone: string | null
           uf: string | null
           updated_at: string
         }
         Insert: {
+          accountant_validated_at?: string | null
+          bairro?: string | null
+          cep?: string | null
+          certificate_expires_at?: string | null
+          certificate_type?: string | null
+          cnae?: string | null
           cnpj?: string | null
+          cod_municipio_ibge?: string | null
+          complemento?: string | null
+          credenciamento_nfce?: string
+          credenciamento_nfe?: string
+          credenciamento_verified_at?: string | null
+          crt?: string | null
+          csc_id?: string | null
           environment?: string
+          homolog_tested_at?: string | null
           id?: number
           ie?: string | null
+          im?: string | null
+          logradouro?: string | null
+          municipio?: string | null
           nfce_next_number?: number | null
+          nfce_next_number_homolog?: number | null
           nfce_series?: number | null
+          nfce_series_homolog?: number | null
+          nfe_next_number?: number | null
+          nfe_series?: number | null
+          nome_fantasia?: string | null
           notes?: string | null
+          numero?: string | null
+          production_approved_at?: string | null
+          production_approved_by?: string | null
           provider?: string | null
+          provider_config?: Json
+          razao_social?: string | null
           regime?: string | null
+          telefone?: string | null
           uf?: string | null
           updated_at?: string
         }
         Update: {
+          accountant_validated_at?: string | null
+          bairro?: string | null
+          cep?: string | null
+          certificate_expires_at?: string | null
+          certificate_type?: string | null
+          cnae?: string | null
           cnpj?: string | null
+          cod_municipio_ibge?: string | null
+          complemento?: string | null
+          credenciamento_nfce?: string
+          credenciamento_nfe?: string
+          credenciamento_verified_at?: string | null
+          crt?: string | null
+          csc_id?: string | null
           environment?: string
+          homolog_tested_at?: string | null
           id?: number
           ie?: string | null
+          im?: string | null
+          logradouro?: string | null
+          municipio?: string | null
           nfce_next_number?: number | null
+          nfce_next_number_homolog?: number | null
           nfce_series?: number | null
+          nfce_series_homolog?: number | null
+          nfe_next_number?: number | null
+          nfe_series?: number | null
+          nome_fantasia?: string | null
           notes?: string | null
+          numero?: string | null
+          production_approved_at?: string | null
+          production_approved_by?: string | null
           provider?: string | null
+          provider_config?: Json
+          razao_social?: string | null
           regime?: string | null
+          telefone?: string | null
           uf?: string | null
           updated_at?: string
         }
@@ -403,14 +487,22 @@ export type Database = {
       fiscal_documents: {
         Row: {
           access_key: string | null
+          attempts: number
+          authorized_at: string | null
           created_at: string
+          danfe_url: string | null
           environment: string
           events: Json
           id: string
+          last_attempt_at: string | null
           model: string
           number: number | null
           protocol: string | null
+          provider: string | null
+          provider_ref: string | null
           rejection: string | null
+          rejection_code: string | null
+          request_id: string
           sale_id: string | null
           series: number | null
           status: string
@@ -419,14 +511,22 @@ export type Database = {
         }
         Insert: {
           access_key?: string | null
+          attempts?: number
+          authorized_at?: string | null
           created_at?: string
+          danfe_url?: string | null
           environment?: string
           events?: Json
           id?: string
+          last_attempt_at?: string | null
           model?: string
           number?: number | null
           protocol?: string | null
+          provider?: string | null
+          provider_ref?: string | null
           rejection?: string | null
+          rejection_code?: string | null
+          request_id?: string
           sale_id?: string | null
           series?: number | null
           status?: string
@@ -435,14 +535,22 @@ export type Database = {
         }
         Update: {
           access_key?: string | null
+          attempts?: number
+          authorized_at?: string | null
           created_at?: string
+          danfe_url?: string | null
           environment?: string
           events?: Json
           id?: string
+          last_attempt_at?: string | null
           model?: string
           number?: number | null
           protocol?: string | null
+          provider?: string | null
+          provider_ref?: string | null
           rejection?: string | null
+          rejection_code?: string | null
+          request_id?: string
           sale_id?: string | null
           series?: number | null
           status?: string
@@ -455,6 +563,50 @@ export type Database = {
             columns: ["sale_id"]
             isOneToOne: false
             referencedRelation: "pos_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_events: {
+        Row: {
+          code: string | null
+          created_at: string
+          document_id: string
+          event_type: string
+          id: string
+          message: string | null
+          payload: Json | null
+          protocol: string | null
+          status: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          document_id: string
+          event_type: string
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          protocol?: string | null
+          status: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          document_id?: string
+          event_type?: string
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          protocol?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -2278,6 +2430,8 @@ export type Database = {
     }
     Functions: {
       check_system_health: { Args: never; Returns: Json }
+      fiscal_approve_production: { Args: never; Returns: undefined }
+      fiscal_production_checklist: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2414,6 +2568,10 @@ export type Database = {
       }
       pos_update_product_admin: {
         Args: { p_data: Json; p_product: string }
+        Returns: undefined
+      }
+      pos_update_product_tax: {
+        Args: { p_product: string; p_tax: Json }
         Returns: undefined
       }
       pos_update_settings: {
