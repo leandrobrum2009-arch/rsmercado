@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { parseCsv, matchImportRows, type ImportRow } from '@/lib/pos-import'
+import { InventoryTab } from '@/components/retaguarda/InventoryTab'
 import { ReportsTab, AuditTab, TerminalsTab } from '@/components/retaguarda/ReportTabs'
 
 export const Route = createFileRoute('/retaguarda')({
@@ -40,6 +41,7 @@ const TABS: [string, string, (p: Perms) => boolean][] = [
   ['prod', 'Produtos', (p) => p.admin],
   ['imp', 'Importar planilha', (p) => p.admin],
   ['est', 'Estoque', (p) => p.sup || p.stock],
+  ['inv', 'Inventário', (p) => p.sup || p.stock],
   ['dev', 'Devoluções', (p) => p.sup],
   ['fis', 'Fiscal', (p) => p.fiscal],
   ['trib', 'Obrigações tributárias', (p) => p.fiscal],
@@ -77,6 +79,7 @@ function Retaguarda() {
         {tab === 'prod' && <ProductsTab />}
         {tab === 'imp' && <ImportTab />}
         {tab === 'est' && <StockTab />}
+        {tab === 'inv' && <InventoryTab />}
         {tab === 'dev' && <ReturnsTab />}
         {tab === 'fis' && <FiscalTab />}
         {tab === 'trib' && <TaxTab />}
