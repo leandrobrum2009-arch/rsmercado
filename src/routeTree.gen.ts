@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RetaguardaRouteImport } from './routes/retaguarda'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -30,6 +31,11 @@ import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RetaguardaRoute = RetaguardaRouteImport.update({
+  id: '/retaguarda',
+  path: '/retaguarda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/retaguarda': typeof RetaguardaRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/retaguarda': typeof RetaguardaRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/recipes': typeof RecipesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/retaguarda': typeof RetaguardaRoute
   '/search': typeof SearchRoute
   '/track/$orderId': typeof TrackOrderIdRoute
 }
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/retaguarda'
     | '/search'
     | '/track/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/retaguarda'
     | '/search'
     | '/track/$orderId'
   id:
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recipes'
     | '/reset-password'
+    | '/retaguarda'
     | '/search'
     | '/track/$orderId'
   fileRoutesById: FileRoutesById
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RecipesRoute: typeof RecipesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RetaguardaRoute: typeof RetaguardaRoute
   SearchRoute: typeof SearchRoute
   TrackOrderIdRoute: typeof TrackOrderIdRoute
 }
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/retaguarda': {
+      id: '/retaguarda'
+      path: '/retaguarda'
+      fullPath: '/retaguarda'
+      preLoaderRoute: typeof RetaguardaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -391,6 +411,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RecipesRoute: RecipesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RetaguardaRoute: RetaguardaRoute,
   SearchRoute: SearchRoute,
   TrackOrderIdRoute: TrackOrderIdRoute,
 }

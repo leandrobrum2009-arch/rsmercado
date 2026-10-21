@@ -8,6 +8,20 @@
       "when": 1792613695315,
       "tag": "0000_pos_module",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792614678342,
+      "tag": "0001_pos_phase2",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792614729123,
+      "tag": "0002_tax_documents_storage",
+      "breakpoints": true
     }
   ]
 }
