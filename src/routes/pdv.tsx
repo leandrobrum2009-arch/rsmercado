@@ -563,10 +563,14 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
 }
 
 function ReceiptModal({ r, onClose }: { r: any; onClose: () => void }) {
-  const print = () => {
+  const printed = useRef(0)
+  const print = async () => {
     const w = window.open('', '_blank', 'width=360,height=640'); if (!w) return
+    let via = 1
+    if (printed.current > 0) { const { data, error } = await db.rpc('pos_log_reprint', { p_sale: r.sale_id }); if (error) { w.close(); return toast.error(errMsg(error)) } via = data }
+    printed.current++
     const lines = r.items.map((i: Item) => `<tr><td colspan=2>${i.name.replace(/</g, '')}</td></tr><tr><td>${i.quantity} x ${brl(i.unit_price)}${i.discount ? ' -' + brl(i.discount) : ''}</td><td style="text-align:right">${brl(i.unit_price * i.quantity - i.discount)}</td></tr>`).join('')
-    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>${r.is_test ? '*** VENDA DE TESTE — PILOTO ***<br/>' : ''}Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${METHOD_LABEL[p.method]}${p.transaction_id ? ' NSU ' + p.transaction_id : ''}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center><b>DOCUMENTO SEM VALOR FISCAL</b><br/>NFC-e não emitida</center><hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
+    w.document.write(`<html><body style="font-family:monospace;width:72mm;font-size:12px"><center><b>RS SUPERMERCADO</b><br/>CUPOM NÃO FISCAL<br/>${via > 1 ? `<b>REIMPRESSÃO — ${via}ª VIA</b><br/>` : ''}${r.is_test ? '*** VENDA DE TESTE — PILOTO ***<br/>' : ''}Venda nº ${r.sale_number} · ${r.terminal}<br/>${r.at.toLocaleString('pt-BR')}</center><hr/><table style="width:100%">${lines}</table><hr/><table style="width:100%"><tr><td>Subtotal</td><td align=right>${brl(r.subtotal)}</td></tr><tr><td>Descontos</td><td align=right>${brl(r.discount)}</td></tr><tr><td><b>TOTAL</b></td><td align=right><b>${brl(r.total)}</b></td></tr>${r.payments.map((p: Pay) => `<tr><td>${METHOD_LABEL[p.method]}${p.transaction_id ? ' NSU ' + p.transaction_id : ''}</td><td align=right>${brl(p.amount)}</td></tr>`).join('')}<tr><td>Troco</td><td align=right>${brl(r.change)}</td></tr></table>${r.customer ? `<p>CPF/CNPJ: ${r.customer}</p>` : ''}<hr/><center><b>DOCUMENTO SEM VALOR FISCAL</b><br/>NFC-e não emitida</center><hr/><center>Operador: ${r.operator}<br/>Obrigado pela preferência!</center><script>window.print();setTimeout(()=>window.close(),500)</script></body></html>`)
     w.document.close()
   }
   return <ModalShell title={`Venda nº ${r.sale_number} finalizada`} onClose={onClose}>
