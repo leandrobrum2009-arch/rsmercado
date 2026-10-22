@@ -1,5 +1,5 @@
 # Roadmap PDV
-- [ ] Melhorar o visual do caixa com logotipo, data e organização profissional sem mudar as operações
+- [x] Melhorar o visual do caixa com logotipo, data e organização profissional sem mudar as operações
 - [x] Caixa: abertura, movimentações, fechamento, venda, atalhos
 - [x] Pagamentos configuráveis, NSU obrigatório, venda não duplicada
 - [x] Retaguarda: produtos (fiscal, códigos, histórico de preço), importação CSV, estoque, devoluções
