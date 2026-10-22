@@ -266,3 +266,33 @@
   .animate-glow {
     animation: glow 2s ease-in-out infinite;
   }
+
+/* The POS has its own high-contrast operational theme, independent of storefront promotions. */
+.pos-theme {
+  --background: oklch(0.965 0.004 155);
+  --foreground: oklch(0.25 0.018 155);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.43 0.105 155);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.022 155);
+  --secondary-foreground: var(--primary);
+  --muted: oklch(0.955 0.005 155);
+  --muted-foreground: oklch(0.52 0.016 155);
+  --accent: oklch(0.92 0.12 94);
+  --accent-foreground: oklch(0.32 0.035 94);
+  --border: oklch(0.88 0.012 155);
+  --input: var(--border);
+  --ring: var(--primary);
+  --destructive: oklch(0.55 0.19 25);
+  --destructive-foreground: oklch(1 0 0);
+  font-family: var(--font-montserrat), ui-sans-serif, sans-serif;
+  letter-spacing: 0;
+}
+
+.pos-theme input:focus-visible, .pos-theme select:focus-visible, .pos-theme textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

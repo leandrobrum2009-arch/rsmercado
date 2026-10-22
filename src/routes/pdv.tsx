@@ -3,6 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { getDeviceHash } from '@/lib/pos-device'
+import { Button } from '@/components/ui/button'
+import { PosIdentity, PosClock } from '@/components/pos/PosIdentity'
+import { ArrowRight, Barcode, CheckCircle2, CircleHelp, CreditCard, FileText, LayoutDashboard, LockKeyhole, Maximize, Monitor, Package, Pause, Search, Settings2, ShoppingBasket, Tag, UserRound, Wallet, X, XCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/pdv')({
   ssr: false,
@@ -68,15 +71,15 @@ function PdvPage() {
   if (state === 'loading') return <Center>Carregando caixa…</Center>
   if (state === 'signedout') return <Center><p className="mb-4">Entre com sua conta de operador para usar o caixa.</p><Link to="/profile" className="rounded-md bg-primary px-4 py-2 text-primary-foreground">Entrar</Link></Center>
   if (state === 'denied') return <Center><p>Sua conta não tem permissão de operador de caixa.</p><p className="mt-2 text-sm text-muted-foreground">Peça a um administrador para liberar a permissão “pos” (ou “pos_supervisor”).</p></Center>
-  if (!session) return <OpenScreen device={thisDevice} terminals={terminals} onOpened={() => loadSession(user.id)} supervisor={supervisor} />
+  if (!session) return <OpenScreen operator={user.email} device={thisDevice} terminals={terminals} onOpened={() => loadSession(user.id)} supervisor={supervisor} />
   return <SaleScreen session={session} user={user} supervisor={supervisor} onClosed={() => loadSession(user.id)} />
 }
 
 function Center({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-auto bg-background p-6 text-center text-foreground">{children}</div>
+  return <div className="pos-theme fixed inset-0 z-[65] flex flex-col items-center justify-center overflow-auto bg-background p-6 text-center text-foreground">{children}</div>
 }
 
-function OpenScreen({ device, terminals, onOpened, supervisor }: { device: any; terminals: any[]; onOpened: () => void; supervisor: boolean }) {
+function OpenScreen({ operator, device, terminals, onOpened, supervisor }: { operator: string; device: any; terminals: any[]; onOpened: () => void; supervisor: boolean }) {
   const [terminal, setTerminal] = useState(device?.id || terminals.find((t) => t.is_test)?.id || terminals[0]?.id || '')
   const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
@@ -93,31 +96,41 @@ function OpenScreen({ device, terminals, onOpened, supervisor }: { device: any; 
     onOpened()
   }
   return (
-    <Center>
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 text-left shadow">
-        <h1 className="mb-1 text-2xl font-bold">Abertura de caixa</h1>
-        <p className="mb-2 text-sm text-muted-foreground">RS Supermercado — Matriz</p>
-        <p className={`mb-6 rounded p-2 text-sm ${device ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>{device ? <>Este computador: <b>{device.code}</b> — {device.name}</> : 'Este computador não está vinculado a um terminal. Só o caixa piloto pode ser aberto aqui.'}</p>
-        <label className="mb-1 block text-sm font-medium">Terminal</label>
-        <select className="mb-4 w-full rounded-md border border-input bg-background p-2" value={terminal} onChange={(e) => setTerminal(e.target.value)}>
-          {terminals.map((t) => <option key={t.id} value={t.id}>{t.code} — {t.name}{t.is_test ? ' [PILOTO / TESTES]' : !t.production_enabled ? ' (aguardando ativação)' : ''}</option>)}
-        </select>
-        <label className="mb-1 block text-sm font-medium">Fundo de troco (R$)</label>
-        <input autoFocus className="mb-6 w-full rounded-md border border-input bg-background p-2 text-lg" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && open()} placeholder="0,00" />
-        <button disabled={busy} onClick={open} className="w-full rounded-md bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-50">Abrir caixa</button>
-        {supervisor && <button onClick={() => setSettings(true)} className="mt-3 w-full rounded-md border border-border py-2 text-sm">Configurações do caixa</button>}
-        <Link to="/" className="mt-3 block text-center text-sm text-muted-foreground underline">Voltar ao site</Link>
-      </div>
+    <div className="pos-theme fixed inset-0 z-[65] flex flex-col overflow-auto bg-background text-foreground">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-card px-6 py-4"><PosIdentity /><PosClock /></header>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-8 px-6 py-10 md:flex-row md:items-center md:gap-16">
+        <div className="min-w-0 flex-1 text-left">
+          <div className="mb-5 flex size-16 items-center justify-center rounded-lg bg-secondary text-primary"><Monitor className="size-8" /></div>
+          <p className="mb-3 text-sm font-semibold text-primary">Frente de caixa</p>
+          <h1 className="text-3xl font-bold leading-tight">Pronto para começar<br />mais um dia?</h1>
+          <p className="mt-4 text-sm text-muted-foreground">Abertura de caixa</p>
+          <div className="mt-8 flex items-center gap-3 border-t border-border pt-5"><UserRound className="size-5 text-muted-foreground" /><div className="min-w-0"><p className="text-xs text-muted-foreground">Operador conectado</p><p className="break-all text-sm font-semibold">{operator}</p></div></div>
+          <Button asChild variant="link" className="mt-5 px-0"><Link to="/">Voltar ao site</Link></Button>
+        </div>
+        <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-left">
+          <div className="mb-6 flex items-center justify-between"><h2 className="text-lg font-bold">Abrir caixa</h2><LockKeyhole className="size-5 text-primary" /></div>
+          <div className={`mb-6 flex items-start gap-3 rounded-md p-3 text-sm ${device ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-muted-foreground'}`}><Monitor className="mt-0.5 size-4 shrink-0" /><p>{device ? <>Este computador: <b>{device.code}</b><br />{device.name}</> : 'Este computador não está vinculado a um terminal. Só o caixa piloto pode ser aberto aqui.'}</p></div>
+          <label htmlFor="pos-terminal" className="mb-2 block text-sm font-semibold">Terminal</label>
+          <select id="pos-terminal" className="mb-5 h-12 w-full rounded-md border border-input bg-background px-3 text-sm" value={terminal} onChange={(e) => setTerminal(e.target.value)}>
+            {terminals.map((t) => <option key={t.id} value={t.id}>{t.code} — {t.name}{t.is_test ? ' [PILOTO / TESTES]' : !t.production_enabled ? ' (aguardando ativação)' : ''}</option>)}
+          </select>
+          <label htmlFor="pos-opening-amount" className="mb-2 block text-sm font-semibold">Fundo de troco (R$)</label>
+          <input id="pos-opening-amount" autoFocus className="mb-6 h-14 w-full rounded-md border border-input bg-background px-3 text-2xl font-semibold tabular-nums" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && open()} placeholder="0,00" />
+          <Button disabled={busy} onClick={open} className="h-12 w-full text-base">{busy ? 'Abrindo…' : 'Abrir caixa'}<ArrowRight /></Button>
+          {supervisor && <Button variant="ghost" onClick={() => setSettings(true)} className="mt-3 w-full"><Settings2 />Configurações do caixa</Button>}
+        </div>
+      </main>
+      <footer className="flex flex-wrap justify-between gap-2 border-t border-border px-6 py-3 text-xs text-muted-foreground"><span>RS Supermercado · Operação de loja</span><span>Documento sem valor fiscal</span></footer>
       {settings && <SettingsModal onClose={() => setSettings(false)} />}
-    </Center>
+    </div>
   )
 }
 
 function ModalShell({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`max-h-[90vh] w-full overflow-auto rounded-xl border border-border bg-card p-5 text-left text-card-foreground shadow-xl ${wide ? 'max-w-3xl' : 'max-w-md'}`}>
-        <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><button onClick={onClose} className="text-sm text-muted-foreground">ESC ✕</button></div>
+    <div className="pos-theme fixed inset-0 z-[70] flex items-center justify-center bg-foreground/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={`max-h-[90vh] w-full overflow-auto rounded-lg border border-border bg-card p-6 text-left text-card-foreground shadow-xl ${wide ? 'max-w-3xl' : 'max-w-md'}`}>
+        <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold">{title}</h2><Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar janela" title="Fechar janela"><X /></Button></div>
         {children}
       </div>
     </div>
@@ -133,7 +146,6 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
   const [suspendedId, setSuspendedId] = useState<string | null>(null)
   const [modal, setModal] = useState<Modal>(null)
   const [code, setCode] = useState('')
-  const [now, setNow] = useState(new Date())
   const [online, setOnline] = useState(true)
   const [pinAsk, setPinAsk] = useState<null | { resolve: (p: string | null) => void }>(null)
   const [receipt, setReceipt] = useState<any>(null)
@@ -143,7 +155,6 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
   const [methods, setMethods] = useState<Method[]>(['dinheiro'])
   useEffect(() => { db.from('pos_settings').select('enabled_methods').eq('id', 1).maybeSingle().then(({ data }: any) => data?.enabled_methods && setMethods(data.enabled_methods)) }, [])
 
-  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t) }, [])
   useEffect(() => {
     const up = () => setOnline(navigator.onLine)
     window.addEventListener('online', up); window.addEventListener('offline', up)
@@ -254,75 +265,84 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
   })
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-background text-foreground">
-      {session.pos_terminals?.is_test && <div className="bg-accent px-4 py-1 text-center text-sm font-bold text-accent-foreground">MODO PILOTO / TESTES — vendas separadas das reais e sem baixa de estoque</div>}
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-border bg-card px-4 py-2 text-sm">
-        <strong className="text-base text-primary">RS Supermercado · Matriz</strong>
-        <span>Terminal <b>{session.pos_terminals?.code}</b></span>
-        <span>Operador <b>{user.email}</b></span>
-        <span>{now.toLocaleString('pt-BR')}</span>
-        <span className="rounded bg-primary/10 px-2 py-0.5 font-semibold text-primary">{items.length ? 'EM OPERAÇÃO' : 'ABERTO'}</span>
-        <span className={online ? 'text-primary' : 'text-destructive'}>● {online ? 'Conectado' : 'Sem conexão'}</span>
-        <span className="text-muted-foreground">Fiscal: não configurado (cupom não fiscal)</span>
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})} className="rounded border border-border px-2 py-1">Tela cheia</button>
-          <button onClick={() => setModal('movement')} className="rounded border border-border px-2 py-1">Sangria / Suprimento</button>
-          {supervisor && <button onClick={() => setModal('barcode')} className="rounded border border-border px-2 py-1">Vincular código</button>}
-          {supervisor && <Link to="/retaguarda" className="rounded border border-border px-2 py-1">Retaguarda</Link>}
-          {supervisor && <button onClick={() => setModal('settings')} className="rounded border border-border px-2 py-1">Config.</button>}
-          <button onClick={() => (items.length ? toast.error('Finalize ou suspenda a venda antes de fechar') : setModal('close'))} className="rounded bg-destructive px-2 py-1 text-destructive-foreground">Fechar caixa</button>
+    <div className="pos-theme fixed inset-0 z-[65] flex flex-col overflow-auto bg-background text-foreground">
+      {session.pos_terminals?.is_test && <div className="bg-accent px-4 py-1 text-center text-xs font-bold text-accent-foreground">MODO PILOTO / TESTES — vendas separadas das reais e sem baixa de estoque</div>}
+      <header className="shrink-0 border-b border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+          <PosIdentity />
+          <div className="flex items-center gap-3"><span className="rounded-md bg-secondary px-3 py-2 text-sm font-bold text-secondary-foreground">{session.pos_terminals?.code}</span><PosClock /></div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 py-2">
+          <div className="flex min-w-0 items-center gap-2 text-xs"><UserRound className="size-4 shrink-0 text-muted-foreground" /><span className="break-all font-medium">{user.email}</span><span className="ml-2 flex shrink-0 items-center gap-1 text-muted-foreground"><span className={`size-2 rounded-full ${online ? 'bg-primary' : 'bg-destructive'}`} />{online ? 'Conectado' : 'Sem conexão'}</span></div>
+          <nav className="flex flex-wrap gap-1" aria-label="Operações do caixa">
+            <Button variant="ghost" size="icon" title="Tela cheia" aria-label="Tela cheia" onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})}><Maximize /></Button>
+            <Button variant="ghost" size="sm" onClick={() => setModal('movement')}><Wallet />Sangria / Suprimento</Button>
+            {supervisor && <Button variant="ghost" size="icon" title="Vincular código" aria-label="Vincular código" onClick={() => setModal('barcode')}><Barcode /></Button>}
+            {supervisor && <Button asChild variant="ghost" size="sm"><Link to="/retaguarda"><LayoutDashboard />Retaguarda</Link></Button>}
+            {supervisor && <Button variant="ghost" size="icon" title="Configurações" aria-label="Configurações" onClick={() => setModal('settings')}><Settings2 /></Button>}
+            <Button variant="outline" size="sm" className="text-destructive" onClick={() => (items.length ? toast.error('Finalize ou suspenda a venda antes de fechar') : setModal('close'))}><LockKeyhole />Fechar caixa</Button>
+          </nav>
         </div>
       </header>
 
-      <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-[1fr_380px]">
-        <section className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
-          <div className="border-b border-border p-3">
-            <input ref={inputRef} value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitCode()}
-              onBlur={() => !modal && !pinAsk && setTimeout(() => { if (!document.activeElement || document.activeElement === document.body) inputRef.current?.focus() }, 50)}
-              placeholder="Leia o código de barras ou digite (ex.: 3*7891234567890). F2 pesquisa por nome"
-              className="w-full rounded-md border-2 border-primary bg-background p-3 text-xl outline-none" autoComplete="off" />
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+        <section className="flex min-h-[340px] min-w-0 flex-col lg:min-h-0">
+          <div className="mb-5">
+            <label htmlFor="pos-product-code" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Barcode className="size-4 text-primary" />Código do produto</label>
+            <div className="flex items-center gap-2 rounded-md border-2 border-primary bg-card px-3 py-1 focus-within:ring-2 focus-within:ring-ring/20">
+              <input id="pos-product-code" ref={inputRef} value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitCode()}
+                onBlur={() => !modal && !pinAsk && setTimeout(() => { if (!document.activeElement || document.activeElement === document.body) inputRef.current?.focus() }, 50)}
+                placeholder="Código de barras ou código interno" className="h-12 w-full min-w-0 bg-card text-lg font-medium outline-none" autoComplete="off" />
+              <Button variant="ghost" size="icon" onClick={() => setModal('search')} title="Pesquisar produto" aria-label="Pesquisar produto"><Search /></Button>
+            </div>
           </div>
-          <div className="flex-1 overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-muted text-left text-muted-foreground"><tr><th className="p-2">#</th><th>Código</th><th>Descrição</th><th className="text-right">Qtd</th><th className="text-right">Unit.</th><th className="text-right">Desc.</th><th className="p-2 text-right">Subtotal</th></tr></thead>
+          <div className="mb-3 flex items-center justify-between"><h1 className="text-base font-bold">Produtos da venda <span className="ml-2 text-sm font-normal text-muted-foreground">({items.length})</span></h1><span className="flex items-center gap-1.5 text-xs font-semibold text-primary"><CheckCircle2 className="size-3.5" />{items.length ? 'Em operação' : 'Caixa livre'}</span></div>
+          <div className="min-h-0 flex-1 overflow-auto border-y border-border bg-card">
+            <table className="w-full min-w-[620px] text-sm tabular-nums">
+              <thead className="sticky top-0 z-10 bg-muted text-left text-xs text-muted-foreground"><tr><th className="p-3">#</th><th className="px-2">Código</th><th className="px-2">Produto</th><th className="px-2 text-right">Qtd.</th><th className="px-2 text-right">Unitário</th><th className="px-2 text-right">Desc.</th><th className="p-3 text-right">Subtotal</th></tr></thead>
               <tbody>
                 {items.map((i, idx) => (
-                  <tr key={i.key} onClick={() => setSelected(i.key)} className={`cursor-pointer border-b border-border ${current?.key === i.key ? 'bg-primary/10' : ''}`}>
-                    <td className="p-2">{idx + 1}</td><td className="font-mono text-xs">{i.code || '—'}</td><td className="font-medium">{i.name}</td>
-                    <td className="text-right">{i.weight ? i.quantity.toFixed(3) : i.quantity}</td><td className="text-right">{brl(i.unit_price)}</td>
-                    <td className="text-right">{i.discount ? brl(i.discount) : ''}</td><td className="p-2 text-right font-semibold">{brl(i.unit_price * i.quantity - i.discount)}</td>
+                  <tr key={i.key} onClick={() => setSelected(i.key)} className={`cursor-pointer border-b border-border transition-colors hover:bg-muted ${current?.key === i.key ? 'bg-secondary' : ''}`}>
+                    <td className="p-3 text-muted-foreground">{String(idx + 1).padStart(2, '0')}</td><td className="px-2 font-mono text-xs text-muted-foreground">{i.code || '—'}</td><td className="px-2 py-3 font-semibold">{i.name}</td>
+                    <td className="px-2 text-right">{i.weight ? i.quantity.toFixed(3) : i.quantity}</td><td className="whitespace-nowrap px-2 text-right">{brl(i.unit_price)}</td>
+                    <td className="px-2 text-right">{i.discount ? brl(i.discount) : '—'}</td><td className="whitespace-nowrap p-3 text-right font-bold">{brl(i.unit_price * i.quantity - i.discount)}</td>
                   </tr>
                 ))}
-                {!items.length && <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Caixa livre — aguardando leitura do primeiro produto</td></tr>}
               </tbody>
             </table>
+            {!items.length && <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 p-6 text-center"><div className="flex size-16 items-center justify-center rounded-full bg-muted"><ShoppingBasket className="size-8 text-muted-foreground" /></div><p className="text-lg font-semibold">Aguardando primeiro produto</p><p className="text-sm text-muted-foreground">Nenhum item nesta venda</p></div>}
           </div>
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><FileText className="size-4" />Cupom não fiscal · Emissão fiscal não configurada</div>
         </section>
 
-        <aside className="flex flex-col gap-3">
-          <div className="rounded-xl border border-border bg-card p-4">
-            {current ? (<><p className="text-xs text-muted-foreground">Último item</p><p className="truncate text-lg font-bold">{current.name}</p><p>{current.quantity} × {brl(current.unit_price)}</p></>) : <p className="text-muted-foreground">Nenhum item</p>}
+        <aside className="flex min-h-0 min-w-0 flex-col gap-4 lg:overflow-auto">
+          <div className="border-b border-border pb-4">
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground"><Package className="size-4" />ITEM SELECIONADO</p>
+            {current ? <><p className="break-words text-base font-bold">{current.name}</p><p className="mt-1 text-sm tabular-nums text-muted-foreground">{current.quantity} × {brl(current.unit_price)}</p></> : <p className="text-sm text-muted-foreground">—</p>}
           </div>
-          <div className="space-y-1 rounded-xl border border-border bg-card p-4 text-sm">
-            <Row l="Itens" r={String(items.length)} />
-            <Row l="Volumes" r={items.reduce((s, i) => s + (i.weight ? 1 : i.quantity), 0).toString()} />
-            <Row l="Subtotal" r={brl(subtotal)} />
-            <Row l="Descontos" r={brl(itemDisc + saleDiscount)} />
+          <div className="space-y-2 text-sm tabular-nums">
+            <Row l="Itens / Volumes" r={`${items.length} / ${items.reduce((s, i) => s + (i.weight ? 1 : i.quantity), 0)}`} />
+            <Row l="Subtotal" r={brl(subtotal)} /><Row l="Descontos" r={brl(itemDisc + saleDiscount)} />
             {customer && <Row l="Cliente (CPF/CNPJ)" r={customer} />}
             {suspendedId && <p className="text-xs text-primary">Venda recuperada da suspensão</p>}
           </div>
-          <div className="rounded-xl bg-primary p-5 text-primary-foreground">
-            <p className="text-sm opacity-80">TOTAL</p><p className="text-5xl font-black tracking-tight">{brl(total)}</p>
+          <div className="rounded-lg bg-primary p-5 text-primary-foreground"><p className="text-xs font-semibold">TOTAL A PAGAR</p><p className="mt-2 break-words text-4xl font-bold leading-tight tabular-nums">{brl(total)}</p></div>
+          <Button disabled={!items.length} onClick={() => setModal('payment')} className="h-12 w-full shrink-0 bg-accent text-base font-bold text-accent-foreground hover:bg-accent/80"><CreditCard />Finalizar venda<kbd className="ml-auto text-xs">F10</kbd></Button>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { key: 'F2', label: 'Pesquisar', icon: Search, action: () => setModal('search') },
+              { key: 'F4', label: 'Cliente', icon: UserRound, action: () => setModal('customer') },
+              { key: 'F6', label: 'Quantidade', icon: Package, action: () => items.length && setModal('qty') },
+              { key: 'F7', label: 'Desconto', icon: Tag, action: () => items.length && setModal('discount') },
+              { key: 'F3', label: 'Suspender', icon: Pause, action: suspend },
+              { key: 'F5', label: 'Consultar preço', icon: Search, action: () => setModal('price') },
+              { key: 'F9', label: 'Cancelar item', icon: XCircle, action: () => items.length && setModal('cancelItem') },
+              { key: 'F8', label: 'Pagamento', icon: Wallet, action: () => items.length && setModal('payment') },
+            ].map(({ key, label, icon: Icon, action }) => <Button key={key} variant="outline" onClick={action} className="h-14 min-w-0 justify-start gap-2 whitespace-normal px-2 text-left text-xs"><Icon className="text-muted-foreground" /><span className="min-w-0 flex-1">{label}</span><kbd className="text-[10px] text-muted-foreground">{key}</kbd></Button>)}
           </div>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            {[['F1', 'Ajuda', () => setModal('help')], ['F2', 'Pesquisar', () => setModal('search')], ['F3', 'Suspender', suspend], ['F4', 'Cliente', () => setModal('customer')], ['F5', 'Consulta preço', () => setModal('price')], ['F6', 'Quantidade', () => items.length && setModal('qty')], ['F7', 'Desconto', () => items.length && setModal('discount')], ['F8', 'Pagamento', () => items.length && setModal('payment')], ['F9', 'Cancelar item', () => items.length && setModal('cancelItem')], ['F10', 'Finalizar', () => items.length && setModal('payment')]].map(([k, l, fn]: any) => (
-              <button key={k} onClick={fn} className="rounded-md border border-border bg-card p-2 text-left hover:bg-muted"><b className="text-primary">{k}</b> {l}</button>
-            ))}
-            <button onClick={cancelSale} className="col-span-2 rounded-md border border-destructive p-2 text-destructive">Cancelar venda</button>
-          </div>
+          <div className="flex items-center justify-between border-t border-border pt-2"><Button variant="ghost" size="sm" onClick={() => setModal('help')}><CircleHelp />Ajuda <kbd className="text-xs text-muted-foreground">F1</kbd></Button><Button variant="ghost" size="sm" onClick={cancelSale} className="text-destructive"><X />Cancelar venda</Button></div>
         </aside>
       </div>
-
       {modal === 'help' && <ModalShell title="Atalhos do teclado" onClose={() => setModal(null)}>
         <ul className="space-y-1 text-sm">{['F1 Ajuda', 'F2 Pesquisar produto', 'F3 Suspender / recuperar venda', 'F4 Informar cliente', 'F5 Consultar preço', 'F6 Alterar quantidade', 'F7 Desconto (supervisor)', 'F8 Pagamento', 'F9 Cancelar item (supervisor)', 'F10 Finalizar', 'ESC Fechar janela', 'Qtd*código para multiplicar (ex.: 6*789...)'].map((s) => <li key={s}>{s}</li>)}</ul>
       </ModalShell>}
@@ -343,11 +363,11 @@ function SaleScreen({ session, user, supervisor, onClosed }: { session: any; use
       }} />}
       {modal === 'cancelItem' && current && <ModalShell title="Cancelar item" onClose={() => setModal(null)}>
         <p className="mb-4">Remover <b>{current.name}</b> ({current.quantity} × {brl(current.unit_price)})?</p>
-        <button className="w-full rounded-md bg-destructive py-2 text-destructive-foreground" onClick={async () => {
+        <Button className="w-full rounded-md bg-destructive py-2 text-destructive-foreground" onClick={async () => {
           const p = await requirePin(); if (!p) return
           await log('item_cancelado', { item: current.name, qtd: current.quantity, valor: current.unit_price * current.quantity })
           setItems((prev) => prev.filter((i) => i.key !== current.key)); setSelected(null); setModal(null)
-        }}>Confirmar cancelamento</button>
+        }}>Confirmar cancelamento</Button>
       </ModalShell>}
       {modal === 'payment' && <PaymentModal methods={methods} total={total} onClose={() => setModal(null)} onFinish={finalize} />}
       {modal === 'suspended' && <SuspendedModal session={session} onClose={() => setModal(null)} onPick={(s) => {
@@ -369,7 +389,7 @@ function InputModal({ title, initial = '', onClose, onOk }: { title: string; ini
   const [v, setV] = useState(initial)
   return <ModalShell title={title} onClose={onClose}>
     <input autoFocus value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onOk(v)} className="mb-3 w-full rounded-md border border-input bg-background p-2 text-lg" />
-    <button onClick={() => onOk(v)} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Confirmar (Enter)</button>
+    <Button onClick={() => onOk(v)} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Confirmar (Enter)</Button>
   </ModalShell>
 }
 
@@ -386,7 +406,7 @@ function PinModal({ onDone }: { onDone: (p: string | null) => void }) {
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === 'Escape' && onDone(null); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k) }, [onDone])
   return <ModalShell title="Autorização do supervisor" onClose={() => onDone(null)}>
     <input autoFocus type="password" inputMode="numeric" value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && check()} className="mb-3 w-full rounded-md border border-input bg-background p-2 text-lg" placeholder="PIN" />
-    <button disabled={busy} onClick={check} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Autorizar</button>
+    <Button disabled={busy} onClick={check} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Autorizar</Button>
   </ModalShell>
 }
 
@@ -409,10 +429,10 @@ function SearchModal({ title, onClose, onPick }: { title: string; onClose: () =>
       className="mb-3 w-full rounded-md border border-input bg-background p-2 text-lg" />
     <div className="divide-y divide-border">
       {rows.map((p, i) => (
-        <button key={p.id} onClick={() => onPick?.(p)} className={`flex w-full items-center justify-between p-2 text-left ${i === idx ? 'bg-primary/10' : ''} ${!p.active || !p.is_available ? 'opacity-50' : ''}`}>
+        <Button key={p.id} onClick={() => onPick?.(p)} className={`flex w-full items-center justify-between p-2 text-left ${i === idx ? 'bg-primary/10' : ''} ${!p.active || !p.is_available ? 'opacity-50' : ''}`}>
           <span><b>{p.name}</b><span className="ml-2 text-xs text-muted-foreground">{p.barcode || p.code || 'sem código'} · estoque {Number(p.stock)}{p.is_weight_based ? ' kg' : ''}{!p.active || !p.is_available ? ' · INDISPONÍVEL' : ''}</span></span>
           <span className="font-bold">{brl(unitPrice(p))}{p.is_weight_based ? '/kg' : ''}</span>
-        </button>
+        </Button>
       ))}
       {q.length >= 2 && !rows.length && <p className="p-3 text-muted-foreground">Nenhum produto encontrado.</p>}
     </div>
@@ -426,11 +446,11 @@ function DiscountModal({ current, subtotal, onClose, onApply }: { current?: Item
   const base = scope === 'item' && current ? current.unit_price * current.quantity : subtotal
   const apply = () => { const n = parseNum(v); if (!(n >= 0)) return toast.error('Valor inválido'); onApply(scope, mode === 'pct' ? Math.round(base * n) / 100 : n) }
   return <ModalShell title="Desconto autorizado" onClose={onClose}>
-    <div className="mb-3 flex gap-2">{(['item', 'sale'] as const).map((s) => <button key={s} onClick={() => setScope(s)} className={`flex-1 rounded border p-2 ${scope === s ? 'border-primary bg-primary/10' : 'border-border'}`}>{s === 'item' ? `Item: ${current?.name ?? ''}` : 'Venda inteira'}</button>)}</div>
-    <div className="mb-3 flex gap-2">{(['valor', 'pct'] as const).map((s) => <button key={s} onClick={() => setMode(s)} className={`flex-1 rounded border p-2 ${mode === s ? 'border-primary bg-primary/10' : 'border-border'}`}>{s === 'valor' ? 'R$' : '%'}</button>)}</div>
+    <div className="mb-3 flex gap-2">{(['item', 'sale'] as const).map((s) => <Button key={s} onClick={() => setScope(s)} className={`flex-1 rounded border p-2 ${scope === s ? 'border-primary bg-primary/10' : 'border-border'}`}>{s === 'item' ? `Item: ${current?.name ?? ''}` : 'Venda inteira'}</Button>)}</div>
+    <div className="mb-3 flex gap-2">{(['valor', 'pct'] as const).map((s) => <Button key={s} onClick={() => setMode(s)} className={`flex-1 rounded border p-2 ${mode === s ? 'border-primary bg-primary/10' : 'border-border'}`}>{s === 'valor' ? 'R$' : '%'}</Button>)}</div>
     <input autoFocus value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && apply()} className="mb-3 w-full rounded-md border border-input bg-background p-2 text-lg" placeholder="0" />
     <p className="mb-3 text-sm text-muted-foreground">Base: {brl(base)}</p>
-    <button onClick={apply} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Aplicar</button>
+    <Button onClick={apply} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Aplicar</Button>
   </ModalShell>
 }
 
@@ -459,13 +479,13 @@ function PaymentModal({ methods, total, onClose, onFinish }: { methods: Method[]
   const finish = async () => { if (!done || busy) return; setBusy(true); await onFinish(pays); setBusy(false) }
   return <ModalShell title={`Pagamento — total ${brl(total)}`} onClose={onClose}>
     <p className="mb-3 rounded bg-accent px-2 py-1 text-xs text-accent-foreground">AMBIENTE SEM INTEGRAÇÃO (TEF/PIX não conectados): pagamentos eletrônicos só são aceitos com o código de autorização/NSU da maquininha.</p>
-    <div className="mb-3 grid grid-cols-3 gap-2">{methods.map((m) => <button key={m} onClick={() => setMethod(m)} className={`rounded border p-2 text-sm ${method === m ? 'border-primary bg-primary/10' : 'border-border'}`}>{METHOD_LABEL[m]}</button>)}</div>
+    <div className="mb-3 grid grid-cols-3 gap-2">{methods.map((m) => <Button key={m} onClick={() => setMethod(m)} className={`rounded border p-2 text-sm ${method === m ? 'border-primary bg-primary/10' : 'border-border'}`}>{METHOD_LABEL[m]}</Button>)}</div>
     {method !== 'dinheiro' && <div className="mb-2 flex gap-2"><input value={tx} onChange={(e) => setTx(e.target.value)} placeholder="Código de autorização / NSU" className="flex-1 rounded-md border border-input bg-background p-2" />{(method === 'debito' || method === 'credito' || method === 'voucher') && <input value={last4} maxLength={4} onChange={(e) => setLast4(e.target.value.replace(/\D/g, ''))} placeholder="4 últ. díg." className="w-24 rounded-md border border-input bg-background p-2" />}</div>}
-    <div className="mb-3 flex gap-2"><input autoFocus value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { if (done) finish(); else add() } }} className="flex-1 rounded-md border border-input bg-background p-2 text-lg" /><button onClick={add} className="rounded-md border border-border px-3">Adicionar</button></div>
-    <ul className="mb-3 space-y-1 text-sm">{pays.map((p, i) => <li key={i} className="flex justify-between"><span>{METHOD_LABEL[p.method]}{p.transaction_id ? ` · NSU ${p.transaction_id}` : ''}</span><span>{brl(p.amount)} <button className="ml-2 text-destructive" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>✕</button></span></li>)}</ul>
+    <div className="mb-3 flex gap-2"><input autoFocus value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { if (done) finish(); else add() } }} className="flex-1 rounded-md border border-input bg-background p-2 text-lg" /><Button onClick={add} className="rounded-md border border-border px-3">Adicionar</Button></div>
+    <ul className="mb-3 space-y-1 text-sm">{pays.map((p, i) => <li key={i} className="flex justify-between"><span>{METHOD_LABEL[p.method]}{p.transaction_id ? ` · NSU ${p.transaction_id}` : ''}</span><span>{brl(p.amount)} <Button className="ml-2 text-destructive" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>✕</Button></span></li>)}</ul>
     <Row l="Pago" r={brl(paid)} /><Row l="Falta" r={brl(remaining)} /><Row l="Troco" r={brl(change)} />
     
-    <button disabled={!done || busy} onClick={finish} className="mt-4 w-full rounded-md bg-primary py-3 font-bold text-primary-foreground disabled:opacity-40">{busy ? 'Finalizando…' : 'Finalizar venda (Enter)'}</button>
+    <Button disabled={!done || busy} onClick={finish} className="mt-4 w-full rounded-md bg-primary py-3 font-bold text-primary-foreground disabled:opacity-40">{busy ? 'Finalizando…' : 'Finalizar venda (Enter)'}</Button>
   </ModalShell>
 }
 
@@ -478,7 +498,7 @@ function SuspendedModal({ session, onClose, onPick }: { session: any; onClose: (
     {rows.map((s) => { const its = s.draft?.items || []; const t = its.reduce((a: number, i: Item) => a + i.unit_price * i.quantity - i.discount, 0)
       return <div key={s.id} className="mb-2 flex items-center justify-between rounded border border-border p-2 text-sm">
         <span>{new Date(s.created_at).toLocaleTimeString('pt-BR')} · {its.length} itens · {brl(t)}</span>
-        <span className="flex gap-2"><button className="rounded bg-primary px-2 py-1 text-primary-foreground" onClick={() => onPick(s)}>Recuperar</button><button className="text-destructive" onClick={async () => { const { error } = await db.rpc('pos_discard_suspended', { p_sale: s.id }); if (error) toast.error(errMsg(error)); load() }}>Descartar</button></span>
+        <span className="flex gap-2"><Button className="rounded bg-primary px-2 py-1 text-primary-foreground" onClick={() => onPick(s)}>Recuperar</Button><Button className="text-destructive" onClick={async () => { const { error } = await db.rpc('pos_discard_suspended', { p_sale: s.id }); if (error) toast.error(errMsg(error)); load() }}>Descartar</Button></span>
       </div> })}
   </ModalShell>
 }
@@ -501,10 +521,10 @@ function MovementModal({ session, requirePin, onClose }: { session: any; require
     toast.success('Movimentação registrada'); onClose()
   }
   return <ModalShell title="Movimentação de caixa" onClose={onClose}>
-    <div className="mb-3 grid grid-cols-2 gap-2">{[['sangria', 'Sangria'], ['suprimento', 'Suprimento'], ['retirada', 'Retirada autorizada'], ['reforco', 'Reforço de troco']].map(([k, l]) => <button key={k} onClick={() => setType(k)} className={`rounded border p-2 text-sm ${type === k ? 'border-primary bg-primary/10' : 'border-border'}`}>{l}</button>)}</div>
+    <div className="mb-3 grid grid-cols-2 gap-2">{[['sangria', 'Sangria'], ['suprimento', 'Suprimento'], ['retirada', 'Retirada autorizada'], ['reforco', 'Reforço de troco']].map(([k, l]) => <Button key={k} onClick={() => setType(k)} className={`rounded border p-2 text-sm ${type === k ? 'border-primary bg-primary/10' : 'border-border'}`}>{l}</Button>)}</div>
     <input autoFocus value={v} onChange={(e) => setV(e.target.value)} placeholder="Valor (R$)" className="mb-2 w-full rounded-md border border-input bg-background p-2" />
     <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motivo" className="mb-3 w-full rounded-md border border-input bg-background p-2" />
-    <button disabled={busy} onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Registrar</button>
+    <Button disabled={busy} onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Registrar</Button>
   </ModalShell>
 }
 
@@ -536,8 +556,8 @@ function CloseModal({ session, onClose, onClosed }: { session: any; onClose: () 
     {!result ? <>
       <input autoFocus value={counted} onChange={(e) => setCounted(e.target.value)} placeholder="Dinheiro contado na gaveta (R$)" className="mb-2 w-full rounded-md border border-input bg-background p-2" />
       <textarea value={just} onChange={(e) => setJust(e.target.value)} placeholder="Justificativa (obrigatória se houver divergência)" className="mb-3 w-full rounded-md border border-input bg-background p-2" />
-      <button disabled={busy} onClick={close} className="w-full rounded-md bg-destructive py-2 text-destructive-foreground">Confirmar fechamento</button>
-    </> : <div className="flex gap-2"><button onClick={() => window.print()} className="flex-1 rounded-md border border-border py-2">Imprimir relatório</button><button onClick={onClosed} className="flex-1 rounded-md bg-primary py-2 text-primary-foreground">Concluir</button></div>}
+      <Button disabled={busy} onClick={close} className="w-full rounded-md bg-destructive py-2 text-destructive-foreground">Confirmar fechamento</Button>
+    </> : <div className="flex gap-2"><Button onClick={() => window.print()} className="flex-1 rounded-md border border-border py-2">Imprimir relatório</Button><Button onClick={onClosed} className="flex-1 rounded-md bg-primary py-2 text-primary-foreground">Concluir</Button></div>}
   </ModalShell>
 }
 
@@ -553,7 +573,7 @@ function BarcodeModal({ onClose }: { onClose: () => void }) {
   return <ModalShell title={`Código de barras — ${product.name}`} onClose={onClose}>
     <p className="mb-2 text-sm text-muted-foreground">Atual: {product.barcode || 'nenhum'}. Bipe o produto agora.</p>
     <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && save()} className="mb-3 w-full rounded-md border border-input bg-background p-2 font-mono text-lg" />
-    <button onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Salvar e vincular próximo</button>
+    <Button onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Salvar e vincular próximo</Button>
   </ModalShell>
 }
 
@@ -563,7 +583,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   return <ModalShell title="Configurações do caixa" onClose={onClose}>
     <label className="mb-1 block text-sm font-medium">Novo PIN de supervisor (mín. 4 dígitos)</label>
     <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPinV(e.target.value)} className="mb-3 w-full rounded-md border border-input bg-background p-2" />
-    <button onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Salvar PIN</button>
+    <Button onClick={save} className="w-full rounded-md bg-primary py-2 text-primary-foreground">Salvar PIN</Button>
     <p className="mt-3 text-xs text-muted-foreground">Usado para autorizar descontos, cancelamento de itens, redução de quantidade e sangrias por operadores comuns. Administradores são autorizados automaticamente.</p>
   </ModalShell>
 }
@@ -583,6 +603,6 @@ function ReceiptModal({ r, onClose }: { r: any; onClose: () => void }) {
     <p className="mb-1 text-3xl font-black">{brl(r.total)}</p>
     <p className="mb-1 text-lg">Troco: <b>{brl(r.change)}</b></p>
     <p className="mb-4 text-xs text-muted-foreground">Documento fiscal: não emitido (cupom não fiscal).{r.duplicate ? ' Esta venda já havia sido registrada — nada foi cobrado em dobro.' : ''}</p>
-    <div className="flex gap-2"><button onClick={print} className="flex-1 rounded-md border border-border py-2">Imprimir cupom</button><button autoFocus onClick={onClose} className="flex-1 rounded-md bg-primary py-2 text-primary-foreground">Próxima venda (Enter)</button></div>
+    <div className="flex gap-2"><Button onClick={print} className="flex-1 rounded-md border border-border py-2">Imprimir cupom</Button><Button autoFocus onClick={onClose} className="flex-1 rounded-md bg-primary py-2 text-primary-foreground">Próxima venda (Enter)</Button></div>
   </ModalShell>
 }
