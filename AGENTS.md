@@ -1,1 +1,2 @@
 - PDV (/pdv) and back office (/retaguarda): all money/stock/product-admin writes go through SECURITY DEFINER `pos_*` SQL functions that recompute prices from `products`; sales are idempotent by `client_id`. Why: totals must be validated server-side and closed sessions/sales are never edited, only compensated.
+- POS identity and clock are shared presentation components, and POS colors are scoped semantic tokens in global CSS. Why: keep store branding consistent without changing storefront themes or transaction behavior.
